@@ -11,17 +11,21 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to the data</a>
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to the data</a>
 
     <header>
-      <h1>nearmiss — where the danger actually is</h1>
-      <p class="lede">
+      <div class="lang-switch" role="group" aria-label="Language / Idioma">
+        <button type="button" data-lang="en" aria-pressed="true">English</button>
+        <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      </div>
+      <h1 data-i18n="h1">nearmiss — where the danger actually is</h1>
+      <p class="lede" data-i18n="lede">
         Road-hazard and near-miss <strong>rates, normalized by exposure</strong>, each with a
         95% confidence interval and an <em>n</em>. Raw counts are report volume, not danger.
         The <a href="#data-table">data table</a> below carries every finding and is the
         authoritative, non-visual equivalent of the map.
       </p>
-      <p class="demo-note">
+      <p class="demo-note" data-i18n="demo">
         ⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not
         real reports.
       </p>
@@ -29,8 +33,8 @@
 
     <main id="main">
       <section aria-labelledby="map-heading">
-        <h2 id="map-heading">Map</h2>
-        <p id="map-desc">
+        <h2 id="map-heading" data-i18n="map_h">Map</h2>
+        <p id="map-desc" data-i18n="map_desc">
           A schematic map of street segments. Significant hotspots are drawn thicker and
           dashed and are labeled in text; nothing here is conveyed by color alone. The map is
           supplementary — the same information is in the
@@ -49,39 +53,37 @@
       </section>
 
       <section aria-labelledby="data-heading">
-        <h2 id="data-heading">Ranked segments</h2>
-        <p>
+        <h2 id="data-heading" data-i18n="data_h">Ranked segments</h2>
+        <p data-i18n="sort_help">
           Sort the table with the column buttons. <strong>Significance</strong> and
           <strong>confidence</strong> are stated in words, not by color.
         </p>
         <p id="sort-status" class="visually-hidden" aria-live="polite"></p>
         <div class="table-wrap" tabindex="0" role="region" aria-label="Ranked segments table (scrollable)">
           <table id="data-table">
-            <caption id="data-caption">
-              Exposure-normalized hazard rates by segment. Loading…
-            </caption>
+            <caption id="data-caption">Loading…</caption>
             <thead>
               <tr>
                 <th scope="col">
-                  <button type="button" data-sort="name">Segment</button>
+                  <button type="button" data-sort="name" data-i18n="th_segment">Segment</button>
                 </th>
                 <th scope="col">
-                  <button type="button" data-sort="rate">Rate /1000</button>
+                  <button type="button" data-sort="rate" data-i18n="th_rate">Rate /1000</button>
                 </th>
-                <th scope="col">95% CI</th>
+                <th scope="col" data-i18n="th_ci">95% CI</th>
                 <th scope="col">
-                  <button type="button" data-sort="n">Reports (n)</button>
+                  <button type="button" data-sort="n" data-i18n="th_n">Reports (n)</button>
                 </th>
-                <th scope="col">Confidence</th>
+                <th scope="col" data-i18n="th_conf">Confidence</th>
                 <th scope="col">
-                  <button type="button" data-sort="getis_ord_z">Hotspot (Gi*)</button>
+                  <button type="button" data-sort="getis_ord_z" data-i18n="th_hot">Hotspot (Gi*)</button>
                 </th>
-                <th scope="col">Quality flags</th>
+                <th scope="col" data-i18n="th_flags">Quality flags</th>
               </tr>
             </thead>
             <tbody id="data-body">
               <tr>
-                <td colspan="7">Loading published data…</td>
+                <td colspan="7" data-i18n="loading">Loading published data…</td>
               </tr>
             </tbody>
           </table>
@@ -89,8 +91,8 @@
       </section>
 
       <section aria-labelledby="legend-heading">
-        <h2 id="legend-heading">How to read this</h2>
-        <ul>
+        <h2 id="legend-heading" data-i18n="legend_h">How to read this</h2>
+        <ul data-i18n="legend">
           <li><strong>Rate /1000</strong> — reports per 1000 units of exposure, not a raw count.</li>
           <li><strong>95% CI</strong> — the plausible range. A wide range means uncertainty.</li>
           <li>
@@ -106,7 +108,7 @@
     </main>
 
     <footer>
-      <p>
+      <p data-i18n="footer">
         Open data, Apache-2.0. Methods: <code>docs/METHODOLOGY.md</code>; limits and biases:
         <code>docs/DATA-CARD.md</code>. Every figure regenerates with <code>make reproduce</code>.
       </p>

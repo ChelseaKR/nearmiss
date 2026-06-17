@@ -41,6 +41,31 @@ h1 {
   max-width: 48rem;
 }
 
+.lang-switch {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.lang-switch button {
+  font: inherit;
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  min-height: 24px;
+  min-width: 24px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--accent);
+  border-radius: 4px;
+}
+
+.lang-switch button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+}
+
 .demo-note {
   background: #fff4e5;
   border: 1px solid #8a4b00;
