@@ -13,6 +13,9 @@
 [![WCAG 2.2 AA](https://img.shields.io/badge/accessibility-WCAG%202.2%20AA-success.svg)](docs/ACCESSIBILITY.md)
 [![Conventional Commits](https://img.shields.io/badge/commits-conventional-fe5196.svg)](https://www.conventionalcommits.org/)
 [![Cite this](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
+[![Live demo](https://img.shields.io/badge/live-demo-success.svg)](https://chelseakr.github.io/nearmiss/web/index.html)
+
+**Live demo (accessible map + data view):** <https://chelseakr.github.io/nearmiss/web/index.html>
 
 </div>
 
