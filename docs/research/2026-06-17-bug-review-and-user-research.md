@@ -218,6 +218,23 @@ geocoder adapter, so address-only reports are hard-rejected.
 
 ## Part 4 — Prioritized recommendations and status
 
+> **Update — remediation round (2026-06-17): every finding below is now
+> addressed.** All 22 code findings and all medium-priority and roadmap items
+> from the panel were implemented and verified (52 tests pass; ruff + mypy
+> `--strict` clean; `make demo`/`reproduce` green). Specifically, since the first
+> pass: address-only intake + an offline geocoder (Fatima); a `language` field and
+> a bilingual English/Spanish brief + report form (Rosa); a self-describing
+> embedded `metadata` member + a hashed `requirements.lock` + `getis_ord_significant`
+> field reconciliation (Lin, Alex); a plain-language glossary, bottom-line sentence,
+> exposure unit, and bias counterweight in the brief, plus real Davis street names
+> (Sam, Jordan); a sticky table column + `aria-live` sort + an automated axe-core
+> CI run (Kenji, Darnell); a loud error on exposure↔segment id mismatch and an
+> "adapt to your city" guide (Fatima); a "what happens next" + privacy note on the
+> report form (Maria); and Makefile Python-version/gitleaks guards (Alex). The only
+> items intentionally left as honest, documented roadmap are a **networked**
+> geocoder adapter (the offline gazetteer ships) and the **manual NVDA/VoiceOver**
+> accessibility audit (automated axe + structural gates ship).
+
 ### Done in this pass
 
 - All three privacy leaks (P1–P3) and all 22 code findings fixed; FDR, k-anonymity,
