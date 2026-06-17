@@ -1,0 +1,100 @@
+# nearmiss — project metadata and tooling configuration.
+# Single source of truth for build, dependencies, and the lint/type/test gates.
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nearmiss"
+version = "0.1.0"
+description = "An open dataset and statistically honest analysis of road hazards and near misses for safe-streets advocacy."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Chelsea Kelly-Reif" }]
+keywords = [
+  "road safety",
+  "near miss",
+  "cycling",
+  "pedestrian safety",
+  "open data",
+  "spatial statistics",
+  "getis-ord",
+  "exposure normalization",
+  "advocacy",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: GIS",
+  "Typing :: Typed",
+]
+
+# Core runtime dependencies are intentionally minimal and swappable behind interfaces.
+# Versions are pinned and hashed in the generated lock file used for reproducible runs.
+dependencies = [
+  "jsonschema>=4.21",
+  "numpy>=1.26",
+  "shapely>=2.0",
+  "pyproj>=3.6",
+  "click>=8.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=4.1",
+  "ruff>=0.4",
+  "mypy>=1.10",
+  "pip-audit>=2.7",
+  "pre-commit>=3.7",
+]
+
+[project.urls]
+Homepage = "https://github.com/ChelseaKR/nearmiss"
+Repository = "https://github.com/ChelseaKR/nearmiss"
+Changelog = "https://github.com/ChelseaKR/nearmiss/blob/main/CHANGELOG.md"
+Issues = "https://github.com/ChelseaKR/nearmiss/issues"
+Methodology = "https://github.com/ChelseaKR/nearmiss/blob/main/docs/METHODOLOGY.md"
+
+[project.scripts]
+nearmiss = "nearmiss.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nearmiss"]
+
+# ---------------------------------------------------------------------------
+# Lint — ruff (style + a broad rule set). Part of `make verify`.
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "PTH", "RUF"]
+
+# ---------------------------------------------------------------------------
+# Types — mypy strict. A typed, analyzable codebase. Part of `make verify`.
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+no_implicit_reexport = true
+files = ["src", "tests"]
+
+# ---------------------------------------------------------------------------
+# Tests — pytest. Deterministic, against known-answer fixtures.
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+xfail_strict = true

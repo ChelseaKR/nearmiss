@@ -1,0 +1,28 @@
+nearmiss
+Copyright 2026 Chelsea Kelly-Reif
+
+This product is licensed under the Apache License, Version 2.0 (the "License");
+you may not use this product except in compliance with the License. A copy of
+the License is included in the LICENSE file at the root of this repository.
+
+------------------------------------------------------------------------------
+Independence statement
+------------------------------------------------------------------------------
+nearmiss is an independent, personal open-source project. It is not affiliated
+with, sponsored by, or endorsed by any employer, client, city, or public
+agency. It contains no proprietary or client material. It is a community-owned
+evidence base for safe-streets advocacy — not a municipal 311 queue and not a
+complaint inbox for any public-works department.
+
+------------------------------------------------------------------------------
+Data, privacy, and honesty
+------------------------------------------------------------------------------
+Precise raw reports are private and are never published or committed to version
+control. The published open dataset is aggregated and jittered to protect
+contributor privacy (see docs/THREAT-MODEL.md and docs/DATA-CARD.md). Every
+published risk figure is exposure-normalized and carries a confidence interval;
+the reporting bias of the dataset is named, not hidden (see docs/METHODOLOGY.md).
+
+This NOTICE file is provided for attribution under Section 4(d) of the License.
+Attribution notices from within this work are included here. This NOTICE text
+is for informational purposes only and does not modify the License.
