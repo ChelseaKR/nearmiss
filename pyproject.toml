@@ -39,7 +39,7 @@ dependencies = [
   "jsonschema>=4.21",
   "numpy>=1.26",
   "shapely>=2.0",
-  "pyproj>=3.6",
+  "pyproj>=3.7.2",
   "click>=8.1",
 ]
 
