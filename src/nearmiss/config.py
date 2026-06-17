@@ -1,0 +1,92 @@
+"""Configuration as data, not code.
+
+Cities, input paths, output paths, and every threshold (snap distance, dedupe
+window, small-sample cutoff, Getis-Ord distance band, KDE bandwidth, the rate
+denominator, the confidence level) live in one checked-in config file. Pointing
+nearmiss at a new city is a new config plus an exposure layer — no code change
+(administrability / adaptability / configurability).
+"""
+
+from __future__ import annotations
+
+import json
+import tomllib
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from .errors import ConfigError
+
+
+@dataclass(frozen=True)
+class Config:
+    city: str
+    streets_path: Path
+    reports_path: Path
+    exposure_path: Path
+    raw_dir: Path
+    out_dir: Path
+    ref_lat: float | None = None
+    ref_lon: float | None = None
+    # Thresholds (all tunable per city; documented in docs/METHODOLOGY.md).
+    snap_max_m: float = 25.0
+    dedupe_window_s: int = 600
+    dedupe_distance_m: float = 15.0
+    small_n: int = 5
+    rate_per: float = 1000.0
+    confidence_z: float = 1.96
+    gi_band_m: float = 300.0
+    kde_bandwidth_m: float = 150.0
+    kde_grid: int = 24
+    raw: dict[str, object] = field(default_factory=dict)
+
+
+def _resolve(base: Path, value: str) -> Path:
+    p = Path(value)
+    return p if p.is_absolute() else (base / p).resolve()
+
+
+def load_config(path: str | Path) -> Config:
+    """Load a TOML (or JSON) config. Paths resolve relative to the config file."""
+    cfg_path = Path(path)
+    if not cfg_path.is_file():
+        raise ConfigError(f"config file not found: {cfg_path}")
+    base = cfg_path.parent
+    try:
+        if cfg_path.suffix == ".json":
+            data: dict[str, object] = json.loads(cfg_path.read_text(encoding="utf-8"))
+        else:
+            data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    except (tomllib.TOMLDecodeError, json.JSONDecodeError) as exc:
+        raise ConfigError(f"invalid config {cfg_path}: {exc}") from exc
+
+    def need(key: str) -> str:
+        if key not in data:
+            raise ConfigError(f"config {cfg_path} missing required key: {key}")
+        return str(data[key])
+
+    th = data.get("thresholds", {})
+    th = th if isinstance(th, dict) else {}
+
+    def thr(key: str, default: float) -> float:
+        return float(th.get(key, default))
+
+    return Config(
+        city=need("city"),
+        streets_path=_resolve(base, need("streets")),
+        reports_path=_resolve(base, need("reports")),
+        exposure_path=_resolve(base, need("exposure")),
+        raw_dir=_resolve(base, str(data.get("raw_dir", "data/raw"))),
+        out_dir=_resolve(base, str(data.get("out_dir", "data/published"))),
+        ref_lat=(float(data["ref_lat"]) if "ref_lat" in data else None),  # type: ignore[arg-type]
+        ref_lon=(float(data["ref_lon"]) if "ref_lon" in data else None),  # type: ignore[arg-type]
+        snap_max_m=thr("snap_max_m", 25.0),
+        dedupe_window_s=int(thr("dedupe_window_s", 600)),
+        dedupe_distance_m=thr("dedupe_distance_m", 15.0),
+        small_n=int(thr("small_n", 5)),
+        rate_per=thr("rate_per", 1000.0),
+        confidence_z=thr("confidence_z", 1.96),
+        gi_band_m=thr("gi_band_m", 300.0),
+        kde_bandwidth_m=thr("kde_bandwidth_m", 150.0),
+        kde_grid=int(thr("kde_grid", 24)),
+        raw=data,
+    )

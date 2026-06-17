@@ -33,14 +33,12 @@ classifiers = [
   "Typing :: Typed",
 ]
 
-# Core runtime dependencies are intentionally minimal and swappable behind interfaces.
+# Core runtime dependency is intentionally minimal: only a JSON Schema validator.
+# The geometry and statistics are pure, typed standard-library Python, so the
+# analysis runs anywhere Python 3.11+ runs, with no native/geospatial build step.
 # Versions are pinned and hashed in the generated lock file used for reproducible runs.
 dependencies = [
   "jsonschema>=4.21",
-  "numpy>=1.26",
-  "shapely>=2.0",
-  "pyproj>=3.6",
-  "click>=8.1",
 ]
 
 [project.optional-dependencies]
@@ -89,6 +87,11 @@ warn_unused_ignores = true
 disallow_any_generics = true
 no_implicit_reexport = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# jsonschema ships limited inline types; treat its imports as untyped here.
+module = ["jsonschema", "jsonschema.*"]
+ignore_missing_imports = true
 
 # ---------------------------------------------------------------------------
 # Tests — pytest. Deterministic, against known-answer fixtures.
