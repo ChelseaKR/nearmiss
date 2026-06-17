@@ -374,7 +374,7 @@ plain language for a city-council audience.
 
 **Accessibility** — a structural accessibility gate ([`tools/a11y_check.py`](tools/a11y_check.py)) runs
 in `make verify`, an automated `axe-core` run (jsdom) runs in CI via `make axe`
-([`tools/axe_check.mjs`](tools/axe_check.mjs)), and the web view ships an authoritative sortable data
+([`web/axe_check.mjs`](web/axe_check.mjs)), and the web view ships an authoritative sortable data
 table carrying the same ranked locations and intervals as the supplementary map — its segment-name
 column is sticky (usable at 200% zoom) and column sorts announce through an `aria-live` region. The
 manual NVDA/VoiceOver screen-reader pass that complements these automated checks is still a conformance

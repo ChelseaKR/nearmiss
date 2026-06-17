@@ -518,7 +518,7 @@ ways this kind of data is misused.
   planted-hotspot fixtures, accessibility, security).
 - **Accessibility of the views.** The two views over this dataset (map, table) are checked by a
   structural accessibility gate (`tools/a11y_check.py`) and a real automated axe-core run in
-  jsdom (`make axe`, via `web/package.json` + `tools/axe_check.mjs`). The segment-name table
+  jsdom (`make axe`, via `web/package.json` + `web/axe_check.mjs`). The segment-name table
   column is sticky (usable at 200% zoom) and column sorts announce through an aria-live region.
   Manual NVDA / VoiceOver screen-reader review is **still pending** and is named here as an
   open item, not claimed as done.

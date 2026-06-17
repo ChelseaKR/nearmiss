@@ -10,7 +10,7 @@
 > equivalent; significance and confidence are stated in **text, not color**; it provides a skip link and
 > semantic `<th scope>` headers. Two automated gates now run: the committed **structural** gate
 > (`tools/a11y_check.py`, part of `make verify`) **and** a deeper **axe-core** run in jsdom
-> (`make axe` → `web/package.json` → `tools/axe_check.mjs`), which the current page **passes** with no
+> (`make axe` → `web/package.json` → `web/axe_check.mjs`), which the current page **passes** with no
 > violations. On the strength of that real work, several rows below have moved from *target* toward
 > **Supports** — specifically those genuinely backed by the shipped DOM (the semantic data table for
 > 1.3.1 / 4.1.2, the sticky-column reflow for 1.4.10, and the sort `aria-live` region for the
@@ -82,7 +82,7 @@ fixture data so that the evaluation is reproducible.
   **passes** it. This gate is **structural only**: it confirms the scaffolding is present, not that the
   interface is conformant under assistive technology.
 - **Automated testing — axe-core (in place).** A real automated accessibility run is now wired:
-  `make axe` (`web/package.json` → `tools/axe_check.mjs`) loads the static page in **jsdom** and runs
+  `make axe` (`web/package.json` → `web/axe_check.mjs`) loads the static page in **jsdom** and runs
   **axe-core**, failing on any violation; it also runs in CI. The current page **passes with no
   violations** against the static DOM. This complements the structural gate but, like all automated
   scanning, is **necessary but not sufficient** — it inspects a static DOM in jsdom (no browser, no live
@@ -234,7 +234,7 @@ This Accessibility Conformance Report is provided by the nearmiss maintainer for
 and, at v0.1.0, represents a good-faith record of the conformance work completed to date together with a
 good-faith **target** for the work that remains. The accessible implementation exists and passes two
 committed automated gates — the structural gate (`tools/a11y_check.py`, part of `make verify`) and an
-axe-core run in jsdom (`make axe` → `web/package.json` → `tools/axe_check.mjs`, also run in CI) — with no
+axe-core run in jsdom (`make axe` → `web/package.json` → `web/axe_check.mjs`, also run in CI) — with no
 axe violations on the static DOM. The remaining outstanding evaluation is the **manual NVDA and VoiceOver
 screen-reader review**, which has **not** yet been performed; per-criterion verdicts that depend on it are
 marked *(target)* rather than presented as a record of manual testing. nearmiss is an independent personal

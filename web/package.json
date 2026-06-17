@@ -5,7 +5,7 @@
   "description": "Framework-free accessible map UI for nearmiss.",
   "type": "module",
   "scripts": {
-    "axe": "node ../tools/axe_check.mjs index.html"
+    "axe": "node axe_check.mjs index.html"
   },
   "devDependencies": {
     "axe-core": "^4.12.1",

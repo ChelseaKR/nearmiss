@@ -93,7 +93,9 @@ def _cmd_brief(args: argparse.Namespace) -> int:
     config = load_config(args.config)
     text = render_brief(build_analysis(config), config, args.lang)
     if args.out:
-        Path(args.out).write_text(text, encoding="utf-8")
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text, encoding="utf-8")
         print(f"brief written to {args.out}")
     else:
         print(text)
@@ -108,7 +110,9 @@ def _cmd_run(args: argparse.Namespace) -> int:
     print(f"run [{config.city}]: {len(rows)} reports -> {result.geojson_path}")
     print(f"  sha256: {result.geojson_sha256}")
     if args.out:
-        Path(args.out).write_text(render_brief(bundle, config, args.lang), encoding="utf-8")
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(render_brief(bundle, config, args.lang), encoding="utf-8")
         print(f"  brief:  {args.out}")
     return 0
 
