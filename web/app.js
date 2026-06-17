@@ -27,9 +27,10 @@
         "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not real reports.",
       map_h: "Map",
       map_desc:
-        "A schematic map of street segments. Significant hotspots are drawn thicker and dashed " +
-        "and are labeled in text; nothing here is conveyed by color alone. The map is " +
-        'supplementary — the same information is in the <a href="#data-table">data table</a>.',
+        "A schematic map of the street grid. Gray streets have no reported near-misses; blue " +
+        "streets have reports; the significant hotspot corridor is drawn thicker, red, and dashed. " +
+        "Risk is never conveyed by color alone — every finding is in the " +
+        '<a href="#data-table">data table</a>, which the map supplements.',
       data_h: "Ranked segments",
       sort_help:
         "Sort the table with the column buttons. <strong>Significance</strong> and " +
@@ -55,7 +56,7 @@
       th_hot: "Hotspot (Gi*)",
       th_flags: "Quality flags",
       loading: "Loading published data…",
-      caption: "Exposure-normalized hazard rates by segment ({n} published segments).",
+      caption: "Exposure-normalized hazard rates for the {n} analyzed segments (streets with reports).",
       mapCaption: "{n} street segments. Thicker, dashed lines are significant hotspots.",
       mapEmpty: "No mappable segments.",
       sortStatus: "Table sorted by {col}, {dir}.",
@@ -85,9 +86,10 @@
         "⚠️ Mostrando el conjunto de <strong>demostración sintética de Davis</strong> — datos de prueba, no reportes reales.",
       map_h: "Mapa",
       map_desc:
-        "Un mapa esquemático de segmentos de calle. Los puntos calientes significativos se dibujan más " +
-        "gruesos y discontinuos y se rotulan en texto; nada se transmite solo por color. El mapa es " +
-        'complementario — la misma información está en la <a href="#data-table">tabla de datos</a>.',
+        "Un mapa esquemático de la red de calles. Las calles grises no tienen cuasi-accidentes " +
+        "reportados; las azules sí; el corredor de punto caliente significativo se dibuja más grueso, " +
+        "rojo y discontinuo. El riesgo nunca se transmite solo por color — cada hallazgo está en la " +
+        '<a href="#data-table">tabla de datos</a>, que el mapa complementa.',
       data_h: "Segmentos clasificados",
       sort_help:
         "Ordene la tabla con los botones de columna. La <strong>significancia</strong> y la " +
@@ -113,7 +115,7 @@
       th_hot: "Punto caliente (Gi*)",
       th_flags: "Indicadores de calidad",
       loading: "Cargando datos publicados…",
-      caption: "Tasas de peligro normalizadas por exposición, por segmento ({n} segmentos publicados).",
+      caption: "Tasas normalizadas por exposición de los {n} segmentos analizados (calles con reportes).",
       mapCaption: "{n} segmentos de calle. Las líneas más gruesas y discontinuas son puntos calientes significativos.",
       mapEmpty: "No hay segmentos mapeables.",
       sortStatus: "Tabla ordenada por {col}, {dir}.",
@@ -161,7 +163,13 @@
   function renderTable() {
     var body = document.getElementById("data-body");
     body.textContent = "";
-    rows.forEach(function (p) {
+    // The table is the authoritative DATA view: only analyzed segments (those with
+    // an exposure denominator and a rate). The map's gray context streets carry no
+    // data, so they are not table rows.
+    var dataRows = rows.filter(function (p) {
+      return p.rate !== null && p.rate !== undefined;
+    });
+    dataRows.forEach(function (p) {
       var tr = document.createElement("tr");
       if (p.getis_ord_significant) tr.className = "is-hotspot";
 
@@ -191,7 +199,7 @@
       tr.appendChild(cell("td", flags.length ? flags.join(", ") : t("none")));
       body.appendChild(tr);
     });
-    document.getElementById("data-caption").textContent = tpl(t("caption"), { n: rows.length });
+    document.getElementById("data-caption").textContent = tpl(t("caption"), { n: dataRows.length });
   }
 
   function renderMap() {

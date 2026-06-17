@@ -31,9 +31,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "tests" / "fixtures" / "davis"
 
-# A regular lattice: avenues by longitude (A–E), streets by latitude (1st–5th).
-AVE = ["A", "B", "C", "D", "E"]
-ST = ["1st", "2nd", "3rd", "4th", "5th"]
+# A large regular lattice covering ~1.6 km of downtown: lettered avenues (A–J)
+# run north-south, numbered streets (1st–10th) run east-west. The twelve analyzed
+# blocks sit in the south-west (near campus / the railroad, as Davis's core does);
+# the rest of the grid is published as no-exposure context.
+AVE = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+ST = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"]
 LON = {a: -121.7460 + j * 0.0020 for j, a in enumerate(AVE)}
 LAT = {s: 38.5430 + i * 0.0016 for i, s in enumerate(ST)}
 
