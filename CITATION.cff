@@ -45,3 +45,23 @@ keywords:
   - Getis-Ord
   - exposure normalization
   - advocacy
+preferred-citation:
+  type: dataset
+  title: 'nearmiss: open near-miss and road-hazard dataset'
+  abstract: >-
+    The published nearmiss dataset: aggregated, jittered open data (GeoJSON)
+    plus its data card (docs/DATA-CARD.md), produced by the nearmiss pipeline
+    from validated, deduplicated, geocoded, and segment-snapped hazard reports.
+    Counts are normalized by an exposure estimate and reported as rates with a
+    confidence interval and an n; cite the versioned release and state the
+    exposure source and its date alongside any rate you quote.
+  authors:
+    - given-names: Chelsea
+      family-names: Kelly-Reif
+      alias: ChelseaKR
+  version: 0.1.0
+  date-released: '2026-06-16'
+  license: Apache-2.0
+  url: https://github.com/ChelseaKR/nearmiss
+  repository: https://github.com/ChelseaKR/nearmiss
+  # doi: TODO — assign a DOI (e.g. via Zenodo) for the published dataset release.

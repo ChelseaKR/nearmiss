@@ -81,6 +81,11 @@ is the data and the statistics under it.
 
 ## What it does
 
+> **Report a hazard:** open the hazard-report issue form at
+> [`.github/ISSUE_TEMPLATE/hazard_report.yml`](.github/ISSUE_TEMPLATE/hazard_report.yml) — a close
+> pass, door zone, blind corner, or surface hazard — and it enters intake validated against the
+> [published schema](schema/report.schema.json).
+
 - **Intakes** a hazard or near-miss report — location, time, mode, type (close pass, dooring, surface
   hazard, sightline, signal, debris), severity, and an optional note — through a simple form, an
   import path, or a documented JSON submission, validated against a
@@ -113,9 +118,12 @@ is the data and the statistics under it.
 3. **Reporting bias is named, not hidden.** The analysis states who is likely over- and
    under-represented (route choice, demographics, app access, language) and what that does to the
    conclusions. A finding that could be an artifact of where people report is flagged as such.
-4. **Contributor privacy is protected.** Reports are pseudonymous; exact home-end coordinates are
-   fuzzed before publication; no report is published at a precision that could identify a specific
-   person's routine. The open dataset is aggregated and jittered; raw precise reports stay private.
+4. **Contributor privacy is protected.** Reports are pseudonymous. The open dataset is aggregated to
+   public street segments — the published geometry is the real public street centerline, never a
+   report location — and no per-report coordinate, timestamp, reporter token, note, mode, or severity
+   is ever published. Any segment with a non-zero report count below the minimum-occupancy floor
+   (k-anonymity) is withheld entirely, so no published place can mean "one or two people reported an
+   incident here." Precise raw reports stay private and are never committed.
 5. **Open and reproducible end to end.** The schema, the pipeline, the notebooks, and the published
    GeoJSON are all open, and `make reproduce` regenerates every figure and table in the briefs from
    raw inputs. A claim no one can reproduce is not published.
@@ -167,32 +175,35 @@ python -m pip install --require-hashes -r requirements.lock
 ```
 
 A container image and a one-command serverless intake deploy are described in
-[`infra/`](infra/). Configuration — cities, exposure sources, thresholds, and jitter — lives in
-versioned files under [`src/nearmiss/config.py`](src/nearmiss) and city config, never in code.
+[`infra/`](infra/). Configuration — cities, exposure sources, thresholds, and the minimum-occupancy
+floor — lives in versioned files under [`src/nearmiss/config.py`](src/nearmiss) and city config, never
+in code.
 
 ## Usage
 
 ```bash
+# Canonical end-to-end run: intake -> pipeline -> analyze -> publish -> brief
+make demo                                                   # equivalent to the line below
+nearmiss run --config config/davis-demo.toml                # the full pipeline on the Davis demo
+
 # Validate and intake reports (form export, import file, or documented JSON)
-nearmiss intake path/to/reports.json        # validated against schema/report.schema.json
+nearmiss intake reports.json --config config/davis-demo.toml   # validated against schema/report.schema.json
+                                                               # (source is optional; defaults to the config)
 
 # Run the documented pipeline: dedupe -> geocode -> snap -> classify -> quality-flag
-nearmiss pipeline --city davis
+nearmiss pipeline --config config/davis-demo.toml [--dump]  # --dump prints the intermediate clean records
 
 # Attach exposure denominators and compute exposure-normalized rates with intervals
-nearmiss analyze --city davis               # rates + CIs + bias report + KDE + Getis-Ord Gi*
+nearmiss analyze --config config/davis-demo.toml            # rates + CIs + bias report + KDE + Getis-Ord Gi*
 
-# Publish the open GeoJSON and the aggregated, jittered public dataset + data card
-make publish
+# Publish the open GeoJSON aggregated to public street segments + data card
+nearmiss publish --config config/davis-demo.toml
 
 # Regenerate every figure and table in the briefs from raw inputs (the reproducibility proof)
 make reproduce
 
 # Serve the accessible map with its equivalent sortable list/table view (read-only)
 nearmiss serve                              # WCAG 2.2 AA; data view is the non-visual equivalent
-
-# Dump intermediate datasets at any stage for inspection/debugging
-nearmiss pipeline --city davis --dump
 ```
 
 Every published number can be traced from a brief figure back through a notebook cell, a statistic, a
@@ -215,7 +226,7 @@ nearmiss/
 │   ├── pipeline/                  # dedupe.py, geocode.py, snap.py, classify.py, quality.py
 │   ├── exposure.py                # denominator layers: counts, demand model, exposure imports
 │   ├── stats/                     # rates.py (CIs), bias.py, kde.py, getis_ord.py
-│   ├── publish.py                 # build open GeoJSON + aggregated, jittered public dataset
+│   ├── publish.py                 # build open GeoJSON aggregated to public street segments
 │   ├── brief.py                   # generate advocacy briefs (ranked locations, intervals, prose)
 │   ├── server.py                  # accessible map + equivalent data table; read-only
 │   └── config.py                  # cities, exposure sources, thresholds as versioned files
@@ -236,10 +247,10 @@ store. The pipeline is a sequence of pure, recorded transforms (dedupe, geocode,
 classify, quality-flag) producing a clean internal dataset. The statistics layer is where the value
 is: `exposure.py` attaches denominators, `rates.py` computes rates with confidence intervals,
 `bias.py` characterizes and reports the reporting bias, and `kde.py`/`getis_ord.py` produce the
-hotspot surfaces and significant clusters. `publish.py` emits the open GeoJSON and an aggregated,
-jittered public dataset; `brief.py` turns the results into advocacy outputs. The map server reads only
-published artifacts and always ships an equivalent table. Nothing in the public path exposes a precise
-raw report.
+hotspot surfaces and significant clusters. `publish.py` aggregates to public street segments and emits
+the open GeoJSON, withholding any segment whose non-zero report count falls below the minimum-occupancy
+floor; `brief.py` turns the results into advocacy outputs. The map server reads only published artifacts
+and always ships an equivalent table. Nothing in the public path exposes a precise raw report.
 
 ## The analysis engine (the actual product)
 
@@ -280,8 +291,9 @@ dies on statistical honesty, reproducibility, and trust, so those clusters carry
 
 **Correctness** and **accuracy** — rates are computed against exposure, not raw counts, and tested
 against synthetic fixtures with known answers. **Precision** and **fidelity** — every rate carries an
-n and an interval; coordinates and segments are preserved without lossy rounding before the deliberate
-publish-time jitter. **Determinability** and **predictability** — seeded pipelines and analyses yield
+n and an interval; internal coordinates and segments are preserved without lossy rounding, while the
+published unit is the public street segment, not a precise point. **Determinability** and
+**predictability** — seeded pipelines and analyses yield
 the same dataset and figures every run. **Repeatability** and **reproducibility** — `make reproduce`
 regenerates every brief figure and table from raw inputs; notebooks are deterministic. **Provability**
 — each published number records its method, exposure source, and threshold. **Traceability** — a
@@ -309,11 +321,13 @@ can mirror, fork, or redistribute; nothing is bound to one locale or host.
 
 ### Privacy, security, accountability
 
-**Confidentiality** — precise raw reports stay private; the public dataset is aggregated and jittered;
-home-end coordinates are fuzzed. **Securability** — secrets via env, never committed; intake validates
+**Confidentiality** — precise raw reports stay private; the public dataset is aggregated to public
+street segments, and no per-report coordinate, timestamp, reporter token, note, mode, or severity is
+ever published. **Securability** — secrets via env, never committed; intake validates
 and rate-limits to resist spam and poisoning. **Integrity** (data) — schema validation at intake and
-hashed published artifacts make tampering detectable. **Safety** — no report is published at a
-precision that could expose a person's routine; this is tested against the published dataset.
+hashed published artifacts make tampering detectable. **Safety** — no published place can mean "one or
+two people reported an incident here": segments with a non-zero report count below the minimum-occupancy
+floor are withheld entirely, enforced by `assert_published_clean` and covered by the test suite.
 **Autonomy** — the dataset is community-owned and openly licensed, so advocates are not dependent on a
 city's data portal. **Vulnerability** management — pip-audit, gitleaks, CodeQL configured in CI;
 dependencies installed via `pip install -e ".[dev]"`, with a generated hashed `requirements.lock`
@@ -342,9 +356,10 @@ still a conformance target.
 the report form asks plain questions. **Interactivity** and **responsiveness** — the map filters and
 the table sort quickly on published data. **Discoverability** — the data card, schema, and notebooks
 are linked from the first screen. **Seamlessness** — map and table are two views of one published
-artifact. **Localizability** — interface and form strings in per-language bundles; the report form is
-bilingual where the community is. **Mobility** and **ubiquity** — mobile-first reporting, because
-hazards are reported from the roadside.
+artifact. **Localizability** — a design goal, not yet delivered: today the report form and all outputs
+are English-only and the report schema has no language field; per-language interface and form-string
+bundles, and a bilingual report form where the community is, are planned. **Mobility** and **ubiquity**
+— mobile-first reporting, because hazards are reported from the roadside.
 
 ### Performance, scale, cost
 
@@ -369,8 +384,8 @@ plain data between stages; no hidden state. **Reusability** — the exposure-nor
 code are usable on any point dataset. **Analyzability** — typed, documented, with a methodology doc.
 **Configurability**, **customizability**, **tailorability** — config-over-code is implemented:
 [`config/davis-demo.toml`](config/davis-demo.toml), loaded by
-[`src/nearmiss/config.py`](src/nearmiss/config.py), controls cities, paths, thresholds, and jitter
-without touching code. **Upgradability** — a documented dependency bump path; versioned schemas with
+[`src/nearmiss/config.py`](src/nearmiss/config.py), controls cities, paths, thresholds, and the
+minimum-occupancy floor without touching code. **Upgradability** — a documented dependency bump path; versioned schemas with
 migrations.
 
 ### Reliability, resilience, safety of the pipeline
@@ -397,8 +412,8 @@ implemented; [`src/nearmiss/config.py`](src/nearmiss/config.py) loads
 coded. **Observability** — structured
 logs and metrics on intake and each pipeline stage; rebuilds report coverage and quality-flag counts.
 **Debuggability** — the figure → notebook → statistic → dataset → raw trace is defined in
-[`docs/METHODOLOGY.md`](docs/METHODOLOGY.md), and `nearmiss pipeline --dump` emits the intermediate
-clean records for inspection. **Serviceability / supportability** — issue templates and a "paste this to reproduce" path.
+[`docs/METHODOLOGY.md`](docs/METHODOLOGY.md), and `nearmiss pipeline --config <cfg> --dump` emits the
+intermediate clean records for inspection. **Serviceability / supportability** — issue templates and a "paste this to reproduce" path.
 **Deployability** and **installability** — `pipx install`, a container image, one-command serverless
 deploy. **Repairability** — most fixes are data or threshold edits, recorded and re-run. **Agility** —
 CI smoke suite on every PR. **Autonomy** (operational), **self-sustainability**, **sustainability** —
@@ -442,12 +457,21 @@ lands in front of a city. Full statement: [`docs/ACCESSIBILITY.md`](docs/ACCESSI
 ## Data, privacy, and ethics
 
 Contributor privacy is treated as a **security property**, not a nicety. Precise raw reports are
-private and never committed (`data/raw/` is gitignored); the open dataset is aggregated and jittered,
-and home-end coordinates are fuzzed, so no individual's routine can be reconstructed from what is
-published. The full reasoning, adversaries, mitigations, and honest residual risk are in
-[`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md); what the published dataset contains, what it omits, and
-its known biases and limits are in [`docs/DATA-CARD.md`](docs/DATA-CARD.md). If you believe a published
-artifact leaks identifying precision, treat it as a security issue and follow [`SECURITY.md`](SECURITY.md).
+private and never committed (`data/raw/` is gitignored). The open dataset is aggregated to public street
+segments — the published geometry is the real public street centerline, never a report location — and
+no per-report coordinate, timestamp, reporter token, note, mode, severity, or heading is ever published;
+an allowlist in `publish` and a denylist invariant in `assert_published_clean` (with
+`assert_metadata_clean` for the sidecar metadata) enforce this and raise rather than emit a leaky file.
+Any segment with a non-zero report count below the minimum-occupancy floor (`min_publish_n`, default 3)
+is withheld entirely from the GeoJSON, the metadata, and the brief (k-anonymity), so no published place
+can mean "one or two people reported an incident here"; small-sample hazard breakdowns are suppressed,
+and the KDE report-intensity peak is reported only as a segment id, never a coordinate. A residual risk
+remains — a repeat contributor could in principle be linked across several segments — and aggregation
+plus withholding reduce but do not erase it. The full reasoning, adversaries, mitigations, and honest
+residual risk are in [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md); what the published dataset
+contains, what it omits, and its known biases and limits are in [`docs/DATA-CARD.md`](docs/DATA-CARD.md).
+If you believe a published artifact leaks identifying precision, treat it as a security issue and follow
+[`SECURITY.md`](SECURITY.md).
 
 ## Repository layout
 
@@ -471,9 +495,9 @@ artifact leaks identifying precision, treat it as a security issue and follow [`
 - **Phase 2 — exposure and honest statistics.** `exposure.py` denominators; rates with confidence
   intervals; `bias.py` reporting-bias characterization; `kde.py` and `getis_ord.py` hotspots, all
   tested against fixtures with known answers. Commit a baseline analysis, caveats included.
-- **Phase 3 — publish and advocate.** Open GeoJSON aligned to the documented schema; aggregated,
-  jittered public dataset with a data card; reproducible notebooks; advocacy briefs; the accessible
-  map with list/table equivalent, deployed behind a real URL.
+- **Phase 3 — publish and advocate.** Open GeoJSON aligned to the documented schema; a public dataset
+  aggregated to public street segments, withholding low-count segments, with a data card; reproducible
+  notebooks; advocacy briefs; the accessible map with list/table equivalent, deployed behind a real URL.
 - **Phase 4 — generalize.** A config so any city's reports and exposure layers can be added; an "adapt
   this to your city" guide; optional import paths for existing community report sets.
 

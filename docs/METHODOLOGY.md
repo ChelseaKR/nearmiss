@@ -180,13 +180,16 @@ realization of a count process with mean `theta_s * E_s`. The working assumption
 (`y_s ~ Poisson(theta_s * E_s)`), which is the right default for counts of rare events over an
 exposure base and which gives us principled small-count intervals (Section 5).
 
-**Overdispersion is expected and checked.** Real report counts are usually *more* variable than
-Poisson because reporting clusters — one viral post, one active local group, one bad week drives a
-burst of correlated reports. When the pooled data show overdispersion (variance > mean, formally a
-dispersion statistic materially above 1), we widen intervals using a quasi-Poisson / negative-binomial
-treatment rather than pretending the counts are cleanly Poisson. Reporting a too-narrow interval
-because we assumed Poisson on overdispersed data would violate Hard Rule 2 in spirit while obeying
-it in letter; the dispersion check exists to prevent that.
+**Overdispersion is expected — and an explicit check is PLANNED, not yet implemented.** Real report
+counts are usually *more* variable than Poisson because reporting clusters — one viral post, one
+active local group, one bad week drives a burst of correlated reports. The intended behavior is:
+when the pooled data show overdispersion (variance > mean, formally a dispersion statistic materially
+above 1), widen intervals using a quasi-Poisson / negative-binomial treatment rather than pretending
+the counts are cleanly Poisson. **This dispersion check is not implemented today** — the current code
+computes the Poisson-based interval (Section 5.2) without switching to a quasi-Poisson or
+negative-binomial model. Until the check lands, intervals on clustered report counts may be narrower
+than overdispersion would warrant; this is a known gap, flagged here rather than hidden, and is
+tracked as future work.
 
 Rates are compared on the **same exposure unit and window** or not compared at all. A rate built
 on observed counts and a rate built on a fitness-app proxy are different measurements; the
@@ -217,26 +220,31 @@ published rates.** It is acceptable only as a clearly-labeled teaching contrast 
 For the rate `theta_s = y_s / E_s` with `y_s` a Poisson count and `E_s` a known exposure offset,
 the interval comes from the count, then is divided by the offset:
 
-- **Exact (Garwood) Poisson interval** via the chi-square relationship — the default, used
-  whenever a guaranteed-coverage interval is wanted, including when `y_s = 0`:
+- **Byar's approximation to the Poisson interval** — the implemented default (`stats/rates.py`,
+  `poisson_ci`), a closed-form approximation that stays well behaved all the way down to count 0
+  and is used whenever a small-count interval is wanted, including when `y_s = 0`:
 
   ```
-  lower(y) = 0.5 * chi2_inv(alpha/2,   2*y)        # 0 when y = 0
-  upper(y) = 0.5 * chi2_inv(1-alpha/2, 2*y + 2)
+  lower(y) = y * (1 - 1/(9*y) - z/(3*sqrt(y)))**3                 # 0 when y = 0
+  upper(y) = (y + 1) * (1 - 1/(9*(y+1)) + z/(3*sqrt(y+1)))**3     # z = z_(1-alpha/2)
   CI(theta_s) = [ lower(y_s) / E_s , upper(y_s) / E_s ]
   ```
 
-  This never returns a negative lower bound, handles `y_s = 0` correctly (lower bound 0, finite
-  upper bound — "we have no reports here, but here is how high the true rate could still plausibly
-  be"), and has guaranteed >= nominal coverage. It is slightly conservative (intervals a touch
-  wider than strictly necessary), which is the right direction to err for an advocacy claim.
+  Byar's approximation never returns a negative lower bound, handles `y_s = 0` correctly (lower
+  bound 0, finite upper bound — "we have no reports here, but here is how high the true rate could
+  still plausibly be"), and tracks the exact Poisson interval closely even at very small counts
+  while being cheap and dependency-light. It is what the published rates use today.
 
-- **Score-based interval** as the alternative when a less conservative, well-calibrated interval
-  is preferred and counts are not tiny. Score intervals (the Poisson analogue of the Wilson score
-  interval for proportions) have average coverage closer to nominal than the exact interval and
-  far better than Wald, without Wald's pathologies.
+- **Exact (Garwood) Poisson interval** via the chi-square relationship is a possible *future*
+  option for cases where strictly guaranteed (>= nominal) coverage is wanted rather than Byar's
+  close approximation. It is **not** the implemented default and is noted here only as planned work.
 
-Both are implemented in `stats/rates.py`; the default and the chosen `alpha` are recorded with
+- **Score-based interval** as a further alternative when a less conservative, well-calibrated
+  interval is preferred and counts are not tiny. Score intervals (the Poisson analogue of the
+  Wilson score interval for proportions) have average coverage closer to nominal than the exact
+  interval and far better than Wald, without Wald's pathologies.
+
+The implemented `poisson_ci` (Byar's approximation) and the chosen `alpha` are recorded with
 every published interval. We do not mix methods within a single comparison.
 
 ### 5.3 Proportions, when the question is a share
@@ -249,7 +257,9 @@ good coverage at small `m`.
 
 ### 5.4 What the interval does to ranking
 
-This is where intervals earn their keep. Segments are **not** ranked by point estimate alone.
+This is where intervals earn their keep. Segments are ranked by the point estimate of the rate,
+but a point estimate is **never published alone** — its interval travels with it and small-sample
+segments are flagged so the order is read with its uncertainty, not as bare certainty.
 
 - Two segments whose intervals overlap substantially are reported as **not distinguishable** at
   the stated confidence, even if their point rates differ. The table says so; the map does not
@@ -258,11 +268,13 @@ This is where intervals earn their keep. Segments are **not** ranked by point es
   and is *not* given a confident rank — Hard Rule 2's "shown as uncertain, not ranked as certain."
   In practice we suppress a hard numeric rank below a configured minimum count and label the
   segment "insufficient data to rank," carrying its volume and its wide interval instead.
-- The default published ranking is by the **lower confidence bound** of the rate, not the point
-  estimate, when the goal is "where are we most confident the risk is high." Ranking by lower
-  bound automatically penalizes sparse, uncertain segments instead of letting a single lucky
-  report rocket a quiet segment to the top. The choice of ranking statistic is stated in the
-  brief.
+- The default published ranking is by the **point estimate** of the rate (descending). Each
+  ranked rate is shown *with* its confidence interval (Section 5.2), and small-sample segments are
+  flagged as **uncertain** rather than presented as precise, so a reader sees the imprecision
+  beside the rank instead of trusting the order blindly. Ranking by the **lower confidence bound**
+  of the rate — which would automatically penalize sparse, uncertain segments instead of letting a
+  single lucky report rocket a quiet segment to the top — is a candidate for future work, not the
+  current behavior. The choice of ranking statistic is stated in the brief.
 
 ### 5.5 Multiplicity
 
@@ -410,10 +422,13 @@ Decisions that make Gi\* honest here, rather than a fancier heat map:
   adjacency / network distance), not naive straight-line distance, because two segments on opposite
   sides of a barrier are not really neighbors. The weights definition and distance band are recorded
   with the result.
-- **Inference under spatial autocorrelation, with multiplicity control.** P-values come from a
-  conditional permutation reference distribution rather than a blind normal assumption, and across
-  the many per-segment tests we apply the false-discovery-rate control from Section 5.5. We report
-  both raw and FDR-adjusted significance.
+- **Analytic inference, with multiplicity control.** Significance comes from the **analytic
+  normal-approximation Gi\* z-score** (`stats/getis_ord.py`) — the standard closed-form Gi\*
+  statistic and its asymptotic normal reference — and across the many per-segment tests we apply
+  the false-discovery-rate (Benjamini-Hochberg) control from Section 5.5 to decide which segments
+  are significant. We report both raw and FDR-adjusted significance. A **conditional permutation
+  reference distribution**, which would relax the normal-approximation assumption, is possible
+  future work; it is **not** what is computed today.
 - **Honest about sparse and uncertain inputs.** Gi\* run on rates that are themselves wildly
   uncertain (sparse segments) inherits that uncertainty. Below-floor / "exposure unknown" segments
   (Section 3.3) are handled explicitly — excluded or shown as untested — never fed in as if they
@@ -454,9 +469,9 @@ For the confidence intervals (Section 5) we run **coverage simulations**: simula
 from a known true rate, build a 95% interval each time, and confirm the intervals contain the true
 rate close to 95% of the time. This catches a miscalibrated interval method — an interval that
 claims 95% but covers 80% is a lie this check is designed to expose, and it is exactly the lie the
-banned Wald interval (Section 5.1) tells. We assert coverage stays at or above nominal for the
-exact method and near nominal for the score method, and the test fails if an interval method drifts
-out of tolerance.
+banned Wald interval (Section 5.1) tells. We assert coverage stays close to nominal for Byar's
+approximation (the implemented default, Section 5.2) and near nominal for the score method, and the
+test fails if an interval method drifts out of tolerance.
 
 ### 9.3 Bias and null behavior
 
@@ -506,7 +521,8 @@ These numbers do **NOT** support:
 6. **Predicting collisions or casualties.** Near-misses are a related but distinct signal; this
    project does not claim a calibrated near-miss-to-collision conversion and publishes no such
    prediction.
-7. **Individual surveillance or blame.** The published data is aggregated, jittered, and fuzzed
+7. **Individual surveillance or blame.** The published data is aggregated to public street segments,
+   with low-count segments withheld (k-anonymity) and no precise coordinates or timestamps published,
    precisely so it cannot identify a person, a routine, or a single driver (Hard Rule 4); it must
    not be used to target individuals. It is a community evidence base, not a 311 queue and not an
    enforcement tool.
@@ -545,8 +561,11 @@ is the whole standard this document is held to.
 
 Methods here are standard; these are the anchors a reviewer can check the implementation against.
 
+- Byar's approximation to the Poisson confidence interval (a closed-form cube-root /
+  Wilson-Hilferty-style approximation; see Rothman, K. J., Greenland, S., & Lash, T. L., *Modern
+  Epidemiology*) — the **implemented** small-count Poisson interval, Section 5.2.
 - Garwood, F. (1936). Fiducial limits for the Poisson distribution. *Biometrika* — the exact
-  Poisson interval used in Section 5.2.
+  Poisson interval noted in Section 5.2 as a possible future option, not the current default.
 - Clopper, C. J., & Pearson, E. S. (1934). The use of confidence or fiducial limits illustrated in
   the case of the binomial. *Biometrika* — the exact binomial interval, Section 5.3.
 - Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference.

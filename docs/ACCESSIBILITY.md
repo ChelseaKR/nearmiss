@@ -153,13 +153,17 @@ often on a phone at the roadside, hands us a report. It is held to the same bar 
 - **Target size and reach.** Interactive targets meet the 2.5.8 minimum, because this form is
   used one-handed on a phone, and that directly serves the "limited manipulation, reach, and
   strength" Functional Performance Criteria.
-- **Privacy is accessible too.** The form is plain about what it collects and that exact
-  home-end coordinates are fuzzed before anything is published (hard rule 4); that notice is
-  part of the accessible content, not buried in fine print a screen reader skips.
+- **Privacy is accessible too.** The form is plain about what it collects and that no precise
+  report coordinate is ever published — reports are aggregated to public street segments before
+  anything is published (hard rule 4); that notice is part of the accessible content, not buried
+  in fine print a screen reader skips.
 
-The form bundles its strings per language and is bilingual where the contributing community is
-(see Localizability in the README), so a contributor is not forced into English to report a
-hazard on their own street.
+Localization (per-language string bundles, a bilingual report form, and a language field in the
+schema) is **planned, not yet delivered** (see Localizability in the README). Today the interface
+and the report form are **English-only**: the form does not yet bundle its strings per language,
+and [`schema/report.schema.json`](../schema/report.schema.json) has no language field. The goal is
+that a contributor is not forced into English to report a hazard on their own street; we are not
+there yet.
 
 ---
 
