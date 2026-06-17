@@ -1,0 +1,31 @@
+# FUNDING configuration — nearmiss
+#
+# This project is intentionally zero-cost and unfunded. nearmiss is an
+# independent, Apache-2.0, community-owned evidence base maintained by a
+# single person; it takes no donations, sponsorships, or grants, and there is
+# nothing to pay for. Keeping it unfunded keeps it independent — there is no
+# funder whose preferences could bend the analysis, and the Five Hard Rules
+# (denominators, intervals, named bias, contributor privacy, reproducibility)
+# answer only to the evidence.
+#
+# All funding platforms below are left empty on purpose. With no active
+# entries, GitHub renders no "Sponsor" button. If you want to help, the most
+# valuable contributions are honest near-miss reports and code/review, not
+# money — see CONTRIBUTING.md.
+#
+# Valid YAML: every key maps to an explicit empty value (null), so no funding
+# links are advertised.
+
+github:            # no GitHub Sponsors
+patreon:           # not used
+open_collective:   # not used
+ko_fi:             # not used
+tidelift:          # not used
+community_bridge:  # not used
+liberapay:         # not used
+issuehunt:         # not used
+lfx_crowdfunding:  # not used
+polar:             # not used
+buy_me_a_coffee:   # not used
+thanks_dev:        # not used
+custom:            # no external donation links

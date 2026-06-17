@@ -1,0 +1,18 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question, idea, or methodology discussion
+    url: https://github.com/ChelseaKR/nearmiss/discussions
+    about: >-
+      For open-ended questions, dataset ideas, new-city requests, or pushing back on a method, start
+      a Discussion rather than an issue. Issues are for specific hazard reports and concrete bugs.
+  - name: Security or contributor-privacy issue (private)
+    url: https://github.com/ChelseaKR/nearmiss/security/advisories/new
+    about: >-
+      Do NOT open a public issue for a vulnerability, a re-identification risk, or a suspected leak
+      of precise data from data/raw/. Report it privately via a GitHub Security Advisory. See
+      SECURITY.md for what is in scope and what to expect.
+  - name: How risk is measured (read before reporting "this looks dangerous")
+    url: https://github.com/ChelseaKR/nearmiss/blob/main/docs/METHODOLOGY.md
+    about: >-
+      nearmiss never publishes raw report counts as danger. Risk is a rate with a denominator, a
+      confidence interval, an n, and a named bias caveat. The methodology doc explains why.

@@ -1,0 +1,42 @@
+# CODEOWNERS — nearmiss
+#
+# A single maintainer owns this project. @ChelseaKR is the catch-all owner of
+# every path; the explicit blocks below exist to make the high-stakes
+# surfaces of this repo loud in review, not to delegate them — review of a
+# privacy, accessibility, or security change is never silently skippable.
+#
+# These paths map directly to the project's Five Hard Rules: the report schema
+# is the contract that intake.py validates against (Rules 1, 4); the
+# accessibility docs back the WCAG 2.2 AA / Section 508 commitment and the
+# VPAT 2.5 (Rev 508) ACR; the security and threat-model docs govern
+# contributor privacy (Rule 4: pseudonymity, coordinate fuzzing, gitignored
+# raw store) and the reproducibility / supply-chain posture (Rule 5).
+#
+# Order matters: the last matching pattern wins, so the catch-all comes first
+# and the specific overrides follow.
+
+# Catch-all: @ChelseaKR owns everything in the repository.
+*                               @ChelseaKR
+
+# Schema — the near-miss/collision contract enforced by intake.py and CI.
+# Any change here can change what is collected, validated, or published.
+/schema/                        @ChelseaKR
+/schema/report.schema.json      @ChelseaKR
+
+# Accessibility — WCAG 2.2 AA conformance, Section 508 (Revised, 36 CFR Part
+# 1194) targets, and the committed VPAT 2.5 (Rev 508) ACR live here.
+/docs/ACCESSIBILITY.md          @ChelseaKR
+/docs/accessibility/            @ChelseaKR
+/docs/accessibility/ACR.md      @ChelseaKR
+
+# Security & threat model — contributor-privacy guarantees and supply-chain
+# posture. SECURITY.md is the disclosure policy; the threat model documents
+# the privacy and re-identification analysis behind Rule 4.
+/SECURITY.md                    @ChelseaKR
+/docs/THREAT-MODEL.md           @ChelseaKR
+
+# Supply-chain / CI configuration — pinned & hashed deps, signed releases,
+# and the gates that enforce the rules above.
+/.github/                       @ChelseaKR
+/.github/workflows/             @ChelseaKR
+/.github/dependabot.yml         @ChelseaKR

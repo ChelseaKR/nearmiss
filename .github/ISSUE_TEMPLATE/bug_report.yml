@@ -1,0 +1,105 @@
+name: Bug report
+description: Report a software defect in the pipeline, stats, publisher, briefs, or the accessible map/table.
+title: "[bug]: <short summary>"
+labels:
+  - "bug"
+  - "needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. This form is for **software defects** — code that crashes, produces
+        a wrong number, breaks accessibility, or violates one of the five hard rules.
+
+        - For a **road hazard or near-miss**, use the hazard report form instead.
+        - For a **security or contributor-privacy issue** (including a suspected leak of precise
+          data from `data/raw/`), do **not** open a public issue — follow
+          [`SECURITY.md`](../blob/main/SECURITY.md) and use private vulnerability reporting.
+        - Never paste real precise reports, real home/route coordinates, or any identifying detail
+          into this issue. Reproduce with the synthetic fixtures in `tests/fixtures/` instead.
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: This is a software bug, not a security/privacy report and not a road-hazard report.
+          required: true
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: This issue contains no precise raw data, real locations, or identifying details.
+          required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected stage / component
+      description: Which part of the pipeline does this bug live in?
+      options:
+        - "intake.py (schema validation, raw store)"
+        - "pipeline/ (dedupe, geocode, snap-to-segment, classify, quality-flag)"
+        - "exposure.py (denominators)"
+        - "stats/rates.py (rates and confidence intervals)"
+        - "stats/bias.py (reporting-bias analysis)"
+        - "stats/kde.py (kernel density surface)"
+        - "stats/getis_ord.py (Gi* clustering)"
+        - "publish.py (open GeoJSON, public dataset, data card)"
+        - "brief.py (advocacy briefs)"
+        - "server.py (accessible map and table)"
+        - "build / CI / make targets"
+        - "schema or docs"
+        - "Other / not sure"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The actual behavior, including any error message or stack trace (redact paths under data/raw/).
+      placeholder: "make reproduce fails at stats/getis_ord.py with ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: The behavior you expected, and which hard rule or documented method it should honor, if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: >-
+        A minimal, deterministic path to the bug. Prefer the synthetic fixtures with known answers.
+        A "paste this to reproduce" command block is ideal.
+      placeholder: |
+        1. make demo
+        2. Observe that the planted hotspot in tests/fixtures/planted_hotspot.geojson is not recovered
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Python version, OS, and the commit SHA or release tag you are on.
+      placeholder: |
+        Python 3.11.9
+        macOS 14.5
+        commit abc1234 (or v0.4.2)
+      render: shell
+    validations:
+      required: true
+  - type: dropdown
+    id: hard-rule
+    attributes:
+      label: Does this bug touch a hard rule?
+      description: The five hard rules are enforced by policy and CI. Flag if this defect risks breaking one.
+      options:
+        - "No — ordinary defect"
+        - "Rule 1 — a rate is shown without a denominator, or counts are labelled as danger"
+        - "Rule 2 — an estimate is shown without a confidence interval and n"
+        - "Rule 3 — reporting bias is hidden rather than named"
+        - "Rule 4 — output risks identifying a contributor or their routine"
+        - "Rule 5 — a result is not reproducible via make reproduce"
+    validations:
+      required: true

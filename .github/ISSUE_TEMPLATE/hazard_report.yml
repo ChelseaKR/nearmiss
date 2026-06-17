@@ -1,0 +1,120 @@
+name: Road hazard / near-miss report
+description: Report a close pass, door-zone, blind-corner, surface, signal, or debris hazard you experienced.
+title: "[hazard]: <hazard type> near <general location>"
+labels:
+  - "hazard-report"
+  - "needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Before you start: privacy
+
+        nearmiss is a **community-owned evidence base for safe-streets advocacy**, not a city 311
+        queue or a public-works complaint inbox. Reports here become part of an **open, aggregated
+        dataset**, so please protect yourself and others.
+
+        **Do not include personally identifying detail.** Specifically, do **not** post:
+
+        - your home address, your exact start/end point, or anything that reveals your daily routine
+        - your name, phone number, email, or social handle
+        - license plates, faces, or names of any driver, rider, or bystander
+        - precise GPS coordinates of your home
+
+        Describe **where the hazard is**, not **where you live**. Use a corner, block, or landmark
+        (for example, "northbound bike lane on 3rd St at the B St crossing"). Precise coordinates are
+        only ever accepted privately at intake; anything you type into this public form is visible to
+        everyone, so keep it coarse. If you need to share a vulnerability or a privacy problem, do not
+        use this form — see [`SECURITY.md`](../blob/main/SECURITY.md) instead.
+  - type: checkboxes
+    id: privacy-ack
+    attributes:
+      label: Privacy acknowledgement
+      description: Please confirm before submitting.
+      options:
+        - label: This report contains no names, plates, contact details, home address, or exact coordinates of where I live.
+          required: true
+  - type: input
+    id: location
+    attributes:
+      label: Location (general, not your home)
+      description: >-
+        A street, intersection, block, or landmark coarse enough that it does not reveal your
+        routine. Do not paste exact GPS coordinates here.
+      placeholder: "Northbound bike lane on Russell Blvd at the Sycamore Ln crossing"
+    validations:
+      required: true
+  - type: input
+    id: occurred-at
+    attributes:
+      label: Date and approximate time it happened
+      description: >-
+        When the hazard occurred (event time, not when you are filing this). Include the date and a
+        rough local time; you may round the time to protect your routine.
+      placeholder: "2026-06-15, around 08:40 in the morning"
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: How were you travelling?
+      description: Your travel mode when the hazard happened. Choose "Other" for anything not listed and describe it in the note.
+      options:
+        - "Cyclist"
+        - "Pedestrian"
+        - "Wheelchair user"
+        - "Scooter"
+        - "Other (describe in the note)"
+    validations:
+      required: true
+  - type: dropdown
+    id: hazard-type
+    attributes:
+      label: Hazard type
+      description: >-
+        The category that best fits. Close pass = a motor vehicle passing too closely; Dooring =
+        the door-zone conflict with an opening vehicle door; Surface hazard = potholes or broken
+        pavement; Sightline = a blind corner or obstructed visibility; Signal = a signal-timing or
+        signal-conflict hazard; Debris = loose material in your path.
+      options:
+        - "Close pass (vehicle passed too closely)"
+        - "Dooring / door-zone conflict"
+        - "Surface hazard (pothole, broken pavement)"
+        - "Sightline (blind corner, obstructed visibility)"
+        - "Signal (timing or conflict)"
+        - "Debris in the path"
+        - "Other (describe in the note)"
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity (your own assessment)
+      description: >-
+        Your assessment of the outcome, not a clinical or police classification. We record it as a
+        contributor's judgement and never present it as a verified injury statistic.
+      options:
+        - "Near miss (avoided, no contact or injury)"
+        - "Minor (contact or a fall, minor or no lasting injury)"
+        - "Serious (a crash with significant injury)"
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: What happened (optional)
+      description: >-
+        A short description of the conditions and what made it hazardous. Keep it under a few
+        sentences. Reminder: no names, no plates, no contact details, nothing that reveals your home
+        or routine.
+      placeholder: "Parked SUV in the bike lane forced a merge into through traffic with no sightline behind."
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        A single report is a **data point, not a danger ranking**. nearmiss only publishes risk as a
+        rate with a denominator, a confidence interval, and a stated bias caveat — never a raw count
+        labelled "dangerous." Thank you for contributing carefully.

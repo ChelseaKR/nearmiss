@@ -1,0 +1,85 @@
+# Dependabot configuration — nearmiss
+#
+# Scope: keep the supply chain current without breaking reproducibility.
+#
+# Dependencies in this project are PINNED AND HASHED. Runtime/build
+# requirements use fully pinned versions with --require-hashes-compatible
+# hash digests (e.g. requirements*.txt compiled by pip-compile
+# --generate-hashes), and GitHub Actions are pinned to a commit SHA, not a
+# floating tag. Dependabot therefore proposes exact version bumps WITH the
+# matching hashes; CI re-runs lint, mypy --strict, pytest, the accessibility
+# checks, and `pip-audit` on every PR, so an update only lands after the
+# pipeline still reproduces (Hard Rule 5: open and reproducible end to end).
+#
+# Updates are grouped so a week's bumps arrive as a small number of reviewable
+# PRs rather than one PR per package — this is a single-maintainer project and
+# review bandwidth is the bottleneck.
+#
+# Security advisories are NOT throttled by the weekly schedule: Dependabot
+# always opens security updates as soon as an advisory is published.
+
+version: 2
+
+updates:
+  # Python — pip ecosystem (requirements*.txt, pyproject.toml).
+  # Versions stay pinned; Dependabot regenerates the hashes with each bump.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    versioning-strategy: "increase"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      # Conventional Commits — keeps semver/changelog automation honest.
+      prefix: "build"
+      prefix-development: "chore"
+      include: "scope"
+    groups:
+      python-production:
+        applies-to: version-updates
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      python-development:
+        applies-to: version-updates
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      python-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # GitHub Actions — pinned to commit SHAs in .github/workflows/.
+  # Dependabot bumps the SHA and updates the trailing version comment.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      actions-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      actions-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"

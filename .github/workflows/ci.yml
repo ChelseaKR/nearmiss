@@ -1,0 +1,248 @@
+# SPDX-License-Identifier: Apache-2.0
+# nearmiss CI — the merge gate described in CONTRIBUTING.md and the threat model.
+#
+# Every job here mirrors a `make` target so contributors run the same checks
+# locally (`make verify`) that CI enforces. Two gates exist specifically to
+# protect the FIVE HARD RULES:
+#   * `reproducibility` re-runs `make reproduce` and fails if the committed
+#     published artifacts under data/published/ drift from a clean rebuild
+#     (Rule 5: open and reproducible end to end; this is the tamper tripwire).
+#   * `security` runs pip-audit + gitleaks + CodeQL so a leaked secret or a
+#     vulnerable dependency cannot reach the public path (Rule 4 privacy,
+#     Rule 5 reproducibility of trusted inputs).
+#
+# Manual NVDA/VoiceOver review is required for UI changes and is tracked in the
+# PR per docs/ACCESSIBILITY.md; CI runs only the automated axe pass.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least privilege by default. Individual jobs widen scope only where a specific
+# action needs it (CodeQL writes to the security-events API).
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref so a force-push or rapid re-push does
+# not pile up redundant builds.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Hashed installs are mandatory (CONTRIBUTING.md: deps are pinned and hashed).
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PIP_NO_PYTHON_VERSION_WARNING: "1"
+  PYTHONHASHSEED: "0"
+
+jobs:
+  lint:
+    name: lint (ruff)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dev dependencies (hashed)
+        run: |
+          python -m pip install --require-hashes -r requirements/dev.txt
+          python -m pip install --no-deps -e .
+
+      - name: ruff (lint + import + format check)
+        run: make lint
+
+  type:
+    name: type (mypy --strict)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dev dependencies (hashed)
+        run: |
+          python -m pip install --require-hashes -r requirements/dev.txt
+          python -m pip install --no-deps -e .
+
+      - name: mypy --strict
+        run: make type
+
+  test:
+    name: test (pytest, known-answer fixtures)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dev dependencies (hashed)
+        run: |
+          python -m pip install --require-hashes -r requirements/dev.txt
+          python -m pip install --no-deps -e .
+
+      - name: pytest (planted hotspots recovered, interval coverage checks)
+        run: make test
+
+  accessibility:
+    name: accessibility (axe on built web map)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dev dependencies (hashed)
+        run: |
+          python -m pip install --require-hashes -r requirements/dev.txt
+          python -m pip install --no-deps -e .
+
+      - name: Install web dependencies (locked)
+        working-directory: web
+        run: npm ci
+
+      - name: Build the accessible map and table
+        working-directory: web
+        run: npm run build
+
+      - name: axe (map, table, report form, legends, charts)
+        run: make a11y
+
+  security:
+    name: security (pip-audit + gitleaks + CodeQL)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      # CodeQL uploads SARIF results to the code-scanning API.
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, javascript]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # gitleaks needs full history to scan every commit on the PR/push.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # Dependency vulnerabilities and secret scanning only need to run once,
+      # not per CodeQL language, so gate them to the python matrix leg.
+      - name: Install dev dependencies (hashed)
+        if: matrix.language == 'python'
+        run: |
+          python -m pip install --require-hashes -r requirements/dev.txt
+          python -m pip install --no-deps -e .
+
+      - name: pip-audit (known-vulnerable dependencies)
+        if: matrix.language == 'python'
+        run: make security
+
+      - name: gitleaks (committed secrets)
+        if: matrix.language == 'python'
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize CodeQL (${{ matrix.language }})
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyze with CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  reproducibility:
+    name: reproducibility (make reproduce + diff published artifacts)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dev dependencies (hashed)
+        run: |
+          python -m pip install --require-hashes -r requirements/dev.txt
+          python -m pip install --no-deps -e .
+
+      # Rule 5: a clean rebuild from raw inputs must reproduce the committed
+      # public artifacts byte-for-byte. Synthetic fixtures (not private raw
+      # reports) drive the public-path rebuild in CI.
+      - name: Regenerate every figure, table, and published GeoJSON
+        run: make reproduce
+
+      - name: Fail if published artifacts drifted from a clean rebuild
+        run: |
+          if ! git diff --exit-code -- data/published; then
+            echo "::error::data/published drifted from 'make reproduce'." \
+              "Commit the regenerated artifacts or fix the non-deterministic step."
+            exit 1
+          fi
+          # Catch newly generated, uncommitted published files as well.
+          if [ -n "$(git status --porcelain -- data/published)" ]; then
+            echo "::error::'make reproduce' produced untracked files under data/published."
+            git status --porcelain -- data/published
+            exit 1
+          fi
