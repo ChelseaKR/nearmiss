@@ -57,6 +57,7 @@ CITY_BBOX = {
     "victoria": (-123.46, 48.40, -123.28, 48.50),
     "vancouver": (-123.27, 49.20, -123.02, 49.32),
     "davis": (-121.78, 38.53, -121.70, 38.57),
+    "sacramento": (-121.56, 38.44, -121.36, 38.68),  # Sacramento, CA
 }
 
 # Coordinate rounding for node identity. OSM ways at a junction share the exact

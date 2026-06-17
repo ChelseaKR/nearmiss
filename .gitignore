@@ -12,6 +12,12 @@ data/raw/**
 *.raw.geojson
 *.private.json
 
+# Real-city working tree: fetched inputs and isolated outputs from the real-data
+# pipeline (BikeMaps + OSM + counts). Not committed — fetch it locally; the
+# committed published dataset stays the reproducible demo. See docs/REAL-DATA.md.
+data/real/
+data/real/**
+
 # Secrets — env only, never committed (see SECURITY.md).
 .env
 .env.*

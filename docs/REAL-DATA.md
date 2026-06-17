@@ -83,18 +83,62 @@ python tools/fetch_osm_streets.py --from-file overpass.json --out streets.geojso
 `segment_id` is stable (`osm-w<wayid>-<block>`), so re-running on the same area is reproducible.
 Choose the road classes with `--highway`, or keep whole ways with `--no-split`.
 
-## 3. Exposure — the genuinely hard part
+## 3. Exposure — the genuinely hard part (but real data exists)
 
 `exposure.json` is the denominator: how much cycling each segment carries. **This is the make-or-break
-input and the reason most maps skip normalization.** Real options, roughly in order of fidelity:
+input and the reason most maps skip normalization.** `tools/build_exposure.py` turns point count
+observations into per-segment exposure by snapping each counter to its nearest segment with the *same*
+geometry the pipeline uses for reports:
+
+```bash
+python tools/build_exposure.py --streets streets.geojson --counts counts.csv \
+    --count-field count --source "CA AT Count Dataset 2025" --date 2025-01-01 \
+    --out exposure.json
+```
+
+Counts may be a CSV (`--lat-field`/`--lon-field`/`--count-field`) or GeoJSON points. By default a
+segment with no nearby counter gets **no** exposure and is published as `exposure unknown` (HR1: a
+rate without a denominator is forbidden). `--model-fallback` will, only if you ask, fill uncovered
+segments with a clearly-labeled flat prior (`source: modeled_flat_prior …`) — a weak placeholder for
+visualization, never to be passed off as measured. Prefer real counts.
+
+Real options, roughly in order of fidelity:
 
 - **Strava Metro** — segment-level ridership, free for governments/researchers but access-gated.
-- **Permanent/temporary bike counters** — many cities publish counts as open data; sparse coverage.
+- **Permanent/temporary bike counters** — many regions publish counts as open data (see the cities
+  below); coverage is sparse, which is exactly why uncovered segments stay "exposure unknown."
 - **Modeled exposure** — estimate from population, network, and land use when counts are missing.
 
-A rate without a denominator is forbidden by the project's hard rules (HR1), so a segment with no
-exposure is published as `exposure unknown`, never ranked as if certain. A real deployment stands or
-falls on the quality of this layer; do not skip it or fake it.
+A real deployment stands or falls on the quality of this layer; do not skip it or fake it.
+
+## Concrete cities: Davis and Sacramento
+
+Two committed real configs — `config/davis.toml` and `config/sacramento.toml` — wire the three inputs
+for these California cities. Their inputs and outputs live under the gitignored `data/real/` tree, so a
+real run never clobbers the committed synthetic demo or the `make reproduce` gate.
+
+| | Davis, CA | Sacramento, CA |
+|---|---|---|
+| Incidents | BikeMaps.org (`--city davis`) — thin coverage | BikeMaps.org (`--city sacramento`) — denser |
+| Streets | OpenStreetMap / Overpass (`--city davis`) | OpenStreetMap / Overpass (`--city sacramento`) |
+| Exposure | [California AT Count Dataset](https://lab.data.ca.gov/dataset/at-count-dataset) (statewide bike counts); City of Davis counters | [SACOG regional bike/ped counts](https://www.sacog.org/planning/transportation/active-transportation/bike-ped-counting-equipment) + the CA AT Count Dataset |
+
+Run one end to end (where the network is open):
+
+```bash
+make real CITY=davis COUNTS=path/to/ca_at_counts.csv   # fetch streets + reports, build exposure
+nearmiss run --config config/davis.toml                # publish to data/real/davis/published/
+```
+
+Davis is the harder, more honest case: it is one of the highest cycling-share cities in the US, yet
+crowdsourced near-miss reports and open per-segment counts are both sparse, so expect many
+"exposure unknown" segments. That is the point — the tool says what it does not know rather than
+inventing a denominator. Sacramento has denser incident coverage and a regional count program, so it
+normalizes more fully.
+
+To put a real city on the live website, copy its published GeoJSON into `data/published/` and point
+the web app at it (the map and table are source-agnostic); keep the synthetic demo clearly labeled as
+such until you do.
 
 ## Network egress note
 

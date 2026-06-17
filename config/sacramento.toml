@@ -1,0 +1,38 @@
+# Sacramento, CA — REAL data config. Proves config-over-code: a new city is a new
+# config + data, no Python change (the same claim the demo cities make).
+#
+# Inputs are fetched by the real-data tools and are NOT committed (gitignored
+# under data/real/). Populate them, then run:
+#
+#   make real CITY=sacramento      # fetch all three inputs
+#   nearmiss run --config config/sacramento.toml
+#
+# See docs/REAL-DATA.md. Sacramento has denser BikeMaps coverage than Davis and
+# SACOG runs a regional bike/ped count program (data.sacog.org), so exposure
+# coverage should be better here.
+city = "Sacramento"
+dataset_note = "Real data: BikeMaps.org near-misses, OpenStreetMap streets, SACOG / California AT bicycle counts."
+exposure_unit = "bike counts (SACOG / CA AT Count Dataset)"
+
+streets = "../data/real/sacramento/streets.geojson"
+reports = "../data/real/sacramento/reports.json"
+exposure = "../data/real/sacramento/exposure.json"
+
+raw_dir = "../data/real/sacramento/store"
+out_dir = "../data/real/sacramento/published"
+
+ref_lat = 38.5816
+ref_lon = -121.4944
+
+[thresholds]
+snap_max_m = 25
+dedupe_window_s = 600
+dedupe_distance_m = 15
+small_n = 5
+min_publish_n = 3
+rate_per = 1000
+confidence_z = 1.96
+fdr_alpha = 0.05
+gi_band_m = 300
+kde_bandwidth_m = 150
+kde_grid = 20

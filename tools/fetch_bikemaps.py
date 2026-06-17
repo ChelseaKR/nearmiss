@@ -59,6 +59,7 @@ CITY_BBOX = {
     "victoria": (-123.46, 48.40, -123.28, 48.50),  # Victoria, BC — BikeMaps' home, densest data
     "vancouver": (-123.27, 49.20, -123.02, 49.32),  # Vancouver, BC
     "davis": (-121.78, 38.53, -121.70, 38.57),  # Davis, CA — sparse; for parity with the demo
+    "sacramento": (-121.56, 38.44, -121.36, 38.68),  # Sacramento, CA
 }
 
 # Stable namespace so the same BikeMaps record always yields the same report id
