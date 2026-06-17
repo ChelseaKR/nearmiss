@@ -1,0 +1,16 @@
+# Normalize line endings for cross-platform contributors.
+* text=auto eol=lf
+
+# Generated / data artifacts — keep them out of language stats and collapse in diffs.
+data/published/*.geojson linguist-generated=true
+notebooks/*.ipynb        linguist-documentation
+
+# Lock files are generated; mark as such.
+requirements.lock        linguist-generated=true
+
+# Keep dev-only paths out of release archives (git archive / release tarballs).
+/tests/        export-ignore
+/.github/      export-ignore
+/notebooks/    export-ignore
+.pre-commit-config.yaml export-ignore
+.gitattributes export-ignore

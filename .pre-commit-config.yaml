@@ -1,0 +1,54 @@
+# Pre-commit hooks for nearmiss.
+#   Install:  pre-commit install && pre-commit install --hook-type commit-msg
+# These run the same tools the CI gate runs, so problems are caught before they
+# reach a pull request. Wired to match pyproject.toml and the CI security job.
+minimum_pre_commit_version: "3.7.0"
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  # Ruff — lint + format (configured in pyproject.toml [tool.ruff]).
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.10
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # mypy — strict typing (configured in pyproject.toml [tool.mypy]).
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        additional_dependencies: []
+
+  # gitleaks — backstop against committing secrets or precise raw report data.
+  # This is a safety net, not permission to be careless (see CONTRIBUTING.md).
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  # Hygiene.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+      # Block anything under data/raw/ from ever being committed (hard rule #4).
+      - id: forbidden-files
+        name: block precise raw reports (data/raw/)
+        entry: data/raw/ must never be committed (see CONTRIBUTING.md)
+        language: fail
+        files: ^data/raw/
+
+  # Conventional Commits — enforce the commit-message format on the commit-msg hook.
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
