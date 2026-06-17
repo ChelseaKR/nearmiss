@@ -29,6 +29,13 @@ employer or client; contains no proprietary or client material. Owned by cyclist
 by a city. This is not a 311 queue and not a complaint inbox for a public works department; it is a
 community-owned evidence base.
 
+> **Where this is right now (read first):** this is a documentation-stage / specification release.
+> The architecture, schemas, docs, governance, and CI scaffolding are in place; the pipeline code,
+> notebooks, fixtures, accessible web UI, and published dataset land across roadmap Phases 1–3 (see
+> [Roadmap](#roadmap)). The repository is private during pre-1.0 development. The CLI, `make` targets,
+> and outputs shown below describe the intended behavior and interface, not yet a running pipeline —
+> the README is honest about what exists versus what is planned.
+
 ---
 
 ## Table of contents
@@ -144,14 +151,16 @@ database and no always-on service are required to run the analysis; intake can r
 scale to zero.
 
 ```bash
-# From a clone (recommended for contributors)
-make install                 # python -m pip install -e ".[dev]" + pre-commit install
+# From a clone (the working install today, recommended for contributors)
+make install                 # pip install -e ".[dev]" + pre-commit install
 
-# As a tool, isolated
+# As a tool, isolated (the packaging/release goal once published)
 pipx install nearmiss
 
-# Or pinned, for reproducible analysis environments
-python -m pip install -r requirements.lock   # hashed, pinned dependencies
+# Planned reproducible path: a generated, hashed lock
+python -m pip install --require-hashes -r requirements.lock
+# requirements.lock is produced by `make lock` (pip-compile --generate-hashes); it is a generated
+# artifact and is not committed yet — `pip install -e ".[dev]"` is the install that works today.
 ```
 
 A container image and a one-command serverless intake deploy are described in
@@ -275,7 +284,9 @@ regenerates every brief figure and table from raw inputs; notebooks are determin
 — each published number records its method, exposure source, and threshold. **Traceability** — a
 mapped hotspot traces from figure → notebook → statistic → cleaned dataset → raw reports.
 **Relevance** — findings are exposure-normalized so they reflect risk, not traffic. **Effectiveness**
-— validated by recovering planted hotspots in fixtures and by interval-coverage checks.
+— the test design (planted-hotspot fixtures, interval-coverage checks) is documented in
+[`tests/README.md`](tests/README.md); the fixtures land in Phase 1, when this validates by recovering
+planted hotspots in fixtures and by interval-coverage checks.
 **Accountability** — the data card and methodology doc state what the numbers do and do not support.
 
 ### Standards, interoperability, openness
@@ -283,8 +294,9 @@ mapped hotspot traces from figure → notebook → statistic → cleaned dataset
 **Standards compliance** — GeoJSON output aligned to a documented near-miss/collision schema; SPDX
 headers; semver; conventional commits. **Interoperability** — published GeoJSON loads in QGIS,
 Leaflet, and any GIS; the report schema is documented JSON. **Interchangeability** — exposure sources
-(counts, demand model, imports) swap behind one interface. **Compatibility** — runs on Linux/macOS,
-Python 3.11+, and standard geospatial stacks. **Composability** and **inspectability** — every stage
+(counts, demand model, imports) swap behind one interface. **Compatibility** — CI tests Python 3.11 and
+3.12 per [`ci.yml`](.github/workflows/ci.yml); the package is pure-Python on numpy/shapely/pyproj per
+[`pyproject.toml`](pyproject.toml). **Composability** and **inspectability** — every stage
 emits plain, inspectable data others can pipe and check. **Portability** and **distributability** —
 the dataset and pipeline move to any city by config, and the published GeoJSON is a single file anyone
 can mirror, fork, or redistribute; nothing is bound to one locale or host.
@@ -297,16 +309,21 @@ and rate-limits to resist spam and poisoning. **Integrity** (data) — schema va
 hashed published artifacts make tampering detectable. **Safety** — no report is published at a
 precision that could expose a person's routine; this is tested against the published dataset.
 **Autonomy** — the dataset is community-owned and openly licensed, so advocates are not dependent on a
-city's data portal. **Vulnerability** management — pip-audit, gitleaks, CodeQL in CI; pinned, hashed
-deps. **Auditability** — committed [`docs/audits/`](docs/audits/); the pipeline records every
-transform; the [CHANGELOG](CHANGELOG.md) records every schema change.
+city's data portal. **Vulnerability** management — pip-audit, gitleaks, CodeQL configured in CI;
+dependencies installed via `pip install -e ".[dev]"`, with a generated hashed `requirements.lock`
+planned. **Auditability** — the audit policy and naming convention are committed in
+[`docs/audits/README.md`](docs/audits/README.md); dated audit artifacts are produced per release (none
+yet at v0.1.0); the pipeline is designed to record every transform; the [CHANGELOG](CHANGELOG.md)
+records every schema change.
 
 ### Credibility and transparency
 
 **Credibility** and **transparency** — reporting bias is named in every brief; methodology and limits
-are documented; the data card is honest about exposure assumptions. **Demonstrability** — `make demo`
-runs the full pipeline over fixtures and renders a sample brief. **Understandability** — briefs explain
-the statistics in plain language for a city-council audience.
+are documented; the data card is honest about exposure assumptions. **Demonstrability** — the test
+design (planted-hotspot fixtures, interval-coverage checks) is documented in
+[`tests/README.md`](tests/README.md); the fixtures and `make demo` (full pipeline over fixtures,
+rendering a sample brief) land in Phase 1. **Understandability** — briefs explain the statistics in
+plain language for a city-council audience.
 
 ### Usability, learnability, reach
 
@@ -323,13 +340,15 @@ hazards are reported from the roadside.
 
 ### Performance, scale, cost
 
-**Efficiency** — the pipeline is incremental; spatial statistics run over indexed geometries.
-**Scalability** and **elasticity** — handles a city's worth of reports; the rebuild parallelizes and
-the intake is stateless. **Timeliness** — scheduled rebuilds keep the published dataset current;
-rebuild latency is budgeted in CI. **Affordability** — scale-to-zero serverless intake and a static
+**Efficiency** — an architectural target: an incremental pipeline with spatial statistics over
+spatially indexed geometries. **Scalability** and **elasticity** — the targeted design handles a city's
+worth of reports, with a parallelizable rebuild and stateless intake. **Timeliness** — scheduled
+rebuilds are designed to keep the published dataset current; a rebuild-latency budget in CI is a goal,
+not yet a CI step. **Affordability** — scale-to-zero serverless intake and a static
 published site keep cost near zero with a budget alarm; advocates without budgets can still run it.
-**Process capabilities** and **producibility** — `make verify` reproduces the full gate; `make
-reproduce` rebuilds every figure.
+**Process capabilities** and **producibility** — `make verify` defines the full local gate (lint,
+type, test, accessibility, security) and CI mirrors it; `make reproduce` is specified to rebuild every
+figure once the pipeline lands.
 
 ### Maintainability, evolvability, modularity
 
@@ -340,9 +359,10 @@ city with a config and an exposure layer. **Modularity**, **composability**, **o
 intake, pipeline, exposure, statistics, publish, and brief are independent stages. **Simplicity** —
 plain data between stages; no hidden state. **Reusability** — the exposure-normalization and hotspot
 code are usable on any point dataset. **Analyzability** — typed, documented, with a methodology doc.
-**Configurability**, **customizability**, **tailorability** — one config controls cities, exposure
-sources, thresholds, and jitter. **Upgradability** — pinned deps with a documented bump path;
-versioned schemas with migrations.
+**Configurability**, **customizability**, **tailorability** — config-over-code is the design intent:
+the config module specified in [`src/nearmiss/README.md`](src/nearmiss/README.md) (Phase 1) is to
+control cities, exposure sources, thresholds, and jitter. **Upgradability** — a documented dependency
+bump path; versioned schemas with migrations.
 
 ### Reliability, resilience, safety of the pipeline
 
@@ -354,26 +374,34 @@ continues. **Recoverability** and **survivability** — the dataset rebuilds fro
 reproduce`; published artifacts are versioned. **Degradability** and **failure transparency** — a
 segment with no exposure data is shown as "exposure unknown," not silently dropped or falsely rated.
 **Redundancy** — multiple exposure sources can corroborate a denominator. **Stability** and
-**durability** — the published schema and dataset versions are stable across releases.
+**durability** — the published GeoJSON schema is versioned in
+[`schema/dataset.schema.md`](schema/dataset.schema.md) and schema changes are recorded in
+[`CHANGELOG.md`](CHANGELOG.md) with a migration path; stability across releases is a commitment, not
+yet a track record (v0.1.0).
 
 ### Operability, serviceability, sustainability
 
 **Operability** and **manageability** — a maintainer runbook (run a rebuild, rotate an exposure
-source, publish a brief); a pipeline status output. **Administrability** — config-over-code;
-thresholds and sources live in one checked-in file. **Observability** — structured logs and metrics on
-intake and each pipeline stage; rebuilds report coverage and quality-flag counts. **Debuggability** —
-every published number can be traced to its notebook cell; a `--dump` flag emits intermediate
-datasets. **Serviceability / supportability** — issue templates and a "paste this to reproduce" path.
+source, publish a brief); a pipeline status output. **Administrability** — config-over-code is the design
+intent; the config module is specified in [`src/nearmiss/README.md`](src/nearmiss/README.md) and lands
+in Phase 1, so thresholds and sources are versioned rather than coded. **Observability** — structured
+logs and metrics on intake and each pipeline stage; rebuilds report coverage and quality-flag counts.
+**Debuggability** — the figure → notebook → statistic → dataset → raw trace is defined in
+[`docs/METHODOLOGY.md`](docs/METHODOLOGY.md); a `--dump` flag to emit intermediate datasets is planned
+(Phase 1). **Serviceability / supportability** — issue templates and a "paste this to reproduce" path.
 **Deployability** and **installability** — `pipx install`, a container image, one-command serverless
 deploy. **Repairability** — most fixes are data or threshold edits, recorded and re-run. **Agility** —
 CI smoke suite on every PR. **Autonomy** (operational), **self-sustainability**, **sustainability** —
 open data and zero-cost hosting mean the dataset survives without a grant or a city's goodwill.
-**Testability**, **inspectability**, **demonstrability** — fixtures with known answers, golden outputs,
-and `make demo` make the statistics verifiable.
+**Testability**, **inspectability**, **demonstrability** — the test design (planted-hotspot fixtures
+with known answers, interval-coverage checks) is documented in [`tests/README.md`](tests/README.md);
+the fixtures and `make demo` land in Phase 1 to make the statistics verifiable.
 
-> Every attribute above is mapped to a verifiable artifact or gate, not a claim. Where an attribute is
-> aspirational at beta (e.g. some VPAT rows are "Partially Supports"), that is stated plainly rather
-> than overclaimed — see the [ACR](docs/accessibility/ACR.md).
+> Each attribute above maps to a documented decision and, where the implementation exists, a
+> verifiable artifact or gate. Where an attribute is still aspirational at beta — the modules,
+> fixtures, notebooks, and committed audits arrive across roadmap Phases 1–3, and some VPAT rows are
+> "Partially Supports" — that is stated plainly rather than overclaimed. See the
+> [ACR](docs/accessibility/ACR.md) and the [Roadmap](#roadmap).
 
 ## Accessibility and Section 508 conformance
 

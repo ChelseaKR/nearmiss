@@ -34,12 +34,50 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Hashed installs are mandatory (CONTRIBUTING.md: deps are pinned and hashed).
+  # CI installs the editable package with its dev extras (`pip install -e
+  # ".[dev]"`, the same as `make install`). A hashed reproducible install from a
+  # generated `requirements.lock` (`make lock`) is the planned hardening once
+  # that artifact is committed.
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   PIP_NO_PYTHON_VERSION_WARNING: "1"
   PYTHONHASHSEED: "0"
 
 jobs:
+  dco:
+    name: dco (Signed-off-by on every commit)
+    # The DCO merge gate documented in CONTRIBUTING.md: every commit in the PR
+    # must carry a `Signed-off-by:` trailer (added with `git commit -s`).
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Need the full PR commit range, not just the merge commit.
+          fetch-depth: 0
+
+      - name: Verify Signed-off-by trailer on every PR commit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          missing=0
+          # Walk each commit in the PR range and require a DCO sign-off trailer.
+          for sha in $(git rev-list "$BASE_SHA".."$HEAD_SHA"); do
+            signoff="$(git log -1 --format='%(trailers:key=Signed-off-by)' "$sha")"
+            if [ -z "$signoff" ]; then
+              subject="$(git log -1 --format='%s' "$sha")"
+              echo "::error::Commit $sha is missing a Signed-off-by trailer: $subject"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::Sign off every commit with 'git commit -s' (see CONTRIBUTING.md)."
+            exit 1
+          fi
+
   lint:
     name: lint (ruff)
     runs-on: ubuntu-24.04
@@ -55,10 +93,8 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dev dependencies (hashed)
-        run: |
-          python -m pip install --require-hashes -r requirements/dev.txt
-          python -m pip install --no-deps -e .
+      - name: Install dev dependencies
+        run: python -m pip install -e ".[dev]"
 
       - name: ruff (lint + import + format check)
         run: make lint
@@ -78,10 +114,8 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dev dependencies (hashed)
-        run: |
-          python -m pip install --require-hashes -r requirements/dev.txt
-          python -m pip install --no-deps -e .
+      - name: Install dev dependencies
+        run: python -m pip install -e ".[dev]"
 
       - name: mypy --strict
         run: make type
@@ -105,10 +139,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
-      - name: Install dev dependencies (hashed)
-        run: |
-          python -m pip install --require-hashes -r requirements/dev.txt
-          python -m pip install --no-deps -e .
+      - name: Install dev dependencies
+        run: python -m pip install -e ".[dev]"
 
       - name: pytest (planted hotspots recovered, interval coverage checks)
         run: make test
@@ -135,10 +167,8 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: Install dev dependencies (hashed)
-        run: |
-          python -m pip install --require-hashes -r requirements/dev.txt
-          python -m pip install --no-deps -e .
+      - name: Install dev dependencies
+        run: python -m pip install -e ".[dev]"
 
       - name: Install web dependencies (locked)
         working-directory: web
@@ -149,7 +179,7 @@ jobs:
         run: npm run build
 
       - name: axe (map, table, report form, legends, charts)
-        run: make a11y
+        run: make accessibility
 
   security:
     name: security (pip-audit + gitleaks + CodeQL)
@@ -177,11 +207,9 @@ jobs:
 
       # Dependency vulnerabilities and secret scanning only need to run once,
       # not per CodeQL language, so gate them to the python matrix leg.
-      - name: Install dev dependencies (hashed)
+      - name: Install dev dependencies
         if: matrix.language == 'python'
-        run: |
-          python -m pip install --require-hashes -r requirements/dev.txt
-          python -m pip install --no-deps -e .
+        run: python -m pip install -e ".[dev]"
 
       - name: pip-audit (known-vulnerable dependencies)
         if: matrix.language == 'python'
@@ -222,10 +250,8 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dev dependencies (hashed)
-        run: |
-          python -m pip install --require-hashes -r requirements/dev.txt
-          python -m pip install --no-deps -e .
+      - name: Install dev dependencies
+        run: python -m pip install -e ".[dev]"
 
       # Rule 5: a clean rebuild from raw inputs must reproduce the committed
       # public artifacts byte-for-byte. Synthetic fixtures (not private raw

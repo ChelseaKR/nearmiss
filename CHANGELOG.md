@@ -22,15 +22,19 @@ Both schemas follow the **versioning and deprecation policy** in
 [`schema/dataset.schema.md`](schema/dataset.schema.md#7-versioning-and-deprecation-policy), summarized
 under [Schema-versioning policy](#schema-versioning-policy) at the foot of this file. In short: PATCH =
 clarifications, MINOR = backward-compatible additive changes (flag and hazard vocabularies are additive,
-never silently repurposed), MAJOR = a breaking change. Breaking changes are announced at least one MINOR
-release ahead with a deprecation window and a stated migration path; published artifacts are immutable
-and hashed and are never rewritten in place.
+never silently repurposed), MAJOR = a breaking change — including **adding a newly-required field**.
+Breaking changes are announced at least one MINOR release ahead with a deprecation window and a stated
+migration path; published artifacts are immutable and hashed and are never rewritten in place.
 
 Released versions are signed; conventional-commit history backs every entry.
 
 ## [Unreleased]
 
-Nothing released yet beyond `0.1.0`. Changes land here first.
+Changes land here first. This is where the implementation called for by the `0.1.0` specification will
+be recorded as it ships across the roadmap (see **Planned** under `0.1.0`). The pipeline, statistics,
+publishing, briefs, accessible web view, notebooks, and the first published dataset are **not yet
+implemented**; they arrive across roadmap Phases 1–3 and will be listed here under their own `### Added`
+entries as each lands.
 
 ### Intake report schema (`schema/report.schema.json`)
 
@@ -42,116 +46,145 @@ Nothing released yet beyond `0.1.0`. Changes land here first.
 
 ## [0.1.0] - 2026-06-16
 
-First beta. The end-to-end pipeline runs from a raw report to a published, open, statistically honest
-dataset, and `make reproduce` regenerates every figure, table, and published artifact from inputs. The
-project ships as a **dataset and analysis**, not an app; the web view is a read-only window onto the
-published data. This release is labeled **beta**: the schemas are stable enough to build against under
-the deprecation policy, but rate magnitudes, exposure sources, and bias adjustments are still being
-calibrated against real corridors and may move between `0.x` releases.
+First release: a **scaffolding and specification** drop. This release ships the architecture, the two
+data-contract schemas, the full documentation set, governance and community-health files, and the CI
+and quality-gate scaffolding — **not the pipeline code, the statistics, the publishing tooling, the
+web view, or any published dataset**. Those are specified here and arrive across roadmap Phases 1–3
+(see **Planned** below).
 
-### Added — schema and intake
+The project is designed to ship as a **dataset and analysis**, not an app; the intended web view is a
+read-only window onto the published data. The repository is **private during pre-1.0 development**.
+This release is labeled **`0.1.0` / pre-1.0**: the schemas are stable enough to build against under the
+deprecation policy, but the rate magnitudes, exposure sources, and bias adjustments described in the
+methodology are still being designed and have not yet been calibrated against real corridors; they may
+move between `0.1.x` releases.
+
+### Added — schema and intake contract
 
 - **Intake report schema** `schema/report.schema.json` (`report.schema.json` version `1.0.0`,
   JSON Schema draft 2020-12). Defines a single incoming road-hazard / near-miss report with required
   `schema_version`, `id` (UUID, not derived from reporter identity), `occurred_at` (RFC 3339 with
-  explicit offset), `location`, `mode`, `hazard_type` (close-pass, door-zone, blind-corner, pothole,
-  and related categories), and `severity`. The intake contract intentionally accepts full submitted
-  coordinate precision and an optional pseudonymous reporter token; such precise reports are **private
-  and gitignored** under `data/raw/` and are never published as-is (**HR4**).
-- **`intake.py`** — validates each submission against the report schema before it lands in the private
-  raw store, routing by `schema_version` so future schema revisions get the correct validation and
-  migration path. Intake attaches no denominators, rates, or intervals; those are computed downstream
-  and never claimed at intake.
-
-### Added — pipeline
-
-- **`pipeline/`** — pure, recorded transforms with plain, inspectable data between stages:
-  - **dedupe** — collapses duplicate and near-duplicate submissions of the same event.
-  - **geocode** — resolves locations to coordinates against a documented, versioned reference.
-  - **snap-to-segment** — snaps each report to a street segment, the unit of aggregation and exposure.
-  - **classify** — normalizes `hazard_type` and `mode` into the analysis vocabulary.
-  - **quality-flag** — annotates reports with quality signals (e.g. low location accuracy, ambiguous
-    snap) that carry through to per-feature `quality_flags` in the published dataset.
-
-### Added — exposure and statistics
-
-- **`exposure.py`** — attaches an exposure denominator to each segment from documented, versioned
-  sources (observed bike/ped counts, a demand model, or an imported exposure layer), recording the
-  `exposure_source` identifier and `exposure_date` **per feature** so a stale or swapped layer is
-  visible, not silent. Segments with no available denominator are carried as `exposure_unknown`, not
-  silently dropped (**HR1**).
-- **`stats/rates.py`** — computes every risk figure as a **rate normalized by exposure**, never a raw
-  count, and attaches a **confidence interval and an `n`** to every published rate, ranking, and
-  comparison. Small-sample segments are flagged `low_sample` and shown as uncertain rather than ranked
-  as certain (**HR1**, **HR2**).
-- **`stats/bias.py`** — characterizes **reporting bias** as a first-class output: who is over- and
-  under-represented by route choice, demographics, app access, and language, and what that does to the
-  conclusions. The characterization is stated plainly, not hidden (**HR3**).
-- **`stats/kde.py`** — kernel density estimation for a continuous report/risk surface, with the
-  bandwidth and the smoothed quantity documented; a KDE of raw counts is labeled **report volume**,
-  never **danger**.
-- **`stats/getis_ord.py`** — Getis-Ord Gi\* to identify **statistically significant** hot and cold
-  spots, with the significance level and multiple-comparison correction stated, so "hotspot" means a
-  tested cluster rather than a bright patch on a heat map.
-
-### Added — publishing and briefs
-
-- **`publish.py`** — emits the open artifacts:
-  - **`data/published/nearmiss.geojson`** — aggregated to street segments with a minimum reports per
-    feature, coordinates fuzzed and jittered, conforming to the published dataset schema `1.0.0`
-    (WGS84 / EPSG:4326 per RFC 7946). Every feature carries its rate, CI, `n`, `quality_flags`, and
-    per-feature exposure provenance.
-  - **data card** — a `Datasheets for Datasets`-style card (`docs/DATA-CARD.md`, with a per-release
-    `data/published/datacard.json` sidecar) covering provenance, known reporting biases, a schema
-    crosswalk, and explicit out-of-scope and discouraged uses.
-  - **provenance** — each file pins `metadata.schema_version`, `metadata.content_hash`, and
-    `metadata.rng_seed`, making every published build immutable, verifiable, and reproducible (**HR5**).
-  - **privacy guarantees** — no per-report records, raw or sub-jitter coordinates, reporter tokens,
-    verbatim notes, or per-contributor sequences ever appear in the published artifact; a CI privacy
-    check enforces the "guaranteed absent" list (**HR4**).
-- **`brief.py`** — generates advocacy briefs from the published dataset, carrying intervals and the
-  bias caveats through to the prose so a brief cannot quietly overclaim.
-
-### Added — accessible web view
-
-- **`server.py`** plus a framework-free `web/` build — a **read-only** accessible map of the published
-  dataset with an **equivalent sortable list/table view** of the same data, targeting **WCAG 2.2 AA**
-  and **Section 508 (Revised, 36 CFR Part 1194)**. Maps show modeled/uncertain segments as such; the
-  table exposes rate, CI, `n`, and flags as sortable columns so no information is map-only.
+  explicit offset), `location`, `mode` (e.g. `cyclist`), `hazard_type` (close-pass, door-zone,
+  blind-corner, `surface_hazard`, and related categories), and `severity`. The intake contract is
+  designed to accept full submitted coordinate precision and an optional pseudonymous reporter token;
+  such precise reports are specified as **private and gitignored** under `data/raw/` and are never to
+  be published as-is (**HR4**).
+- **Published dataset schema** `schema/dataset.schema.md` — the human-readable published-dataset
+  contract (mirrored by a JSON Schema validated in CI), including the versioning and deprecation policy.
+  Establishes the `FeatureCollection` with versioned `metadata`, per-feature rate / CI / `n`,
+  per-feature exposure provenance, the additive `quality_flags` vocabulary, the WGS84 / RFC 7946
+  geometry conventions, and the "guaranteed absent" privacy list. Note that the published dataset
+  intentionally carries **no per-report `mode` field** (a quasi-identifier withheld for privacy).
 
 ### Added — documentation
 
 - `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `NOTICE`, and an Apache-2.0 `LICENSE`.
-- `docs/METHODOLOGY.md` (exposure, rates, intervals, bias, KDE, Getis-Ord Gi\*),
-  `docs/DATA-CARD.md`, `docs/THREAT-MODEL.md`, and `docs/ACCESSIBILITY.md`.
-- `docs/accessibility/ACR.md` — a committed **VPAT 2.5 (Rev 508)** Accessibility Conformance Report.
+- `docs/METHODOLOGY.md` (the intended approach to exposure, rates, intervals, bias, KDE, and
+  Getis-Ord Gi\*), `docs/DATA-CARD.md`, `docs/THREAT-MODEL.md`, and `docs/ACCESSIBILITY.md`.
+- `docs/accessibility/ACR.md` — a committed **VPAT 2.5 (Rev 508)** Accessibility Conformance Report
+  describing the conformance target for the planned web view.
 - `docs/adr/` — Architecture Decision Records, including
   `0001-record-architecture-decisions.md` and `0002-exposure-normalization-and-confidence-intervals.md`.
-- `docs/audits/` — the committed audit log directory.
-- `schema/dataset.schema.md` — the human-readable published-dataset contract, including the versioning
-  and deprecation policy.
+- `docs/audits/` — the audit log directory, established for audits performed in later phases.
 
-### Added — CI, security, and supply chain
+### Added — governance and community health
 
-- GitHub Actions CI (`.github/workflows/ci.yml`) gating every change on:
+- Governance and community-health files: `CONTRIBUTING.md`, `SECURITY.md` (disclosure process),
+  `.github/CODEOWNERS`, and the conventional-commit and signed-release conventions that back this
+  changelog.
+
+### Added — CI, tooling, and quality gates
+
+- GitHub Actions CI (`.github/workflows/ci.yml`) **scaffolding** that is designed to gate every change
+  on the following jobs. Actions are pinned by **version tag** (e.g. `@v4`) and kept current by
+  Dependabot; pinning to commit SHAs is a hardening goal, not a current fact. The jobs install the
+  project with `pip install -e ".[dev]"` and run:
   - **lint** — `ruff` (lint, import order, format check).
   - **type** — `mypy --strict`.
-  - **test** — `pytest` against **synthetic fixtures with known answers** (planted hotspots are
-    recovered by Getis-Ord Gi\*; interval coverage is checked against the planted truth).
-  - **accessibility** — automated `axe` on the built map, table, report form, legends, and charts;
-    manual NVDA/VoiceOver passes are required per `docs/ACCESSIBILITY.md` and tracked outside CI.
-  - **security** — `pip-audit`, `gitleaks`, and `CodeQL`.
-  - **reproducibility** — `make reproduce` must rebuild `data/published` from inputs with no drift.
-- **Pinned and hashed** dependencies (`pip install --require-hashes`), `Dependabot`
-  (`.github/dependabot.yml`), `.github/CODEOWNERS`, conventional commits, semantic versioning, and
-  **signed releases**.
+  - **test** — `pytest`. The intended test design runs against **synthetic fixtures with known
+    answers** (planted hotspots recovered by Getis-Ord Gi\*; interval coverage checked against the
+    planted truth); those fixtures arrive with the pipeline in Phase 1.
+  - **accessibility** — designed to run automated `axe` on the built map, table, report form, legends,
+    and charts once the web view exists; manual NVDA/VoiceOver passes are required per
+    `docs/ACCESSIBILITY.md` and tracked outside CI.
+  - **security** — `pip-audit --strict`, `gitleaks`, and `CodeQL`.
+  - **reproducibility** — `make reproduce` is specified to rebuild `data/published` from inputs with no
+    drift once the pipeline exists.
+- **`.pre-commit-config.yaml`** — the pre-commit configuration wiring the local lint/type/format hooks.
+- **`Makefile`** — defines the project gates and developer entry points, including `make install`
+  (`pip install -e ".[dev]"`, the working install today), `make lock` (generates the reproducible
+  `requirements.lock` via `pip-compile --generate-hashes`), `make accessibility`, and `make reproduce`.
+- Dependency and supply-chain conventions: the working install is `pip install -e ".[dev]"`. A hashed
+  lockfile, `requirements.lock` (generated by `pip-compile --generate-hashes`), is the **planned**
+  reproducible-install artifact and is **not committed yet**. `Dependabot` (`.github/dependabot.yml`),
+  `.github/CODEOWNERS`, conventional commits, semantic versioning, and **signed releases** round out the
+  baseline.
+
+### Planned — arriving across roadmap Phases 1–3
+
+These are **specified, not yet implemented**. They are listed here so the design intent is recorded;
+each will move to `[Unreleased]` (and then to a release) as it actually lands.
+
+- **`intake.py`** — will validate each submission against the report schema before it lands in the
+  private raw store, routing by `schema_version` so future schema revisions get the correct validation
+  and migration path. Intake is designed to attach no denominators, rates, or intervals; those are
+  computed downstream and never claimed at intake.
+- **`pipeline/`** — pure, recorded transforms with plain, inspectable data between stages:
+  - **dedupe** — collapse duplicate and near-duplicate submissions of the same event.
+  - **geocode** — resolve locations to coordinates against a documented, versioned reference.
+  - **snap-to-segment** — snap each report to a street segment, the unit of aggregation and exposure.
+  - **classify** — normalize `hazard_type` and `mode` into the analysis vocabulary.
+  - **quality-flag** — annotate reports with quality signals (e.g. low location accuracy, ambiguous
+    snap) that carry through to per-feature `quality_flags` in the published dataset.
+- **`exposure.py`** — will attach an exposure denominator to each segment from documented, versioned
+  sources (observed bike/ped counts, a demand model, or an imported exposure layer), recording the
+  `exposure_source` identifier and `exposure_date` **per feature** so a stale or swapped layer is
+  visible, not silent. Segments with no available denominator are to be carried as `exposure_unknown`,
+  not silently dropped (**HR1**).
+- **`stats/rates.py`** — will compute every risk figure as a **rate normalized by exposure**, never a
+  raw count, and attach a **confidence interval and an `n`** to every published rate, ranking, and
+  comparison. Small-sample segments are to be flagged `low_sample` and shown as uncertain rather than
+  ranked as certain (**HR1**, **HR2**).
+- **`stats/bias.py`** — will characterize **reporting bias** as a first-class output: who is over- and
+  under-represented by route choice, demographics, app access, and language, and what that does to the
+  conclusions. The characterization is to be stated plainly, not hidden (**HR3**).
+- **`stats/kde.py`** — kernel density estimation for a continuous report/risk surface, with the
+  bandwidth and the smoothed quantity documented; a KDE of raw counts is to be labeled **report
+  volume**, never **danger**.
+- **`stats/getis_ord.py`** — Getis-Ord Gi\* to identify **statistically significant** hot and cold
+  spots, with the significance level and multiple-comparison correction stated, so "hotspot" means a
+  tested cluster rather than a bright patch on a heat map.
+- **`publish.py`** — will emit the open artifacts:
+  - **`data/published/nearmiss.geojson`** — aggregated to street segments with a minimum reports per
+    feature, coordinates fuzzed and jittered, conforming to the published dataset schema `1.0.0`
+    (WGS84 / EPSG:4326 per RFC 7946). Every feature is to carry its rate, CI, `n`, `quality_flags`, and
+    per-feature exposure provenance.
+  - **data card** — a `Datasheets for Datasets`-style card (`docs/DATA-CARD.md`, with a per-release
+    `data/published/datacard.json` sidecar) covering provenance, known reporting biases, a schema
+    crosswalk, and explicit out-of-scope and discouraged uses.
+  - **provenance** — each file is to pin `metadata.schema_version`, `metadata.content_hash`, and
+    `metadata.rng_seed`, making every published build immutable, verifiable, and reproducible (**HR5**).
+  - **privacy guarantees** — no per-report records, raw or sub-jitter coordinates, reporter tokens,
+    verbatim notes, or per-contributor sequences are ever to appear in the published artifact; a CI
+    privacy check is specified to enforce the "guaranteed absent" list (**HR4**).
+- **`brief.py`** — will generate advocacy briefs from the published dataset, carrying intervals and the
+  bias caveats through to the prose so a brief cannot quietly overclaim.
+- **`server.py`** plus a framework-free `web/` build — a **read-only** accessible map of the published
+  dataset with an **equivalent sortable list/table view** of the same data, targeting **WCAG 2.2 AA**
+  and **Section 508 (Revised, 36 CFR Part 1194)**. Maps are to show modeled/uncertain segments as such;
+  the table is to expose rate, CI, `n`, and flags as sortable columns so no information is map-only.
+- **Notebooks and synthetic test fixtures** — the analysis notebooks and the known-answer fixtures that
+  the `test` and `reproducibility` CI jobs are designed to exercise.
 
 ### Security
 
-- Established the supply-chain and secret-scanning baseline above (pinned+hashed deps, Dependabot,
-  `pip-audit`, `gitleaks`, `CodeQL`) and the disclosure process in `SECURITY.md`.
-- Privacy-by-construction enforced in CI: precise reports stay private and gitignored, and the
-  published-artifact privacy check fails the build if any identifying field appears (**HR4**).
+- Established the **specified** supply-chain and secret-scanning baseline above (`pip-audit --strict`,
+  `gitleaks`, `CodeQL`, Dependabot, version-tag-pinned actions, signed releases) and the disclosure
+  process in `SECURITY.md`. The committed lock artifact (`requirements.lock`) and the
+  privacy-by-construction CI enforcement below are planned, not yet active.
+- Privacy-by-construction is specified to be enforced in CI: precise reports stay private and
+  gitignored, and the published-artifact privacy check is designed to fail the build if any identifying
+  field appears (**HR4**). This check lands with `publish.py` in Phase 2.
 
 ### Intake report schema (`schema/report.schema.json`)
 
@@ -177,9 +210,10 @@ Summary:
   keep their name, type, and meaning; flag and hazard vocabularies are **additive and never silently
   repurposed**. A consumer written for an earlier `1.x` keeps working and should ignore anything it does
   not recognize.
-- **MAJOR** — a **breaking change**: removing or renaming a property, changing a type or unit, changing
-  the meaning of a field, changing the default CI level or the significance / correction method in a way
-  that alters how published numbers read, or changing the geometry/CRS conventions.
+- **MAJOR** — a **breaking change**: removing or renaming a property, **adding a newly-required field**,
+  changing a type or unit, changing the meaning of a field, changing the default CI level or the
+  significance / correction method in a way that alters how published numbers read, or changing the
+  geometry/CRS conventions.
 
 **Deprecation.** A field slated for removal or change is marked deprecated in the schema doc and the
 data card, with the target removal version and migration path, **at least one MINOR release** before the

@@ -178,7 +178,7 @@ quickly on one thing.
 | Lint | `make lint` | `ruff` — style, imports, common bugs. |
 | Types | `make type` | `mypy --strict` — no untyped or loosely typed code. |
 | Tests | `make test` | `pytest` over deterministic components, with synthetic fixtures whose answers are **known** (planted hotspots recovered, interval coverage checks). |
-| Accessibility | `make a11y` | `axe` automated checks on the map, table, form, legends, and charts. Manual NVDA/VoiceOver review is required for UI changes and is a merge-blocking gate; note your manual result in the PR. |
+| Accessibility | `make accessibility` | `axe` automated checks on the map, table, form, legends, and charts. Manual NVDA/VoiceOver review is required for UI changes and is a merge-blocking gate; note your manual result in the PR. |
 | Security | `make security` | `pip-audit`, `gitleaks`, and CodeQL-equivalent checks. Pinned, hashed deps verified. |
 | Everything | `make verify` | All of the above. This is the gate. |
 
@@ -243,11 +243,11 @@ Signed-off-by: Jane Rider <jane@example.com>
 ```
 
 ```text
-feat(schema)!: require exposure_source_date on every rate record
+feat(schema)!: require exposure_date on every rate record
 
-BREAKING CHANGE: report.schema.json minor-bumps to 2.0; existing raw
-reports migrate via migrations/0002_exposure_source_date.py. See
-docs/adr/0007-require-exposure-source-date.md.
+BREAKING CHANGE: report.schema.json major-bumps to 2.0; existing raw
+reports migrate via migrations/0002_exposure_date.py. See
+docs/adr/0007-require-exposure-date.md.
 
 Signed-off-by: Jane Rider <jane@example.com>
 ```
@@ -310,7 +310,7 @@ A schema change is not done until **all four** of these exist in the same pull r
    that runs the migration on a fixture and checks the result. No data is left stranded on an
    old version.
 4. **An ADR.** Add an Architecture Decision Record under `docs/adr/` (for example,
-   `docs/adr/0007-require-exposure-source-date.md`) explaining the decision, the alternatives
+   `docs/adr/0007-require-exposure-date.md`) explaining the decision, the alternatives
    considered, and the consequences — especially the privacy and reproducibility
    consequences. This is where you make the case that the change holds up.
 

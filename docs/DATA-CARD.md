@@ -127,14 +127,13 @@ table below is the human summary; if the two disagree, the schema file wins.
 |--------------------------|--------------------------------------------------------------------------|---------|
 | `feature_kind`           | `report_volume` \| `rate` \| `kde_cell` \| `gi_star_cluster`             | Which published layer this feature belongs to. |
 | `segment_id`             | string (stable, opaque)                                                  | Internal street-segment identifier the report was snapped to. Opaque; not a street address. |
-| `hazard_type`            | `close_pass` \| `dooring` \| `surface` \| `sightline` \| `signal` \| `debris` \| `other` | Classified hazard category. |
-| `mode`                   | `bike` \| `pedestrian` \| `other`                                        | Travel mode of the reporter at the time. |
+| `hazard_type`            | `close_pass` \| `dooring` \| `surface_hazard` \| `sightline` \| `signal` \| `debris` \| `other` | Classified hazard category. |
 | `report_count`          | integer ≥ 0                                                              | Number of reports aggregated into this feature after dedupe. |
 | `period_start`           | date (ISO 8601)                                                          | Start of the aggregation window. |
 | `period_end`             | date (ISO 8601)                                                          | End of the aggregation window. |
 | `exposure_value`         | number \| `null`                                                         | Exposure denominator (e.g. estimated bike/ped volume) for the segment and window. `null` means exposure unknown. |
 | `exposure_source`        | string                                                                   | Provenance of the denominator (count program, demand model, or named exposure layer). |
-| `exposure_source_date`   | date (ISO 8601)                                                          | The date/vintage of the exposure source. |
+| `exposure_date`          | date (ISO 8601)                                                          | The date/vintage of the exposure source. |
 | `rate`                   | number \| `null`                                                         | `report_count / exposure_value`, in the documented units. `null` when exposure is unknown. |
 | `rate_ci_low`            | number \| `null`                                                         | Lower bound of the rate confidence interval. |
 | `rate_ci_high`           | number \| `null`                                                         | Upper bound of the rate confidence interval. |
@@ -261,7 +260,7 @@ masquerade as more danger.
 - **What exposure can be.** Depending on the deployment, `exposure_value` comes from one of:
   observed bike/pedestrian counts where a count program exists; a demand model; or an imported
   exposure layer (e.g. a Strava/StreetLight-style volume surface). The specific source and its
-  vintage are recorded per feature in `exposure_source` and `exposure_source_date`, and
+  vintage are recorded per feature in `exposure_source` and `exposure_date`, and
   summarized in the data card sidecar. **Sources are interchangeable behind one interface**, so
   a given city's denominators may come from a different source than another's.
 - **Assumptions baked into the denominator.** The rate is only as good as the exposure
@@ -270,7 +269,7 @@ masquerade as more danger.
     modeled or imported exposure, which is smoother and less locally accurate. Segments with no
     usable exposure get `exposure_unknown` and no rate.
   - *Temporal mismatch.* The exposure source's vintage rarely matches the reporting window
-    exactly; `exposure_source_date` exposes this gap. Big ridership changes between the two
+    exactly; `exposure_date` exposes this gap. Big ridership changes between the two
     dates bias the rate.
   - *Mode and time-of-day aggregation.* Exposure is typically a coarse volume, not matched to
     the specific mode, hour, or direction of each report; rates are averages over that
@@ -443,7 +442,7 @@ restrictive license — the data is meant to be free.
 
 **Third-party exposure sources** (count programs, demand models, exposure layers) used as
 denominators retain their own licenses and terms; consult `exposure_source` /
-`exposure_source_date` and the data card sidecar before redistributing derived exposure values.
+`exposure_date` and the data card sidecar before redistributing derived exposure values.
 
 ### How to cite
 

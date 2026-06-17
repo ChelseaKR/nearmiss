@@ -40,7 +40,7 @@ WEB_DIST := web/dist
 # `make` with no target prints help. Help must stay first and stay cheap.
 .DEFAULT_GOAL := help
 
-.PHONY: help install lint type test accessibility security verify \
+.PHONY: help install lock lint type test accessibility security verify \
         reproduce demo publish clean
 
 help: ## Show this help — every target with its description
@@ -55,6 +55,10 @@ help: ## Show this help — every target with its description
 install: ## Install the package (editable) with dev extras and pre-commit hooks
 	$(PIP) install -e ".[dev]"
 	pre-commit install
+
+lock: ## Generate the hashed reproducible-install lockfile (requirements.lock)
+	pip-compile --generate-hashes -o requirements.lock pyproject.toml
+	@echo "lock: wrote requirements.lock (generated; do not edit by hand)."
 
 lint: ## Lint with ruff (style + import order + bugbear), no autofix
 	ruff check $(PKG_SRC) tests
@@ -74,15 +78,15 @@ accessibility: ## Build the web map and run axe on it (WCAG 2.2 AA merge gate)
 	@echo "NOTE: the merge gate also requires manual NVDA + VoiceOver review;"
 	@echo "      see docs/accessibility/ACR.md (axe alone is necessary, not sufficient)."
 
-security: ## Scan deps (pip-audit, hashed/pinned) and history for secrets (gitleaks)
-	pip-audit --require-hashes --strict
+security: ## Scan deps (pip-audit) and history for secrets (gitleaks)
+	pip-audit --strict
 	gitleaks detect --no-banner --redact --source .
 
 verify: lint type test accessibility security ## Full merge gate: lint + type + test + accessibility + security
 	@echo "verify: all merge gates green (lint, type, test, accessibility, security)."
 
 reproduce: ## HR5: regenerate EVERY brief figure and table from raw inputs (deterministic)
-	$(PYTHON) -m $(PACKAGE).pipeline      # dedupe -> geocode -> snap -> classify -> quality
+	$(PYTHON) -m $(PACKAGE).pipeline  --input tests/fixtures  # dedupe -> geocode -> snap -> classify -> quality
 	$(PYTHON) -m $(PACKAGE).exposure      # attach denominators (records source + date)
 	$(PYTHON) -m $(PACKAGE).stats         # rates+CIs, bias, KDE, Getis-Ord Gi*
 	jupyter nbconvert --to notebook --execute --inplace \
@@ -92,7 +96,7 @@ reproduce: ## HR5: regenerate EVERY brief figure and table from raw inputs (dete
 
 demo: ## Demonstrability: run the pipeline over fixtures and render a sample brief
 	$(PYTHON) -m $(PACKAGE).pipeline  --input tests/fixtures --out build/demo
-	$(PYTHON) -m $(PACKAGE).exposure  --in build/demo --config config/demo.toml
+	$(PYTHON) -m $(PACKAGE).exposure  --in build/demo
 	$(PYTHON) -m $(PACKAGE).stats     --in build/demo
 	$(PYTHON) -m $(PACKAGE).publish   --in build/demo --out build/demo/published
 	$(PYTHON) -m $(PACKAGE).brief     --in build/demo --out build/demo/brief.md

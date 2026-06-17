@@ -2,14 +2,18 @@
 #
 # Scope: keep the supply chain current without breaking reproducibility.
 #
-# Dependencies in this project are PINNED AND HASHED. Runtime/build
-# requirements use fully pinned versions with --require-hashes-compatible
-# hash digests (e.g. requirements*.txt compiled by pip-compile
-# --generate-hashes), and GitHub Actions are pinned to a commit SHA, not a
-# floating tag. Dependabot therefore proposes exact version bumps WITH the
-# matching hashes; CI re-runs lint, mypy --strict, pytest, the accessibility
-# checks, and `pip-audit` on every PR, so an update only lands after the
-# pipeline still reproduces (Hard Rule 5: open and reproducible end to end).
+# Dependencies in this project are intended to be PINNED AND HASHED. The
+# reproducible-install target is `requirements.lock`, a generated, fully
+# pinned, hashed lockfile (produced by `pip-compile --generate-hashes` via
+# `make lock`); it is not committed yet, so the working install today is
+# `pip install -e ".[dev]"`. GitHub Actions are pinned by version tag (e.g.
+# @v4), and Dependabot keeps those tags current; pinning to commit SHAs is a
+# future hardening goal, not a current fact. Dependabot proposes exact
+# version bumps (regenerating the lockfile hashes once `requirements.lock`
+# lands); CI is designed to re-run lint, mypy --strict, pytest, the
+# accessibility checks, and `pip-audit --strict` on every PR, so an update
+# only lands after the pipeline still reproduces (Hard Rule 5: open and
+# reproducible end to end).
 #
 # Updates are grouped so a week's bumps arrive as a small number of reviewable
 # PRs rather than one PR per package — this is a single-maintainer project and
@@ -21,7 +25,7 @@
 version: 2
 
 updates:
-  # Python — pip ecosystem (requirements*.txt, pyproject.toml).
+  # Python — pip ecosystem (requirements.lock, pyproject.toml).
   # Versions stay pinned; Dependabot regenerates the hashes with each bump.
   - package-ecosystem: "pip"
     directory: "/"
@@ -58,8 +62,8 @@ updates:
         patterns:
           - "*"
 
-  # GitHub Actions — pinned to commit SHAs in .github/workflows/.
-  # Dependabot bumps the SHA and updates the trailing version comment.
+  # GitHub Actions — pinned by version tag in .github/workflows/.
+  # Dependabot keeps the tags current; SHA-pinning is a future hardening goal.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

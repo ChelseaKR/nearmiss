@@ -27,7 +27,7 @@ security issue regardless of which code version produced it.
 
 | Channel                                   | Supported                                  |
 | ----------------------------------------- | ------------------------------------------ |
-| Latest released `MINOR` (e.g. `0.4.x`)    | Yes — receives security fixes              |
+| Latest released `MINOR` (e.g. `0.1.x`)    | Yes — receives security fixes              |
 | Previous `MINOR`                          | Best-effort backport for high/critical only |
 | Older releases                            | No — please upgrade                        |
 | `main` (unreleased)                       | Fixed directly; not a "supported" release  |
@@ -84,11 +84,11 @@ This is a single-maintainer project; these are good-faith targets, not contractu
 | Fix for low/moderate issues                           | Next regular release            |
 | Public advisory + disclosure                          | Coordinated with you, after a fix or mitigation is available |
 
-Privacy and data-integrity issues that affect **already-published** artifacts get the fastest path:
-the first action is usually to **un-publish or roll back** the affected GeoJSON or public dataset
-(removing the harmful artifact from the open path) while a corrected, re-jittered, re-aggregated
-version is rebuilt with `make reproduce`. Because every published number is reproducible from raw
-inputs, withdrawal-then-rebuild is a safe default.
+Privacy and data-integrity issues that affect **already-published** artifacts are designed to get the
+fastest path: the first action is usually to **un-publish or roll back** the affected GeoJSON or
+public dataset (removing the harmful artifact from the open path) while a corrected, re-jittered,
+re-aggregated version is rebuilt with `make reproduce`. Because every published number is intended to
+be reproducible from raw inputs, withdrawal-then-rebuild is meant to be a safe default.
 
 ## Scope
 
@@ -105,8 +105,10 @@ published at a precision that could identify a person's routine. In scope:
   routine, or identity can be recovered from published artifacts — including residual precision in the
   open GeoJSON, insufficient jitter or aggregation in the public dataset, fuzzing that is reversible,
   or a low-`n` cell that uniquely fingerprints one person.
-- **Re-identification by correlation.** Linking published reports across time, mode, or rare
+- **Re-identification by correlation.** Linking published reports across time or rare
   hazard/severity combinations to single out an individual, even when each field alone looks safe.
+  (Note that per-report mode is treated as a quasi-identifier and is withheld from the published
+  dataset for exactly this reason.)
 - **Leakage of the private raw store.** Any way to reach `data/raw/` precise reports, intake payloads,
   or pre-jitter intermediate data through the published site, the API, server responses, logs,
   error messages, debug dumps, or a committed file that should have been gitignored.
@@ -167,31 +169,41 @@ quietly lie is a security issue:
 
 ## Supply-chain posture
 
+This project is at the documentation/specification stage: the CI workflows, release pipeline, and the
+dependency-lock artifact are part of the planned design and are not all in place yet. The posture
+below describes the intended attack-surface controls; the present state of each is noted.
+
 Dependencies and the release pipeline are treated as part of the attack surface:
 
-- **Pinned and hashed dependencies.** Runtime and CI dependencies are pinned to exact versions and
-  verified by hash (e.g. `--require-hashes`), so a resolver cannot silently pull a different artifact.
-- **`pip-audit`** runs in CI to flag known-vulnerable dependencies; a new advisory against a pinned
-  dep is a security event, not a routine bump.
-- **`gitleaks`** runs in CI to catch secrets before they reach history.
-- **CodeQL** runs static analysis on the codebase for common vulnerability classes.
-- **Dependabot** opens dependency-update and security-update PRs, which go through the same lint,
-  type, test, and audit gates as any change.
-- **Signed releases.** Release tags and artifacts are signed, and published dataset/release artifacts
-  carry content hashes, so a consumer can verify they have the genuine, untampered file. SLSA-friendly,
-  pinned GitHub Actions are used for the build.
-- **Conventional commits, semver, ADRs, and committed `docs/audits/`** keep the provenance of every
-  change auditable.
+- **Pinned and hashed dependencies.** The working install today is `pip install -e ".[dev]"` (via
+  `make install`), which is also how CI is designed to install. The target for reproducible installs
+  is a generated, hash-pinned lockfile, `requirements.lock` (produced by `pip-compile
+  --generate-hashes`, via `make lock`), so a resolver cannot silently pull a different artifact. That
+  lockfile is a generated artifact and is not committed yet.
+- **`pip-audit`** is designed to run in CI (`pip-audit --strict`) to flag known-vulnerable
+  dependencies; a new advisory against a pinned dep is intended to be treated as a security event, not
+  a routine bump.
+- **`gitleaks`** is specified to run in CI to catch secrets before they reach history.
+- **CodeQL** is specified to run static analysis on the codebase for common vulnerability classes.
+- **Dependabot** is configured to open dependency-update and security-update PRs, which are intended to
+  go through the same lint, type, test, and audit gates as any change.
+- **Signed releases.** The release design calls for signed release tags and artifacts, and for
+  published dataset/release artifacts to carry content hashes, so a consumer can verify they have the
+  genuine, untampered file. GitHub Actions are pinned by version tag (e.g. `@v4`) and kept current by
+  Dependabot today; SHA-pinning the actions for a SLSA-friendly build is a hardening goal, not a
+  current fact.
+- **Conventional commits, semver, ADRs, and `docs/audits/`** are intended to keep the provenance of
+  every change auditable.
 
 If you find a malicious or vulnerable dependency, a way to bypass the pinning/hashing, or a flaw in
 the release-signing or artifact-verification path, report it through the private channel above.
 
 ## Secrets handling
 
-- Secrets and credentials are supplied via **environment variables (or the CI secret store) only, and
-  are never committed** to the repository. There are no secrets in source, fixtures, notebooks, or
-  the published data path.
-- `gitleaks` runs in CI as a backstop against accidental commits of credentials.
+- Secrets and credentials are designed to be supplied via **environment variables (or the CI secret
+  store) only, and never committed** to the repository. The intent is that there are no secrets in
+  source, fixtures, notebooks, or the published data path.
+- `gitleaks` is specified to run in CI as a backstop against accidental commits of credentials.
 - The published GeoJSON, public dataset, data card, and the read-only map server are built from
   already-public, aggregated, jittered artifacts and must never carry a secret, a raw report, or a
   pre-jitter coordinate.
