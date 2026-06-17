@@ -40,7 +40,7 @@ dependencies = [
   "numpy>=1.26",
   "shapely>=2.0",
   "pyproj>=3.6",
-  "click>=8.1",
+  "click>=8.4.1",
 ]
 
 [project.optional-dependencies]
