@@ -159,6 +159,15 @@
         rows.sort(compare(key, asc ? 1 : -1));
         renderTable(rows);
         renderMap(rows);
+        var status = document.getElementById("sort-status");
+        if (status) {
+          status.textContent =
+            "Table sorted by " +
+            btn.textContent.trim() +
+            ", " +
+            (asc ? "ascending" : "descending") +
+            ".";
+        }
       });
     });
   }

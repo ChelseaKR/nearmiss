@@ -41,6 +41,16 @@ h1 {
   max-width: 48rem;
 }
 
+.demo-note {
+  background: #fff4e5;
+  border: 1px solid #8a4b00;
+  color: #5a2e00; /* >= 4.5:1 on the light background */
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  max-width: 48rem;
+}
+
 a {
   color: var(--accent);
 }
@@ -96,7 +106,9 @@ figcaption {
 table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 44rem;
+  /* Kept modest so the table still reflows usably at 200% zoom / narrow widths;
+     the .table-wrap scrolls horizontally only when truly necessary. */
+  min-width: 30rem;
 }
 
 caption {

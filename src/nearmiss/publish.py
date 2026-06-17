@@ -161,6 +161,9 @@ def publish(config: Config) -> PublishResult:
     withheld = sum(1 for s in stats if not s.publishable)
     metadata: dict[str, object] = {
         "city": config.city,
+        "version": "0.1.0",
+        "schema_version": "1.0.0",
+        "dataset_note": config.dataset_note,
         "license": "Apache-2.0",
         "schema": "schema/dataset.schema.md",
         "data_card": "docs/DATA-CARD.md",

@@ -47,6 +47,9 @@ def render_brief(bundle: AnalysisBundle, config: Config) -> str:
     lines: list[str] = []
     lines.append(f"# Where the danger actually is — {config.city}")
     lines.append("")
+    if config.dataset_note:
+        lines.append(f"> ⚠️ **{config.dataset_note}**")
+        lines.append("")
     lines.append(
         "> Rates are reports per "
         f"{per} units of exposure. Every rate carries a 95% confidence interval "

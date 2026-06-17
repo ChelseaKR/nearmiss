@@ -40,6 +40,9 @@ class Config:
     gi_band_m: float = 300.0
     kde_bandwidth_m: float = 150.0
     kde_grid: int = 24
+    # Optional provenance note carried into the brief and the published metadata
+    # (e.g. to mark a dataset as synthetic demonstration data).
+    dataset_note: str | None = None
     raw: dict[str, object] = field(default_factory=dict)
 
 
@@ -102,5 +105,6 @@ def load_config(path: str | Path) -> Config:
         gi_band_m=thr("gi_band_m", 300.0),
         kde_bandwidth_m=thr("kde_bandwidth_m", 150.0),
         kde_grid=int(thr("kde_grid", 24)),
+        dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),
         raw=data,
     )

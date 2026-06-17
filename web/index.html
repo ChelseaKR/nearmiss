@@ -21,6 +21,10 @@
         The <a href="#data-table">data table</a> below carries every finding and is the
         authoritative, non-visual equivalent of the map.
       </p>
+      <p class="demo-note">
+        ⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not
+        real reports.
+      </p>
     </header>
 
     <main id="main">
@@ -50,6 +54,7 @@
           Sort the table with the column buttons. <strong>Significance</strong> and
           <strong>confidence</strong> are stated in words, not by color.
         </p>
+        <p id="sort-status" class="visually-hidden" aria-live="polite"></p>
         <div class="table-wrap" tabindex="0" role="region" aria-label="Ranked segments table (scrollable)">
           <table id="data-table">
             <caption id="data-caption">
