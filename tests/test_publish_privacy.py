@@ -92,6 +92,21 @@ def test_small_n_hazard_breakdown_is_suppressed(bundle: AnalysisBundle) -> None:
     assert props["seg-06"]["hazard_breakdown"] != {}
 
 
+def test_published_geojson_is_self_describing(config: Config, tmp_path: object) -> None:
+    import dataclasses
+    from pathlib import Path
+
+    assert isinstance(tmp_path, Path)
+    result = publish(dataclasses.replace(config, out_dir=tmp_path))
+    gj = json.loads(result.geojson_path.read_text(encoding="utf-8"))
+    meta = gj["metadata"]
+    assert meta["dataset_version"] == "0.1.0"
+    assert meta["schema_version"] == "1.0.0"
+    assert meta["license"] == "Apache-2.0"
+    # The embedded metadata must also be privacy-clean.
+    assert_metadata_clean(meta, load_city(config).reports)
+
+
 def test_metadata_carries_no_coordinate_and_passes_gate(
     bundle: AnalysisBundle, config: Config, tmp_path: object
 ) -> None:

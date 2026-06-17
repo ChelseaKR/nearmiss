@@ -9,10 +9,21 @@
     "schema_version",
     "id",
     "occurred_at",
-    "location",
     "mode",
     "hazard_type",
     "severity"
+  ],
+  "anyOf": [
+    {
+      "required": [
+        "location"
+      ]
+    },
+    {
+      "required": [
+        "address"
+      ]
+    }
   ],
   "properties": {
     "schema_version": {
@@ -144,6 +155,23 @@
       "minLength": 8,
       "maxLength": 128,
       "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "address": {
+      "title": "Street address or intersection (alternative to location)",
+      "description": "Optional free-text address or intersection (e.g. 'B St & 3rd St, Davis CA') used when a precise lat/lon is not available. At intake, geocode.py resolves it to coordinates via the configured geocoder (e.g. a local gazetteer) and treats it as the location thereafter. A report must carry EITHER a location OR an address. Like all precise location data it is private and never published.",
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "language": {
+      "title": "Report language",
+      "description": "Optional BCP-47 language tag for the language the report (notably the free-text note) was submitted in, e.g. 'en' or 'es'. Lets the intake and the bilingual report form record the contributor's language and lets bias.py characterize language-based under-representation. Defaults to 'en' when absent.",
+      "type": "string",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+      "examples": [
+        "en",
+        "es"
+      ]
     }
   }
 }

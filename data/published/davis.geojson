@@ -23,7 +23,7 @@
         "getis_ord_z": 0.9211,
         "hazard_breakdown": {},
         "n": 4,
-        "name": "Street seg-01",
+        "name": "B St (1st–2nd)",
         "quality_flags": [
           "geocode_low_confidence",
           "low_sample"
@@ -61,7 +61,7 @@
           "close_pass": 6
         },
         "n": 6,
-        "name": "Street seg-02",
+        "name": "C St (1st–2nd)",
         "quality_flags": [],
         "rate": 15.0,
         "rate_ci_high": 32.6497,
@@ -98,7 +98,7 @@
           "surface_hazard": 5
         },
         "n": 20,
-        "name": "Street seg-03",
+        "name": "3rd St (B–C)",
         "quality_flags": [],
         "rate": 2.5,
         "rate_ci_high": 3.8613,
@@ -133,7 +133,7 @@
           "close_pass": 6
         },
         "n": 6,
-        "name": "Street seg-05",
+        "name": "5th St (B–C)",
         "quality_flags": [],
         "rate": 15.0,
         "rate_ci_high": 32.6497,
@@ -170,7 +170,7 @@
           "surface_hazard": 1
         },
         "n": 6,
-        "name": "Street seg-06",
+        "name": "5th St (C–D)",
         "quality_flags": [],
         "rate": 20.0,
         "rate_ci_high": 43.533,
@@ -205,7 +205,7 @@
           "close_pass": 6
         },
         "n": 6,
-        "name": "Street seg-07",
+        "name": "5th St (D–E)",
         "quality_flags": [],
         "rate": 15.0,
         "rate_ci_high": 32.6497,
@@ -238,7 +238,7 @@
         "getis_ord_z": 0.6952,
         "hazard_breakdown": {},
         "n": 0,
-        "name": "Street seg-09",
+        "name": "8th St (B–C)",
         "quality_flags": [],
         "rate": 0.0,
         "rate_ci_high": 2.4454,
@@ -273,7 +273,7 @@
           "close_pass": 6
         },
         "n": 6,
-        "name": "Street seg-10",
+        "name": "Russell Blvd (A–B)",
         "quality_flags": [],
         "rate": 15.0,
         "rate_ci_high": 32.6497,
@@ -306,7 +306,7 @@
         "getis_ord_z": -1.7327,
         "hazard_breakdown": {},
         "n": 0,
-        "name": "Street seg-12",
+        "name": "Covell Blvd (F–G)",
         "quality_flags": [],
         "rate": 0.0,
         "rate_ci_high": 2.4454,
@@ -317,5 +317,19 @@
       "type": "Feature"
     }
   ],
+  "metadata": {
+    "city": "Davis",
+    "data_card": "docs/DATA-CARD.md",
+    "dataset_note": "Synthetic demonstration data — not real reports.",
+    "dataset_version": "0.1.0",
+    "exposure_unit": "bike trips (synthetic)",
+    "license": "Apache-2.0",
+    "privacy": "Aggregated to public street segments; low-count segments withheld (k-anonymity); no per-report coordinate, time, reporter, mode, or severity is published.",
+    "schema_doc": "schema/dataset.schema.md",
+    "schema_version": "1.0.0",
+    "segments_published": 9,
+    "segments_withheld_low_count": 3,
+    "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR"
+  },
   "type": "FeatureCollection"
 }

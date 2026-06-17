@@ -74,6 +74,9 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "PTH", "RUF"]
+# This project's user-facing strings intentionally use Unicode typography
+# (en/em dashes, ★, ⚠) — so the "ambiguous character" rules are noise here.
+ignore = ["RUF001", "RUF002", "RUF003"]
 
 # ---------------------------------------------------------------------------
 # Types — mypy strict. A typed, analyzable codebase. Part of `make verify`.

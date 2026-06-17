@@ -150,15 +150,39 @@ def publish(config: Config) -> PublishResult:
     bundle = build_analysis(config)
     stats = bundle.result.segments
     geojson = build_geojson(stats, bundle.segments)
+    reports = load_city(config).reports
+    withheld = sum(1 for s in stats if not s.publishable)
+
+    # Embed a self-describing metadata member on the FeatureCollection (a GeoJSON
+    # foreign member) so the open file carries its own version, license, and
+    # privacy/method provenance without a separate fetch. No content hash here
+    # (that would be self-referential); the sidecar carries the hash.
+    embedded: dict[str, object] = {
+        "schema_version": "1.0.0",
+        "dataset_version": "0.1.0",
+        "city": config.city,
+        "license": "Apache-2.0",
+        "dataset_note": config.dataset_note,
+        "exposure_unit": config.exposure_unit,
+        "schema_doc": "schema/dataset.schema.md",
+        "data_card": "docs/DATA-CARD.md",
+        "segments_published": len(stats) - withheld,
+        "segments_withheld_low_count": withheld,
+        "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
+        "privacy": (
+            "Aggregated to public street segments; low-count segments withheld (k-anonymity); "
+            "no per-report coordinate, time, reporter, mode, or severity is published."
+        ),
+    }
+    assert_metadata_clean(embedded, reports)
+    geojson["metadata"] = embedded
 
     # Enforce the privacy invariants against the raw reports before writing anything.
-    reports = load_city(config).reports
     assert_published_clean(geojson, reports, config.min_publish_n)
 
     payload = _canonical_json(geojson)
     sha = hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
-    withheld = sum(1 for s in stats if not s.publishable)
     metadata: dict[str, object] = {
         "city": config.city,
         "version": "0.1.0",

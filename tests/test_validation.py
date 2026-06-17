@@ -35,3 +35,18 @@ def test_additional_property_rejected(a_valid_report: dict[str, object]) -> None
     bad = copy.deepcopy(a_valid_report)
     bad["evil"] = "payload"
     assert validate_report(bad)
+
+
+def test_address_only_report_passes(a_valid_report: dict[str, object]) -> None:
+    r = copy.deepcopy(a_valid_report)
+    del r["location"]
+    r["address"] = "B St & 3rd St, Davis CA"
+    assert validate_report(r) == []
+
+
+def test_report_with_neither_location_nor_address_rejected(
+    a_valid_report: dict[str, object],
+) -> None:
+    r = copy.deepcopy(a_valid_report)
+    del r["location"]
+    assert validate_report(r)

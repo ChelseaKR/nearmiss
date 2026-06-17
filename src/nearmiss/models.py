@@ -53,6 +53,8 @@ class Report:
     heading_deg: float | None = None
     note: str | None = None
     reporter_token: str | None = None
+    address: str | None = None
+    language: str = "en"
 
     @staticmethod
     def from_dict(d: dict[str, object]) -> Report:
@@ -76,6 +78,8 @@ class Report:
             heading_deg=_opt_float(d.get("heading_deg")),
             note=_opt_str(d.get("note")),
             reporter_token=_opt_str(d.get("reporter_token")),
+            address=_opt_str(d.get("address")),
+            language=str(d.get("language", "en")),
         )
 
 

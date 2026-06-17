@@ -28,6 +28,8 @@ class Config:
     out_dir: Path
     ref_lat: float | None = None
     ref_lon: float | None = None
+    gazetteer_path: Path | None = None  # address -> coordinate table for the geocoder
+    exposure_unit: str = "exposure units"  # human-readable denominator unit for the brief
     # Thresholds (all tunable per city; documented in docs/METHODOLOGY.md).
     snap_max_m: float = 25.0
     dedupe_window_s: int = 600
@@ -94,6 +96,8 @@ def load_config(path: str | Path) -> Config:
         out_dir=_resolve(base, str(data.get("out_dir", "data/published"))),
         ref_lat=ref_lat,
         ref_lon=ref_lon,
+        gazetteer_path=(_resolve(base, str(data["gazetteer"])) if "gazetteer" in data else None),
+        exposure_unit=str(data.get("exposure_unit", "exposure units")),
         snap_max_m=thr("snap_max_m", 25.0),
         dedupe_window_s=int(thr("dedupe_window_s", 600)),
         dedupe_distance_m=thr("dedupe_distance_m", 15.0),

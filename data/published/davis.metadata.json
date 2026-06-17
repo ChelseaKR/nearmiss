@@ -2,7 +2,7 @@
   "city": "Davis",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "374bd8117065553da2983d5b2d300b727ec92a0ff22dfb0f694d608a2f26c8d3",
+  "geojson_sha256": "3c7b7095b0e683ca58384f12439acad06f180a577ad10e4391306f3cf7d6a1a8",
   "license": "Apache-2.0",
   "methods": {
     "confidence_z": 1.96,

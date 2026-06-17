@@ -48,6 +48,28 @@ def test_non_numeric_threshold_raises_config_error(tmp_path: Path) -> None:
         load_config(cfg)
 
 
+def test_total_exposure_mismatch_raises(config: object, tmp_path: Path) -> None:
+    import dataclasses
+
+    from nearmiss.config import Config
+    from nearmiss.engine import build_analysis
+
+    assert isinstance(config, Config)
+    exp = tmp_path / "exp.json"
+    exp.write_text(
+        json.dumps(
+            {
+                "segments": [
+                    {"segment_id": "NOPE-1", "estimate": 100.0, "source": "x", "date": "2026-01-01"}
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(NearmissError):
+        build_analysis(dataclasses.replace(config, exposure_path=exp))
+
+
 def test_coverage_counts_only_usable_exposure() -> None:
     attached = attach_exposure(
         ["a", "b", "c"],

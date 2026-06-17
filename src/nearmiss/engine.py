@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from . import pipeline
 from .config import Config
+from .errors import NearmissError
 from .loaders import load_exposure, load_reports, load_streets, reports_from_dicts
 from .models import CleanRecord, Exposure, Report, Segment
 from .stats import AnalysisResult, analyze
@@ -37,10 +38,32 @@ class AnalysisBundle:
     records: list[CleanRecord]
     summary: dict[str, int]
     segments: list[Segment]
+    exposure_unmatched: list[str]
 
 
 def build_analysis(config: Config) -> AnalysisBundle:
     city = load_city(config)
+
+    # Exposure joins to streets by exact segment_id. A TOTAL mismatch almost
+    # always means the two layers use different id schemes — fail loudly rather
+    # than silently producing exposure_coverage = 0% (which would read as "no
+    # denominators" instead of "you wired it up wrong").
+    seg_ids = {s.id for s in city.segments}
+    exp_ids = set(city.exposure)
+    if exp_ids and not (exp_ids & seg_ids):
+        raise NearmissError(
+            "no exposure segment_id matches any street segment_id — the exposure layer and the "
+            "street network must use the same id scheme "
+            f"(exposure e.g. {sorted(exp_ids)[:3]}, streets e.g. {sorted(seg_ids)[:3]})"
+        )
+    unmatched = sorted(exp_ids - seg_ids)
+
     records, summary = pipeline.run(city.reports, city.segments, config)
     result = analyze(records, city.reports, city.segments, city.exposure, config)
-    return AnalysisBundle(result=result, records=records, summary=summary, segments=city.segments)
+    return AnalysisBundle(
+        result=result,
+        records=records,
+        summary=summary,
+        segments=city.segments,
+        exposure_unmatched=unmatched,
+    )

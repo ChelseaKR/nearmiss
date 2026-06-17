@@ -52,6 +52,23 @@ PLAN: dict[str, tuple[float, dict[str, int]]] = {
 MODES = ["cyclist", "cyclist", "cyclist", "pedestrian", "scooter"]
 SEVERITIES = ["near_miss", "near_miss", "near_miss", "minor", "serious"]
 
+# Plausible Davis, CA street-block names so the demo reads like a real place
+# rather than "Street seg-06" (synthetic data, but realistically labeled).
+NAMES = {
+    "seg-01": "B St (1st–2nd)",
+    "seg-02": "C St (1st–2nd)",
+    "seg-03": "3rd St (B–C)",
+    "seg-04": "D St (1st–2nd)",
+    "seg-05": "5th St (B–C)",
+    "seg-06": "5th St (C–D)",
+    "seg-07": "5th St (D–E)",
+    "seg-08": "E St (4th–5th)",
+    "seg-09": "8th St (B–C)",
+    "seg-10": "Russell Blvd (A–B)",
+    "seg-11": "Anderson Rd (Russell–Covell)",
+    "seg-12": "Covell Blvd (F–G)",
+}
+
 
 def seg_rowcol(n: int) -> tuple[int, int]:
     return (n - 1) // 4, (n - 1) % 4
@@ -84,7 +101,10 @@ def main() -> None:
             {
                 "type": "Feature",
                 "geometry": {"type": "LineString", "coordinates": seg_coords(f"seg-{n:02d}")},
-                "properties": {"segment_id": f"seg-{n:02d}", "name": f"Street {f'seg-{n:02d}'}"},
+                "properties": {
+                    "segment_id": f"seg-{n:02d}",
+                    "name": NAMES[f"seg-{n:02d}"],
+                },
             }
             for n in range(1, 13)
         ],
