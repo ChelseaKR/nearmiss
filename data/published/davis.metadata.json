@@ -2,7 +2,7 @@
   "city": "Davis",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "3c7b7095b0e683ca58384f12439acad06f180a577ad10e4391306f3cf7d6a1a8",
+  "geojson_sha256": "57950aeba35e1a0adc449094c059d68bd7803a55300d30e6665c0ecebfed8dc6",
   "license": "Apache-2.0",
   "methods": {
     "confidence_z": 1.96,
@@ -15,7 +15,7 @@
     "small_n": 5
   },
   "privacy": "Aggregated to public street segments; segments with a non-zero report count below min_publish_n are withheld (k-anonymity). No per-report coordinate, time, reporter token, note, mode, or severity is published. Small-n hazard breakdowns are suppressed.",
-  "report_intensity_peak_segment": "seg-03",
+  "report_intensity_peak_segment": "seg-02",
   "schema": "schema/dataset.schema.md",
   "schema_version": "1.0.0",
   "summary": {

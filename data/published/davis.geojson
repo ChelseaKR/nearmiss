@@ -4,12 +4,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.7413,
-            38.5449
+            -121.744,
+            38.543
           ],
           [
-            -121.7397,
-            38.5449
+            -121.744,
+            38.5445
           ]
         ],
         "type": "LineString"
@@ -20,7 +20,7 @@
         "exposure_estimate": 1500.0,
         "exposure_source": "synthetic_bike_count",
         "getis_ord_significant": false,
-        "getis_ord_z": 0.9211,
+        "getis_ord_z": -0.9212,
         "hazard_breakdown": {},
         "n": 4,
         "name": "B St (1st–2nd)",
@@ -40,12 +40,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.7383,
-            38.5449
+            -121.742,
+            38.5475
           ],
           [
-            -121.7367,
-            38.5449
+            -121.742,
+            38.549
           ]
         ],
         "type": "LineString"
@@ -55,13 +55,13 @@
         "exposure_date": "2026-05-01",
         "exposure_estimate": 400.0,
         "exposure_source": "synthetic_bike_count",
-        "getis_ord_significant": false,
-        "getis_ord_z": 0.8644,
+        "getis_ord_significant": true,
+        "getis_ord_z": 2.8545,
         "hazard_breakdown": {
           "close_pass": 6
         },
         "n": 6,
-        "name": "C St (1st–2nd)",
+        "name": "C St (4th–5th)",
         "quality_flags": [],
         "rate": 15.0,
         "rate_ci_high": 32.6497,
@@ -75,12 +75,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.7353,
-            38.5449
+            -121.744,
+            38.546
           ],
           [
-            -121.7337,
-            38.5449
+            -121.742,
+            38.546
           ]
         ],
         "type": "LineString"
@@ -91,7 +91,7 @@
         "exposure_estimate": 8000.0,
         "exposure_source": "synthetic_bike_count",
         "getis_ord_significant": false,
-        "getis_ord_z": 0.3198,
+        "getis_ord_z": -0.1376,
         "hazard_breakdown": {
           "close_pass": 12,
           "debris": 3,
@@ -112,12 +112,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.7413,
-            38.547399999999996
+            -121.744,
+            38.549
           ],
           [
-            -121.7397,
-            38.547399999999996
+            -121.742,
+            38.549
           ]
         ],
         "type": "LineString"
@@ -127,8 +127,8 @@
         "exposure_date": "2026-05-01",
         "exposure_estimate": 400.0,
         "exposure_source": "synthetic_bike_count",
-        "getis_ord_significant": false,
-        "getis_ord_z": 0.6699,
+        "getis_ord_significant": true,
+        "getis_ord_z": 2.7964,
         "hazard_breakdown": {
           "close_pass": 6
         },
@@ -147,12 +147,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.7383,
-            38.547399999999996
+            -121.742,
+            38.549
           ],
           [
-            -121.7367,
-            38.547399999999996
+            -121.74,
+            38.549
           ]
         ],
         "type": "LineString"
@@ -184,12 +184,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.7353,
-            38.547399999999996
+            -121.74,
+            38.549
           ],
           [
-            -121.7337,
-            38.547399999999996
+            -121.738,
+            38.549
           ]
         ],
         "type": "LineString"
@@ -199,8 +199,8 @@
         "exposure_date": "2026-05-01",
         "exposure_estimate": 400.0,
         "exposure_source": "synthetic_bike_count",
-        "getis_ord_significant": false,
-        "getis_ord_z": 0.187,
+        "getis_ord_significant": true,
+        "getis_ord_z": 2.7964,
         "hazard_breakdown": {
           "close_pass": 6
         },
@@ -219,12 +219,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.7413,
-            38.5499
+            -121.744,
+            38.5535
           ],
           [
-            -121.7397,
-            38.5499
+            -121.742,
+            38.5535
           ]
         ],
         "type": "LineString"
@@ -235,7 +235,7 @@
         "exposure_estimate": 1500.0,
         "exposure_source": "synthetic_bike_count",
         "getis_ord_significant": false,
-        "getis_ord_z": 0.6952,
+        "getis_ord_z": -0.9639,
         "hazard_breakdown": {},
         "n": 0,
         "name": "8th St (B–C)",
@@ -252,12 +252,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.7383,
-            38.5499
+            -121.74,
+            38.5475
           ],
           [
-            -121.7367,
-            38.5499
+            -121.74,
+            38.549
           ]
         ],
         "type": "LineString"
@@ -267,13 +267,13 @@
         "exposure_date": "2026-05-01",
         "exposure_estimate": 400.0,
         "exposure_source": "synthetic_bike_count",
-        "getis_ord_significant": false,
-        "getis_ord_z": 0.5143,
+        "getis_ord_significant": true,
+        "getis_ord_z": 3.2494,
         "hazard_breakdown": {
           "close_pass": 6
         },
         "n": 6,
-        "name": "Russell Blvd (A–B)",
+        "name": "D St (4th–5th)",
         "quality_flags": [],
         "rate": 15.0,
         "rate_ci_high": 32.6497,
@@ -287,12 +287,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.7323,
-            38.5499
+            -121.738,
+            38.556
           ],
           [
-            -121.7307,
-            38.5499
+            -121.736,
+            38.556
           ]
         ],
         "type": "LineString"
@@ -303,10 +303,10 @@
         "exposure_estimate": 1500.0,
         "exposure_source": "synthetic_bike_count",
         "getis_ord_significant": false,
-        "getis_ord_z": -1.7327,
+        "getis_ord_z": -0.9639,
         "hazard_breakdown": {},
         "n": 0,
-        "name": "Covell Blvd (F–G)",
+        "name": "Covell Blvd (E–F)",
         "quality_flags": [],
         "rate": 0.0,
         "rate_ci_high": 2.4454,

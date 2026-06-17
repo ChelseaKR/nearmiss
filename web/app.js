@@ -43,8 +43,10 @@
         "<li><strong>Hotspot (Gi*)</strong> — “★ Significant” marks a statistically significant " +
         "cluster (Getis-Ord Gi*, z &gt; 1.96): hot beyond what exposure and chance explain.</li>",
       footer:
-        "Open data, Apache-2.0. Methods: <code>docs/METHODOLOGY.md</code>; limits and biases: " +
-        "<code>docs/DATA-CARD.md</code>. Every figure regenerates with <code>make reproduce</code>.",
+        'Open data, Apache-2.0. <a href="https://github.com/ChelseaKR/nearmiss">Source on GitHub</a> · ' +
+        '<a href="https://chelseakr.com">chelseakr.com</a>. Methods: <code>docs/METHODOLOGY.md</code>; ' +
+        "limits and biases: <code>docs/DATA-CARD.md</code>. Every figure regenerates with " +
+        "<code>make reproduce</code>.",
       th_segment: "Segment",
       th_rate: "Rate /1000",
       th_ci: "95% CI",
@@ -99,8 +101,10 @@
         "<li><strong>Punto caliente (Gi*)</strong> — “★ Significativo” marca un grupo estadísticamente " +
         "significativo (Getis-Ord Gi*, z &gt; 1.96): peligroso más allá de lo que explican exposición y azar.</li>",
       footer:
-        "Datos abiertos, Apache-2.0. Métodos: <code>docs/METHODOLOGY.md</code>; límites y sesgos: " +
-        "<code>docs/DATA-CARD.md</code>. Cada cifra se regenera con <code>make reproduce</code>.",
+        'Datos abiertos, Apache-2.0. <a href="https://github.com/ChelseaKR/nearmiss">Código en GitHub</a> · ' +
+        '<a href="https://chelseakr.com">chelseakr.com</a>. Métodos: <code>docs/METHODOLOGY.md</code>; ' +
+        "límites y sesgos: <code>docs/DATA-CARD.md</code>. Cada cifra se regenera con " +
+        "<code>make reproduce</code>.",
       th_segment: "Segmento",
       th_rate: "Tasa /1000",
       th_ci: "IC 95%",

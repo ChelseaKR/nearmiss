@@ -33,5 +33,8 @@ def test_bh_is_more_conservative_than_uncorrected() -> None:
 
 
 def test_significant_field_is_fdr_corrected_in_analysis(bundle: AnalysisBundle) -> None:
-    sig = [s.segment_id for s in bundle.result.segments if s.significant]
-    assert sig == ["seg-06"]
+    sig = {s.segment_id for s in bundle.result.segments if s.significant}
+    # The planted corridor cluster is flagged; the busy decoy and low-count
+    # segments are not — the FDR adjustment keeps it to the real cluster.
+    assert sig == {"seg-02", "seg-05", "seg-06", "seg-07", "seg-10"}
+    assert "seg-03" not in sig
