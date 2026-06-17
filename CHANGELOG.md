@@ -15,7 +15,8 @@ release so a schema change is never buried in a code change:
 - **Intake report schema** — `schema/report.schema.json`, currently `1.0.0`. The intake contract for
   precise, pre-aggregation reports. Carried per payload in the `schema_version` field.
 - **Published dataset schema** — `schema/dataset.schema.md` (and its mirroring JSON Schema validated
-  in CI), currently `1.0.0`. The contract for the open `data/published/nearmiss.geojson` artifact.
+  in CI), currently `1.0.0`. The contract for the open per-city
+  `data/published/<city-slug>.geojson` artifact (e.g. `davis.geojson`).
   Carried per file in `metadata.schema_version`.
 
 Both schemas follow the **versioning and deprecation policy** in

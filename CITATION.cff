@@ -3,8 +3,8 @@ message: >-
   If you use nearmiss — the software, the pipeline, or the published open
   dataset it produces — please cite it using the metadata below. nearmiss is
   both a software project and a dataset: the analysis code and the
-  aggregated, jittered open dataset (GeoJSON plus data card) are released
-  together. When citing a specific published dataset release, also cite the
+  aggregated, minimum-occupancy open dataset (GeoJSON plus data card) are
+  released together. When citing a specific published dataset release, also cite the
   versioned GeoJSON and its accompanying data card (docs/DATA-CARD.md), and
   state the exposure source and its date alongside any rate you quote, since
   every rate here is normalized by an exposure estimate and carries a
@@ -24,7 +24,8 @@ abstract: >-
   rather than hidden; and statistically significant clusters are identified
   with Getis-Ord Gi* rather than inferred from kernel-density appearance alone.
   Contributor privacy is protected: precise raw reports stay private, and the
-  open dataset is aggregated and jittered before publication.
+  open dataset is aggregated to public street segments with low-count segments
+  withheld (k-anonymity); no precise coordinate or timestamp is published.
 type: software
 authors:
   - given-names: Chelsea
@@ -49,8 +50,8 @@ preferred-citation:
   type: dataset
   title: 'nearmiss: open near-miss and road-hazard dataset'
   abstract: >-
-    The published nearmiss dataset: aggregated, jittered open data (GeoJSON)
-    plus its data card (docs/DATA-CARD.md), produced by the nearmiss pipeline
+    The published nearmiss dataset: aggregated, minimum-occupancy open data
+    (GeoJSON) plus its data card (docs/DATA-CARD.md), produced by the nearmiss pipeline
     from validated, deduplicated, geocoded, and segment-snapped hazard reports.
     Counts are normalized by an exposure estimate and reported as rates with a
     confidence interval and an n; cite the versioned release and state the

@@ -158,12 +158,14 @@ often on a phone at the roadside, hands us a report. It is held to the same bar 
   anything is published (hard rule 4); that notice is part of the accessible content, not buried
   in fine print a screen reader skips.
 
-Localization (per-language string bundles, a bilingual report form, and a language field in the
-schema) is **planned, not yet delivered** (see Localizability in the README). Today the interface
-and the report form are **English-only**: the form does not yet bundle its strings per language,
-and [`schema/report.schema.json`](../schema/report.schema.json) has no language field. The goal is
-that a contributor is not forced into English to report a hazard on their own street; we are not
-there yet.
+Localization is **partially delivered** (see Localizability in the README). What ships today: the
+hazard-report issue form is **bilingual (English/Spanish)**,
+[`schema/report.schema.json`](../schema/report.schema.json) carries an optional BCP-47 `language`
+field, and the advocacy brief renders in English or Spanish (`nearmiss brief … --lang es`, with
+per-language bundles in `src/nearmiss/i18n.py`). What is **not yet delivered**: the web data view
+(`web/index.html`) is still English-only (no language toggle), languages beyond English/Spanish, and
+deeper localization of the data-driven prose (e.g. the bias note). The goal is that a contributor is
+not forced into English to report a hazard on their own street; we are part of the way there.
 
 ---
 
