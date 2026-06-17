@@ -63,12 +63,25 @@ conflict — honesty over precision we don't have.
 BikeMaps publishes its points publicly (already slightly fuzzed for privacy), so using them does not
 re-expose anyone; we still aggregate to segments downstream like any other source.
 
-## 2. Street network — real, but needs a source you choose
+## 2. Street network — real, available today (OpenStreetMap)
 
-`streets.geojson` is the base network reports snap to (`segment_id`, `name`, `LineString`). The
-natural real source is **OpenStreetMap** (e.g. an Overpass query for `highway=*` in the bounding box,
-or an extract from Geofabrik), exported to GeoJSON with a stable `segment_id` per way. This is
-mechanical but not yet automated here; it is the next tool to add (`tools/fetch_osm_streets.py`).
+`streets.geojson` is the base network reports snap to (`segment_id`, `name`, `LineString`). The real
+source is **OpenStreetMap**, and `tools/fetch_osm_streets.py` is the bridge: it pulls
+cycling-relevant highways inside the bounding box from the Overpass API and writes exactly what
+`loaders.load_streets` expects. By default it **splits each OSM way at intersections**, so a segment
+is a block between cross streets (like the demo's "B St (1st–2nd)") — the right granularity for
+snapping and per-segment rates.
+
+```bash
+# Live (Overpass), split into per-block segments:
+python tools/fetch_osm_streets.py --city victoria --out streets.geojson
+
+# Offline: run an Overpass query in your browser, save the JSON, then:
+python tools/fetch_osm_streets.py --from-file overpass.json --out streets.geojson
+```
+
+`segment_id` is stable (`osm-w<wayid>-<block>`), so re-running on the same area is reproducible.
+Choose the road classes with `--highway`, or keep whole ways with `--no-split`.
 
 ## 3. Exposure — the genuinely hard part
 
@@ -94,13 +107,16 @@ unaffected — visitors' browsers load OSM tiles directly.
 ## Putting it together
 
 ```bash
-# 1. Incidents (real)
+# 1. Incidents (real, BikeMaps)
 python tools/fetch_bikemaps.py --city victoria --out data/raw/victoria/reports.json
-# 2. Streets (real; your OSM export) -> tests/fixtures/victoria/streets.geojson (or a config path)
-# 3. Exposure (real; your counts/model) -> exposure.json
+# 2. Streets (real, OpenStreetMap)
+python tools/fetch_osm_streets.py --city victoria --out data/raw/victoria/streets.geojson
+# 3. Exposure (real; your counts/model) -> exposure.json   <-- the remaining real work
 # 4. Point a config at the three inputs (copy config/davis-demo.toml), then:
 nearmiss run --config config/victoria.toml
 nearmiss serve   # open web/index.html — the two maps now show real reports
 ```
 
-Steps 2 and 3 are the real work. Step 1 is solved today.
+Steps 1 and 2 are solved today. **Step 3 (exposure) is the remaining real work** — and it is the
+input that distinguishes this project from a dot-map, so it is worth doing properly rather than
+faking.

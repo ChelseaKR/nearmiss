@@ -32,11 +32,13 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lint type test accessibility axe security verify \
-        reproduce demo publish serve bench bikemaps clean
+        reproduce demo publish serve bench bikemaps osm-streets clean
 
-# Real-data fetch (BikeMaps.org). Override CITY and BIKEMAPS_OUT as needed.
-CITY         ?= victoria
-BIKEMAPS_OUT ?= build/$(CITY)-reports.json
+# Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets).
+# Override CITY and the output paths as needed.
+CITY            ?= victoria
+BIKEMAPS_OUT    ?= build/$(CITY)-reports.json
+OSM_STREETS_OUT ?= build/$(CITY)-streets.geojson
 
 help: ## Show this help — every target with its description
 	@echo "nearmiss — open dataset + honest analysis of road near-misses"
@@ -118,6 +120,12 @@ bikemaps: ## Fetch REAL near-miss reports from BikeMaps.org (CITY=victoria) into
 	$(PYTHON) tools/fetch_bikemaps.py --city $(CITY) --out $(BIKEMAPS_OUT)
 	@echo "bikemaps: real reports in $(BIKEMAPS_OUT) (intake schema)."
 	@echo "          Next: real streets + exposure, then 'nearmiss run' — see docs/REAL-DATA.md."
+
+osm-streets: ## Fetch the REAL OSM street network (CITY=victoria) into OSM_STREETS_OUT
+	@mkdir -p $(dir $(OSM_STREETS_OUT))
+	$(PYTHON) tools/fetch_osm_streets.py --city $(CITY) --out $(OSM_STREETS_OUT)
+	@echo "osm-streets: real street network in $(OSM_STREETS_OUT) (split at intersections)."
+	@echo "             Remaining real input: exposure — see docs/REAL-DATA.md."
 
 clean: ## Remove build/test/cache artifacts — NEVER data/raw/ (HR4)
 	rm -rf build/ dist/ web/node_modules \
