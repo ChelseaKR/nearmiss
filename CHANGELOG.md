@@ -30,11 +30,12 @@ Released versions are signed; conventional-commit history backs every entry.
 
 ## [Unreleased]
 
-Changes land here first. This is where the implementation called for by the `0.1.0` specification will
-be recorded as it ships across the roadmap (see **Planned** under `0.1.0`). The pipeline, statistics,
-publishing, briefs, accessible web view, notebooks, and the first published dataset are **not yet
-implemented**; they arrive across roadmap Phases 1–3 and will be listed here under their own `### Added`
-entries as each lands.
+Changes land here first. The pipeline, statistics, publishing, briefs, accessible web view, and the
+first published dataset specified for `0.1.0` are now **implemented and verified** and have been moved
+into the `[0.1.0]` release below. The items that remain genuinely **not yet implemented** are tracked
+under **Planned** within `0.1.0` (real geocoder adapters, more cities, the deeper axe + manual
+NVDA/VoiceOver audit, reproducible notebooks, a committed hashed `requirements.lock`, and benchmarking);
+each will move here under its own `### Added` entry as it lands.
 
 ### Intake report schema (`schema/report.schema.json`)
 
@@ -46,18 +47,19 @@ entries as each lands.
 
 ## [0.1.0] - 2026-06-16
 
-First release: a **scaffolding and specification** drop. This release ships the architecture, the two
-data-contract schemas, the full documentation set, governance and community-health files, and the CI
-and quality-gate scaffolding — **not the pipeline code, the statistics, the publishing tooling, the
-web view, or any published dataset**. Those are specified here and arrive across roadmap Phases 1–3
-(see **Planned** below).
+First release: a **working analysis engine** plus its specification and contracts. This release ships
+the architecture, the two data-contract schemas, the full documentation set, governance and
+community-health files, the CI and quality-gate scaffolding, **and** the implemented and verified
+pipeline, statistics, publishing tooling, advocacy brief, read-only server, accessible web data view,
+known-answer test fixtures, and the first published Davis demo dataset. A small set of items remains
+specified-but-pending and is listed under **Planned** below.
 
-The project is designed to ship as a **dataset and analysis**, not an app; the intended web view is a
-read-only window onto the published data. The repository is **private during pre-1.0 development**.
-This release is labeled **`0.1.0` / pre-1.0**: the schemas are stable enough to build against under the
-deprecation policy, but the rate magnitudes, exposure sources, and bias adjustments described in the
-methodology are still being designed and have not yet been calibrated against real corridors; they may
-move between `0.1.x` releases.
+The project ships as a **dataset and analysis**, not an app; the web view is a read-only window onto
+the published data. The repository is **private during pre-1.0 development**. This release is labeled
+**`0.1.0` / pre-1.0**: the schemas are stable enough to build against under the deprecation policy, but
+the engine has so far been exercised only against the **Davis demo** (synthetic known-answer fixtures
+plus one published demo corridor set), not calibrated against a breadth of real corridors; rate
+magnitudes, exposure sources, and bias adjustments may still move between `0.1.x` releases.
 
 ### Added — schema and intake contract
 
@@ -76,16 +78,106 @@ move between `0.1.x` releases.
   geometry conventions, and the "guaranteed absent" privacy list. Note that the published dataset
   intentionally carries **no per-report `mode` field** (a quasi-identifier withheld for privacy).
 
+### Added — analysis engine, pipeline, and CLI
+
+The pure-typed-Python package in `src/nearmiss/`. Its **only** runtime dependency is `jsonschema`; it
+uses a local equirectangular projection and pure-Python statistics rather than `numpy`/`shapely`/
+`pyproj` (recorded in [`docs/adr/0003`](docs/adr/)).
+
+- **`intake.py`** — validates each submission against the report schema before it lands in the private
+  raw store, routing by `schema_version`. Intake attaches no denominators, rates, or intervals; those
+  are computed downstream and never claimed at intake.
+- **`pipeline/`** — pure, recorded transforms with plain, inspectable data between stages
+  (`dedupe`, `geocode`, `snap`, `classify`, `quality`):
+  - **dedupe** — collapses duplicate and near-duplicate submissions of the same event.
+  - **geocode** — resolves locations to coordinates. **Note:** today this stage is a **pass-through**
+    for reports that already carry coordinates; real geocoder adapters for address-only imports are
+    still **Planned** (below).
+  - **snap-to-segment** — snaps each report to a street segment, the unit of aggregation and exposure.
+  - **classify** — normalizes `hazard_type` and `mode` into the analysis vocabulary.
+  - **quality-flag** — annotates reports with quality signals that carry through to per-feature
+    `quality_flags` in the published dataset.
+- **`exposure.py`** — attaches an exposure denominator to each segment from documented, versioned
+  sources, recording `exposure_source` and `exposure_date` **per feature** so a stale or swapped layer
+  is visible, not silent. Segments with no available denominator are carried as `exposure_unknown`,
+  not silently dropped (**HR1**).
+- **`stats/rates.py`** — computes every risk figure as a **rate normalized by exposure**, never a raw
+  count, and attaches a confidence interval and an `n` to every published rate, ranking, and
+  comparison: **Byar's Poisson confidence intervals** for rates and **Wilson intervals** for
+  proportions. Small-sample segments are flagged `low_sample` and shown as uncertain rather than ranked
+  as certain (**HR1**, **HR2**).
+- **`stats/bias.py`** — characterizes **reporting bias** as a first-class output: who is over- and
+  under-represented, and what that does to the conclusions, stated plainly rather than hidden (**HR3**).
+- **`stats/kde.py`** — kernel density estimation for a continuous report/risk surface, with the
+  bandwidth and the smoothed quantity documented; a KDE of raw counts is labeled **report volume**,
+  never **danger**.
+- **`stats/getis_ord.py`** — Getis-Ord Gi\* to identify **statistically significant** hot and cold
+  spots, with the significance level and multiple-comparison correction stated, so "hotspot" means a
+  tested cluster rather than a bright patch on a heat map.
+- **`publish.py`** — emits the open artifacts: the aggregated open GeoJSON (full dataset-schema fields)
+  with its `sha256`/methods/summary metadata sidecar, enforcing the privacy invariant described under
+  **Added — published dataset** below (**HR4**, **HR5**).
+- **`brief.py`** — generates advocacy briefs from the published dataset, carrying intervals and the
+  bias caveats through to the prose so a brief cannot quietly overclaim.
+- **`server.py`** — a **read-only** server over the published dataset.
+- Supporting modules: `config.py`, `geometry.py`, `models.py`, `loaders.py`, `validation.py`,
+  `engine.py`, `util.py`, and `errors.py`.
+- **`__main__.py` argparse CLI** — `nearmiss intake|pipeline|analyze|publish|brief|run|serve|version
+  --config <cfg>`. The `pipeline` subcommand accepts `--dump` to emit intermediate clean records for
+  debuggability.
+- **Config-as-data** — `config.py` loads `config/davis-demo.toml` (cities, paths, thresholds, jitter).
+
+### Added — known-answer fixtures and tests
+
+- **Synthetic known-answer fixtures** committed under `tests/fixtures/davis/` (generated by
+  `tools/make_fixtures.py`): a planted hotspot `seg-06` (low exposure, rate `20.0`/1000, uniquely
+  Getis-Ord-significant at `z=3.26`) and a busy **decoy** `seg-03` (the **most** raw reports, `n=20`,
+  but a low rate of `2.5` that ranks 6th) — so the tests prove the engine recovers risk rate rather
+  than report volume.
+- **27 pytest tests pass**; `ruff` is clean; `mypy --strict` is clean across 35 files. `make demo`,
+  `make verify` (lint + type + test + accessibility + security), `make reproduce` (byte-for-byte
+  deterministic; asserts `git diff` is clean on `data/published/`), and `make publish` all run.
+
+### Added — accessible web data view
+
+- A framework-free accessible web build in `web/` (`index.html`, `app.js`, `style.css`): a
+  **supplementary** SVG map alongside an **authoritative** sortable data table that is the non-visual
+  equivalent of the map. Significance and confidence are stated in **text, not color**; the build has a
+  skip link and semantic `<th scope>` headers. It passes the **structural** accessibility gate
+  `tools/a11y_check.py`. The deeper axe + manual NVDA/VoiceOver audit remains **Planned** (below) and
+  the ACR's manual criteria remain a conformance target.
+
+### Added — published Davis demo dataset
+
+- **`data/published/davis.geojson`** — the first published open dataset, 12 street segments with the
+  full published-dataset-schema fields (rate, CI, `n`, `quality_flags`, and per-feature exposure
+  provenance; WGS84 / EPSG:4326 per RFC 7946), accompanied by **`data/published/davis.metadata.json`**
+  (`sha256`, methods, summary).
+- **Privacy invariant enforced and tested** (**HR4**): the public artifact carries no per-report
+  coordinate, time, reporter, mode, severity, or note, and small-`n` (n < 5) hazard breakdowns are
+  suppressed.
+
+### Added — verification and architecture record
+
+- **`docs/audits/2026-06-16-verification.md`** — an audit artifact recording the verification of the
+  engine, fixtures, gates, and published dataset on 2026-06-16.
+- **`docs/adr/0003`** — the Architecture Decision Record for the pure-Python / planar-geometry decision
+  (local equirectangular projection and pure-Python statistics; `jsonschema` as the only runtime
+  dependency).
+
 ### Added — documentation
 
 - `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `NOTICE`, and an Apache-2.0 `LICENSE`.
 - `docs/METHODOLOGY.md` (the intended approach to exposure, rates, intervals, bias, KDE, and
   Getis-Ord Gi\*), `docs/DATA-CARD.md`, `docs/THREAT-MODEL.md`, and `docs/ACCESSIBILITY.md`.
-- `docs/accessibility/ACR.md` — a committed **VPAT 2.5 (Rev 508)** Accessibility Conformance Report
-  describing the conformance target for the planned web view.
+- `docs/accessibility/ACR.md` — a committed **VPAT 2.5 (Rev 508)** Accessibility Conformance Report.
+  Its manual-review criteria remain a conformance **target** pending the deeper audit (see **Planned**);
+  the shipped web view passes the structural gate today.
 - `docs/adr/` — Architecture Decision Records, including
-  `0001-record-architecture-decisions.md` and `0002-exposure-normalization-and-confidence-intervals.md`.
-- `docs/audits/` — the audit log directory, established for audits performed in later phases.
+  `0001-record-architecture-decisions.md`, `0002-exposure-normalization-and-confidence-intervals.md`,
+  and `0003` (pure-Python / planar-geometry decision).
+- `docs/audits/` — the audit log directory, holding the `2026-06-16-verification.md` verification record
+  and established for further audits.
 
 ### Added — governance and community health
 
@@ -99,92 +191,58 @@ move between `0.1.x` releases.
   on the following jobs. Actions are pinned by **version tag** (e.g. `@v4`) and kept current by
   Dependabot; pinning to commit SHAs is a hardening goal, not a current fact. The jobs install the
   project with `pip install -e ".[dev]"` and run:
-  - **lint** — `ruff` (lint, import order, format check).
-  - **type** — `mypy --strict`.
-  - **test** — `pytest`. The intended test design runs against **synthetic fixtures with known
-    answers** (planted hotspots recovered by Getis-Ord Gi\*; interval coverage checked against the
-    planted truth); those fixtures arrive with the pipeline in Phase 1.
-  - **accessibility** — designed to run automated `axe` on the built map, table, report form, legends,
-    and charts once the web view exists; manual NVDA/VoiceOver passes are required per
-    `docs/ACCESSIBILITY.md` and tracked outside CI.
-  - **security** — `pip-audit --strict`, `gitleaks`, and `CodeQL`.
-  - **reproducibility** — `make reproduce` is specified to rebuild `data/published` from inputs with no
-    drift once the pipeline exists.
+  - **lint** — `ruff` (lint, import order, format check). **Clean** on the current tree.
+  - **type** — `mypy --strict`. **Clean** across 35 files.
+  - **test** — `pytest`. Runs against the committed **synthetic fixtures with known answers**
+    (`tests/fixtures/davis/`): the planted hotspot is recovered by Getis-Ord Gi\* and the busy decoy is
+    correctly demoted; **27 tests pass**.
+  - **accessibility** — `tools/a11y_check.py` runs a **structural** gate on the web view today and
+    passes. The deeper automated `axe` run and the manual NVDA/VoiceOver passes required per
+    `docs/ACCESSIBILITY.md` are **Planned** (below) and tracked outside this structural gate.
+  - **security** — `pip-audit --strict`, `gitleaks`, and `CodeQL`. `pip-audit` and `CodeQL` need
+    network and run in CI; they are **not** yet exercised locally.
+  - **reproducibility** — `make reproduce` rebuilds `data/published` from inputs **byte-for-byte
+    deterministically** and asserts `git diff` is clean on `data/published/`.
 - **`.pre-commit-config.yaml`** — the pre-commit configuration wiring the local lint/type/format hooks.
 - **`Makefile`** — defines the project gates and developer entry points, including `make install`
-  (`pip install -e ".[dev]"`, the working install today), `make lock` (generates the reproducible
-  `requirements.lock` via `pip-compile --generate-hashes`), `make accessibility`, and `make reproduce`.
+  (`pip install -e ".[dev]"`, the working install today), `make demo`, `make verify`
+  (lint + type + test + accessibility + security), `make publish`, `make reproduce` (byte-for-byte
+  deterministic), and `make accessibility`; plus `make lock` (generates the reproducible
+  `requirements.lock` via `pip-compile --generate-hashes`, whose output is **not committed yet**).
 - Dependency and supply-chain conventions: the working install is `pip install -e ".[dev]"`. A hashed
   lockfile, `requirements.lock` (generated by `pip-compile --generate-hashes`), is the **planned**
   reproducible-install artifact and is **not committed yet**. `Dependabot` (`.github/dependabot.yml`),
   `.github/CODEOWNERS`, conventional commits, semantic versioning, and **signed releases** round out the
   baseline.
 
-### Planned — arriving across roadmap Phases 1–3
+### Planned — specified, not yet implemented
 
-These are **specified, not yet implemented**. They are listed here so the design intent is recorded;
+These remain **specified, not yet implemented**. They are listed here so the design intent is recorded;
 each will move to `[Unreleased]` (and then to a release) as it actually lands.
 
-- **`intake.py`** — will validate each submission against the report schema before it lands in the
-  private raw store, routing by `schema_version` so future schema revisions get the correct validation
-  and migration path. Intake is designed to attach no denominators, rates, or intervals; those are
-  computed downstream and never claimed at intake.
-- **`pipeline/`** — pure, recorded transforms with plain, inspectable data between stages:
-  - **dedupe** — collapse duplicate and near-duplicate submissions of the same event.
-  - **geocode** — resolve locations to coordinates against a documented, versioned reference.
-  - **snap-to-segment** — snap each report to a street segment, the unit of aggregation and exposure.
-  - **classify** — normalize `hazard_type` and `mode` into the analysis vocabulary.
-  - **quality-flag** — annotate reports with quality signals (e.g. low location accuracy, ambiguous
-    snap) that carry through to per-feature `quality_flags` in the published dataset.
-- **`exposure.py`** — will attach an exposure denominator to each segment from documented, versioned
-  sources (observed bike/ped counts, a demand model, or an imported exposure layer), recording the
-  `exposure_source` identifier and `exposure_date` **per feature** so a stale or swapped layer is
-  visible, not silent. Segments with no available denominator are to be carried as `exposure_unknown`,
-  not silently dropped (**HR1**).
-- **`stats/rates.py`** — will compute every risk figure as a **rate normalized by exposure**, never a
-  raw count, and attach a **confidence interval and an `n`** to every published rate, ranking, and
-  comparison. Small-sample segments are to be flagged `low_sample` and shown as uncertain rather than
-  ranked as certain (**HR1**, **HR2**).
-- **`stats/bias.py`** — will characterize **reporting bias** as a first-class output: who is over- and
-  under-represented by route choice, demographics, app access, and language, and what that does to the
-  conclusions. The characterization is to be stated plainly, not hidden (**HR3**).
-- **`stats/kde.py`** — kernel density estimation for a continuous report/risk surface, with the
-  bandwidth and the smoothed quantity documented; a KDE of raw counts is to be labeled **report
-  volume**, never **danger**.
-- **`stats/getis_ord.py`** — Getis-Ord Gi\* to identify **statistically significant** hot and cold
-  spots, with the significance level and multiple-comparison correction stated, so "hotspot" means a
-  tested cluster rather than a bright patch on a heat map.
-- **`publish.py`** — will emit the open artifacts:
-  - **`data/published/nearmiss.geojson`** — aggregated to street segments with a minimum reports per
-    feature, coordinates fuzzed and jittered, conforming to the published dataset schema `1.0.0`
-    (WGS84 / EPSG:4326 per RFC 7946). Every feature is to carry its rate, CI, `n`, `quality_flags`, and
-    per-feature exposure provenance.
-  - **data card** — a `Datasheets for Datasets`-style card (`docs/DATA-CARD.md`, with a per-release
-    `data/published/datacard.json` sidecar) covering provenance, known reporting biases, a schema
-    crosswalk, and explicit out-of-scope and discouraged uses.
-  - **provenance** — each file is to pin `metadata.schema_version`, `metadata.content_hash`, and
-    `metadata.rng_seed`, making every published build immutable, verifiable, and reproducible (**HR5**).
-  - **privacy guarantees** — no per-report records, raw or sub-jitter coordinates, reporter tokens,
-    verbatim notes, or per-contributor sequences are ever to appear in the published artifact; a CI
-    privacy check is specified to enforce the "guaranteed absent" list (**HR4**).
-- **`brief.py`** — will generate advocacy briefs from the published dataset, carrying intervals and the
-  bias caveats through to the prose so a brief cannot quietly overclaim.
-- **`server.py`** plus a framework-free `web/` build — a **read-only** accessible map of the published
-  dataset with an **equivalent sortable list/table view** of the same data, targeting **WCAG 2.2 AA**
-  and **Section 508 (Revised, 36 CFR Part 1194)**. Maps are to show modeled/uncertain segments as such;
-  the table is to expose rate, CI, `n`, and flags as sortable columns so no information is map-only.
-- **Notebooks and synthetic test fixtures** — the analysis notebooks and the known-answer fixtures that
-  the `test` and `reproducibility` CI jobs are designed to exercise.
+- **Real geocoder adapters** for address-only imports. The shipped `geocode` stage is a **pass-through**
+  for reports that already carry coordinates; resolving bare addresses against a documented, versioned
+  reference is still to come.
+- **More cities beyond the Davis demo**, and broader **real exposure layers** (observed bike/ped counts
+  or demand models for additional corridors) to replace the demo's exposure inputs.
+- **The deeper accessibility audit** — an automated `axe` run plus a manual NVDA/VoiceOver review. The
+  committed `tools/a11y_check.py` gate is **structural only**; the ACR's manual criteria remain a
+  conformance target until this audit is done.
+- **Reproducible analysis notebooks** — `notebooks/` is still documentation only.
+- **A committed hashed `requirements.lock`** — generated via `make lock`
+  (`pip-compile --generate-hashes`); **not committed yet**.
+- **Performance benchmarking** — the engine is not yet benchmarked.
 
 ### Security
 
-- Established the **specified** supply-chain and secret-scanning baseline above (`pip-audit --strict`,
-  `gitleaks`, `CodeQL`, Dependabot, version-tag-pinned actions, signed releases) and the disclosure
-  process in `SECURITY.md`. The committed lock artifact (`requirements.lock`) and the
-  privacy-by-construction CI enforcement below are planned, not yet active.
-- Privacy-by-construction is specified to be enforced in CI: precise reports stay private and
-  gitignored, and the published-artifact privacy check is designed to fail the build if any identifying
-  field appears (**HR4**). This check lands with `publish.py` in Phase 2.
+- Established the supply-chain and secret-scanning baseline above (`pip-audit --strict`, `gitleaks`,
+  `CodeQL`, Dependabot, version-tag-pinned actions, signed releases) and the disclosure process in
+  `SECURITY.md`. `pip-audit` and `CodeQL` need network and run in CI only; they are not yet exercised
+  locally. The committed hashed lock artifact (`requirements.lock`) remains **Planned**, not yet active.
+- **Privacy-by-construction is now enforced and tested.** Precise reports stay private and gitignored,
+  and `publish.py`'s privacy invariant keeps the published artifact free of any per-report coordinate,
+  time, reporter, mode, severity, or note, and suppresses small-`n` (n < 5) hazard breakdowns; tests
+  assert the "guaranteed absent" list (**HR4**).
 
 ### Intake report schema (`schema/report.schema.json`)
 

@@ -29,12 +29,15 @@ employer or client; contains no proprietary or client material. Owned by cyclist
 by a city. This is not a 311 queue and not a complaint inbox for a public works department; it is a
 community-owned evidence base.
 
-> **Where this is right now (read first):** this is a documentation-stage / specification release.
-> The architecture, schemas, docs, governance, and CI scaffolding are in place; the pipeline code,
-> notebooks, fixtures, accessible web UI, and published dataset land across roadmap Phases 1–3 (see
-> [Roadmap](#roadmap)). The repository is private during pre-1.0 development. The CLI, `make` targets,
-> and outputs shown below describe the intended behavior and interface, not yet a running pipeline —
-> the README is honest about what exists versus what is planned.
+> **Where this is right now (read first):** the analysis engine is implemented and verified. The
+> intake, the dedupe/geocode/snap/classify/quality pipeline, the exposure normalization and statistics
+> (Poisson/Wilson confidence intervals, bias, KDE, Getis-Ord Gi\*), publishing, the accessible web data
+> view, the CLI, the known-answer test suite, and a published Davis demo dataset all exist and pass the
+> gates: `make demo`, `make verify`, and `make reproduce` run, 27 tests pass, and ruff + mypy `--strict`
+> are clean. What remains is the still-pending list — real geocoder adapters, more cities, the deeper
+> axe-plus-manual screen-reader accessibility audit, reproducible notebooks, a committed hashed
+> lockfile, and benchmarking (see [Roadmap](#roadmap)). The repository is still private during pre-1.0
+> development.
 
 ---
 
@@ -285,8 +288,9 @@ regenerates every brief figure and table from raw inputs; notebooks are determin
 mapped hotspot traces from figure → notebook → statistic → cleaned dataset → raw reports.
 **Relevance** — findings are exposure-normalized so they reflect risk, not traffic. **Effectiveness**
 — the test design (planted-hotspot fixtures, interval-coverage checks) is documented in
-[`tests/README.md`](tests/README.md); the fixtures land in Phase 1, when this validates by recovering
-planted hotspots in fixtures and by interval-coverage checks.
+[`tests/README.md`](tests/README.md), and the committed fixtures validate it: the tests recover the
+planted hotspot `seg-06` and its unique Getis-Ord Gi\* significance (z = 3.26) while the busy decoy
+`seg-03` — the most-reported segment — correctly ranks low on exposure-normalized rate.
 **Accountability** — the data card and methodology doc state what the numbers do and do not support.
 
 ### Standards, interoperability, openness
@@ -295,8 +299,10 @@ planted hotspots in fixtures and by interval-coverage checks.
 headers; semver; conventional commits. **Interoperability** — published GeoJSON loads in QGIS,
 Leaflet, and any GIS; the report schema is documented JSON. **Interchangeability** — exposure sources
 (counts, demand model, imports) swap behind one interface. **Compatibility** — CI tests Python 3.11 and
-3.12 per [`ci.yml`](.github/workflows/ci.yml); the package is pure-Python on numpy/shapely/pyproj per
-[`pyproject.toml`](pyproject.toml). **Composability** and **inspectability** — every stage
+3.12 per [`ci.yml`](.github/workflows/ci.yml); the package is pure-typed-Python with a single runtime
+dependency (`jsonschema`), using a local equirectangular projection and pure-Python statistics instead
+of numpy/shapely/pyproj per [`docs/adr/0003-pure-python-statistics-and-planar-geometry.md`](docs/adr/0003-pure-python-statistics-and-planar-geometry.md).
+**Composability** and **inspectability** — every stage
 emits plain, inspectable data others can pipe and check. **Portability** and **distributability** —
 the dataset and pipeline move to any city by config, and the published GeoJSON is a single file anyone
 can mirror, fork, or redistribute; nothing is bound to one locale or host.
@@ -312,23 +318,25 @@ precision that could expose a person's routine; this is tested against the publi
 city's data portal. **Vulnerability** management — pip-audit, gitleaks, CodeQL configured in CI;
 dependencies installed via `pip install -e ".[dev]"`, with a generated hashed `requirements.lock`
 planned. **Auditability** — the audit policy and naming convention are committed in
-[`docs/audits/README.md`](docs/audits/README.md); dated audit artifacts are produced per release (none
-yet at v0.1.0); the pipeline is designed to record every transform; the [CHANGELOG](CHANGELOG.md)
-records every schema change.
+[`docs/audits/README.md`](docs/audits/README.md), and the first dated audit artifact is committed at
+[`docs/audits/2026-06-16-verification.md`](docs/audits/2026-06-16-verification.md); the pipeline records
+every transform; the [CHANGELOG](CHANGELOG.md) records every schema change.
 
 ### Credibility and transparency
 
 **Credibility** and **transparency** — reporting bias is named in every brief; methodology and limits
 are documented; the data card is honest about exposure assumptions. **Demonstrability** — the test
 design (planted-hotspot fixtures, interval-coverage checks) is documented in
-[`tests/README.md`](tests/README.md); the fixtures and `make demo` (full pipeline over fixtures,
-rendering a sample brief) land in Phase 1. **Understandability** — briefs explain the statistics in
+[`tests/README.md`](tests/README.md), and `make demo` runs the full pipeline over the committed Davis
+fixtures and renders a sample brief. **Understandability** — briefs explain the statistics in
 plain language for a city-council audience.
 
 ### Usability, learnability, reach
 
-**Accessibility** — WCAG 2.2 AA enforced as a merge gate (axe plus manual screen-reader review); the
-map has an equivalent list and table view carrying the same ranked locations and intervals.
+**Accessibility** — a structural accessibility gate ([`tools/a11y_check.py`](tools/a11y_check.py)) runs
+in `make verify` and the web view ships an authoritative sortable data table carrying the same ranked
+locations and intervals as the supplementary map; the deeper axe-plus-manual-screen-reader audit is
+still a conformance target.
 **Usability** and **convenience** — reporting is a short form; the dataset is one download.
 **Learnability**, **familiarity**, **intuitiveness** — the map and table read the way people expect;
 the report form asks plain questions. **Interactivity** and **responsiveness** — the map filters and
@@ -346,9 +354,9 @@ worth of reports, with a parallelizable rebuild and stateless intake. **Timeline
 rebuilds are designed to keep the published dataset current; a rebuild-latency budget in CI is a goal,
 not yet a CI step. **Affordability** — scale-to-zero serverless intake and a static
 published site keep cost near zero with a budget alarm; advocates without budgets can still run it.
-**Process capabilities** and **producibility** — `make verify` defines the full local gate (lint,
-type, test, accessibility, security) and CI mirrors it; `make reproduce` is specified to rebuild every
-figure once the pipeline lands.
+**Process capabilities** and **producibility** — `make verify` runs the full local gate (lint, type,
+test, accessibility, security) and CI mirrors it; `make reproduce` rebuilds the published dataset
+byte-for-byte and asserts a clean `git diff` on `data/published/`.
 
 ### Maintainability, evolvability, modularity
 
@@ -359,10 +367,11 @@ city with a config and an exposure layer. **Modularity**, **composability**, **o
 intake, pipeline, exposure, statistics, publish, and brief are independent stages. **Simplicity** —
 plain data between stages; no hidden state. **Reusability** — the exposure-normalization and hotspot
 code are usable on any point dataset. **Analyzability** — typed, documented, with a methodology doc.
-**Configurability**, **customizability**, **tailorability** — config-over-code is the design intent:
-the config module specified in [`src/nearmiss/README.md`](src/nearmiss/README.md) (Phase 1) is to
-control cities, exposure sources, thresholds, and jitter. **Upgradability** — a documented dependency
-bump path; versioned schemas with migrations.
+**Configurability**, **customizability**, **tailorability** — config-over-code is implemented:
+[`config/davis-demo.toml`](config/davis-demo.toml), loaded by
+[`src/nearmiss/config.py`](src/nearmiss/config.py), controls cities, paths, thresholds, and jitter
+without touching code. **Upgradability** — a documented dependency bump path; versioned schemas with
+migrations.
 
 ### Reliability, resilience, safety of the pipeline
 
@@ -382,26 +391,28 @@ yet a track record (v0.1.0).
 ### Operability, serviceability, sustainability
 
 **Operability** and **manageability** — a maintainer runbook (run a rebuild, rotate an exposure
-source, publish a brief); a pipeline status output. **Administrability** — config-over-code is the design
-intent; the config module is specified in [`src/nearmiss/README.md`](src/nearmiss/README.md) and lands
-in Phase 1, so thresholds and sources are versioned rather than coded. **Observability** — structured
+source, publish a brief); a pipeline status output. **Administrability** — config-over-code is
+implemented; [`src/nearmiss/config.py`](src/nearmiss/config.py) loads
+[`config/davis-demo.toml`](config/davis-demo.toml), so thresholds and sources are versioned rather than
+coded. **Observability** — structured
 logs and metrics on intake and each pipeline stage; rebuilds report coverage and quality-flag counts.
 **Debuggability** — the figure → notebook → statistic → dataset → raw trace is defined in
-[`docs/METHODOLOGY.md`](docs/METHODOLOGY.md); a `--dump` flag to emit intermediate datasets is planned
-(Phase 1). **Serviceability / supportability** — issue templates and a "paste this to reproduce" path.
+[`docs/METHODOLOGY.md`](docs/METHODOLOGY.md), and `nearmiss pipeline --dump` emits the intermediate
+clean records for inspection. **Serviceability / supportability** — issue templates and a "paste this to reproduce" path.
 **Deployability** and **installability** — `pipx install`, a container image, one-command serverless
 deploy. **Repairability** — most fixes are data or threshold edits, recorded and re-run. **Agility** —
 CI smoke suite on every PR. **Autonomy** (operational), **self-sustainability**, **sustainability** —
 open data and zero-cost hosting mean the dataset survives without a grant or a city's goodwill.
-**Testability**, **inspectability**, **demonstrability** — the test design (planted-hotspot fixtures
-with known answers, interval-coverage checks) is documented in [`tests/README.md`](tests/README.md);
-the fixtures and `make demo` land in Phase 1 to make the statistics verifiable.
+**Testability**, **inspectability**, **demonstrability** — the planted-hotspot fixtures with known
+answers (documented in [`tests/README.md`](tests/README.md)) are committed under
+[`tests/fixtures/davis/`](tests/fixtures/davis/), 27 pytest tests pass against them, and `make demo`
+runs the full pipeline to make the statistics verifiable.
 
 > Each attribute above maps to a documented decision and, where the implementation exists, a
-> verifiable artifact or gate. Where an attribute is still aspirational at beta — the modules,
-> fixtures, notebooks, and committed audits arrive across roadmap Phases 1–3, and some VPAT rows are
-> "Partially Supports" — that is stated plainly rather than overclaimed. See the
-> [ACR](docs/accessibility/ACR.md) and the [Roadmap](#roadmap).
+> verifiable artifact or gate. Where an attribute is still aspirational at beta — the reproducible
+> notebooks, real geocoder adapters, the deeper axe-plus-manual accessibility audit, and benchmarking
+> remain pending, and some VPAT rows are "Partially Supports" — that is stated plainly rather than
+> overclaimed. See the [ACR](docs/accessibility/ACR.md) and the [Roadmap](#roadmap).
 
 ## Accessibility and Section 508 conformance
 

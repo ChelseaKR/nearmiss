@@ -2,18 +2,23 @@
 
 ## Voluntary Product Accessibility Template (VPAT) Version 2.5 — Revised Section 508 Edition
 
-> **Status at v0.1.0 — pre-implementation conformance target, not a tested result.** This is a
-> documentation-stage / specification release. The `web/` UI and `src/nearmiss/server.py` server
-> described below do **not exist yet**; no implementation has been evaluated against any criterion. This
-> document records the **conformance target** the project commits to, and the **evaluation method that
-> will be applied** (axe-core automated scanning plus manual NVDA and VoiceOver screen-reader testing)
-> once the web UI and server are built across the roadmap. Every per-criterion entry in the tables below
-> states the **intended/targeted** conformance, not a verified finding. Each entry is to be re-verified
-> against the real implementation and the ACR re-committed on each release; until that happens, treat all
-> "Supports" / "Partially Supports" verdicts as design intent.
+> **Status at v0.1.0 — initial implementation exists and passes the structural gate; the full
+> evaluation (axe + manual screen-reader review) is not yet done, so per-criterion verdicts remain a
+> target.** An initial accessible implementation now **exists**: the framework-free `web/` UI
+> (`index.html` + `app.js` + `style.css`) presents a supplementary SVG map paired with an
+> **authoritative sortable data table** as the non-visual equivalent; significance and confidence are
+> stated in **text, not color**; it provides a skip link and semantic `<th scope>` headers. This
+> implementation **passes the committed structural accessibility gate** (`tools/a11y_check.py`), which
+> is part of `make verify`. However, the **full evaluation has not yet been performed**: an axe-core
+> automated run plus manual NVDA (Windows/Firefox) and VoiceOver (macOS/Safari) screen-reader review
+> are still outstanding. Because of that, every per-criterion entry in the tables below states the
+> **intended/targeted** conformance, not a verified finding. Each entry is to be evaluated against the
+> real implementation and the ACR re-committed on each release; until the axe + manual review is done,
+> treat all "Supports" / "Partially Supports" verdicts as a conformance target, not a completed manual
+> audit. **No manual screen-reader testing has been performed.**
 
 This report uses the ITI VPAT 2.5 (Rev 508) template structure to document the accessibility
-conformance **target** of the planned `nearmiss` accessible web map and its list/table equivalent against
+conformance **target** of the `nearmiss` accessible web map and its list/table equivalent against
 the Revised Section 508 Standards (36 CFR Part 1194), which incorporate WCAG 2.0 Level A and AA by
 reference. The project targets the higher bar of **WCAG 2.2 Level AA**, so this report also covers the
 WCAG 2.1 and 2.2 success criteria that 508 does not yet require. Where a 2.2 criterion is reported, it is
@@ -22,8 +27,9 @@ marked as targeted beyond the baseline 508 obligation.
 `nearmiss` is a community advocacy project, not federal ICT, so Section 508 does not legally apply to it.
 This ACR is published voluntarily because the audience includes disabled road users — among the most
 endangered people on bad streets — and because an advocacy artifact should hold up when it lands in front
-of a city that audits to 508. Publishing the target up front, before the code exists, is a deliberate
-design commitment rather than a record of work performed.
+of a city that audits to 508. The implementation now exists and passes the structural gate; publishing
+the per-criterion target before the deeper axe + manual review is done is a deliberate commitment to be
+held to that bar, not a claim that the manual evaluation has been completed.
 
 ---
 
@@ -31,11 +37,11 @@ design commitment rather than a record of work performed.
 
 | Field | Value |
 | --- | --- |
-| **Name of product / version** | nearmiss — accessible map and list/table view (planned `web/` UI to be served by `src/nearmiss/server.py`) · v0.1.0 (documentation-stage) |
+| **Name of product / version** | nearmiss — accessible map and list/table view (framework-free `web/` UI, served by `src/nearmiss/server.py`) · v0.1.0 |
 | **Report date** | 2026-06-16 |
-| **Product description** | A planned framework-free, read-only web interface over the published nearmiss dataset. It is designed to present exposure-normalized near-miss risk surfaces — kernel-density intensity and Getis-Ord Gi\* significant clusters — as an interactive map, paired with an equivalent sortable list and data table that carry the same ranked locations, rates, confidence intervals, sample sizes (n), and significance flags. It is intended to read only the open, aggregated, jittered published artifacts; it is designed never to expose a precise raw report. |
+| **Product description** | A framework-free, read-only web interface over the published nearmiss dataset. It presents exposure-normalized near-miss risk surfaces — kernel-density intensity and Getis-Ord Gi\* significant clusters — as a supplementary SVG map, paired with an authoritative sortable list and data table that carry the same ranked locations, rates, confidence intervals, sample sizes (n), and significance flags. It reads only the open, aggregated, jittered published artifacts; it never exposes a precise raw report. |
 | **Contact information** | Chelsea Kelly-Reif, maintainer — GitHub [@ChelseaKR](https://github.com/ChelseaKR); issues at `github.com/ChelseaKR/nearmiss` (private during development) |
-| **Notes** | Documentation-stage target. Some criteria are reported as *Partially Supports* with honest remarks describing the gap the design anticipates and its intended remediation status. Accessibility is specified as a merge-blocking CI gate (`make accessibility`); this ACR is to be regenerated and re-committed against the real implementation on each release. |
+| **Notes** | An initial accessible implementation exists and passes the committed structural accessibility gate (`tools/a11y_check.py`, part of `make verify`). The full evaluation — an axe-core automated run plus manual NVDA and VoiceOver review — has **not** yet been performed, so the per-criterion verdicts below remain a target, not a tested result. Some criteria are reported as *Partially Supports* with honest remarks describing the anticipated gap and its remediation status. This ACR is to be re-evaluated against the implementation and re-committed on each release. |
 | **Evaluation methods to be used** | See *Evaluation methods* below. |
 
 ---
@@ -59,42 +65,52 @@ This report covers the following accessibility standards and guidelines as confo
 
 ## Evaluation methods
 
-No implementation has been evaluated at v0.1.0. This section records the combined automated and manual
-evaluation method that **will be applied** to the planned `web/` interface served by
-`src/nearmiss/server.py`, run against published fixture data so that the evaluation will be reproducible
-once the code and fixtures exist.
+An initial implementation exists at v0.1.0 and a **structural** accessibility gate already runs against
+it; the **axe automated run and the manual screen-reader review have not yet been performed**. This
+section records the combined evaluation method, distinguishing what is in place from what is still
+outstanding. The `web/` interface served by `src/nearmiss/server.py` runs against published fixture data
+so that the evaluation is reproducible.
 
-- **Automated testing — axe.** Automated accessibility scanning with axe-core is planned across the map
-  view, the list view, the data table, the report form, the hotspot legends, and every chart. axe is
-  intended to run both interactively during development and as part of the merge-blocking CI accessibility
-  gate (`make accessibility`); a new violation is designed to fail the build. Automated coverage is
-  treated as necessary but not sufficient.
-- **Manual screen-reader testing — NVDA (Windows / Firefox).** Planned full keyboard-only operation of
-  every view: tab order, focus management, programmatic name/role/value of controls, table semantics
-  (row/column headers and announcements), the map's text/data alternative, legend semantics, and form
-  labels and error messages.
-- **Manual screen-reader testing — VoiceOver (macOS / Safari).** Planned independent verification of the
-  same flows under a second screen reader and browser, with attention to rotor navigation of headings,
-  landmarks, tables, and links, and to announcement of dynamic updates (filter/sort changes) via live
-  regions.
-- **Manual keyboard testing.** Planned keyboard-only traversal of all interactive elements with no
-  pointer: reachability, operability, visible focus, focus-not-obscured, and absence of keyboard traps.
-- **Manual contrast and non-text-contrast inspection.** Text and UI-component/graphical contrast to be
-  measured against the published map and legend color tokens.
+- **Structural gate — `tools/a11y_check.py` (in place).** A committed structural check verifies the
+  page-level accessibility scaffolding of the `web/` UI — skip link, semantic `<th scope>` table
+  headers, the authoritative data table as the non-visual equivalent, and significance/confidence
+  stated in text rather than color. It runs as part of `make verify` and the current implementation
+  **passes** it. This gate is **structural only**: it confirms the scaffolding is present, not that the
+  interface is conformant under assistive technology.
+- **Automated testing — axe (outstanding).** Automated accessibility scanning with axe-core is planned
+  across the map view, the list view, the data table, the report form, the hotspot legends, and every
+  chart, intended to run both interactively during development and in CI; a new violation is designed to
+  fail the build. This axe run has **not** yet been performed. Automated coverage is treated as
+  necessary but not sufficient.
+- **Manual screen-reader testing — NVDA (Windows / Firefox) (outstanding — not yet performed).** Planned
+  full keyboard-only operation of every view: tab order, focus management, programmatic
+  name/role/value of controls, table semantics (row/column headers and announcements), the map's
+  text/data alternative, legend semantics, and form labels and error messages.
+- **Manual screen-reader testing — VoiceOver (macOS / Safari) (outstanding — not yet performed).** Planned
+  independent verification of the same flows under a second screen reader and browser, with attention to
+  rotor navigation of headings, landmarks, tables, and links, and to announcement of dynamic updates
+  (filter/sort changes) via live regions.
+- **Manual keyboard testing (outstanding — not yet performed).** Planned keyboard-only traversal of all
+  interactive elements with no pointer: reachability, operability, visible focus, focus-not-obscured,
+  and absence of keyboard traps.
+- **Manual contrast and non-text-contrast inspection (outstanding — not yet performed).** Text and
+  UI-component/graphical contrast to be measured against the published map and legend color tokens.
 
 The map is an inherently visual artifact. Throughout this report, the **list and data-table view is the
-intended conforming mechanism** that is designed to make the map's visual-only content perceivable and
-operable without vision. Every finding the map conveys graphically — ranked location, rate, confidence
-interval, n, and statistical-significance flag — is specified to be present as text in the equivalent
-view.
+conforming mechanism** that makes the map's visual-only content perceivable and operable without vision;
+the `web/` UI implements it as the authoritative sortable data table. Every finding the map conveys
+graphically — ranked location, rate, confidence interval, n, and statistical-significance flag — is
+present as text in the equivalent view. Whether that view is conformant *under assistive technology*
+remains to be confirmed by the outstanding axe and manual NVDA/VoiceOver review.
 
 ---
 
 ## Conformance level (terms) legend
 
 The terms used to describe the **targeted** conformance for each criterion are defined as follows. At
-v0.1.0 these terms express design intent for an unbuilt interface, not a tested verdict; they will be
-re-asserted against the real implementation on each release.
+v0.1.0 the interface exists and passes the structural gate, but these terms still express the conformance
+target rather than a tested verdict, because the axe automated run and the manual NVDA/VoiceOver review
+have not yet been performed; they are to be re-asserted against the full evaluation on each release.
 
 | Term | Definition |
 | --- | --- |
@@ -108,11 +124,12 @@ re-asserted against the real implementation on each release.
 
 ## Table 1 — Success Criteria, Level A & AA (WCAG 2.0 / 2.1 / 2.2)
 
-The **Conformance level** column below states the **targeted/intended** conformance for the planned
-interface, not a tested result; it is to be re-verified against the real implementation each release.
-Notes apply to all rows: "Supports via equivalent facilitation" means the map's visual-only content is
-designed to be made conforming by the accessible list and data-table view, which is specified to carry
-the same locations, rates, intervals, n, and significance flags.
+The **Conformance level** column below states the **targeted/intended** conformance, not a tested
+result; the interface exists and passes the structural gate, but these verdicts await the outstanding
+axe and manual NVDA/VoiceOver review and are to be re-verified against that full evaluation each
+release. Notes apply to all rows: "Supports via equivalent facilitation" means the map's visual-only
+content is made conforming by the accessible list and data-table view, which carries the same locations,
+rates, intervals, n, and significance flags.
 
 ### Level A
 
@@ -155,8 +172,9 @@ the same locations, rates, intervals, n, and significance flags.
 
 The Functional Performance Criteria apply where Chapter 5 (Software) does not fully address a feature, or
 as an overall check that the product is usable by people with the listed disabilities. The list and
-data-table equivalent is the intended primary mechanism by which the visual map is designed to satisfy
-these criteria. Verdicts below are targets for the unbuilt interface.
+data-table equivalent is the primary mechanism by which the visual map is designed to satisfy
+these criteria. Verdicts below are targets for the implemented interface, pending the outstanding axe
+and manual NVDA/VoiceOver review.
 
 | Criteria | Targeted conformance level | Remarks and explanations |
 | --- | --- | --- |
@@ -172,11 +190,12 @@ these criteria. Verdicts below are targets for the unbuilt interface.
 
 ### Chapter 5 — Software
 
-The planned nearmiss web interface is content rendered in a user-supplied web browser; it is to be
-authored as standard web content using HTML, CSS, and unframework'd JavaScript. Accordingly, conformance
+The nearmiss web interface is content rendered in a user-supplied web browser; it is authored as
+standard web content using HTML, CSS, and unframework'd JavaScript. Accordingly, conformance
 is governed primarily by 502.2 (incorporation of WCAG via 504/E207) and the criteria below; several
 Chapter 5 sections that address platform software and assistive-technology authoring do not apply to a
-read-only web page. Verdicts below are targets for the unbuilt interface.
+read-only web page. Verdicts below are targets for the implemented interface, pending the outstanding
+axe and manual NVDA/VoiceOver review.
 
 | Criteria | Targeted conformance level | Remarks and explanations |
 | --- | --- | --- |
@@ -204,12 +223,15 @@ read-only web page. Verdicts below are targets for the unbuilt interface.
 ## Legal disclaimer
 
 This Accessibility Conformance Report is provided by the nearmiss maintainer for informational purposes
-and, at v0.1.0, represents a good-faith, design-stage conformance **target** for a product that has not
-yet been implemented or evaluated — not a record of testing performed. nearmiss is an independent personal
-open-source project licensed under Apache-2.0, unaffiliated with any employer or client, and contains no
-proprietary or client material. It is not federal ICT and is under no legal obligation to conform to
-Section 508; conformance is pursued voluntarily. Once the web UI and server exist, conformance is to be
-evaluated against the real implementation and this report regenerated and re-committed on each release. The
-accessibility CI gate (`make accessibility`: axe plus committed manual NVDA/VoiceOver review notes in
-`docs/audits/`) is specified to be merge-blocking, so the claims here are intended to be tied to checks
-that run once the implementation lands — not to remain aspiration.
+and, at v0.1.0, represents a good-faith conformance **target**. An initial accessible implementation
+exists and passes the committed structural accessibility gate (`tools/a11y_check.py`, part of
+`make verify`), but the full evaluation — an axe automated run plus manual NVDA and VoiceOver review —
+has **not** yet been performed; the per-criterion verdicts here are therefore a target, not a record of
+manual testing performed. nearmiss is an independent personal open-source project licensed under
+Apache-2.0, unaffiliated with any employer or client, and contains no proprietary or client material. It
+is not federal ICT and is under no legal obligation to conform to Section 508; conformance is pursued
+voluntarily. Conformance is to be evaluated against the implementation and this report regenerated and
+re-committed on each release. The committed structural gate runs today as part of `make verify`; the
+planned axe run and the committed manual NVDA/VoiceOver review notes in `docs/audits/` remain outstanding,
+so the per-criterion claims here are a target to be verified against that deeper review — not yet a
+completed manual audit.
