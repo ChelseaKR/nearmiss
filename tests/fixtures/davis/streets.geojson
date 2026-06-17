@@ -1,0 +1,245 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7413,
+            38.5449
+          ],
+          [
+            -121.7397,
+            38.5449
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-01",
+        "name": "Street seg-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7383,
+            38.5449
+          ],
+          [
+            -121.7367,
+            38.5449
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-02",
+        "name": "Street seg-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7353,
+            38.5449
+          ],
+          [
+            -121.7337,
+            38.5449
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-03",
+        "name": "Street seg-03"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7323,
+            38.5449
+          ],
+          [
+            -121.7307,
+            38.5449
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-04",
+        "name": "Street seg-04"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7413,
+            38.547399999999996
+          ],
+          [
+            -121.7397,
+            38.547399999999996
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-05",
+        "name": "Street seg-05"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7383,
+            38.547399999999996
+          ],
+          [
+            -121.7367,
+            38.547399999999996
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-06",
+        "name": "Street seg-06"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7353,
+            38.547399999999996
+          ],
+          [
+            -121.7337,
+            38.547399999999996
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-07",
+        "name": "Street seg-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7323,
+            38.547399999999996
+          ],
+          [
+            -121.7307,
+            38.547399999999996
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-08",
+        "name": "Street seg-08"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7413,
+            38.5499
+          ],
+          [
+            -121.7397,
+            38.5499
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-09",
+        "name": "Street seg-09"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7383,
+            38.5499
+          ],
+          [
+            -121.7367,
+            38.5499
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-10",
+        "name": "Street seg-10"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7353,
+            38.5499
+          ],
+          [
+            -121.7337,
+            38.5499
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-11",
+        "name": "Street seg-11"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7323,
+            38.5499
+          ],
+          [
+            -121.7307,
+            38.5499
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-12",
+        "name": "Street seg-12"
+      }
+    }
+  ]
+}
