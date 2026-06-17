@@ -1,0 +1,419 @@
+{
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7413,
+            38.5449
+          ],
+          [
+            -121.7397,
+            38.5449
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "uncertain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 1500.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": 0.828,
+        "hazard_breakdown": {},
+        "n": 2,
+        "name": "Street seg-01",
+        "quality_flags": [
+          "low_accuracy"
+        ],
+        "rate": 1.3333,
+        "rate_ci_high": 4.814,
+        "rate_ci_low": 0.1497,
+        "report_count": 2,
+        "segment_id": "seg-01",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7383,
+            38.5449
+          ],
+          [
+            -121.7367,
+            38.5449
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "certain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 400.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": 0.7873,
+        "hazard_breakdown": {
+          "close_pass": 6
+        },
+        "n": 6,
+        "name": "Street seg-02",
+        "quality_flags": [],
+        "rate": 15.0,
+        "rate_ci_high": 32.6497,
+        "rate_ci_low": 5.4774,
+        "report_count": 6,
+        "segment_id": "seg-02",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7353,
+            38.5449
+          ],
+          [
+            -121.7337,
+            38.5449
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "certain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 8000.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": 0.3509,
+        "hazard_breakdown": {
+          "close_pass": 12,
+          "debris": 3,
+          "surface_hazard": 5
+        },
+        "n": 20,
+        "name": "Street seg-03",
+        "quality_flags": [],
+        "rate": 2.5,
+        "rate_ci_high": 3.8613,
+        "rate_ci_low": 1.5264,
+        "report_count": 20,
+        "segment_id": "seg-03",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7323,
+            38.5449
+          ],
+          [
+            -121.7307,
+            38.5449
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "uncertain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 1500.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": -1.4778,
+        "hazard_breakdown": {},
+        "n": 1,
+        "name": "Street seg-04",
+        "quality_flags": [],
+        "rate": 0.6667,
+        "rate_ci_high": 3.7092,
+        "rate_ci_low": 0.0087,
+        "report_count": 1,
+        "segment_id": "seg-04",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7413,
+            38.547399999999996
+          ],
+          [
+            -121.7397,
+            38.547399999999996
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "certain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 400.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": 0.5947,
+        "hazard_breakdown": {
+          "close_pass": 6
+        },
+        "n": 6,
+        "name": "Street seg-05",
+        "quality_flags": [],
+        "rate": 15.0,
+        "rate_ci_high": 32.6497,
+        "rate_ci_low": 5.4774,
+        "report_count": 6,
+        "segment_id": "seg-05",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7383,
+            38.547399999999996
+          ],
+          [
+            -121.7367,
+            38.547399999999996
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "certain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 300.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": 3.2577,
+        "hazard_breakdown": {
+          "close_pass": 4,
+          "dooring": 1,
+          "surface_hazard": 1
+        },
+        "n": 6,
+        "name": "Street seg-06",
+        "quality_flags": [],
+        "rate": 20.0,
+        "rate_ci_high": 43.533,
+        "rate_ci_low": 7.3031,
+        "report_count": 6,
+        "segment_id": "seg-06",
+        "significant": true
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7353,
+            38.547399999999996
+          ],
+          [
+            -121.7337,
+            38.547399999999996
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "certain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 400.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": 0.226,
+        "hazard_breakdown": {
+          "close_pass": 6
+        },
+        "n": 6,
+        "name": "Street seg-07",
+        "quality_flags": [],
+        "rate": 15.0,
+        "rate_ci_high": 32.6497,
+        "rate_ci_low": 5.4774,
+        "report_count": 6,
+        "segment_id": "seg-07",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7323,
+            38.547399999999996
+          ],
+          [
+            -121.7307,
+            38.547399999999996
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "uncertain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 1500.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": -0.9456,
+        "hazard_breakdown": {},
+        "n": 1,
+        "name": "Street seg-08",
+        "quality_flags": [],
+        "rate": 0.6667,
+        "rate_ci_high": 3.7092,
+        "rate_ci_low": 0.0087,
+        "report_count": 1,
+        "segment_id": "seg-08",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7413,
+            38.5499
+          ],
+          [
+            -121.7397,
+            38.5499
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "uncertain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 1500.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": 0.7162,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "Street seg-09",
+        "quality_flags": [],
+        "rate": 0.0,
+        "rate_ci_high": 2.4454,
+        "rate_ci_low": 0.0,
+        "report_count": 0,
+        "segment_id": "seg-09",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7383,
+            38.5499
+          ],
+          [
+            -121.7367,
+            38.5499
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "certain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 400.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": 0.5434,
+        "hazard_breakdown": {
+          "close_pass": 6
+        },
+        "n": 6,
+        "name": "Street seg-10",
+        "quality_flags": [],
+        "rate": 15.0,
+        "rate_ci_high": 32.6497,
+        "rate_ci_low": 5.4774,
+        "report_count": 6,
+        "segment_id": "seg-10",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7353,
+            38.5499
+          ],
+          [
+            -121.7337,
+            38.5499
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "uncertain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 1500.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": 0.1583,
+        "hazard_breakdown": {},
+        "n": 1,
+        "name": "Street seg-11",
+        "quality_flags": [],
+        "rate": 0.6667,
+        "rate_ci_high": 3.7092,
+        "rate_ci_low": 0.0087,
+        "report_count": 1,
+        "segment_id": "seg-11",
+        "significant": false
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.7323,
+            38.5499
+          ],
+          [
+            -121.7307,
+            38.5499
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "uncertain",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 1500.0,
+        "exposure_source": "synthetic_bike_count",
+        "getis_ord_z": -1.6874,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "Street seg-12",
+        "quality_flags": [],
+        "rate": 0.0,
+        "rate_ci_high": 2.4454,
+        "rate_ci_low": 0.0,
+        "report_count": 0,
+        "segment_id": "seg-12",
+        "significant": false
+      },
+      "type": "Feature"
+    }
+  ],
+  "type": "FeatureCollection"
+}

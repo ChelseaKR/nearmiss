@@ -1,0 +1,26 @@
+# Demo city configuration — drives `make demo` end to end over the synthetic,
+# known-answer fixtures. Pointing nearmiss at a real city is a copy of this file
+# with new paths and an exposure layer; no code changes (configurability).
+# Paths resolve relative to this file's directory.
+city = "Davis"
+
+streets = "../tests/fixtures/davis/streets.geojson"
+reports = "../tests/fixtures/davis/reports.json"
+exposure = "../tests/fixtures/davis/exposure.json"
+
+raw_dir = "../data/raw/davis"        # PRIVATE, gitignored
+out_dir = "../data/published"        # open, committed
+
+ref_lat = 38.5449
+ref_lon = -121.7405
+
+[thresholds]
+snap_max_m = 25
+dedupe_window_s = 600
+dedupe_distance_m = 15
+small_n = 5
+rate_per = 1000
+confidence_z = 1.96
+gi_band_m = 300
+kde_bandwidth_m = 150
+kde_grid = 20

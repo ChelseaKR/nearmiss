@@ -1,0 +1,27 @@
+{
+  "city": "Davis",
+  "data_card": "docs/DATA-CARD.md",
+  "geojson_sha256": "033aa7f764cd1b3dda61ca4d599cfa0afaa41114dcfdcb619281d2fb2805f955",
+  "kde_peak": {
+    "lat": 38.54506,
+    "lon": -121.73466
+  },
+  "license": "Apache-2.0",
+  "methods": {
+    "confidence_z": 1.96,
+    "getis_ord_band_m": 300.0,
+    "kde_bandwidth_m": 150.0,
+    "rate_per": 1000.0,
+    "small_n": 5
+  },
+  "privacy": "Aggregated to segment level; no per-report coordinate, time, reporter, note, mode, or severity is published. Small-n hazard breakdowns suppressed.",
+  "schema": "schema/dataset.schema.md",
+  "summary": {
+    "duplicates_removed": 1,
+    "exposure_coverage": 1.0,
+    "reports_in": 57,
+    "segments": 12,
+    "snapped": 55,
+    "unsnapped": 1
+  }
+}
