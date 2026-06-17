@@ -28,6 +28,15 @@ from .publish import publish
 from .server import serve
 
 
+def _warn_unmatched(unmatched: list[str]) -> None:
+    if unmatched:
+        print(
+            f"warning: {len(unmatched)} exposure segment_id(s) match no street segment "
+            f"and are ignored (e.g. {unmatched[:3]})",
+            file=sys.stderr,
+        )
+
+
 def _cmd_intake(args: argparse.Namespace) -> int:
     config = load_config(args.config)
     source = Path(args.source) if args.source else None
@@ -54,6 +63,7 @@ def _cmd_pipeline(args: argparse.Namespace) -> int:
 def _cmd_analyze(args: argparse.Namespace) -> int:
     config = load_config(args.config)
     bundle = build_analysis(config)
+    _warn_unmatched(bundle.exposure_unmatched)
     ranked = sorted(
         (s for s in bundle.result.segments if s.rate is not None),
         key=lambda s: s.rate or 0.0,
@@ -80,7 +90,7 @@ def _cmd_publish(args: argparse.Namespace) -> int:
 
 def _cmd_brief(args: argparse.Namespace) -> int:
     config = load_config(args.config)
-    text = render_brief(build_analysis(config), config)
+    text = render_brief(build_analysis(config), config, args.lang)
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8")
         print(f"brief written to {args.out}")
@@ -97,7 +107,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     print(f"run [{config.city}]: {len(rows)} reports -> {result.geojson_path}")
     print(f"  sha256: {result.geojson_sha256}")
     if args.out:
-        Path(args.out).write_text(render_brief(bundle, config), encoding="utf-8")
+        Path(args.out).write_text(render_brief(bundle, config, args.lang), encoding="utf-8")
         print(f"  brief:  {args.out}")
     return 0
 
@@ -141,11 +151,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_brief = sub.add_parser("brief", help="render an advocacy brief")
     add_config(p_brief)
     p_brief.add_argument("--out", help="write the brief to a file instead of stdout")
+    p_brief.add_argument("--lang", default="en", choices=["en", "es"], help="brief language")
     p_brief.set_defaults(func=_cmd_brief)
 
     p_run = sub.add_parser("run", help="intake -> pipeline -> analyze -> publish -> brief")
     add_config(p_run)
     p_run.add_argument("--out", help="also write the brief to this file")
+    p_run.add_argument("--lang", default="en", choices=["en", "es"], help="brief language")
     p_run.set_defaults(func=_cmd_run)
 
     p_serve = sub.add_parser("serve", help="serve the accessible map + data view (read-only)")

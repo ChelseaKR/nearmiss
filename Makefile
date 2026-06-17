@@ -31,7 +31,7 @@ PUBLISHED_DIR := data/published
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install lock lint type test accessibility security verify \
+.PHONY: help install lock lint type test accessibility axe security verify \
         reproduce demo publish serve clean
 
 help: ## Show this help — every target with its description
@@ -44,6 +44,10 @@ help: ## Show this help — every target with its description
 		| awk 'BEGIN {FS = ":.*?## "} {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
 install: ## Install the package (editable) with dev extras and pre-commit hooks
+	@$(PYTHON) -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)" || { \
+		echo "nearmiss requires Python 3.11+ (got $$($(PYTHON) --version 2>&1))."; \
+		echo "Re-run with an explicit interpreter, e.g.  make install PYTHON=python3.12"; \
+		exit 1; }
 	$(PIP) install -e ".[dev]"
 	-pre-commit install --install-hooks
 
@@ -69,7 +73,12 @@ accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
 
 security: ## Scan deps (pip-audit) and history for secrets (gitleaks)
 	$(PYTHON) -m pip_audit --strict
-	gitleaks detect --no-banner --redact --source .
+	@command -v gitleaks >/dev/null 2>&1 \
+		&& gitleaks detect --no-banner --redact --source . \
+		|| echo "security: gitleaks not found (it is a Go binary, not a pip dep); install it to enable the secret scan. CI runs it."
+
+axe: ## Deeper accessibility check: run axe-core against the built web page (needs node)
+	cd web && npm ci && npm run axe
 
 verify: lint type test accessibility security ## Full merge gate: lint + type + test + accessibility + security
 	@echo "verify: all merge gates green (lint, type, test, accessibility, security)."

@@ -4,6 +4,7 @@
 # Paths resolve relative to this file's directory.
 city = "Davis"
 dataset_note = "Synthetic demonstration data — not real reports."
+exposure_unit = "bike trips (synthetic)"
 
 streets = "../tests/fixtures/davis/streets.geojson"
 reports = "../tests/fixtures/davis/reports.json"

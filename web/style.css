@@ -130,6 +130,20 @@ thead th {
   top: 0;
   background: var(--bg);
   border-bottom: 2px solid var(--fg);
+  z-index: 1;
+}
+
+/* Keep the segment name (the row header) visible when the table must scroll
+   horizontally at 200% zoom / narrow widths. */
+th[scope="row"] {
+  position: sticky;
+  left: 0;
+  background: var(--bg);
+  z-index: 1;
+}
+
+thead th:first-child {
+  z-index: 2; /* the top-left corner sits above both sticky axes */
 }
 
 th button {
