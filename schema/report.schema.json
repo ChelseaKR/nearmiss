@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ChelseaKR/nearmiss/main/schema/report.schema.json",
+  "title": "nearmiss incoming report",
+  "description": "Schema for a single incoming road-hazard or near-miss report, validated at intake by intake.py before the report lands in the private raw store (data/raw/). This is the INTAKE contract for precise, pre-aggregation reports: it intentionally accepts location at full submitted precision and, optionally, a pseudonymous reporter token. Such precise reports are private and gitignored; they are never published as-is. Coordinate fuzzing, aggregation, and jitter happen downstream in publish.py, in line with the contributor-privacy rule. This schema does not attach exposure denominators, rates, or confidence intervals; those are computed later in exposure.py and stats/, never claimed at intake.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "occurred_at",
+    "location",
+    "mode",
+    "hazard_type",
+    "severity"
+  ],
+  "properties": {
+    "schema_version": {
+      "title": "Schema version",
+      "description": "Version of this report schema the payload conforms to, as a semantic version string. Lets intake.py route reports through the correct validation and migration path as the schema evolves. Independent of the published dataset schema version.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "examples": [
+        "1.0.0"
+      ]
+    },
+    "id": {
+      "title": "Report identifier",
+      "description": "Stable, unique identifier for this report, assigned at or before intake and never reused. A UUID (any version) is recommended. The id is not derived from reporter identity and must not encode personal information; it exists so the pipeline can dedupe, reference, and reproduce a report deterministically.",
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "examples": [
+        "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+      ]
+    },
+    "occurred_at": {
+      "title": "Time of occurrence",
+      "description": "When the hazard or near-miss occurred, as an ISO-8601 / RFC 3339 date-time with an explicit timezone offset (UTC 'Z' or +/-HH:MM). This is the event time, not the submission time; downstream stages use it for temporal analysis. Including the offset keeps reports comparable across timezones and daylight-saving boundaries.",
+      "type": "string",
+      "format": "date-time",
+      "examples": [
+        "2026-06-15T08:42:00-07:00"
+      ]
+    },
+    "location": {
+      "title": "Location of occurrence",
+      "description": "Where the hazard or near-miss occurred, as a WGS84 (EPSG:4326) latitude/longitude pair with a reported positional accuracy. Accepted here at full submitted precision for snapping and analysis; coordinates are fuzzed, aggregated, and jittered before any publication so that no report identifies a person's routine.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lat",
+        "lon"
+      ],
+      "properties": {
+        "lat": {
+          "title": "Latitude",
+          "description": "Latitude in decimal degrees, WGS84 (EPSG:4326). Positive north, negative south.",
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "examples": [
+            38.544907
+          ]
+        },
+        "lon": {
+          "title": "Longitude",
+          "description": "Longitude in decimal degrees, WGS84 (EPSG:4326). Positive east, negative west.",
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "examples": [
+            -121.740517
+          ]
+        },
+        "accuracy_m": {
+          "title": "Positional accuracy (metres)",
+          "description": "Reported horizontal accuracy of the coordinate in metres, typically the GPS accuracy radius from the capturing device. Optional but strongly preferred: the quality-flag stage uses it to weight or down-rank low-confidence locations, supporting the rule that uncertain data is shown as uncertain rather than treated as precise.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100000,
+          "examples": [
+            8.5
+          ]
+        }
+      }
+    },
+    "mode": {
+      "title": "Reporter travel mode",
+      "description": "How the person who experienced the hazard was travelling. Used in classification and in bias.py to describe who is over- or under-represented in the reporter pool. 'other' covers modes not enumerated (e.g. skateboard, hand-cycle); use the note field to specify.",
+      "type": "string",
+      "enum": [
+        "cyclist",
+        "pedestrian",
+        "wheelchair",
+        "scooter",
+        "other"
+      ]
+    },
+    "hazard_type": {
+      "title": "Hazard type",
+      "description": "Category of the road hazard or near-miss. 'close_pass' is a motor vehicle passing too closely; 'dooring' is the door-zone conflict with an opening vehicle door; 'surface_hazard' is pavement defects such as potholes or broken surface; 'sightline' is a blind corner or obstructed visibility; 'signal' is a signal-timing or signal-conflict hazard; 'debris' is loose material in the path; 'other' is anything not covered, to be described in the note.",
+      "type": "string",
+      "enum": [
+        "close_pass",
+        "dooring",
+        "surface_hazard",
+        "sightline",
+        "signal",
+        "debris",
+        "other"
+      ]
+    },
+    "severity": {
+      "title": "Severity",
+      "description": "Self-reported outcome severity. 'near_miss' is a hazard avoided with no contact or injury; 'minor' is contact or a fall with minor or no lasting injury; 'serious' is a crash with significant injury. This is a contributor's assessment, not a clinical or police classification, and is documented as such in the data card; it is never presented as a verified injury statistic.",
+      "type": "string",
+      "enum": [
+        "near_miss",
+        "minor",
+        "serious"
+      ]
+    },
+    "heading_deg": {
+      "title": "Direction of travel (degrees)",
+      "description": "Optional compass heading of the reporter's direction of travel at the time of the hazard, in degrees clockwise from true north (0 = north, 90 = east, 180 = south, 270 = west). 360 is excluded; use 0 for due north. Helps snap-to-segment and directional analysis (e.g. which approach to an intersection).",
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMaximum": 360,
+      "examples": [
+        135
+      ]
+    },
+    "note": {
+      "title": "Free-text note",
+      "description": "Optional contributor description of what happened, length-bounded to discourage payloads and to keep notes scannable. Reporters are asked not to include names, plate numbers, or other identifying details; intake and the pipeline treat this field as potentially sensitive and it is not republished verbatim in the open dataset.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "reporter_token": {
+      "title": "Pseudonymous reporter token",
+      "description": "Optional opaque, pseudonymous token that links multiple reports from the same contributor without revealing identity. It is not an email, name, account id, or anything reversible to a person, and it is never published; the open dataset is aggregated and contains no reporter linkage. Used only privately, for example to detect duplicate submissions or per-reporter bias.",
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    }
+  }
+}
