@@ -32,15 +32,16 @@ community-owned evidence base.
 > **Where this is right now (read first):** the analysis engine is implemented and verified. The
 > intake, the dedupe/geocode/snap/classify/quality pipeline (including offline geocoding of
 > address-only reports), the exposure normalization and statistics (Poisson/Wilson confidence
-> intervals, bias, KDE, Getis-Ord Gi\*), publishing with a self-describing metadata block, the
-> bilingual (English/Spanish) advocacy brief, the accessible web data view, the CLI, the known-answer
-> test suite, and a published Davis demo dataset all exist and pass the gates: `make demo`,
-> `make verify`, and `make reproduce` run, 52 tests pass, and ruff + mypy `--strict` are clean. An
-> automated `axe-core` run is wired via `make axe` alongside the structural accessibility gate. What
-> remains is the still-pending list — a networked geocoder adapter (the default is an offline
-> gazetteer), more cities, the manual NVDA/VoiceOver screen-reader pass that complements the automated
-> axe run, reproducible notebooks, a committed hashed lockfile, and benchmarking (see
-> [Roadmap](#roadmap)). The repository is still private during pre-1.0 development.
+> intervals, bias, KDE, Getis-Ord Gi\* with Benjamini-Hochberg FDR), publishing with a
+> self-describing metadata block, the bilingual (English/Spanish) advocacy brief and web data view,
+> address-or-coordinate intake with an offline gazetteer geocoder **and** an opt-in networked
+> (Nominatim) adapter, a reproducible analysis notebook, a second demo city (Riverside) proving
+> config-over-code, a committed hashed lockfile, and a performance benchmark all exist and pass the
+> gates: `make demo`, `make verify`, and `make reproduce` run, 65 tests pass, and ruff + mypy
+> `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
+> accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
+> pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
+> (see [Roadmap](#roadmap)). The repository is still private during pre-1.0 development.
 
 ---
 
@@ -455,11 +456,12 @@ answers (documented in [`tests/README.md`](tests/README.md)) are committed under
 runs the full pipeline to make the statistics verifiable.
 
 > Each attribute above maps to a documented decision and, where the implementation exists, a
-> verifiable artifact or gate. Where an attribute is still aspirational at beta — the reproducible
-> notebooks, a networked geocoder adapter (the default offline gazetteer is implemented), the manual
-> NVDA/VoiceOver screen-reader review that complements the automated axe-core run, and benchmarking
-> remain pending, and some VPAT rows are "Partially Supports" — that is stated plainly rather than
-> overclaimed. See the [ACR](docs/accessibility/ACR.md) and the [Roadmap](#roadmap).
+> verifiable artifact or gate. The reproducible notebook, the networked geocoder adapter, the second
+> demo city, and the performance benchmark are now implemented; what remains aspirational at beta is
+> the manual NVDA/VoiceOver screen-reader review that complements the automated axe-core run and
+> deeper localization beyond English/Spanish, and some VPAT rows are "Partially Supports" — stated
+> plainly rather than overclaimed. See the [ACR](docs/accessibility/ACR.md), the
+> [performance benchmark](docs/PERFORMANCE.md), and the [Roadmap](#roadmap).
 
 ## Accessibility and Section 508 conformance
 
