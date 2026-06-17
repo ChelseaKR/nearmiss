@@ -1,0 +1,244 @@
+{
+  "reports": [
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000001",
+      "occurred_at": "2026-06-01T08:20:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3965
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000002",
+      "occurred_at": "2026-06-01T08:40:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3963
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000003",
+      "occurred_at": "2026-06-01T09:00:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3961
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "serious"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000004",
+      "occurred_at": "2026-06-01T09:20:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3936
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000005",
+      "occurred_at": "2026-06-01T09:40:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3934
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000006",
+      "occurred_at": "2026-06-01T10:00:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3932
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000007",
+      "occurred_at": "2026-06-01T10:20:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.393
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "serious"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000008",
+      "occurred_at": "2026-06-01T10:40:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3908
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000009",
+      "occurred_at": "2026-06-01T11:00:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3906
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000a",
+      "occurred_at": "2026-06-01T11:20:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3904
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000b",
+      "occurred_at": "2026-06-01T11:40:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3902
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "serious"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000c",
+      "occurred_at": "2026-06-01T12:00:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.39
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000d",
+      "occurred_at": "2026-06-01T12:20:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3898
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000e",
+      "occurred_at": "2026-06-01T12:40:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3904
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000f",
+      "occurred_at": "2026-06-01T13:00:00-07:00",
+      "location": {
+        "lat": 33.95333,
+        "lon": -117.3902
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "serious"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000010",
+      "occurred_at": "2026-06-01T13:20:00-07:00",
+      "location": {
+        "lat": 33.95583,
+        "lon": -117.3963
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000011",
+      "occurred_at": "2026-06-01T13:40:00-07:00",
+      "location": {
+        "lat": 33.95583,
+        "lon": -117.3906
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000012",
+      "occurred_at": "2026-06-01T14:00:00-07:00",
+      "location": {
+        "lat": 33.95583,
+        "lon": -117.3904
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000013",
+      "occurred_at": "2026-06-01T14:20:00-07:00",
+      "location": {
+        "lat": 33.95583,
+        "lon": -117.3902
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "serious"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000014",
+      "occurred_at": "2026-06-01T14:40:00-07:00",
+      "location": {
+        "lat": 33.95583,
+        "lon": -117.39
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    }
+  ]
+}

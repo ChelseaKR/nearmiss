@@ -1,0 +1,125 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -117.39699999999999,
+            33.9533
+          ],
+          [
+            -117.3954,
+            33.9533
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "rs-1",
+        "name": "Main St (5th–6th)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -117.39399999999999,
+            33.9533
+          ],
+          [
+            -117.3924,
+            33.9533
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "rs-2",
+        "name": "Market St (5th–6th)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -117.39099999999999,
+            33.9533
+          ],
+          [
+            -117.3894,
+            33.9533
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "rs-3",
+        "name": "University Ave (Market–Lemon)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -117.39699999999999,
+            33.955799999999996
+          ],
+          [
+            -117.3954,
+            33.955799999999996
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "rs-4",
+        "name": "Mission Inn Ave (Main–Market)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -117.39399999999999,
+            33.955799999999996
+          ],
+          [
+            -117.3924,
+            33.955799999999996
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "rs-5",
+        "name": "7th St (Market–Lemon)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -117.39099999999999,
+            33.955799999999996
+          ],
+          [
+            -117.3894,
+            33.955799999999996
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "rs-6",
+        "name": "Lemon St (University–10th)"
+      }
+    }
+  ]
+}

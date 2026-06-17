@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="202" viewBox="0 0 680 202" role="img" aria-label="Exposure-normalized hazard rate per 1000 by segment, Riverside">
+<title>Hazard rate per 1000 by segment — Riverside</title>
+<text x="16" y="28" font-family="sans-serif" font-size="16" font-weight="bold">Hazard rate per 1000 bike trips (synthetic) — Riverside</text>
+<text x="202" y="72" font-family="sans-serif" font-size="12" text-anchor="end">University Ave (Market–Lemon)</text>
+<rect x="210" y="60" width="400.0" height="16" fill="#0b4f9c"/>
+<line x1="382.2" y1="68" x2="998.2" y2="68" stroke="#222" stroke-width="1"/><line x1="382.2" y1="65" x2="382.2" y2="71" stroke="#222"/><line x1="998.2" y1="65" x2="998.2" y2="71" stroke="#222"/>
+<text x="672" y="72" font-family="sans-serif" font-size="12" text-anchor="end">32.0</text>
+<text x="202" y="98" font-family="sans-serif" font-size="12" text-anchor="end">Market St (5th–6th)</text>
+<rect x="210" y="86" width="62.5" height="16" fill="#0b4f9c"/>
+<line x1="226.8" y1="94" x2="370.0" y2="94" stroke="#222" stroke-width="1"/><line x1="226.8" y1="91" x2="226.8" y2="97" stroke="#222"/><line x1="370.0" y1="91" x2="370.0" y2="97" stroke="#222"/>
+<text x="672" y="98" font-family="sans-serif" font-size="12" text-anchor="end">5.0</text>
+<text x="202" y="124" font-family="sans-serif" font-size="12" text-anchor="end">Lemon St (University–10th)</text>
+<rect x="210" y="112" width="62.5" height="16" fill="#0b4f9c"/>
+<line x1="226.8" y1="120" x2="370.0" y2="120" stroke="#222" stroke-width="1"/><line x1="226.8" y1="117" x2="226.8" y2="123" stroke="#222"/><line x1="370.0" y1="117" x2="370.0" y2="123" stroke="#222"/>
+<text x="672" y="124" font-family="sans-serif" font-size="12" text-anchor="end">5.0</text>
+<text x="202" y="150" font-family="sans-serif" font-size="12" text-anchor="end">Main St (5th–6th)</text>
+<rect x="210" y="138" width="25.0" height="16" fill="#0b4f9c"/>
+<line x1="215.0" y1="146" x2="283.0" y2="146" stroke="#222" stroke-width="1"/><line x1="215.0" y1="143" x2="215.0" y2="149" stroke="#222"/><line x1="283.0" y1="143" x2="283.0" y2="149" stroke="#222"/>
+<text x="672" y="150" font-family="sans-serif" font-size="12" text-anchor="end">2.0</text>
+<text x="202" y="176" font-family="sans-serif" font-size="12" text-anchor="end">7th St (Market–Lemon)</text>
+<rect x="210" y="164" width="0.0" height="16" fill="#0b4f9c"/>
+<line x1="210.0" y1="172" x2="240.6" y2="172" stroke="#222" stroke-width="1"/><line x1="210.0" y1="169" x2="210.0" y2="175" stroke="#222"/><line x1="240.6" y1="169" x2="240.6" y2="175" stroke="#222"/>
+<text x="672" y="176" font-family="sans-serif" font-size="12" text-anchor="end">0.0</text>
+</svg>

@@ -1,0 +1,40 @@
+{
+  "segments": [
+    {
+      "segment_id": "rs-1",
+      "estimate": 1500.0,
+      "source": "synthetic_count",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "rs-2",
+      "estimate": 800.0,
+      "source": "synthetic_count",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "rs-3",
+      "estimate": 250.0,
+      "source": "synthetic_count",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "rs-4",
+      "estimate": 1500.0,
+      "source": "synthetic_count",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "rs-5",
+      "estimate": 1500.0,
+      "source": "synthetic_count",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "rs-6",
+      "estimate": 800.0,
+      "source": "synthetic_count",
+      "date": "2026-05-01"
+    }
+  ]
+}

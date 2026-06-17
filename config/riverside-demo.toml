@@ -1,0 +1,28 @@
+# Second demo city — proves config-over-code: a new city is a new config + data,
+# no Python changes. See docs/ADAPTING.md.
+city = "Riverside"
+dataset_note = "Synthetic demonstration data — not real reports."
+exposure_unit = "bike trips (synthetic)"
+
+streets = "../tests/fixtures/riverside/streets.geojson"
+reports = "../tests/fixtures/riverside/reports.json"
+exposure = "../tests/fixtures/riverside/exposure.json"
+
+raw_dir = "../data/raw/riverside"   # PRIVATE, gitignored
+out_dir = "../data/published"       # open, committed
+
+ref_lat = 33.9533
+ref_lon = -117.3962
+
+[thresholds]
+snap_max_m = 25
+dedupe_window_s = 600
+dedupe_distance_m = 15
+small_n = 5
+min_publish_n = 3
+rate_per = 1000
+confidence_z = 1.96
+fdr_alpha = 0.05
+gi_band_m = 300
+kde_bandwidth_m = 150
+kde_grid = 20
