@@ -1,8 +1,23 @@
 # Web — the accessible map UI
 
-A **framework-free** map interface targeting **WCAG 2.2 Level AA**, built to be auditable and to load
+A **dependency-light** map interface targeting **WCAG 2.2 Level AA**, built to be auditable and to load
 fast on a phone from the roadside. It reads only published artifacts; it never touches a precise raw
 report.
+
+## The two maps (this is the point)
+
+The page shows the **same reports mapped two ways** on a real [OpenStreetMap](https://www.openstreetmap.org/copyright)
+basemap:
+
+1. **Raw report count** — what most safety maps show. The busiest street looks the most dangerous.
+2. **Exposure-normalized rate** — reports per 1000 units of exposure, with Getis-Ord Gi\* significance.
+   The busiest street recedes; the statistically real hotspot emerges.
+
+That contrast — a high-volume street that is *not* a significant hotspot, next to a lower-volume street
+that *is* — is the original argument of this project, made visible. The map library is
+[Leaflet](https://leafletjs.com) 1.9.4, **vendored locally** in `vendor/leaflet/` (no third-party CDN,
+no runtime fetch of code), so the only third-party network call is the OSM tile request, attributed in
+the footer.
 
 Core commitments (see [`docs/ACCESSIBILITY.md`](../docs/ACCESSIBILITY.md) and the
 [ACR](../docs/accessibility/ACR.md)):

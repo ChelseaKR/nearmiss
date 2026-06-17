@@ -32,7 +32,11 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lint type test accessibility axe security verify \
-        reproduce demo publish serve bench clean
+        reproduce demo publish serve bench bikemaps clean
+
+# Real-data fetch (BikeMaps.org). Override CITY and BIKEMAPS_OUT as needed.
+CITY         ?= victoria
+BIKEMAPS_OUT ?= build/$(CITY)-reports.json
 
 help: ## Show this help — every target with its description
 	@echo "nearmiss — open dataset + honest analysis of road near-misses"
@@ -108,6 +112,12 @@ serve: ## Serve the accessible map + data view (read-only) at /web/index.html
 
 bench: ## Performance benchmark: time the pipeline + statistics on a city-scale synthetic dataset
 	$(PYTHON) tools/benchmark.py
+
+bikemaps: ## Fetch REAL near-miss reports from BikeMaps.org (CITY=victoria) into BIKEMAPS_OUT
+	@mkdir -p $(dir $(BIKEMAPS_OUT))
+	$(PYTHON) tools/fetch_bikemaps.py --city $(CITY) --out $(BIKEMAPS_OUT)
+	@echo "bikemaps: real reports in $(BIKEMAPS_OUT) (intake schema)."
+	@echo "          Next: real streets + exposure, then 'nearmiss run' — see docs/REAL-DATA.md."
 
 clean: ## Remove build/test/cache artifacts — NEVER data/raw/ (HR4)
 	rm -rf build/ dist/ web/node_modules \

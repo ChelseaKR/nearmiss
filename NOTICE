@@ -24,6 +24,24 @@ with low-count segments withheld (k-anonymity) to protect contributor privacy
 published risk figure is exposure-normalized and carries a confidence interval;
 the reporting bias of the dataset is named, not hidden (see docs/METHODOLOGY.md).
 
+------------------------------------------------------------------------------
+Third-party components
+------------------------------------------------------------------------------
+Leaflet (https://leafletjs.com), (c) 2010-2023 Vladimir Agafonkin and Leaflet
+contributors, is vendored under web/vendor/leaflet/ for the interactive map. It
+is licensed under the BSD 2-Clause License. The unmodified upstream distribution
+(v1.9.4) is included so the site has no third-party code CDN dependency.
+
+Map tiles displayed by the web UI are served by OpenStreetMap
+(https://www.openstreetmap.org/copyright); map data (c) OpenStreetMap
+contributors, available under the Open Database License (ODbL). Tiles are
+requested by the visitor's browser at runtime and are attributed in the UI.
+
+The real-data bridge (tools/fetch_bikemaps.py) reads public reports from
+BikeMaps.org (https://bikemaps.org, SPARLab/BikeMaps). BikeMaps data is the
+property of its contributors and the BikeMaps project; consult BikeMaps.org for
+its terms before redistributing data derived from it.
+
 This NOTICE file is provided for attribution under Section 4(d) of the License.
 Attribution notices from within this work are included here. This NOTICE text
 is for informational purposes only and does not modify the License.

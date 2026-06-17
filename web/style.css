@@ -109,16 +109,60 @@ figure {
   padding: 0.5rem;
 }
 
-#map {
+/* Two real maps side by side; stack on narrow screens / at high zoom. */
+.map-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 48rem) {
+  .map-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.map-fig {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-title {
+  font-weight: 700;
+  color: var(--fg);
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+
+.leaflet-map {
   width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
+  height: 22rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
   background: #f5f7fa;
+}
+
+/* Permanent call-out labels on the protagonist segments (the most-reported
+   street on the left, the significant hotspots on the right). High-contrast
+   text on white, so the label never relies on color. */
+.map-label {
+  font: 700 0.78rem/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--fg);
+  background: #fff;
+  border: 1px solid var(--fg);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  white-space: nowrap;
 }
 
 figcaption {
   color: var(--muted);
   font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.map-cap {
   margin-top: 0.5rem;
 }
 

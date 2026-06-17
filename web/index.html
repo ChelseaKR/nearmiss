@@ -6,8 +6,9 @@
     <title>nearmiss — where the danger actually is (Davis)</title>
     <meta
       name="description"
-      content="Exposure-normalized road-hazard rates with confidence intervals and Getis-Ord hotspots. The data table is the authoritative, non-visual equivalent of the map."
+      content="The same near-miss reports mapped two ways: raw counts (what most maps show) versus exposure-normalized rates with confidence intervals and Getis-Ord hotspots (where the danger actually is). The data table is the authoritative, non-visual equivalent of the maps."
     />
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -22,34 +23,57 @@
       <p class="lede" data-i18n="lede">
         Road-hazard and near-miss <strong>rates, normalized by exposure</strong>, each with a
         95% confidence interval and an <em>n</em>. Raw counts are report volume, not danger.
-        The <a href="#data-table">data table</a> below carries every finding and is the
-        authoritative, non-visual equivalent of the map.
+        The two maps below show the difference; the <a href="#data-table">data table</a>
+        carries every finding and is the authoritative, non-visual equivalent of the maps.
       </p>
       <p class="demo-note" data-i18n="demo">
         ⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not
-        real reports.
+        real reports. The method is the point: swap in real reports with no code change.
       </p>
     </header>
 
     <main id="main">
       <section aria-labelledby="map-heading">
-        <h2 id="map-heading" data-i18n="map_h">Map</h2>
+        <h2 id="map-heading" data-i18n="map_h">Two maps, the same reports</h2>
         <p id="map-desc" data-i18n="map_desc">
-          A schematic map of street segments. Significant hotspots are drawn thicker and
-          dashed and are labeled in text; nothing here is conveyed by color alone. The map is
-          supplementary — the same information is in the
-          <a href="#data-table">data table</a>.
+          The same near-miss reports, mapped two ways on a real street map. On the left, the
+          <strong>raw report count</strong> — what most safety maps show: the busiest street looks
+          the most dangerous. On the right, the <strong>rate per 1000 units of exposure</strong> —
+          which is what actually reflects danger. Watch the busiest street recede and the real
+          hotspot emerge. Nothing is conveyed by color alone: line thickness scales with the value,
+          and significant hotspots are dashed and labeled. Everything here is in the
+          <a href="#data-table">data table</a>, which the maps supplement.
         </p>
-        <figure>
-          <svg
-            id="map"
-            role="img"
-            aria-labelledby="map-heading map-desc"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="xMidYMid meet"
-          ></svg>
-          <figcaption id="map-caption">Loading map…</figcaption>
-        </figure>
+
+        <div class="map-split">
+          <figure class="map-fig">
+            <figcaption class="map-title" data-i18n="map_reports_t">
+              ① Raw report count — what most maps show
+            </figcaption>
+            <div
+              id="map-reports"
+              class="leaflet-map"
+              role="group"
+              aria-label="Map of reported near-miss counts by street segment. The equivalent data is in the table below."
+              aria-describedby="cap-reports"
+            ></div>
+            <figcaption id="cap-reports" class="map-cap" data-i18n="loading_map">Loading map…</figcaption>
+          </figure>
+
+          <figure class="map-fig">
+            <figcaption class="map-title" data-i18n="map_rate_t">
+              ② Exposure-normalized rate — where the danger actually is
+            </figcaption>
+            <div
+              id="map-rate"
+              class="leaflet-map"
+              role="group"
+              aria-label="Map of exposure-normalized hazard rates with significant hotspots by street segment. The equivalent data is in the table below."
+              aria-describedby="cap-rate"
+            ></div>
+            <figcaption id="cap-rate" class="map-cap" data-i18n="loading_map">Loading map…</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section aria-labelledby="data-heading">
@@ -111,12 +135,14 @@
       <p data-i18n="footer">
         Open data, Apache-2.0.
         <a href="https://github.com/ChelseaKR/nearmiss">Source on GitHub</a> ·
-        <a href="https://chelseakr.com">chelseakr.com</a>. Methods:
+        <a href="https://chelseakr.com">chelseakr.com</a>. Maps ©
+        <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Methods:
         <code>docs/METHODOLOGY.md</code>; limits and biases: <code>docs/DATA-CARD.md</code>.
         Every figure regenerates with <code>make reproduce</code>.
       </p>
     </footer>
 
+    <script src="vendor/leaflet/leaflet.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
