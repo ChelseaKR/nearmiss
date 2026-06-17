@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-"""Generate the deterministic, synthetic Davis test fixtures — a connected grid.
+"""Generate the deterministic, synthetic Davis test fixtures — a full street grid.
 
-The streets form a downtown-Davis-style grid: lettered avenues (A, B, C, …) run
-north-south by longitude, numbered/named streets (3rd, 5th, …) run east-west by
-latitude, and each segment is a block between two intersections. So the network
-actually connects and renders like a street map rather than a row of dashes.
+The streets are a downtown-Davis-style grid: lettered avenues (A–E) run
+north-south, numbered streets (1st–5th) run east-west, and every block between
+two intersections is a segment, so the map reads like a real street network.
 
-The fixtures encode KNOWN ANSWERS (see tests/README.md):
-  * seg-06 ("5th St (C–D)") is the planted hotspot: LOW exposure, MANY reports ->
+Only TWELVE of the blocks carry exposure data and reports — those are the
+analyzed segments. The rest of the grid is published as **context** with no
+exposure (shown gray on the map); having no denominator, they are excluded from
+the rates, the Getis-Ord statistic, and the bias analysis, so the known-answer
+results are unchanged:
+
+  * seg-06 ("5th St (C–D)") is the planted hotspot: low exposure, many reports ->
     the highest rate and the centre of a significant Getis-Ord cluster along the
     5th St corridor (seg-05/06/07) and its cross streets (seg-02/10).
-  * seg-03 ("3rd St (B–C)") is the busy decoy: HIGH exposure with the MOST raw
-    reports, but a LOW rate -> not near the top once normalized.
+  * seg-03 ("3rd St (B–C)") is the busy decoy: high exposure with the MOST raw
+    reports, but a low rate -> not near the top once normalized.
 
 Run from the repo root:  python tools/make_fixtures.py
 Outputs are committed; tests read the static files, so test runs need no RNG.
@@ -21,85 +25,89 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
+from itertools import pairwise
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "tests" / "fixtures" / "davis"
 
-# North-south avenues (longitude) and east-west streets (latitude).
-LON = {
-    "A": -121.7460,
-    "B": -121.7440,
-    "C": -121.7420,
-    "D": -121.7400,
-    "E": -121.7380,
-    "F": -121.7360,
-}
-LAT = {
-    "Russell": 38.5410,
-    "1st": 38.5430,
-    "2nd": 38.5445,
-    "3rd": 38.5460,
-    "4th": 38.5475,
-    "5th": 38.5490,
-    "8th": 38.5535,
-    "Covell": 38.5560,
-}
+# A regular lattice: avenues by longitude (A–E), streets by latitude (1st–5th).
+AVE = ["A", "B", "C", "D", "E"]
+ST = ["1st", "2nd", "3rd", "4th", "5th"]
+LON = {a: -121.7460 + j * 0.0020 for j, a in enumerate(AVE)}
+LAT = {s: 38.5430 + i * 0.0016 for i, s in enumerate(ST)}
 
-# segment_id -> (name, (lat0, lon0), (lat1, lon1)). Each is a block between two
-# intersections; the 5th St corridor and its cross streets connect at shared nodes.
-SEGMENTS: dict[str, tuple[str, tuple[float, float], tuple[float, float]]] = {
-    "seg-01": ("B St (1st–2nd)", (LAT["1st"], LON["B"]), (LAT["2nd"], LON["B"])),
-    "seg-02": ("C St (4th–5th)", (LAT["4th"], LON["C"]), (LAT["5th"], LON["C"])),
-    "seg-03": ("3rd St (B–C)", (LAT["3rd"], LON["B"]), (LAT["3rd"], LON["C"])),
-    "seg-04": ("D St (1st–2nd)", (LAT["1st"], LON["D"]), (LAT["2nd"], LON["D"])),
-    "seg-05": ("5th St (B–C)", (LAT["5th"], LON["B"]), (LAT["5th"], LON["C"])),
-    "seg-06": ("5th St (C–D)", (LAT["5th"], LON["C"]), (LAT["5th"], LON["D"])),
-    "seg-07": ("5th St (D–E)", (LAT["5th"], LON["D"]), (LAT["5th"], LON["E"])),
-    "seg-08": ("F St (2nd–3rd)", (LAT["2nd"], LON["F"]), (LAT["3rd"], LON["F"])),
-    "seg-09": ("8th St (B–C)", (LAT["8th"], LON["B"]), (LAT["8th"], LON["C"])),
-    "seg-10": ("D St (4th–5th)", (LAT["4th"], LON["D"]), (LAT["5th"], LON["D"])),
-    "seg-11": ("Anderson Rd (5th–8th)", (LAT["5th"], LON["F"]), (LAT["8th"], LON["F"])),
-    "seg-12": ("Covell Blvd (E–F)", (LAT["Covell"], LON["E"]), (LAT["Covell"], LON["F"])),
-}
-
-# segment_id -> (exposure, {hazard_type: count}).
-PLAN: dict[str, tuple[float, dict[str, int]]] = {
-    "seg-06": (300.0, {"close_pass": 4, "dooring": 1, "surface_hazard": 1}),  # HOTSPOT, rate 20
-    "seg-02": (400.0, {"close_pass": 6}),  # cluster, rate 15
-    "seg-05": (400.0, {"close_pass": 6}),  # cluster, rate 15
-    "seg-07": (400.0, {"close_pass": 6}),  # cluster, rate 15
-    "seg-10": (400.0, {"close_pass": 6}),  # cluster, rate 15
+# segment_id -> (name, exposure, {hazard_type: count}). These twelve blocks carry
+# data; every other block in the grid is published as no-exposure context.
+DATA: dict[str, tuple[str, float, dict[str, int]]] = {
+    "seg-06": (
+        "5th St (C–D)",
+        300.0,
+        {"close_pass": 4, "dooring": 1, "surface_hazard": 1},
+    ),  # HOTSPOT
+    "seg-05": ("5th St (B–C)", 400.0, {"close_pass": 6}),  # cluster
+    "seg-07": ("5th St (D–E)", 400.0, {"close_pass": 6}),  # cluster
+    "seg-02": ("C St (4th–5th)", 400.0, {"close_pass": 6}),  # cluster cross street
+    "seg-10": ("D St (4th–5th)", 400.0, {"close_pass": 6}),  # cluster cross street
     "seg-03": (
+        "3rd St (B–C)",
         8000.0,
         {"close_pass": 12, "surface_hazard": 5, "debris": 3},
-    ),  # BUSY decoy, rate 2.5
-    "seg-01": (1500.0, {"close_pass": 4}),  # published but uncertain (3 <= n < small_n)
-    "seg-04": (1500.0, {"close_pass": 1}),  # withheld (n < min_publish_n)
-    "seg-08": (1500.0, {"close_pass": 1}),  # withheld
-    "seg-09": (1500.0, {}),
-    "seg-11": (1500.0, {"close_pass": 1}),  # withheld
-    "seg-12": (1500.0, {}),
+    ),  # BUSY decoy
+    "seg-01": ("B St (1st–2nd)", 1500.0, {"close_pass": 4}),  # published but uncertain
+    "seg-04": ("D St (1st–2nd)", 1500.0, {"close_pass": 1}),  # withheld (k-anonymity)
+    "seg-08": ("A St (1st–2nd)", 1500.0, {"close_pass": 1}),  # withheld
+    "seg-11": ("A St (4th–5th)", 1500.0, {"close_pass": 1}),  # withheld
+    "seg-09": ("1st St (A–B)", 1500.0, {}),  # zero reports
+    "seg-12": ("2nd St (D–E)", 1500.0, {}),  # zero reports
 }
 
 MODES = ["cyclist", "cyclist", "cyclist", "pedestrian", "scooter"]
 SEVERITIES = ["near_miss", "near_miss", "near_miss", "minor", "serious"]
 
 
-def point_on(seg_id: str, t: float, perp: float) -> tuple[float, float]:
-    """A point at fraction t along the segment, offset ~perp degrees cross-track."""
-    (lat0, lon0), (lat1, lon1) = SEGMENTS[seg_id][1], SEGMENTS[seg_id][2]
-    lat = lat0 + t * (lat1 - lat0)
-    lon = lon0 + t * (lon1 - lon0)
-    if lat0 == lat1:  # east-west block -> offset latitude
+def grid_blocks() -> dict[str, tuple[tuple[float, float], tuple[float, float]]]:
+    """Every block in the lattice -> name: ((lat0, lon0), (lat1, lon1))."""
+    blocks: dict[str, tuple[tuple[float, float], tuple[float, float]]] = {}
+    for s in ST:  # east-west streets
+        for a, b in pairwise(AVE):
+            blocks[f"{s} St ({a}–{b})"] = ((LAT[s], LON[a]), (LAT[s], LON[b]))
+    for a in AVE:  # north-south avenues
+        for s0, s1 in pairwise(ST):
+            blocks[f"{a} St ({s0}–{s1})"] = ((LAT[s0], LON[a]), (LAT[s1], LON[a]))
+    return blocks
+
+
+def point_on(
+    p0: tuple[float, float], p1: tuple[float, float], t: float, perp: float
+) -> tuple[float, float]:
+    lat = p0[0] + t * (p1[0] - p0[0])
+    lon = p0[1] + t * (p1[1] - p0[1])
+    if p0[0] == p1[0]:  # east-west -> offset latitude
         lat += perp
-    else:  # north-south block -> offset longitude
+    else:  # north-south -> offset longitude
         lon += perp
     return round(lat, 6), round(lon, 6)
 
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
+    blocks = grid_blocks()
+    name_to_data_id = {name: sid for sid, (name, _, _) in DATA.items()}
+    for name in name_to_data_id:
+        assert name in blocks, f"data block not in grid: {name}"
+
+    # Assign ids: the twelve data blocks keep theirs; the rest become context
+    # segments seg-13.. in name order (deterministic).
+    segments: dict[str, tuple[str, tuple[float, float], tuple[float, float]]] = {}
+    for sid, (name, _, _) in DATA.items():
+        segments[sid] = (name, blocks[name][0], blocks[name][1])
+    n = 13
+    for name in sorted(blocks):
+        if name in name_to_data_id:
+            continue
+        segments[f"seg-{n:02d}"] = (name, blocks[name][0], blocks[name][1])
+        n += 1
 
     streets = {
         "type": "FeatureCollection",
@@ -109,24 +117,24 @@ def main() -> None:
                 "geometry": {
                     "type": "LineString",
                     "coordinates": [
-                        [SEGMENTS[s][1][1], SEGMENTS[s][1][0]],
-                        [SEGMENTS[s][2][1], SEGMENTS[s][2][0]],
+                        [segments[sid][1][1], segments[sid][1][0]],
+                        [segments[sid][2][1], segments[sid][2][0]],
                     ],
                 },
-                "properties": {"segment_id": s, "name": SEGMENTS[s][0]},
+                "properties": {"segment_id": sid, "name": segments[sid][0]},
             }
-            for s in sorted(SEGMENTS)
+            for sid in sorted(segments)
         ],
     }
     exposure = {
         "segments": [
             {
-                "segment_id": s,
-                "estimate": PLAN[s][0],
+                "segment_id": sid,
+                "estimate": DATA[sid][1],
                 "source": "synthetic_bike_count",
                 "date": "2026-05-01",
             }
-            for s in sorted(PLAN)
+            for sid in sorted(DATA)
         ]
     }
 
@@ -135,17 +143,15 @@ def main() -> None:
     i = 0
     first_hot: dict[str, object] | None = None
     low_acc_done = False
-
-    for sid in sorted(PLAN):
-        _, hazards = PLAN[sid]
+    for sid in sorted(DATA):
+        _, _, hazards = DATA[sid]
+        p0, p1 = segments[sid][1], segments[sid][2]
         for hazard, k in sorted(hazards.items()):
             for j in range(k):
                 i += 1
-                # Spread reports through the middle 30–70% of the block; tiny
-                # cross-track offset so they snap but distinct positions remain.
                 t = 0.3 + 0.4 * ((j + 0.5) / max(k, 1))
                 perp = 0.00003 if i % 2 == 0 else -0.00003
-                lat, lon = point_on(sid, t, perp)
+                lat, lon = point_on(p0, p1, t, perp)
                 location: dict[str, object] = {"lat": lat, "lon": lon}
                 rec: dict[str, object] = {
                     "schema_version": "1.0.0",
@@ -199,8 +205,11 @@ def main() -> None:
     (OUT / "reports.json").write_text(
         json.dumps({"reports": reports}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    snapped = sum(sum(h.values()) for _, h in PLAN.values())
-    print(f"wrote {len(SEGMENTS)} segments, {len(reports)} reports to {OUT}")
+    snapped = sum(sum(h.values()) for _, _, h in DATA.values())
+    print(
+        f"wrote {len(segments)} grid segments ({len(DATA)} with data), "
+        f"{len(reports)} reports to {OUT}"
+    )
     print(f"  expected: snapped≈{snapped}, duplicates_removed=1, unsnapped=1")
 
 

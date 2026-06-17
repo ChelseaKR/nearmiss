@@ -230,8 +230,12 @@
       var line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
       line.setAttribute("points", pts);
       line.setAttribute("fill", "none");
-      line.setAttribute("stroke", p.getis_ord_significant ? "#8a1c1c" : "#0b4f9c");
-      line.setAttribute("stroke-width", p.getis_ord_significant ? "2.4" : "1.2");
+      // Color by rate: red (significant hotspot), blue (has reports), gray
+      // (context street with no exposure/reports). Significance is also marked
+      // by a dashed pattern, never color alone.
+      var hasRate = p.rate !== null && p.rate !== undefined && p.rate > 0;
+      line.setAttribute("stroke", p.getis_ord_significant ? "#8a1c1c" : hasRate ? "#0b4f9c" : "#c3ccd6");
+      line.setAttribute("stroke-width", p.getis_ord_significant ? "2.6" : hasRate ? "1.6" : "1.0");
       line.setAttribute("stroke-linecap", "round");
       if (p.getis_ord_significant) line.setAttribute("stroke-dasharray", "3 1.5");
       var title = document.createElementNS("http://www.w3.org/2000/svg", "title");

@@ -12,7 +12,7 @@
           ],
           [
             -121.744,
-            38.5445
+            38.5446
           ]
         ]
       },
@@ -27,12 +27,12 @@
         "type": "LineString",
         "coordinates": [
           [
-            -121.742,
-            38.5475
+            -121.74199999999999,
+            38.5478
           ],
           [
-            -121.742,
-            38.549
+            -121.74199999999999,
+            38.5494
           ]
         ]
       },
@@ -48,11 +48,11 @@
         "coordinates": [
           [
             -121.744,
-            38.546
+            38.5462
           ],
           [
-            -121.742,
-            38.546
+            -121.74199999999999,
+            38.5462
           ]
         ]
       },
@@ -72,7 +72,7 @@
           ],
           [
             -121.74,
-            38.5445
+            38.5446
           ]
         ]
       },
@@ -88,11 +88,11 @@
         "coordinates": [
           [
             -121.744,
-            38.549
+            38.5494
           ],
           [
-            -121.742,
-            38.549
+            -121.74199999999999,
+            38.5494
           ]
         ]
       },
@@ -107,12 +107,12 @@
         "type": "LineString",
         "coordinates": [
           [
-            -121.742,
-            38.549
+            -121.74199999999999,
+            38.5494
           ],
           [
             -121.74,
-            38.549
+            38.5494
           ]
         ]
       },
@@ -128,11 +128,11 @@
         "coordinates": [
           [
             -121.74,
-            38.549
+            38.5494
           ],
           [
             -121.738,
-            38.549
+            38.5494
           ]
         ]
       },
@@ -147,18 +147,18 @@
         "type": "LineString",
         "coordinates": [
           [
-            -121.736,
-            38.5445
+            -121.746,
+            38.543
           ],
           [
-            -121.736,
-            38.546
+            -121.746,
+            38.5446
           ]
         ]
       },
       "properties": {
         "segment_id": "seg-08",
-        "name": "F St (2nd–3rd)"
+        "name": "A St (1st–2nd)"
       }
     },
     {
@@ -167,18 +167,18 @@
         "type": "LineString",
         "coordinates": [
           [
-            -121.744,
-            38.5535
+            -121.746,
+            38.543
           ],
           [
-            -121.742,
-            38.5535
+            -121.744,
+            38.543
           ]
         ]
       },
       "properties": {
         "segment_id": "seg-09",
-        "name": "8th St (B–C)"
+        "name": "1st St (A–B)"
       }
     },
     {
@@ -188,11 +188,11 @@
         "coordinates": [
           [
             -121.74,
-            38.5475
+            38.5478
           ],
           [
             -121.74,
-            38.549
+            38.5494
           ]
         ]
       },
@@ -207,18 +207,518 @@
         "type": "LineString",
         "coordinates": [
           [
-            -121.736,
-            38.549
+            -121.746,
+            38.5478
           ],
           [
-            -121.736,
-            38.5535
+            -121.746,
+            38.5494
           ]
         ]
       },
       "properties": {
         "segment_id": "seg-11",
-        "name": "Anderson Rd (5th–8th)"
+        "name": "A St (4th–5th)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74,
+            38.5446
+          ],
+          [
+            -121.738,
+            38.5446
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-12",
+        "name": "2nd St (D–E)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.744,
+            38.543
+          ],
+          [
+            -121.74199999999999,
+            38.543
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-13",
+        "name": "1st St (B–C)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.543
+          ],
+          [
+            -121.74,
+            38.543
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-14",
+        "name": "1st St (C–D)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74,
+            38.543
+          ],
+          [
+            -121.738,
+            38.543
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-15",
+        "name": "1st St (D–E)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.746,
+            38.5446
+          ],
+          [
+            -121.744,
+            38.5446
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-16",
+        "name": "2nd St (A–B)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.744,
+            38.5446
+          ],
+          [
+            -121.74199999999999,
+            38.5446
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-17",
+        "name": "2nd St (B–C)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5446
+          ],
+          [
+            -121.74,
+            38.5446
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-18",
+        "name": "2nd St (C–D)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.746,
+            38.5462
+          ],
+          [
+            -121.744,
+            38.5462
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-19",
+        "name": "3rd St (A–B)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5462
+          ],
+          [
+            -121.74,
+            38.5462
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-20",
+        "name": "3rd St (C–D)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74,
+            38.5462
+          ],
+          [
+            -121.738,
+            38.5462
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-21",
+        "name": "3rd St (D–E)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.746,
+            38.5478
+          ],
+          [
+            -121.744,
+            38.5478
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-22",
+        "name": "4th St (A–B)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.744,
+            38.5478
+          ],
+          [
+            -121.74199999999999,
+            38.5478
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-23",
+        "name": "4th St (B–C)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5478
+          ],
+          [
+            -121.74,
+            38.5478
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-24",
+        "name": "4th St (C–D)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74,
+            38.5478
+          ],
+          [
+            -121.738,
+            38.5478
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-25",
+        "name": "4th St (D–E)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.746,
+            38.5494
+          ],
+          [
+            -121.744,
+            38.5494
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-26",
+        "name": "5th St (A–B)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.746,
+            38.5446
+          ],
+          [
+            -121.746,
+            38.5462
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-27",
+        "name": "A St (2nd–3rd)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.746,
+            38.5462
+          ],
+          [
+            -121.746,
+            38.5478
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-28",
+        "name": "A St (3rd–4th)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.744,
+            38.5446
+          ],
+          [
+            -121.744,
+            38.5462
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-29",
+        "name": "B St (2nd–3rd)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.744,
+            38.5462
+          ],
+          [
+            -121.744,
+            38.5478
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-30",
+        "name": "B St (3rd–4th)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.744,
+            38.5478
+          ],
+          [
+            -121.744,
+            38.5494
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-31",
+        "name": "B St (4th–5th)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.543
+          ],
+          [
+            -121.74199999999999,
+            38.5446
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-32",
+        "name": "C St (1st–2nd)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5446
+          ],
+          [
+            -121.74199999999999,
+            38.5462
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-33",
+        "name": "C St (2nd–3rd)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5462
+          ],
+          [
+            -121.74199999999999,
+            38.5478
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-34",
+        "name": "C St (3rd–4th)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74,
+            38.5446
+          ],
+          [
+            -121.74,
+            38.5462
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-35",
+        "name": "D St (2nd–3rd)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.74,
+            38.5462
+          ],
+          [
+            -121.74,
+            38.5478
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-36",
+        "name": "D St (3rd–4th)"
       }
     },
     {
@@ -228,17 +728,77 @@
         "coordinates": [
           [
             -121.738,
-            38.556
+            38.543
           ],
           [
-            -121.736,
-            38.556
+            -121.738,
+            38.5446
           ]
         ]
       },
       "properties": {
-        "segment_id": "seg-12",
-        "name": "Covell Blvd (E–F)"
+        "segment_id": "seg-37",
+        "name": "E St (1st–2nd)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.738,
+            38.5446
+          ],
+          [
+            -121.738,
+            38.5462
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-38",
+        "name": "E St (2nd–3rd)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.738,
+            38.5462
+          ],
+          [
+            -121.738,
+            38.5478
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-39",
+        "name": "E St (3rd–4th)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.738,
+            38.5478
+          ],
+          [
+            -121.738,
+            38.5494
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-40",
+        "name": "E St (4th–5th)"
       }
     }
   ]

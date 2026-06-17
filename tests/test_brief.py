@@ -17,7 +17,7 @@ def test_english_brief_is_comprehensible(bundle: AnalysisBundle, config: Config)
     assert config.exposure_unit in text
     assert "does not mean nothing can be concluded" in text
     # Withheld (k-anonymity) segments are never named in a published brief.
-    assert "Anderson Rd" not in text  # seg-11 is withheld (n=1)
+    assert "A St (1st–2nd)" not in text  # seg-08 is withheld (n=1)
 
 
 def test_spanish_brief_renders_in_spanish(bundle: AnalysisBundle, config: Config) -> None:

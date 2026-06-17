@@ -9,7 +9,7 @@
           ],
           [
             -121.744,
-            38.5445
+            38.5446
           ]
         ],
         "type": "LineString"
@@ -20,7 +20,7 @@
         "exposure_estimate": 1500.0,
         "exposure_source": "synthetic_bike_count",
         "getis_ord_significant": false,
-        "getis_ord_z": -0.9212,
+        "getis_ord_z": -1.8067,
         "hazard_breakdown": {},
         "n": 4,
         "name": "B St (1st–2nd)",
@@ -40,12 +40,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.742,
-            38.5475
+            -121.74199999999999,
+            38.5478
           ],
           [
-            -121.742,
-            38.549
+            -121.74199999999999,
+            38.5494
           ]
         ],
         "type": "LineString"
@@ -76,11 +76,11 @@
         "coordinates": [
           [
             -121.744,
-            38.546
+            38.5462
           ],
           [
-            -121.742,
-            38.546
+            -121.74199999999999,
+            38.5462
           ]
         ],
         "type": "LineString"
@@ -113,11 +113,11 @@
         "coordinates": [
           [
             -121.744,
-            38.549
+            38.5494
           ],
           [
-            -121.742,
-            38.549
+            -121.74199999999999,
+            38.5494
           ]
         ],
         "type": "LineString"
@@ -127,8 +127,8 @@
         "exposure_date": "2026-05-01",
         "exposure_estimate": 400.0,
         "exposure_source": "synthetic_bike_count",
-        "getis_ord_significant": true,
-        "getis_ord_z": 2.7964,
+        "getis_ord_significant": false,
+        "getis_ord_z": 2.1831,
         "hazard_breakdown": {
           "close_pass": 6
         },
@@ -147,12 +147,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.742,
-            38.549
+            -121.74199999999999,
+            38.5494
           ],
           [
             -121.74,
-            38.549
+            38.5494
           ]
         ],
         "type": "LineString"
@@ -185,11 +185,11 @@
         "coordinates": [
           [
             -121.74,
-            38.549
+            38.5494
           ],
           [
             -121.738,
-            38.549
+            38.5494
           ]
         ],
         "type": "LineString"
@@ -219,12 +219,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.744,
-            38.5535
+            -121.746,
+            38.543
           ],
           [
-            -121.742,
-            38.5535
+            -121.744,
+            38.543
           ]
         ],
         "type": "LineString"
@@ -235,10 +235,10 @@
         "exposure_estimate": 1500.0,
         "exposure_source": "synthetic_bike_count",
         "getis_ord_significant": false,
-        "getis_ord_z": -0.9639,
+        "getis_ord_z": -1.5634,
         "hazard_breakdown": {},
         "n": 0,
-        "name": "8th St (B–C)",
+        "name": "1st St (A–B)",
         "quality_flags": [],
         "rate": 0.0,
         "rate_ci_high": 2.4454,
@@ -253,11 +253,11 @@
         "coordinates": [
           [
             -121.74,
-            38.5475
+            38.5478
           ],
           [
             -121.74,
-            38.549
+            38.5494
           ]
         ],
         "type": "LineString"
@@ -287,12 +287,12 @@
       "geometry": {
         "coordinates": [
           [
-            -121.738,
-            38.556
+            -121.74,
+            38.5446
           ],
           [
-            -121.736,
-            38.556
+            -121.738,
+            38.5446
           ]
         ],
         "type": "LineString"
@@ -303,16 +303,996 @@
         "exposure_estimate": 1500.0,
         "exposure_source": "synthetic_bike_count",
         "getis_ord_significant": false,
-        "getis_ord_z": -0.9639,
+        "getis_ord_z": -1.364,
         "hazard_breakdown": {},
         "n": 0,
-        "name": "Covell Blvd (E–F)",
+        "name": "2nd St (D–E)",
         "quality_flags": [],
         "rate": 0.0,
         "rate_ci_high": 2.4454,
         "rate_ci_low": 0.0,
         "report_count": 0,
         "segment_id": "seg-12"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.744,
+            38.543
+          ],
+          [
+            -121.74199999999999,
+            38.543
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "1st St (B–C)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-13"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.543
+          ],
+          [
+            -121.74,
+            38.543
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "1st St (C–D)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-14"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74,
+            38.543
+          ],
+          [
+            -121.738,
+            38.543
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "1st St (D–E)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-15"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.746,
+            38.5446
+          ],
+          [
+            -121.744,
+            38.5446
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "2nd St (A–B)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-16"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.744,
+            38.5446
+          ],
+          [
+            -121.74199999999999,
+            38.5446
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "2nd St (B–C)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-17"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5446
+          ],
+          [
+            -121.74,
+            38.5446
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "2nd St (C–D)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-18"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.746,
+            38.5462
+          ],
+          [
+            -121.744,
+            38.5462
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "3rd St (A–B)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-19"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5462
+          ],
+          [
+            -121.74,
+            38.5462
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "3rd St (C–D)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-20"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74,
+            38.5462
+          ],
+          [
+            -121.738,
+            38.5462
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "3rd St (D–E)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-21"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.746,
+            38.5478
+          ],
+          [
+            -121.744,
+            38.5478
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "4th St (A–B)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-22"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.744,
+            38.5478
+          ],
+          [
+            -121.74199999999999,
+            38.5478
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "4th St (B–C)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-23"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5478
+          ],
+          [
+            -121.74,
+            38.5478
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "4th St (C–D)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-24"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74,
+            38.5478
+          ],
+          [
+            -121.738,
+            38.5478
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "4th St (D–E)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-25"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.746,
+            38.5494
+          ],
+          [
+            -121.744,
+            38.5494
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "5th St (A–B)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-26"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.746,
+            38.5446
+          ],
+          [
+            -121.746,
+            38.5462
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "A St (2nd–3rd)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-27"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.746,
+            38.5462
+          ],
+          [
+            -121.746,
+            38.5478
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "A St (3rd–4th)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-28"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.744,
+            38.5446
+          ],
+          [
+            -121.744,
+            38.5462
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "B St (2nd–3rd)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-29"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.744,
+            38.5462
+          ],
+          [
+            -121.744,
+            38.5478
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "B St (3rd–4th)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-30"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.744,
+            38.5478
+          ],
+          [
+            -121.744,
+            38.5494
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "B St (4th–5th)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-31"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.543
+          ],
+          [
+            -121.74199999999999,
+            38.5446
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "C St (1st–2nd)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-32"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5446
+          ],
+          [
+            -121.74199999999999,
+            38.5462
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "C St (2nd–3rd)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-33"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74199999999999,
+            38.5462
+          ],
+          [
+            -121.74199999999999,
+            38.5478
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "C St (3rd–4th)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-34"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74,
+            38.5446
+          ],
+          [
+            -121.74,
+            38.5462
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "D St (2nd–3rd)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-35"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.74,
+            38.5462
+          ],
+          [
+            -121.74,
+            38.5478
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "D St (3rd–4th)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-36"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.738,
+            38.543
+          ],
+          [
+            -121.738,
+            38.5446
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "E St (1st–2nd)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-37"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.738,
+            38.5446
+          ],
+          [
+            -121.738,
+            38.5462
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "E St (2nd–3rd)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-38"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.738,
+            38.5462
+          ],
+          [
+            -121.738,
+            38.5478
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "E St (3rd–4th)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-39"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -121.738,
+            38.5478
+          ],
+          [
+            -121.738,
+            38.5494
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "confidence_label": "exposure_unknown",
+        "exposure_date": null,
+        "exposure_estimate": null,
+        "exposure_source": null,
+        "getis_ord_significant": false,
+        "getis_ord_z": null,
+        "hazard_breakdown": {},
+        "n": 0,
+        "name": "E St (4th–5th)",
+        "quality_flags": [
+          "exposure_unknown"
+        ],
+        "rate": null,
+        "rate_ci_high": null,
+        "rate_ci_low": null,
+        "report_count": 0,
+        "segment_id": "seg-40"
       },
       "type": "Feature"
     }
@@ -327,7 +1307,7 @@
     "privacy": "Aggregated to public street segments; low-count segments withheld (k-anonymity); no per-report coordinate, time, reporter, mode, or severity is published.",
     "schema_doc": "schema/dataset.schema.md",
     "schema_version": "1.0.0",
-    "segments_published": 9,
+    "segments_published": 37,
     "segments_withheld_low_count": 3,
     "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR"
   },
