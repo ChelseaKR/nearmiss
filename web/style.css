@@ -66,14 +66,27 @@ h1 {
   font-weight: 700;
 }
 
-.demo-note {
-  background: #fff4e5;
-  border: 1px solid #8a4b00;
-  color: #5a2e00; /* >= 4.5:1 on the light background */
+.demo-note,
+.real-note {
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   font-size: 0.95rem;
   max-width: 48rem;
+}
+
+/* Amber: synthetic / demo data. */
+.demo-note {
+  background: #fff4e5;
+  border: 1px solid #8a4b00;
+  color: #5a2e00; /* >= 4.5:1 on the light background */
+}
+
+/* Green: real data. A distinct palette from the demo warning, never the only
+   signal — the words "real data" carry the meaning. Text >= 4.5:1 on the bg. */
+.real-note {
+  background: #e7f4ea;
+  border: 1px solid #1b5e20;
+  color: #14401a;
 }
 
 a {

@@ -12,9 +12,30 @@
 (function () {
   "use strict";
 
-  var DATA_URL = "../data/published/davis.geojson";
+  // Which published dataset to load. Defaults to the committed synthetic demo,
+  // but the page is source-agnostic: ?city=<slug> loads ../data/published/<slug>.geojson
+  // and ?data=<path> loads an explicit file, so a real city (once published into
+  // data/published/) goes live by URL with no code change. The provenance banner
+  // and title below are driven by the dataset's own embedded metadata, so they
+  // are always truthful about what is actually loaded.
+  function resolveDataUrl() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var data = params.get("data");
+      // Only same-origin relative paths (no scheme, no protocol-relative URL).
+      if (data && !/^[a-z]+:|^\/\//i.test(data)) return data;
+      var city = params.get("city");
+      if (city && /^[a-z0-9_-]+$/i.test(city)) return "../data/published/" + city + ".geojson";
+    } catch (e) {
+      /* no URLSearchParams (very old browser) — fall through to the default */
+    }
+    return "../data/published/davis.geojson";
+  }
+
+  var DATA_URL = resolveDataUrl();
   var lang = "en";
   var rows = [];
+  var meta = {}; // embedded dataset metadata (city, dataset_note, exposure_unit, …)
   var maps = {}; // { reports: L.Map, rate: L.Map }
   var dataLayers = { reports: [], rate: [] };
 
@@ -31,6 +52,11 @@
       demo:
         "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not " +
         "real reports. The method is the point: swap in real reports with no code change.",
+      titleCity: "nearmiss — where the danger actually is ({city})",
+      demo_synth:
+        "⚠️ Showing the <strong>{city} synthetic demo</strong> dataset — generated test data, not real reports.",
+      demo_real:
+        "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {note}",
       map_h: "Two maps, the same reports",
       map_desc:
         "The same near-miss reports, mapped two ways on a real street map. On the left, the " +
@@ -113,6 +139,11 @@
       demo:
         "⚠️ Mostrando el conjunto de <strong>demostración sintética de Davis</strong> — datos de prueba, no " +
         "reportes reales. El método es lo importante: se cambian por reportes reales sin tocar el código.",
+      titleCity: "nearmiss — dónde está realmente el peligro ({city})",
+      demo_synth:
+        "⚠️ Mostrando la <strong>demostración sintética de {city}</strong> — datos de prueba, no reportes reales.",
+      demo_real:
+        "✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. {note}",
       map_h: "Dos mapas, los mismos reportes",
       map_desc:
         "Los mismos reportes de cuasi-accidentes, mapeados de dos formas sobre un mapa de calles real. " +
@@ -494,6 +525,27 @@
     });
   }
 
+  // Drive the provenance banner and the title from the dataset's OWN embedded
+  // metadata, so the page never claims "real" or "demo" wrongly. A note that
+  // mentions "synthetic"/"demo" (or no metadata at all) keeps the amber demo
+  // warning; anything else is shown as real, with its exposure unit and source.
+  function applyProvenance() {
+    var note = document.querySelector(".demo-note, .real-note");
+    if (!note || !meta || !Object.keys(meta).length) return; // pre-load: leave static
+    var city = meta.city || "";
+    var unit = meta.exposure_unit || "";
+    var rawNote = meta.dataset_note || "";
+    var synthetic = !rawNote || /synthet|demo/i.test(rawNote);
+    if (city) document.title = tpl(t("titleCity"), { city: city });
+    if (synthetic) {
+      note.className = "demo-note";
+      note.innerHTML = tpl(t("demo_synth"), { city: city || "demo" });
+    } else {
+      note.className = "real-note";
+      note.innerHTML = tpl(t("demo_real"), { city: city, unit: unit, note: rawNote });
+    }
+  }
+
   function wireSorting() {
     document.querySelectorAll("th button[data-sort]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -518,6 +570,7 @@
       b.addEventListener("click", function () {
         lang = b.getAttribute("data-lang");
         applyI18n();
+        applyProvenance();
         if (rows.length) {
           renderTable();
           renderMaps();
@@ -550,6 +603,8 @@
       return r.json();
     })
     .then(function (geojson) {
+      meta = (geojson && geojson.metadata) || {};
+      applyProvenance();
       rows = rowsFromGeojson(geojson);
       rows.sort(compare("rate", -1));
       setSortState("rate", false);
