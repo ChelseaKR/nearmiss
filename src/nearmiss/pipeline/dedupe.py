@@ -26,9 +26,16 @@ def _is_duplicate(a: Report, b: Report, config: Config) -> bool:
     return a.hazard_type == b.hazard_type and a.mode == b.mode
 
 
+def _chrono_key(r: Report) -> tuple[float, str]:
+    # Sort by parsed epoch (not the raw ISO string, which misorders across
+    # timezone offsets), with the id as a stable tiebreaker.
+    t = parse_ts(r.occurred_at)
+    return (t if t is not None else float("inf"), r.id)
+
+
 def dedupe(reports: list[Report], config: Config) -> tuple[list[Report], list[str]]:
-    """Return (kept_reports, removed_ids), deterministically."""
-    ordered = sorted(reports, key=lambda r: (r.occurred_at, r.id))
+    """Return (kept_reports, removed_ids), deterministically. Earliest is kept."""
+    ordered = sorted(reports, key=_chrono_key)
     kept: list[Report] = []
     removed: list[str] = []
     for r in ordered:

@@ -132,5 +132,7 @@ class SegmentStats:
     getis_ord_z: float | None
     significant: bool
     confidence_label: ConfidenceLabel
+    # False when withheld from publication for k-anonymity (0 < report_count < min_publish_n).
+    publishable: bool = True
     hazard_breakdown: dict[str, int] = field(default_factory=dict)
     quality_flags: tuple[str, ...] = ()

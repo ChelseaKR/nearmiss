@@ -26,6 +26,10 @@ def render_brief(bundle: AnalysisBundle, config: Config) -> str:
     names = _names(bundle.segments)
     stats = bundle.result.segments
     per = int(config.rate_per)
+    # The brief is a PUBLISHED artifact: only reference segments that clear the
+    # minimum-occupancy floor (withheld ones are never named).
+    publishable = {s.segment_id for s in stats if s.publishable}
+    withheld = sum(1 for s in stats if not s.publishable)
 
     def bias_line(f: BiasFinding) -> str:
         name = names.get(f.segment_id, f.segment_id)
@@ -35,7 +39,7 @@ def render_brief(bundle: AnalysisBundle, config: Config) -> str:
         )
 
     ranked = sorted(
-        (s for s in stats if s.rate is not None),
+        (s for s in stats if s.rate is not None and s.publishable),
         key=lambda s: s.rate or 0.0,
         reverse=True,
     )
@@ -56,6 +60,12 @@ def render_brief(bundle: AnalysisBundle, config: Config) -> str:
         "denominator. Segments without one are listed as *exposure unknown*, not ranked."
     )
     lines.append("")
+    if withheld:
+        lines.append(
+            f"*{withheld} segment(s) with fewer than {config.min_publish_n} reports are withheld "
+            "from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
+        )
+        lines.append("")
 
     lines.append("## Highest-rate segments (exposure-normalized)")
     lines.append("")
@@ -72,7 +82,7 @@ def render_brief(bundle: AnalysisBundle, config: Config) -> str:
         )
     lines.append("")
 
-    sig: list[SegmentStats] = [s for s in stats if s.significant]
+    sig: list[SegmentStats] = [s for s in stats if s.significant and s.publishable]
     lines.append("## Statistically significant hotspots (Getis-Ord Gi*)")
     lines.append("")
     if sig:
@@ -99,19 +109,21 @@ def render_brief(bundle: AnalysisBundle, config: Config) -> str:
     if bias.over_represented:
         lines.append("**Over-represented vs exposure** (more reports than traffic alone predicts):")
         for f in bias.over_represented:
-            lines.append(bias_line(f))
+            if f.segment_id in publishable:
+                lines.append(bias_line(f))
         lines.append("")
     if bias.under_represented:
         lines.append("**Under-represented vs exposure** (quiet in the data, not necessarily safe):")
         for f in bias.under_represented:
-            lines.append(bias_line(f))
+            if f.segment_id in publishable:
+                lines.append(bias_line(f))
         lines.append("")
 
-    peak = bundle.result.kde.peak
-    if peak is not None:
+    peak_seg = bundle.result.kde_peak_segment
+    if peak_seg is not None:
         lines.append(
-            f"**Report-intensity peak (KDE, not danger):** around "
-            f"{peak.lat:.4f}, {peak.lon:.4f}. This shows where reports concentrate, "
+            "**Report-intensity peak (KDE, not danger):** around "
+            f"{names.get(peak_seg, peak_seg)}. This shows where reports concentrate, "
             "which is not the same as where risk is highest."
         )
         lines.append("")

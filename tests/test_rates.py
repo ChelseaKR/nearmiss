@@ -40,3 +40,8 @@ def test_wilson_ci_bounds() -> None:
     low, high = wilson_ci(3, 10)
     assert 0.0 <= low < 0.3 < high <= 1.0
     assert wilson_ci(0, 0) == (0.0, 0.0)
+
+
+def test_wilson_ci_rejects_successes_over_trials() -> None:
+    with pytest.raises(ValueError):
+        wilson_ci(11, 10)

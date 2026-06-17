@@ -1,10 +1,14 @@
 """Publish: build the open GeoJSON and an aggregated, privacy-safe public dataset.
 
-The published artifact contains ONLY segment-level aggregates. No per-report
-coordinate, timestamp, reporter token, note, mode, or severity is ever written
-(hard rule #4). :func:`assert_published_clean` enforces this as an invariant and
-raises rather than emitting a leaky file. Output is stably sorted and rounded so
-``make reproduce`` is byte-for-byte deterministic.
+The published artifact contains ONLY segment-level aggregates, and only for
+segments that clear the minimum-occupancy floor (k-anonymity): a segment with a
+non-zero report count below ``min_publish_n`` is withheld entirely, so no place
+ever reads "exactly one or two people reported an incident on this block." No
+per-report coordinate, timestamp, reporter token, note, mode, or severity is
+ever written, in the GeoJSON OR the metadata (hard rule #4).
+:func:`assert_published_clean` and :func:`assert_metadata_clean` enforce these as
+invariants and raise rather than emitting a leaky file. Output is stably sorted
+and rounded so ``make reproduce`` is byte-for-byte deterministic.
 """
 
 from __future__ import annotations
@@ -12,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -20,9 +25,19 @@ from .engine import build_analysis, load_city
 from .errors import PrivacyError
 from .models import Report, Segment, SegmentStats
 
-# Property keys that must NEVER appear on a published feature.
+# Property/field keys that must NEVER appear in any published artifact.
 _FORBIDDEN_KEYS = frozenset(
-    ("reporter_token", "occurred_at", "note", "heading_deg", "lat", "lon", "accuracy_m")
+    (
+        "reporter_token",
+        "occurred_at",
+        "note",
+        "heading_deg",
+        "lat",
+        "lon",
+        "accuracy_m",
+        "mode",
+        "severity",
+    )
 )
 
 
@@ -47,7 +62,7 @@ def _feature(stat: SegmentStats, segment: Segment) -> dict[str, object]:
             "rate_ci_low": stat.rate_ci_low,
             "rate_ci_high": stat.rate_ci_high,
             "getis_ord_z": stat.getis_ord_z,
-            "significant": stat.significant,
+            "getis_ord_significant": stat.significant,
             "confidence_label": stat.confidence_label,
             "hazard_breakdown": dict(sorted(stat.hazard_breakdown.items())),
             "quality_flags": list(stat.quality_flags),
@@ -56,17 +71,33 @@ def _feature(stat: SegmentStats, segment: Segment) -> dict[str, object]:
 
 
 def build_geojson(stats: list[SegmentStats], segments: list[Segment]) -> dict[str, object]:
+    """Build the FeatureCollection, omitting segments withheld for k-anonymity."""
     by_id = {s.id: s for s in segments}
     features = [
         _feature(st, by_id[st.segment_id])
         for st in sorted(stats, key=lambda s: s.segment_id)
-        if st.segment_id in by_id
+        if st.publishable and st.segment_id in by_id
     ]
     return {"type": "FeatureCollection", "features": features}
 
 
-def assert_published_clean(geojson: dict[str, object], reports: list[Report]) -> None:
-    """Verify no forbidden field and no exact raw report coordinate leaked."""
+def _iter_lonlat(coords: object) -> Iterator[tuple[float, float]]:
+    """Yield every leaf (lon, lat) pair from any GeoJSON coordinate nesting."""
+    if (
+        isinstance(coords, (list, tuple))
+        and len(coords) == 2
+        and all(isinstance(c, (int, float)) for c in coords)
+    ):
+        yield float(coords[0]), float(coords[1])
+    elif isinstance(coords, (list, tuple)):
+        for item in coords:
+            yield from _iter_lonlat(item)
+
+
+def assert_published_clean(
+    geojson: dict[str, object], reports: list[Report], min_publish_n: int
+) -> None:
+    """Enforce the publication privacy invariants; raise rather than leak."""
     raw_points = {(round(r.lat, 6), round(r.lon, 6)) for r in reports}
     features = geojson.get("features", [])
     if not isinstance(features, list):
@@ -76,12 +107,30 @@ def assert_published_clean(geojson: dict[str, object], reports: list[Report]) ->
         leaked = _FORBIDDEN_KEYS.intersection(props)
         if leaked:
             raise PrivacyError(f"published feature exposes forbidden keys: {sorted(leaked)}")
-        # Segment geometry is public street infrastructure; still verify a published
-        # vertex never coincides exactly with a raw report point.
+        # k-anonymity: a published feature must have 0 or >= min_publish_n reports.
+        rc = props.get("report_count")
+        if isinstance(rc, int) and 0 < rc < min_publish_n:
+            raise PrivacyError(
+                f"published feature {props.get('segment_id')!r} has report_count={rc} "
+                f"below the minimum-occupancy floor {min_publish_n}"
+            )
+        # Segment geometry is public street infrastructure; still verify no published
+        # vertex coincides exactly with a raw report point.
         geom = feat.get("geometry", {}) if isinstance(feat, dict) else {}
-        for lon, lat in geom.get("coordinates", []):
-            if (round(float(lat), 6), round(float(lon), 6)) in raw_points:
+        for lon, lat in _iter_lonlat(geom.get("coordinates", [])):
+            if (round(lat, 6), round(lon, 6)) in raw_points:
                 raise PrivacyError("published vertex coincides with a raw report location")
+
+
+def assert_metadata_clean(metadata: dict[str, object], reports: list[Report]) -> None:
+    """The sidecar metadata must contain no forbidden key and no raw coordinate."""
+    text = json.dumps(metadata)
+    for key in _FORBIDDEN_KEYS:
+        if f'"{key}"' in text:
+            raise PrivacyError(f"metadata exposes forbidden key: {key}")
+    for r in reports:
+        if f"{round(r.lat, 5)}" in text and f"{round(r.lon, 5)}" in text:
+            raise PrivacyError("metadata appears to contain a raw report coordinate")
 
 
 def _canonical_json(obj: object) -> str:
@@ -94,20 +143,23 @@ class PublishResult:
     metadata_path: Path
     geojson_sha256: str
     feature_count: int
+    withheld_count: int
 
 
 def publish(config: Config) -> PublishResult:
     bundle = build_analysis(config)
-    geojson = build_geojson(bundle.result.segments, bundle.segments)
+    stats = bundle.result.segments
+    geojson = build_geojson(stats, bundle.segments)
 
-    # Enforce the privacy invariant against the raw reports before writing anything.
-    assert_published_clean(geojson, load_city(config).reports)
+    # Enforce the privacy invariants against the raw reports before writing anything.
+    reports = load_city(config).reports
+    assert_published_clean(geojson, reports, config.min_publish_n)
 
     payload = _canonical_json(geojson)
     sha = hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
-    peak = bundle.result.kde.peak
-    metadata = {
+    withheld = sum(1 for s in stats if not s.publishable)
+    metadata: dict[str, object] = {
         "city": config.city,
         "license": "Apache-2.0",
         "schema": "schema/dataset.schema.md",
@@ -116,24 +168,32 @@ def publish(config: Config) -> PublishResult:
             "rate_per": config.rate_per,
             "confidence_z": config.confidence_z,
             "small_n": config.small_n,
+            "min_publish_n": config.min_publish_n,
+            "fdr_alpha": config.fdr_alpha,
             "getis_ord_band_m": config.gi_band_m,
             "kde_bandwidth_m": config.kde_bandwidth_m,
+            "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
         },
         "summary": {
-            "segments": len(bundle.segments),
+            "segments_total": len(bundle.segments),
+            "segments_published": len(stats) - withheld,
+            "segments_withheld_low_count": withheld,
             "reports_in": bundle.summary["reports_in"],
             "duplicates_removed": bundle.summary["duplicates_removed"],
             "snapped": bundle.summary["snapped"],
             "unsnapped": bundle.summary["unsnapped"],
             "exposure_coverage": round(bundle.result.exposure_coverage, 4),
         },
-        "kde_peak": ({"lat": round(peak.lat, 5), "lon": round(peak.lon, 5)} if peak else None),
+        # The KDE report-intensity peak is reported ONLY as a segment id, never a coordinate.
+        "report_intensity_peak_segment": bundle.result.kde_peak_segment,
         "geojson_sha256": sha,
         "privacy": (
-            "Aggregated to segment level; no per-report coordinate, time, reporter, "
-            "note, mode, or severity is published. Small-n hazard breakdowns suppressed."
+            "Aggregated to public street segments; segments with a non-zero report count below "
+            "min_publish_n are withheld (k-anonymity). No per-report coordinate, time, reporter "
+            "token, note, mode, or severity is published. Small-n hazard breakdowns are suppressed."
         ),
     }
+    assert_metadata_clean(metadata, reports)
 
     config.out_dir.mkdir(parents=True, exist_ok=True)
     slug = _slug(config.city)
@@ -146,5 +206,6 @@ def publish(config: Config) -> PublishResult:
         geojson_path=geojson_path,
         metadata_path=metadata_path,
         geojson_sha256=sha,
-        feature_count=len(bundle.segments),
+        feature_count=len(stats) - withheld,
+        withheld_count=withheld,
     )

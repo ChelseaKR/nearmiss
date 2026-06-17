@@ -39,12 +39,6 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=2048]
-      # Block anything under data/raw/ from ever being committed (hard rule #4).
-      - id: forbidden-files
-        name: block precise raw reports (data/raw/)
-        entry: data/raw/ must never be committed (see CONTRIBUTING.md)
-        language: fail
-        files: ^data/raw/
 
   # Conventional Commits — enforce the commit-message format on the commit-msg hook.
   - repo: https://github.com/compilerla/conventional-pre-commit
@@ -52,3 +46,12 @@ repos:
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
+
+  # Local guard: block anything under data/raw/ from ever being committed (HR4).
+  - repo: local
+    hooks:
+      - id: block-raw-reports
+        name: block precise raw reports (data/raw/)
+        entry: "data/raw/ holds private precise reports and must never be committed (see CONTRIBUTING.md)"
+        language: fail
+        files: ^data/raw/

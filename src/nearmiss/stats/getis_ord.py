@@ -17,6 +17,29 @@ import math
 from ..geometry import haversine_m
 
 
+def two_sided_p(z: float) -> float:
+    """Two-sided p-value of a z-score under the standard normal."""
+    return math.erfc(abs(z) / math.sqrt(2.0))
+
+
+def benjamini_hochberg(pvalues: dict[str, float], alpha: float) -> set[str]:
+    """Return the set of keys rejected by the Benjamini-Hochberg FDR procedure.
+
+    Controls the false-discovery rate at ``alpha`` across all tested segments,
+    so a "significant" hotspot is not just one of many independent z > 1.96
+    coincidences. Reference: Benjamini & Hochberg (1995).
+    """
+    m = len(pvalues)
+    if m == 0:
+        return set()
+    ordered = sorted(pvalues.items(), key=lambda kv: kv[1])
+    threshold_rank = 0
+    for rank, (_, p) in enumerate(ordered, start=1):
+        if p <= (rank / m) * alpha:
+            threshold_rank = rank
+    return {ordered[i][0] for i in range(threshold_rank)}
+
+
 def getis_ord_star(
     values: dict[str, float],
     centroids: dict[str, tuple[float, float]],

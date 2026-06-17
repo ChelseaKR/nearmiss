@@ -41,11 +41,11 @@ PLAN: dict[str, tuple[float, dict[str, int]]] = {
     "seg-07": (400.0, {"close_pass": 6}),  # cluster, rate 15
     "seg-10": (400.0, {"close_pass": 6}),  # cluster, rate 15
     "seg-03": (8000.0, {"close_pass": 12, "surface_hazard": 5, "debris": 3}),  # BUSY decoy
-    "seg-01": (1500.0, {"close_pass": 2}),
-    "seg-04": (1500.0, {"close_pass": 1}),
-    "seg-08": (1500.0, {"close_pass": 1}),
+    "seg-01": (1500.0, {"close_pass": 4}),  # published but uncertain (3 <= n < small_n)
+    "seg-04": (1500.0, {"close_pass": 1}),  # withheld (n < min_publish_n)
+    "seg-08": (1500.0, {"close_pass": 1}),  # withheld
     "seg-09": (1500.0, {}),
-    "seg-11": (1500.0, {"close_pass": 1}),
+    "seg-11": (1500.0, {"close_pass": 1}),  # withheld
     "seg-12": (1500.0, {}),
 }
 

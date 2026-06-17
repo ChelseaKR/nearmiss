@@ -7,9 +7,9 @@ from nearmiss.engine import AnalysisBundle
 
 def test_stage_summary_matches_known_fixture(bundle: AnalysisBundle) -> None:
     assert bundle.summary == {
-        "reports_in": 57,
+        "reports_in": 59,
         "duplicates_removed": 1,  # exactly the one planted duplicate
-        "snapped": 55,
+        "snapped": 57,
         "unsnapped": 1,  # exactly the one planted far-away report
     }
 

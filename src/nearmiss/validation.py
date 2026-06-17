@@ -35,10 +35,16 @@ def find_report_schema() -> Path:
     )
 
 
-@functools.lru_cache(maxsize=1)
-def _validator() -> Draft202012Validator:
-    schema = json.loads(find_report_schema().read_text(encoding="utf-8"))
+@functools.lru_cache(maxsize=8)
+def _validator_for(path: str) -> Draft202012Validator:
+    schema = json.loads(Path(path).read_text(encoding="utf-8"))
     return Draft202012Validator(schema)
+
+
+def _validator() -> Draft202012Validator:
+    # Re-resolve the schema path each call (cheap) and cache per path, so the
+    # NEARMISS_REPORT_SCHEMA override is honored rather than frozen at first use.
+    return _validator_for(str(find_report_schema()))
 
 
 def validate_report(report: dict[str, object]) -> list[str]:

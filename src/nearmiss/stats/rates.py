@@ -52,6 +52,8 @@ def wilson_ci(successes: int, trials: int, z: float = Z95) -> tuple[float, float
     """Wilson score interval for a binomial proportion."""
     if trials <= 0:
         return 0.0, 0.0
+    if successes < 0 or successes > trials:
+        raise ValueError("successes must be in [0, trials]")
     p = successes / trials
     denom = 1.0 + z * z / trials
     centre = (p + z * z / (2.0 * trials)) / denom
