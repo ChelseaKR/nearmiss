@@ -78,6 +78,15 @@ _EN: dict[str, str] = {
         "are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
     ),
     "share_line": "- {name}: {rshare}% of reports vs {eshare}% of exposure",
+    "bias_note": (
+        "Shares compare where reports land against where exposure is. They cannot, on their "
+        "own, separate 'more dangerous' from 'more reported': reporter pools skew by route "
+        "choice, demographics, app access, and language. Treat over-represented segments as "
+        "candidates for attention and scrutiny, not as confirmed rankings."
+    ),
+    "label_certain": "certain",
+    "label_uncertain": "uncertain",
+    "label_exposure_unknown": "exposure unknown",
 }
 
 _ES: dict[str, str] = {
@@ -156,6 +165,15 @@ _ES: dict[str, str] = {
         "y métodos son abiertos (Apache-2.0); vea `docs/METHODOLOGY.md` y `docs/DATA-CARD.md`."
     ),
     "share_line": "- {name}: {rshare}% de los reportes vs {eshare}% de la exposición",
+    "bias_note": (
+        "Las cuotas comparan dónde caen los reportes con dónde está la exposición. Por sí solas "
+        "no pueden separar 'más peligroso' de 'más reportado': quienes reportan varían por "
+        "elección de ruta, demografía, acceso a apps e idioma. Trate los segmentos "
+        "sobre-representados como candidatos a revisar, no como rankings confirmados."
+    ),
+    "label_certain": "cierto",
+    "label_uncertain": "incierto",
+    "label_exposure_unknown": "exposición desconocida",
 }
 
 _BUNDLES: dict[str, dict[str, str]] = {"en": _EN, "es": _ES}

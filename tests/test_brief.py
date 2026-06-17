@@ -27,6 +27,10 @@ def test_spanish_brief_renders_in_spanish(bundle: AnalysisBundle, config: Config
     assert "Qué significan los números" in text  # the glossary heading, localized
     # The headline hotspot is still the planted one.
     assert "5th St (C–D)" in text
+    # The bias note and confidence labels are localized too (no English leakage).
+    assert "Las cuotas comparan" in text
+    assert "cierto" in text  # localized confidence label
+    assert "Shares compare where reports land" not in text
 
 
 def test_unknown_language_falls_back_to_english(bundle: AnalysisBundle, config: Config) -> None:

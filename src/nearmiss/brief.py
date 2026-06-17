@@ -36,6 +36,9 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     def name_of(sid: str) -> str:
         return names.get(sid, sid)
 
+    def label(confidence_label: str) -> str:
+        return t.get(f"label_{confidence_label}", confidence_label.replace("_", " "))
+
     def bias_line(f: BiasFinding) -> str:
         return t["share_line"].format(
             name=name_of(f.segment_id),
@@ -104,7 +107,7 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         )
         out.append(
             f"| {i} | {name_of(s.segment_id)} | {_fmt(s.rate)} | "
-            f"{ci} | {s.n} | {s.confidence_label} | {hotspot} |"
+            f"{ci} | {s.n} | {label(s.confidence_label)} | {hotspot} |"
         )
     out.append("")
 
@@ -129,7 +132,7 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     bias = bundle.result.bias
     out.append(t["bias_heading"])
     out.append("")
-    out.append(bias.note)
+    out.append(t["bias_note"])
     out.append("")
     out.append(t["bias_counterweight"])
     out.append("")

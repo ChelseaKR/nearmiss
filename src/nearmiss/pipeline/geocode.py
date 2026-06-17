@@ -29,7 +29,7 @@ def geocode(reports: list[Report], config: Config) -> list[Report]:
     """Return reports with addresses resolved to coordinates where possible."""
     if not any(_needs_geocoding(r) for r in reports):
         return list(reports)
-    geocoder = load_geocoder(config.gazetteer_path)
+    geocoder = load_geocoder(config)
     out: list[Report] = []
     for r in reports:
         if _needs_geocoding(r) and geocoder is not None:

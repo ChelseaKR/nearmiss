@@ -29,6 +29,8 @@ class Config:
     ref_lat: float | None = None
     ref_lon: float | None = None
     gazetteer_path: Path | None = None  # address -> coordinate table for the geocoder
+    geocoder: str | None = None  # "nominatim" to opt into the networked adapter
+    geocoder_user_agent: str = "nearmiss/0.1 (+https://github.com/ChelseaKR/nearmiss)"
     exposure_unit: str = "exposure units"  # human-readable denominator unit for the brief
     # Thresholds (all tunable per city; documented in docs/METHODOLOGY.md).
     snap_max_m: float = 25.0
@@ -97,6 +99,10 @@ def load_config(path: str | Path) -> Config:
         ref_lat=ref_lat,
         ref_lon=ref_lon,
         gazetteer_path=(_resolve(base, str(data["gazetteer"])) if "gazetteer" in data else None),
+        geocoder=(str(data["geocoder"]) if "geocoder" in data else None),
+        geocoder_user_agent=str(
+            data.get("geocoder_user_agent", "nearmiss/0.1 (+https://github.com/ChelseaKR/nearmiss)")
+        ),
         exposure_unit=str(data.get("exposure_unit", "exposure units")),
         snap_max_m=thr("snap_max_m", 25.0),
         dedupe_window_s=int(thr("dedupe_window_s", 600)),
