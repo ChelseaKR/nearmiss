@@ -30,14 +30,17 @@ by a city. This is not a 311 queue and not a complaint inbox for a public works 
 community-owned evidence base.
 
 > **Where this is right now (read first):** the analysis engine is implemented and verified. The
-> intake, the dedupe/geocode/snap/classify/quality pipeline, the exposure normalization and statistics
-> (Poisson/Wilson confidence intervals, bias, KDE, Getis-Ord Gi\*), publishing, the accessible web data
-> view, the CLI, the known-answer test suite, and a published Davis demo dataset all exist and pass the
-> gates: `make demo`, `make verify`, and `make reproduce` run, 27 tests pass, and ruff + mypy `--strict`
-> are clean. What remains is the still-pending list — real geocoder adapters, more cities, the deeper
-> axe-plus-manual screen-reader accessibility audit, reproducible notebooks, a committed hashed
-> lockfile, and benchmarking (see [Roadmap](#roadmap)). The repository is still private during pre-1.0
-> development.
+> intake, the dedupe/geocode/snap/classify/quality pipeline (including offline geocoding of
+> address-only reports), the exposure normalization and statistics (Poisson/Wilson confidence
+> intervals, bias, KDE, Getis-Ord Gi\*), publishing with a self-describing metadata block, the
+> bilingual (English/Spanish) advocacy brief, the accessible web data view, the CLI, the known-answer
+> test suite, and a published Davis demo dataset all exist and pass the gates: `make demo`,
+> `make verify`, and `make reproduce` run, 52 tests pass, and ruff + mypy `--strict` are clean. An
+> automated `axe-core` run is wired via `make axe` alongside the structural accessibility gate. What
+> remains is the still-pending list — a networked geocoder adapter (the default is an offline
+> gazetteer), more cities, the manual NVDA/VoiceOver screen-reader pass that complements the automated
+> axe run, reproducible notebooks, a committed hashed lockfile, and benchmarking (see
+> [Roadmap](#roadmap)). The repository is still private during pre-1.0 development.
 
 ---
 
@@ -86,10 +89,11 @@ is the data and the statistics under it.
 > pass, door zone, blind corner, or surface hazard — and it enters intake validated against the
 > [published schema](schema/report.schema.json).
 
-- **Intakes** a hazard or near-miss report — location, time, mode, type (close pass, dooring, surface
-  hazard, sightline, signal, debris), severity, and an optional note — through a simple form, an
-  import path, or a documented JSON submission, validated against a
-  [published schema](schema/report.schema.json).
+- **Intakes** a hazard or near-miss report — location (as a lat/lon **or** a free-text address, which
+  is resolved at the geocode stage via an offline gazetteer), time, mode, type (close pass, dooring,
+  surface hazard, sightline, signal, debris), severity, an optional note, and an optional BCP-47
+  language tag — through a simple form, an import path, or a documented JSON submission, validated
+  against a [published schema](schema/report.schema.json).
 - **Pipelines** raw reports into a clean, versioned dataset: deduplication, geocoding to coordinates,
   snapping to a street segment, classification, and quality flags, with every transform recorded so a
   result traces back to its inputs.
@@ -102,10 +106,13 @@ is the data and the statistics under it.
 - **Finds real hotspots.** Spatial-hotspot statistics (**kernel density estimation** for surfaces,
   **Getis-Ord Gi\*** for statistically significant clusters) identify where danger concentrates
   beyond what chance and exposure explain.
-- **Publishes** open data (**GeoJSON** aligned to a [documented near-miss/collision
-  schema](schema/dataset.schema.md)), reproducible analysis notebooks, and advocacy-ready outputs:
-  ranked locations with intervals, plain-language briefs, and maps with honest legends and a
-  non-visual table equivalent.
+- **Publishes** open data — a self-describing **GeoJSON** `FeatureCollection` (`<city-slug>.geojson`,
+  e.g. `davis.geojson`) aligned to a [documented near-miss/collision schema](schema/dataset.schema.md),
+  carrying a top-level `metadata` foreign member (dataset/schema versions, license, city, exposure unit,
+  privacy and significance notes) with a content-hashed sidecar (`<city-slug>.metadata.json`) —
+  reproducible analysis notebooks, and advocacy-ready outputs: ranked locations with intervals,
+  plain-language **bilingual (English/Spanish) briefs** with a glossary and a bottom-line, and maps with
+  honest legends and a non-visual table equivalent.
 
 ## Hard rules (enforced, not aspirational)
 
@@ -185,10 +192,16 @@ in code.
 # Canonical end-to-end run: intake -> pipeline -> analyze -> publish -> brief
 make demo                                                   # equivalent to the line below
 nearmiss run --config config/davis-demo.toml                # the full pipeline on the Davis demo
+nearmiss run --config config/davis-demo.toml --lang es      # same run, brief rendered in Spanish
 
 # Validate and intake reports (form export, import file, or documented JSON)
 nearmiss intake reports.json --config config/davis-demo.toml   # validated against schema/report.schema.json
                                                                # (source is optional; defaults to the config)
+                                                               # a report carries a lat/lon OR an address (geocoded
+                                                               # offline via the configured gazetteer)
+
+# Render the advocacy brief in English (default) or Spanish via src/nearmiss/i18n.py
+nearmiss brief --config config/davis-demo.toml --lang es       # English/Spanish brief; en is the default
 
 # Run the documented pipeline: dedupe -> geocode -> snap -> classify -> quality-flag
 nearmiss pipeline --config config/davis-demo.toml [--dump]  # --dump prints the intermediate clean records
@@ -223,11 +236,13 @@ nearmiss/
 │   └── dataset.schema.md          # published GeoJSON schema; alignment to near-miss/collision standard
 ├── src/nearmiss/
 │   ├── intake.py                  # form/import/JSON intake → validate → raw store
-│   ├── pipeline/                  # dedupe.py, geocode.py, snap.py, classify.py, quality.py
+│   ├── geocoder.py                # pluggable Geocoder protocol + offline GazetteerGeocoder (default)
+│   ├── pipeline/                  # dedupe.py, geocode.py (address→coords), snap.py, classify.py, quality.py
 │   ├── exposure.py                # denominator layers: counts, demand model, exposure imports
 │   ├── stats/                     # rates.py (CIs), bias.py, kde.py, getis_ord.py
-│   ├── publish.py                 # build open GeoJSON aggregated to public street segments
+│   ├── publish.py                 # build open <city>.geojson + <city>.metadata.json (hashed)
 │   ├── brief.py                   # generate advocacy briefs (ranked locations, intervals, prose)
+│   ├── i18n.py                    # English/Spanish message bundles for the bilingual brief
 │   ├── server.py                  # accessible map + equivalent data table; read-only
 │   └── config.py                  # cities, exposure sources, thresholds as versioned files
 ├── notebooks/                     # reproducible analysis: hotspots, trends, exposure sensitivity
@@ -245,12 +260,15 @@ nearmiss/
 Reports enter through `intake.py`, validated against `report.schema.json`, and land in a private raw
 store. The pipeline is a sequence of pure, recorded transforms (dedupe, geocode, snap to segment,
 classify, quality-flag) producing a clean internal dataset. The statistics layer is where the value
-is: `exposure.py` attaches denominators, `rates.py` computes rates with confidence intervals,
-`bias.py` characterizes and reports the reporting bias, and `kde.py`/`getis_ord.py` produce the
-hotspot surfaces and significant clusters. `publish.py` aggregates to public street segments and emits
-the open GeoJSON, withholding any segment whose non-zero report count falls below the minimum-occupancy
-floor; `brief.py` turns the results into advocacy outputs. The map server reads only published artifacts
-and always ships an equivalent table. Nothing in the public path exposes a precise raw report.
+is: `exposure.py` attaches denominators by an exact `segment_id` join (a total id-scheme mismatch
+raises a clear error rather than silently reporting 0% coverage; a partial mismatch warns), `rates.py`
+computes rates with confidence intervals, `bias.py` characterizes and reports the reporting bias, and
+`kde.py`/`getis_ord.py` produce the hotspot surfaces and significant clusters. `publish.py` aggregates
+to public street segments and emits the open `<city-slug>.geojson` plus a content-hashed
+`<city-slug>.metadata.json` sidecar, withholding any segment whose non-zero report count falls below the
+minimum-occupancy floor; `brief.py` turns the results into advocacy outputs in English or Spanish. The
+map server reads only published artifacts and always ships an equivalent table. Nothing in the public
+path exposes a precise raw report.
 
 ## The analysis engine (the actual product)
 
@@ -301,15 +319,18 @@ mapped hotspot traces from figure → notebook → statistic → cleaned dataset
 **Relevance** — findings are exposure-normalized so they reflect risk, not traffic. **Effectiveness**
 — the test design (planted-hotspot fixtures, interval-coverage checks) is documented in
 [`tests/README.md`](tests/README.md), and the committed fixtures validate it: the tests recover the
-planted hotspot `seg-06` and its unique Getis-Ord Gi\* significance (z = 3.26) while the busy decoy
-`seg-03` — the most-reported segment — correctly ranks low on exposure-normalized rate.
+planted hotspot `seg-06` (`5th St (C–D)`) and its unique Getis-Ord Gi\* significance (z = 3.25) while
+the busy decoy `seg-03` (`3rd St (B–C)`) — the most-reported segment — correctly ranks low on
+exposure-normalized rate.
 **Accountability** — the data card and methodology doc state what the numbers do and do not support.
 
 ### Standards, interoperability, openness
 
 **Standards compliance** — GeoJSON output aligned to a documented near-miss/collision schema; SPDX
 headers; semver; conventional commits. **Interoperability** — published GeoJSON loads in QGIS,
-Leaflet, and any GIS; the report schema is documented JSON. **Interchangeability** — exposure sources
+Leaflet, and any GIS, and is self-describing via an embedded top-level `metadata` foreign member
+(dataset and schema versions, license, city, exposure unit, and privacy/significance notes); the
+report schema is documented JSON. **Interchangeability** — exposure sources
 (counts, demand model, imports) swap behind one interface. **Compatibility** — CI tests Python 3.11 and
 3.12 per [`ci.yml`](.github/workflows/ci.yml); the package is pure-typed-Python with a single runtime
 dependency (`jsonschema`), using a local equirectangular projection and pure-Python statistics instead
@@ -348,18 +369,22 @@ plain language for a city-council audience.
 ### Usability, learnability, reach
 
 **Accessibility** — a structural accessibility gate ([`tools/a11y_check.py`](tools/a11y_check.py)) runs
-in `make verify` and the web view ships an authoritative sortable data table carrying the same ranked
-locations and intervals as the supplementary map; the deeper axe-plus-manual-screen-reader audit is
-still a conformance target.
+in `make verify`, an automated `axe-core` run (jsdom) runs in CI via `make axe`
+([`tools/axe_check.mjs`](tools/axe_check.mjs)), and the web view ships an authoritative sortable data
+table carrying the same ranked locations and intervals as the supplementary map — its segment-name
+column is sticky (usable at 200% zoom) and column sorts announce through an `aria-live` region. The
+manual NVDA/VoiceOver screen-reader pass that complements these automated checks is still a conformance
+target.
 **Usability** and **convenience** — reporting is a short form; the dataset is one download.
 **Learnability**, **familiarity**, **intuitiveness** — the map and table read the way people expect;
 the report form asks plain questions. **Interactivity** and **responsiveness** — the map filters and
 the table sort quickly on published data. **Discoverability** — the data card, schema, and notebooks
 are linked from the first screen. **Seamlessness** — map and table are two views of one published
-artifact. **Localizability** — a design goal, not yet delivered: today the report form and all outputs
-are English-only and the report schema has no language field; per-language interface and form-string
-bundles, and a bilingual report form where the community is, are planned. **Mobility** and **ubiquity**
-— mobile-first reporting, because hazards are reported from the roadside.
+artifact. **Localizability** — partially delivered: the advocacy brief now renders in English or
+Spanish (`--lang es`, via [`src/nearmiss/i18n.py`](src/nearmiss/i18n.py)), the report schema carries an
+optional BCP-47 `language` tag, and the report form is bilingual; deeper prose localization and
+per-language interface and form-string bundles for additional languages remain in progress.
+**Mobility** and **ubiquity** — mobile-first reporting, because hazards are reported from the roadside.
 
 ### Performance, scale, cost
 
@@ -384,8 +409,10 @@ plain data between stages; no hidden state. **Reusability** — the exposure-nor
 code are usable on any point dataset. **Analyzability** — typed, documented, with a methodology doc.
 **Configurability**, **customizability**, **tailorability** — config-over-code is implemented:
 [`config/davis-demo.toml`](config/davis-demo.toml), loaded by
-[`src/nearmiss/config.py`](src/nearmiss/config.py), controls cities, paths, thresholds, and the
-minimum-occupancy floor without touching code. **Upgradability** — a documented dependency bump path; versioned schemas with
+[`src/nearmiss/config.py`](src/nearmiss/config.py), controls the city, the three input paths, every
+threshold (including the minimum-occupancy floor `min_publish_n` and the FDR level `fdr_alpha`), the
+brief's `exposure_unit`, an optional offline `gazetteer`, and a `dataset_note` provenance label —
+without touching code. **Upgradability** — a documented dependency bump path; versioned schemas with
 migrations.
 
 ### Reliability, resilience, safety of the pipeline
@@ -394,9 +421,13 @@ migrations.
 silently corrupting the dataset. **Availability** — the published site is static-friendly and the
 intake scales to zero; no always-on component to keep paid. **Fault-tolerance**, **resilience**,
 **robustness** — one bad geocode or bad report never aborts the rebuild; the stage flags and
-continues. **Recoverability** and **survivability** — the dataset rebuilds from raw via `make
-reproduce`; published artifacts are versioned. **Degradability** and **failure transparency** — a
-segment with no exposure data is shown as "exposure unknown," not silently dropped or falsely rated.
+continues, and an address that cannot be resolved is left unplaced and caught downstream as unsnapped,
+never snapped to an invented location. **Recoverability** and **survivability** — the dataset rebuilds
+from raw via `make reproduce`; published artifacts are versioned. **Degradability** and **failure
+transparency** — a segment with no exposure data is shown as "exposure unknown" (one of the published
+`quality_flags`, alongside `low_sample` and `geocode_low_confidence`), not silently dropped or falsely
+rated; conversely a wholesale exposure/street id mismatch fails loudly rather than degrading to a
+silent 0% coverage.
 **Redundancy** — multiple exposure sources can corroborate a denominator. **Stability** and
 **durability** — the published GeoJSON schema is versioned in
 [`schema/dataset.schema.md`](schema/dataset.schema.md) and schema changes are recorded in
@@ -420,12 +451,13 @@ CI smoke suite on every PR. **Autonomy** (operational), **self-sustainability**,
 open data and zero-cost hosting mean the dataset survives without a grant or a city's goodwill.
 **Testability**, **inspectability**, **demonstrability** — the planted-hotspot fixtures with known
 answers (documented in [`tests/README.md`](tests/README.md)) are committed under
-[`tests/fixtures/davis/`](tests/fixtures/davis/), 27 pytest tests pass against them, and `make demo`
+[`tests/fixtures/davis/`](tests/fixtures/davis/), 52 pytest tests pass against them, and `make demo`
 runs the full pipeline to make the statistics verifiable.
 
 > Each attribute above maps to a documented decision and, where the implementation exists, a
 > verifiable artifact or gate. Where an attribute is still aspirational at beta — the reproducible
-> notebooks, real geocoder adapters, the deeper axe-plus-manual accessibility audit, and benchmarking
+> notebooks, a networked geocoder adapter (the default offline gazetteer is implemented), the manual
+> NVDA/VoiceOver screen-reader review that complements the automated axe-core run, and benchmarking
 > remain pending, and some VPAT rows are "Partially Supports" — that is stated plainly rather than
 > overclaimed. See the [ACR](docs/accessibility/ACR.md) and the [Roadmap](#roadmap).
 
@@ -444,8 +476,10 @@ lands in front of a city. Full statement: [`docs/ACCESSIBILITY.md`](docs/ACCESSI
   A/AA success criteria, the Revised 508 software (Chapter 5) and support-documentation (Chapter 6)
   criteria, and the **Functional Performance Criteria** (use without vision, with limited vision,
   without hearing, with limited reach and strength, with limited cognition).
-- The map, the report form, the hotspot legends, and every chart pass automated checks (axe) **and**
-  manual screen-reader review (NVDA, VoiceOver). Risk level and significance are conveyed in text and
+- The web view runs against automated checks on every CI run (`axe-core` via `make axe`, plus the
+  structural gate in `make verify`); the segment-name table column is sticky for use at 200% zoom and column sorts announce
+  through an `aria-live` region. The complementary **manual** screen-reader review (NVDA, VoiceOver) is
+  still pending and is named honestly as such. Risk level and significance are conveyed in text and
   pattern, never by color alone; the report form is fully keyboard-operable with clear labels and error
   text.
 - A **non-visual equivalent** of the map is provided as an accessible, sortable list and table carrying
@@ -483,7 +517,7 @@ If you believe a published artifact leaks identifying precision, treat it as a s
 | [`web/`](web/) | framework-free WCAG 2.2 AA map UI with list/table equivalent |
 | [`data/`](data/) | `raw/` (private, gitignored) and `published/` (open GeoJSON + data card) |
 | [`tests/`](tests/) | pytest suites and planted-hotspot fixtures with known answers |
-| [`docs/`](docs/) | [METHODOLOGY](docs/METHODOLOGY.md), [DATA-CARD](docs/DATA-CARD.md), [THREAT-MODEL](docs/THREAT-MODEL.md), [ACCESSIBILITY](docs/ACCESSIBILITY.md), [ADRs](docs/adr/), [audits](docs/audits/), [accessibility ACR](docs/accessibility/ACR.md) |
+| [`docs/`](docs/) | [METHODOLOGY](docs/METHODOLOGY.md), [DATA-CARD](docs/DATA-CARD.md), [ADAPTING](docs/ADAPTING.md), [THREAT-MODEL](docs/THREAT-MODEL.md), [ACCESSIBILITY](docs/ACCESSIBILITY.md), [ADRs](docs/adr/), [audits](docs/audits/), [accessibility ACR](docs/accessibility/ACR.md) |
 | [`infra/`](infra/) | optional serverless intake + scheduled rebuild; scale-to-zero |
 | [`.github/`](.github/) | [CI](.github/workflows/ci.yml), Dependabot, CodeQL, issue/PR templates, CODEOWNERS |
 
@@ -499,7 +533,8 @@ If you believe a published artifact leaks identifying precision, treat it as a s
   aggregated to public street segments, withholding low-count segments, with a data card; reproducible
   notebooks; advocacy briefs; the accessible map with list/table equivalent, deployed behind a real URL.
 - **Phase 4 — generalize.** A config so any city's reports and exposure layers can be added; an "adapt
-  this to your city" guide; optional import paths for existing community report sets.
+  this to your city" guide (committed at [`docs/ADAPTING.md`](docs/ADAPTING.md)); optional import paths
+  for existing community report sets.
 
 Releases follow [semver](https://semver.org/) and are recorded in [`CHANGELOG.md`](CHANGELOG.md).
 

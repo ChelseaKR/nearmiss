@@ -11,10 +11,11 @@
 #     vulnerable dependency cannot reach the public path (Rule 4 privacy,
 #     Rule 5 reproducibility of trusted inputs).
 #
-# The accessibility job runs the STRUCTURAL gate only (tools/a11y_check.py).
-# A deeper automated axe-core run and manual NVDA/VoiceOver review remain a
-# conformance TARGET tracked in docs/accessibility/ACR.md and required in the
-# PR per docs/ACCESSIBILITY.md; they are not yet wired into CI.
+# The accessibility job runs the STRUCTURAL gate (tools/a11y_check.py) AND a
+# real automated axe-core run (jsdom) via `npm run axe` on every CI run.
+# Manual NVDA/VoiceOver review is a conformance TARGET tracked in
+# docs/accessibility/ACR.md and required in the PR per docs/ACCESSIBILITY.md; it
+# is inherently human and remains intentionally OUT of CI scope.
 
 name: ci
 
@@ -148,7 +149,7 @@ jobs:
         run: make test
 
   accessibility:
-    name: accessibility (structural WCAG gate on web UI)
+    name: accessibility (structural WCAG gate + axe-core on web UI)
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -165,17 +166,27 @@ jobs:
       - name: Install dev dependencies
         run: python -m pip install -e ".[dev]"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       # The web UI (web/index.html + app.js + style.css) is plain static HTML —
-      # there is no npm build step. `make accessibility` runs the structural
-      # gate tools/a11y_check.py against web/index.html (skip link, semantic
-      # <th scope> headers, text-stated significance, the authoritative data
-      # table). This is the floor, not the ceiling.
-      #
-      # FUTURE: add a deeper automated axe-core run here (and pair it with the
-      # manual NVDA/VoiceOver review tracked in docs/accessibility/ACR.md). The
-      # axe pass is a conformance TARGET and is intentionally NOT wired up yet.
+      # there is no framework build step. `make accessibility` runs the
+      # structural gate tools/a11y_check.py against web/index.html (skip link,
+      # semantic <th scope> headers, text-stated significance, the sticky
+      # segment-name column, the authoritative data table). This is the floor.
       - name: a11y structural gate (tools/a11y_check.py web/index.html)
         run: make accessibility
+
+      # Real automated axe-core run in jsdom (tools/axe_check.mjs), so the
+      # axe-core check runs on every CI run in addition to the structural gate.
+      # `npm ci` requires a committed lockfile; until web/package-lock.json is
+      # committed, install resolves from package.json. Manual NVDA/VoiceOver
+      # review is inherently human and is intentionally OUT of CI scope — it
+      # stays tracked in docs/accessibility/ACR.md.
+      - name: axe-core (jsdom) accessibility check
+        run: cd web && npm install --no-audit --no-fund && npm run axe
 
   security:
     name: security (pip-audit + gitleaks + CodeQL)

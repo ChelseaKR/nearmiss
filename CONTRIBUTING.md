@@ -103,6 +103,29 @@ nearmiss is a **community-owned evidence base**, not a city 311 queue or a publi
 complaint inbox. If you need a pothole filled, also call your city. Reporting here helps
 the analysis; it does not dispatch a crew.
 
+#### Reporting a hazard (vs. contributing code)
+
+To be unambiguous about which door is which: a hazard **report** is a data submission, not a
+code change, and it goes through the **hazard-report issue form**
+([`.github/ISSUE_TEMPLATE/hazard_report.yml`](.github/ISSUE_TEMPLATE/hazard_report.yml)), not a
+pull request. That issue is **public**, so never include identifying detail — no names, plates,
+contact details, your home address, your exact start/end point, or precise coordinates of where
+you live. Describe **where the hazard is**, coarsely (a corner, block, or landmark), not where
+you live. (Full-precision coordinates are only ever accepted privately at intake, never typed
+into the public form.)
+
+After you submit, the report is **triaged** out of the public issue into the **private** intake
+store, **validated** against [`schema/report.schema.json`](schema/report.schema.json), and then
+**aggregated** to public street segments — or **withheld** when a segment falls below the
+k-anonymity floor — before anything is published. Submitting a report **does not dispatch a
+crew** or open a work order; it feeds the analysis. If you need a hazard actually fixed, also
+call your city.
+
+A report can note the **language** it was submitted in via the optional BCP-47 `language` tag
+(for example `"en"` or `"es"`; it defaults to `en` when absent), which lets the bias analysis
+characterize language-based under-representation. The brief renders in either language — pass
+`--lang es` to `nearmiss brief` (or `nearmiss run`) to read it in Spanish instead of English.
+
 ### Contribute code, data methods, or docs
 
 This covers everything else: pipeline stages, statistics, exposure adapters, schema

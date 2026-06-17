@@ -2,9 +2,11 @@
 
 **Schema name:** `nearmiss.published.dataset`
 **Schema version:** 1.0.0 (semantic; see [Versioning and deprecation](#versioning-and-deprecation-policy))
-**Artifact:** `data/published/nearmiss.geojson` (plus a hashed manifest and the data card)
+**Artifact:** `data/published/<city-slug>.geojson` (e.g. `davis.geojson`), with a sidecar
+`data/published/<city-slug>.metadata.json` (e.g. `davis.metadata.json`) and the data card at
+[`docs/DATA-CARD.md`](../docs/DATA-CARD.md)
 **CRS:** WGS84 (EPSG:4326), longitude/latitude decimal degrees, per RFC 7946
-**Last reviewed:** 2026-06-16
+**Last reviewed:** 2026-06-17
 **Maintainer:** Chelsea Kelly-Reif (GitHub [@ChelseaKR](https://github.com/ChelseaKR))
 
 This document is the contract for the **published, open** dataset that `publish.py` emits — the
@@ -13,6 +15,13 @@ and that anyone may mirror, fork, load in QGIS or Leaflet, and redistribute unde
 different artifact from the **intake** contract in
 [`report.schema.json`](report.schema.json): that schema accepts a single precise raw report; this one
 describes the analyzed, exposure-normalized, privacy-protected result that is safe to make public.
+
+Two files are written per city, both slugged from the city name. The GeoJSON
+(`<city-slug>.geojson`, e.g. `davis.geojson`) is the open dataset and carries a self-describing
+top-level [`metadata`](#2-top-level-structure) foreign member. The sidecar
+(`<city-slug>.metadata.json`, e.g. `davis.metadata.json`) carries the content hash (`geojson_sha256`)
+and the full methods and summary; it is the integrity manifest for the GeoJSON. The plain-language
+[data card](../docs/DATA-CARD.md) lives at `docs/DATA-CARD.md`.
 
 It is written to the same standard as the rest of the project: it should hold up when a skeptical
 traffic engineer pushes back. Every property that carries a risk claim is defined so that the
@@ -23,9 +32,9 @@ traffic engineer pushes back. Every property that carries a risk claim is define
   `exposure_source`, and `exposure_date`. A raw count is labeled `report_count`, never danger.
 - **HR2** — No estimate without an interval. Every `rate` carries `rate_ci_low`, `rate_ci_high`,
   and `n`. Small-sample features are marked uncertain, not ranked as certain.
-- **HR3** — Reporting bias is named, not hidden. The dataset-level bias statement and per-feature
-  `quality_flags` surface who and where is over- or under-represented; the data card carries the full
-  account.
+- **HR3** — Reporting bias is named, not hidden. Per-feature `quality_flags` and the dataset-level
+  caveats in `metadata.privacy`/`metadata.significance` surface who and where is over- or
+  under-represented; the data card carries the full bias account.
 - **HR4** — Contributor privacy is protected. This artifact is aggregated to public street segments. It
   contains **no raw precise reports**, no reporter token, no per-report timestamps, and no per-report
   coordinates. See [Privacy: aggregation and minimum occupancy](#privacy-aggregation-and-minimum-occupancy).
@@ -60,48 +69,71 @@ consumer who already works with collision and near-miss data can map our fields 
   the way a linear-referencing system (route + measure) would.
 
 The full alignment table — our field → the standard's field/concept → notes — lives in the data card
-(`data/published/DATA-CARD.md`) under "Schema crosswalk," because the crosswalk is versioned with the
-data it describes. This document defines the fields; the data card maps them to external standards and
-states the sources and dates.
+([`docs/DATA-CARD.md`](../docs/DATA-CARD.md)) under "Schema crosswalk," because the crosswalk is
+versioned with the data it describes. This document defines the fields; the data card maps them to
+external standards and states the sources and dates.
 
 ---
 
 ## 2. Top-level structure
 
-The artifact is a single GeoJSON `FeatureCollection`. Project-level metadata is carried in a top-level
-`metadata` member (permitted by RFC 7946 as a foreign member) so that a consumer reading only the file
-still gets the version, the build provenance, and the privacy parameters that govern interpretation.
+The published GeoJSON (`<city-slug>.geojson`) is a single `FeatureCollection` with three top-level
+members: `type`, `features`, and a `metadata` foreign member (permitted by RFC 7946) so that a consumer
+reading only the file still gets the version, the license, the exposure unit, and the privacy/significance
+parameters that govern interpretation.
 
 ```jsonc
 {
   "type": "FeatureCollection",
   "metadata": {
-    "schema_name": "nearmiss.published.dataset",
     "schema_version": "1.0.0",
-    "generated_at": "2026-06-16T00:00:00Z",
-    "city": "davis-ca",
-    "report_window": { "start": "2025-01-01", "end": "2026-05-31" },
-    "aggregation": {
-      "unit": "street_segment",
-      "min_reports_per_feature": 3
-    },
-    "exposure_default_source": "city-bike-ped-counts-2024",
-    "bias_statement": "Reporters over-represent commute corridors and app-using cyclists; quiet residential and non-English-speaking areas are under-represented. See DATA-CARD.md §Bias.",
-    "data_card": "DATA-CARD.md",
+    "dataset_version": "0.1.0",
+    "city": "Davis",
     "license": "Apache-2.0",
-    "content_hash": "sha256:…",
-    "rng_seed": 20260616
+    "dataset_note": "Synthetic demonstration data — not real reports.",
+    "exposure_unit": "bike trips (synthetic)",
+    "schema_doc": "schema/dataset.schema.md",
+    "data_card": "docs/DATA-CARD.md",
+    "segments_published": 9,
+    "segments_withheld_low_count": 3,
+    "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
+    "privacy": "Aggregated to public street segments; low-count segments withheld (k-anonymity); no per-report coordinate, time, reporter, mode, or severity is published."
   },
   "features": [ /* Feature objects, defined below */ ]
 }
 ```
 
-`metadata` is descriptive, not a place to hide a claim: anything that affects how a rate should be read
-(the default exposure source, the aggregation unit, the minimum reports per published feature, the bias
-statement) is here and is repeated, in full, in the data card. `content_hash` and `rng_seed` make the
-file reproducible and
-its integrity checkable (**HR5**); a reproduction from raw that does not match the hash is evidence of
-tampering or drift.
+The embedded `metadata` member is descriptive, not a place to hide a claim. Its fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `schema_version` | string | The version of **this** published-dataset schema the file conforms to (`MAJOR.MINOR.PATCH`). See [Versioning](#versioning-and-deprecation-policy). |
+| `dataset_version` | string | The version of the **data** (the city release), independent of the schema version. |
+| `city` | string | The city name (human-readable, e.g. `"Davis"`). The file itself is named from its slug (`davis.geojson`). |
+| `license` | string | The license the dataset is published under (`"Apache-2.0"`). |
+| `dataset_note` | string \| null | A provenance / demo label from config (e.g. a synthetic-demonstration marker). `null` when no note is configured. |
+| `exposure_unit` | string | The human-readable denominator unit (from config `exposure_unit`, e.g. `"bike trips"`) the rates are expressed against; also shown in the brief. |
+| `schema_doc` | string | Repo-relative path to this schema document. |
+| `data_card` | string | Repo-relative path to the data card (`docs/DATA-CARD.md`). |
+| `segments_published` | integer | Count of features actually published in this file. |
+| `segments_withheld_low_count` | integer | Count of segments withheld entirely under the minimum-occupancy floor (k-anonymity). See [Privacy](#5-privacy-aggregation-and-minimum-occupancy-hr4). |
+| `significance` | string | One-line statement of the significance method: Getis-Ord Gi\* on the exposure-normalized rate with a Benjamini-Hochberg FDR correction. |
+| `privacy` | string | One-line statement of the aggregation and withholding privacy controls (**HR4**). |
+
+Anything that affects how a rate should be read is mirrored, in full, in the data card.
+
+> **The content hash lives in the sidecar, not the embedded member.** The GeoJSON cannot carry its own
+> SHA-256 without being self-referential, so the hash is written to the sidecar
+> `<city-slug>.metadata.json` (e.g. `davis.metadata.json`) as `geojson_sha256`, alongside the full
+> `methods` and `summary`. The sidecar is the integrity manifest: a reproduction from raw whose canonical
+> GeoJSON does not hash to the recorded `geojson_sha256` is evidence of tampering or drift (**HR5**). The
+> sidecar's top-level fields are `city`, `version`, `schema_version`, `dataset_note`, `license`, `schema`,
+> `data_card`, `methods` (the rate denominator, confidence level, small-n and min-publish-n thresholds,
+> the FDR level, the Getis-Ord band and KDE bandwidth, and the significance statement), `summary`
+> (segment and report counts plus `exposure_coverage`), `report_intensity_peak_segment` (the KDE peak as a
+> **segment id only**, never a coordinate), `geojson_sha256`, and a `privacy` note. The sidecar is held to
+> the same privacy invariant as the GeoJSON: `assert_metadata_clean()` raises if any forbidden key or raw
+> coordinate appears in it.
 
 ---
 
@@ -134,6 +166,7 @@ inventing a number, so that "unknown" is a first-class, machine-readable state (
 | Property | Type | Nullable | Description |
 |---|---|---|---|
 | `segment_id` | string | no | Stable identifier for the aggregation unit (street segment or cell). Stable across releases for the same underlying geometry, so a consumer can join releases over time. Not derived from any contributor identity. For `Point`/cell features this is the cell id. |
+| `name` | string | no | Human-readable street-block name for the segment (e.g. `"5th St (C–D)"`), carried from the base network so the map, the table, and the brief can label a place without exposing a coordinate. Real Davis street-block names replace the earlier `"Street seg-NN"` placeholders. |
 | `report_count` | integer ≥ 0 | no | **Raw count of reports** aggregated into this feature after dedupe and quality-flagging. This is *report volume*, not danger (**HR1**): it confounds hazard with how many people travel and choose to report here. It is published so consumers can see the basis of the rate and the sample size, and it is the field a "report volume" map must use — never as a standalone risk surface. |
 
 ### 4.2 Exposure / the denominator (HR1)
@@ -151,6 +184,14 @@ honest if its provenance travels with it. All three exposure fields move togethe
 > modeled side street). That is why the source and date are **per-feature**, not only in `metadata`.
 > The data card discusses the implications of mixing sources.
 
+The exposure layer joins to the street network by **exact `segment_id`**. A *total* mismatch (no
+exposure id matches any street id — almost always two id schemes wired together by mistake) is a hard
+error that stops the build with a clear message, rather than silently producing a `0%`
+`exposure_coverage` that would read as "no denominators exist." A *partial* mismatch (some exposure ids
+have no matching segment) warns and lists the unmatched ids; the unmatched segments are honestly carried
+as `exposure_unknown` rather than dropped. The realized join fraction is recorded as
+`summary.exposure_coverage` in the sidecar.
+
 ### 4.3 Rate and uncertainty (HR2)
 
 | Property | Type | Nullable | Description |
@@ -159,6 +200,7 @@ honest if its provenance travels with it. All three exposure fields move togethe
 | `rate_ci_low` | number ≥ 0 | yes | Lower bound of the confidence interval on `rate`. |
 | `rate_ci_high` | number ≥ 0 | yes | Upper bound of the confidence interval on `rate`. |
 | `n` | integer ≥ 0 | no | The sample size the interval is computed from (effective number of independent reports after dedupe). `n` is published alongside the interval so a consumer can judge how thin the estimate is; a small `n` with a wide interval is the honest signal that a feature must not be ranked as certain. |
+| `confidence_label` | string | no | A plain-language label for how much weight a reader should put on this feature's rate: one of `"certain"`, `"uncertain"`, or `"exposure_unknown"`. It is the human-readable companion to `n`, the interval, and `quality_flags` — `"exposure_unknown"` corresponds to a `null` rate, `"uncertain"` to a small-sample or wide-interval feature, and `"certain"` to a feature with a usable denominator and adequate sample. It is conveyed as text (never color alone), so the table and brief can state confidence without a legend. |
 
 The CI is a two-sided 95% interval by default; the **method** (e.g. an exact small-count interval for
 sparse segments rather than a normal approximation) and the **confidence level** are recorded in the
@@ -177,9 +219,10 @@ not rank features whose intervals overlap as if the ordering were established.
 
 `getis_ord_significant` is the field a map should use to mark a cluster as significant, and the
 equivalent table must carry it as text — significance is conveyed in text and pattern, never by color
-alone (an accessibility requirement that doubles as an honesty one). Reporting bias (`quality_flags`,
-the dataset bias statement) still applies: a statistically significant cluster can still be an artifact
-of where people report, and that caveat is stated rather than overridden by the flag (**HR3**).
+alone (an accessibility requirement that doubles as an honesty one). Reporting bias (`quality_flags` and
+the dataset-level bias account in the data card) still applies: a statistically significant cluster can
+still be an artifact of where people report, and that caveat is stated rather than overridden by the
+flag (**HR3**).
 
 ### 4.5 Hazard-type breakdown
 
@@ -199,30 +242,32 @@ uncertain and a re-identification risk; the `low_sample` quality flag (below) al
 |---|---|---|---|
 | `quality_flags` | array of string | no | Zero or more machine-readable flags from a closed vocabulary, surfacing the caveats that govern how this feature should be read. An empty array means no flags were raised, not that the feature is unconditionally trustworthy. |
 
-Flag vocabulary (additive across schema minor versions; never silently repurposed):
+Published flag vocabulary (additive across schema minor versions; never silently repurposed). The
+publication step maps the pipeline's internal flags and the sample size onto this closed, public
+vocabulary, so a consumer never has to know the internal flag names:
 
 | Flag | Meaning |
 |---|---|
-| `low_sample` | `n` is below the project's small-sample threshold; the rate and any ranking are uncertain (**HR2**). Pair with the wide interval. |
-| `exposure_unknown` | No exposure denominator was available; `exposure_estimate`/`rate`/CI are `null`. Shown as "exposure unknown," not rated (**HR1**, degradability). |
-| `exposure_modeled` | The denominator came from a demand model or imported layer rather than an observed count; the rate is more assumption-dependent. See `exposure_source`. |
-| `exposure_stale` | The `exposure_date` is older than the freshness window in config relative to the report window; the rate may be mismatched in time. |
-| `reporting_bias_suspected` | This feature is in an area the bias analysis (`bias.py`) flags as likely over- or under-represented; the value may be a reporting artifact (**HR3**). |
-| `geocode_low_confidence` | Aggregated reports here include low-positional-accuracy locations; placement is less certain. |
-| `ci_unstable` | The interval method's assumptions are stressed for this feature (e.g. extreme sparsity); treat the bounds as indicative. |
+| `low_sample` | `report_count` is non-zero but below the project's small-sample threshold (`small_n`); the rate and any ranking are uncertain (**HR2**). Pair with the wide interval; the `hazard_breakdown` is also suppressed for such features. |
+| `geocode_low_confidence` | Aggregated reports here include low-positional-accuracy or far-snap locations (the internal `low_accuracy`/`far_snap` flags); placement is less certain. Address-only reports resolved by the geocoder can also raise this when the resolved location is uncertain. |
+| `exposure_unknown` | No exposure denominator was available; `exposure_estimate`/`rate`/`rate_ci_low`/`rate_ci_high` are `null` and `confidence_label` is `"exposure_unknown"`. Shown as "exposure unknown," not rated (**HR1**, degradability). |
 
-Flags are intentionally conservative: it is better to over-mark a feature as uncertain than to present
-a thin or biased estimate as solid. The full definitions, thresholds, and the config values behind each
-flag are in the data card so the flagging is reproducible and auditable.
+These three are the **published** flags emitted by `publish.py`. Flags are intentionally conservative:
+it is better to over-mark a feature as uncertain than to present a thin or biased estimate as solid. The
+full definitions, thresholds, and the config values behind each flag are in the data card so the
+flagging is reproducible and auditable. Wider caveats that apply to the dataset as a whole — notably
+reporting bias (**HR3**) — are carried in the embedded `metadata.privacy`/`metadata.significance`
+statements and the data card's bias account rather than as a per-feature flag.
 
 ---
 
 ## 5. Privacy: aggregation and minimum occupancy (HR4)
 
 Every published feature is the product of **deliberate aggregation to a public street segment** and
-the **withholding of low-count segments**, and that is recorded both in `metadata.aggregation` and, in
-plain language, in the data card. This is not lossy rounding by accident; it is a privacy control with
-auditable parameters, enforced in code rather than promised in prose.
+the **withholding of low-count segments**, and that is recorded both in the file (the embedded
+`metadata.privacy` note and `metadata.segments_withheld_low_count`, plus `methods.min_publish_n` in the
+sidecar) and, in plain language, in the data card. This is not lossy rounding by accident; it is a
+privacy control with auditable parameters, enforced in code rather than promised in prose.
 
 What that means concretely for a consumer of this file:
 
@@ -272,31 +317,35 @@ and withholding reduce that risk; they do not erase it. That limitation is named
   },
   "properties": {
     "segment_id": "seg-davis-00417",
+    "name": "5th St (C–D)",
     "report_count": 12,
+    "n": 12,
     "exposure_estimate": 184000,
     "exposure_source": "city-bike-ped-counts-2024",
     "exposure_date": "2024-09-30",
     "rate": 6.52e-05,
     "rate_ci_low": 3.37e-05,
     "rate_ci_high": 1.14e-04,
-    "n": 12,
     "getis_ord_z": 2.91,
     "getis_ord_significant": true,
+    "confidence_label": "certain",
     "hazard_breakdown": {
       "close_pass": 7,
       "dooring": 3,
       "surface_hazard": 2
     },
-    "quality_flags": ["reporting_bias_suspected"]
+    "quality_flags": []
   }
 }
 ```
 
 How to read it honestly: `report_count` (12) is *volume*; the danger estimate is `rate` with its
 interval (`rate_ci_low`..`rate_ci_high`), computed against an observed 2024 count denominator. The Gi\*
-flag marks a statistically significant cluster — but `reporting_bias_suspected` warns that this corridor
-may be over-represented by commuter reporters, so the cluster should be read with that caveat, exactly
-as the brief and data card state it.
+flag (`getis_ord_significant: true`) marks a statistically significant cluster — but the dataset-level
+bias account still applies, so the cluster should be read with the caveat that this corridor may be
+over-represented by commuter reporters, exactly as the brief and data card state it. An empty
+`quality_flags` array means no per-feature caveat was raised, **not** that the feature is unconditionally
+trustworthy.
 
 A feature with no usable denominator looks different and says so:
 
@@ -306,17 +355,19 @@ A feature with no usable denominator looks different and says so:
   "geometry": { "type": "LineString", "coordinates": [[-121.760, 38.551], [-121.759, 38.552]] },
   "properties": {
     "segment_id": "seg-davis-01188",
+    "name": "C St (3rd–4th)",
     "report_count": 4,
+    "n": 4,
     "exposure_estimate": null,
     "exposure_source": null,
     "exposure_date": null,
     "rate": null,
     "rate_ci_low": null,
     "rate_ci_high": null,
-    "n": 4,
     "getis_ord_z": null,
     "getis_ord_significant": null,
-    "hazard_breakdown": { "surface_hazard": 4 },
+    "confidence_label": "exposure_unknown",
+    "hazard_breakdown": {},
     "quality_flags": ["exposure_unknown", "low_sample"]
   }
 }
@@ -352,9 +403,10 @@ What each bump means for this published artifact:
 2. Every change is recorded in the repository **CHANGELOG** under the schema heading, with the version,
    date, and rationale, following conventional commits. The threat model and data card are reviewed when
    the schema changes (they list "schema change" as a trigger).
-3. Releases are **signed**, and each published file pins `metadata.schema_version`, `metadata.content_hash`,
-   and `metadata.rng_seed`, so a consumer can always tell exactly which schema version and which build a
-   file conforms to and verify it was not altered after the fact (**HR5**).
+3. Releases are **signed**, and each published file pins `metadata.schema_version` in the GeoJSON while
+   its sidecar (`<city-slug>.metadata.json`) pins `geojson_sha256`, so a consumer can always tell exactly
+   which schema version and which build a file conforms to and verify it was not altered after the fact
+   (**HR5**).
 4. `$schema`/machine-validation: the published GeoJSON is validated in CI against a JSON Schema that
    mirrors this document; that validator is versioned in lockstep and is the authoritative,
    machine-checkable form of this contract.
@@ -393,7 +445,7 @@ it through the channel in [`SECURITY.md`](../SECURITY.md); it is a build that sh
 - [`README.md`](../README.md) — project overview and the five hard rules.
 - [`docs/THREAT-MODEL.md`](../docs/THREAT-MODEL.md) — assets, adversaries, and the privacy/integrity
   controls this schema implements (notably T1, T2, T3).
-- `data/published/DATA-CARD.md` — sources, methods, limits, the bias account, the schema crosswalk to
-  external standards, and the exact CI method, significance threshold, and flag thresholds.
+- [`docs/DATA-CARD.md`](../docs/DATA-CARD.md) — sources, methods, limits, the bias account, the schema
+  crosswalk to external standards, and the exact CI method, significance threshold, and flag thresholds.
 - RFC 7946 (The GeoJSON Format); WGS84 / EPSG:4326; MMUCC and KABCO are referenced for taxonomy and
   severity framing only — this dataset does not claim to be a police-coded crash dataset.

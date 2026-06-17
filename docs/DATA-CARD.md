@@ -11,9 +11,11 @@ weak, this card says so plainly. Read the "Out-of-scope and discouraged uses" an
 "Known reporting biases" sections before you cite a number.
 
 - **Dataset name:** nearmiss published open dataset
-- **Version:** tracks the release tag of the repository (semver); the exact dataset version,
-  schema version, and content hash are recorded in the published data card sidecar
-  (`data/published/datacard.json`) shipped next to the GeoJSON.
+- **Version:** tracks the release tag of the repository (semver); the exact dataset version
+  (`dataset_version`, currently `0.1.0`), schema version (`schema_version`, currently `1.0.0`),
+  and content hash are recorded both in the published GeoJSON's embedded `metadata` member and
+  in the per-city metadata sidecar (`<city-slug>.metadata.json`, e.g. `davis.metadata.json`)
+  shipped next to the GeoJSON.
 - **Maintainer:** Chelsea Kelly-Reif (GitHub [@ChelseaKR](https://github.com/ChelseaKR)).
   Contact via the GitHub repository's issues. This is an independent personal open-source
   project, unaffiliated with any employer or client.
@@ -21,6 +23,10 @@ weak, this card says so plainly. Read the "Out-of-scope and discouraged uses" an
 - **License:** Apache-2.0 (see [License and citation](#license-and-citation)).
 - **Schema:** report intake schema at `schema/report.schema.json`; published GeoJSON schema
   at `schema/dataset.schema.md`.
+- **Published files (per city, named by city slug):** the open GeoJSON is `<city-slug>.geojson`
+  (e.g. `davis.geojson`) and its metadata sidecar is `<city-slug>.metadata.json` (e.g.
+  `davis.metadata.json`). There is no `nearmiss.geojson`. This data card lives at
+  `docs/DATA-CARD.md`; there is no sidecar `DATA-CARD.md`.
 
 ---
 
@@ -37,16 +43,30 @@ therefore not a pile of pins. It is:
    real public street centerline (public infrastructure) and no per-report coordinate is
    published, plus
 2. **per-segment rate estimates** that divide report counts by an **exposure denominator**
-   (a bike/pedestrian volume or demand estimate), each carrying a **confidence interval**
-   and an **n**, plus
+   (a bike/pedestrian volume or demand estimate), reported in a stated **exposure unit**
+   (`exposure_unit`, e.g. "bike trips") and each carrying a **confidence interval** and an
+   **n**, plus
 3. **hotspot outputs** — a kernel-density surface labeled by what it actually shows, and
    Getis-Ord Gi\* clusters flagged as statistically significant given exposure and spatial
    structure — plus
-4. a machine-readable **data card sidecar** recording sources, dates, methods, thresholds,
-   and the content hash for reproducibility.
+4. a **self-describing top-level `metadata` member** embedded in the GeoJSON itself, plus a
+   machine-readable **metadata sidecar** (`<city-slug>.metadata.json`) recording sources,
+   dates, methods, thresholds, totals, and the content hash for reproducibility.
 
 The dataset is the product, not an app. The accessible web map and table are just two views
 of these published artifacts.
+
+### The advocacy brief (bilingual)
+
+A human-readable **brief** is rendered from the published dataset by `nearmiss brief --config
+<cfg>` (or `run`), in **English or Spanish** (`--lang es`, via `src/nearmiss/i18n.py`; unknown
+languages fall back to English). The brief leads with a plain-language **glossary** (what a
+rate, a confidence interval, and a Getis-Ord Gi\* hotspot mean) and a one-sentence **bottom
+line**, reports every rate in the dataset's **exposure unit** (`exposure_unit`, e.g. "bike
+trips"), and closes with a **bias counterweight** — the reminder that an exposure-normalized
+rate with a stated interval and a flagged bias is a far better basis for action than a raw heat
+map, so the named biases are a call to act on the strongest signals, not an excuse to conclude
+nothing.
 
 ### Five rules this dataset is built to honor
 
@@ -123,46 +143,81 @@ published.** Individual raw reports exist only in the private store.
 ### Published feature fields
 
 The authoritative, versioned field list and types live in `schema/dataset.schema.md`. The
-table below is the human summary; if the two disagree, the schema file wins.
+table below is the human summary; if the two disagree, the schema file wins. Each published
+feature is a GeoJSON `LineString` (the public street centerline) whose `properties` carry:
 
 | Field (`properties.*`)   | Type / values                                                            | Meaning |
 |--------------------------|--------------------------------------------------------------------------|---------|
-| `feature_kind`           | `report_volume` \| `rate` \| `kde_cell` \| `gi_star_cluster`             | Which published layer this feature belongs to. |
 | `segment_id`             | string (stable, opaque)                                                  | Internal street-segment identifier the report was snapped to. Opaque; not a street address. |
-| `hazard_type`            | `close_pass` \| `dooring` \| `surface_hazard` \| `sightline` \| `signal` \| `debris` \| `other` | Classified hazard category. |
-| `report_count`          | integer ≥ 0                                                              | Number of reports aggregated into this feature after dedupe. |
-| `period_start`           | date (ISO 8601)                                                          | Start of the aggregation window. |
-| `period_end`             | date (ISO 8601)                                                          | End of the aggregation window. |
-| `exposure_value`         | number \| `null`                                                         | Exposure denominator (e.g. estimated bike/ped volume) for the segment and window. `null` means exposure unknown. |
-| `exposure_source`        | string                                                                   | Provenance of the denominator (count program, demand model, or named exposure layer). |
-| `exposure_date`          | date (ISO 8601)                                                          | The date/vintage of the exposure source. |
-| `rate`                   | number \| `null`                                                         | `report_count / exposure_value`, in the documented units. `null` when exposure is unknown. |
+| `name`                   | string                                                                   | Human-readable street-block name for the segment (real Davis block names such as `5th St (C–D)`, not a `seg-NN` placeholder). |
+| `report_count`           | integer ≥ 0                                                              | Number of reports aggregated into this feature after dedupe. This is report volume, not danger. |
+| `n`                      | integer ≥ 0                                                              | Sample size behind the estimate (the contributing report count the interval is computed from). |
+| `exposure_estimate`      | number \| `null`                                                         | Exposure denominator (estimated bike/ped volume) for the segment, in the unit named by `exposure_source` / the dataset's `exposure_unit`. `null` means exposure unknown. |
+| `exposure_source`        | string \| `null`                                                         | Provenance of the denominator (count program, demand model, or named exposure layer). `null` only when `exposure_estimate` is `null`. |
+| `exposure_date`          | date (ISO 8601) \| `null`                                               | The date/vintage of the exposure source. `null` only when `exposure_estimate` is `null`. |
+| `rate`                   | number \| `null`                                                         | `report_count` normalized by `exposure_estimate`, per the dataset's `rate_per` and `exposure_unit`. `null` when exposure is unknown. |
 | `rate_ci_low`            | number \| `null`                                                         | Lower bound of the rate confidence interval. |
 | `rate_ci_high`           | number \| `null`                                                         | Upper bound of the rate confidence interval. |
-| `ci_method`              | string                                                                   | The interval method used (small-count method for sparse segments). |
-| `n`                      | integer ≥ 0                                                              | Sample size behind the estimate (alias of the contributing report count). |
-| `gi_star_z`              | number \| `null`                                                         | Getis-Ord Gi\* z-score, where computed. |
-| `getis_ord_significant`  | boolean                                                                  | Whether the segment is a statistically significant cluster after multiple-comparison handling. |
-| `quality_flags`          | array of strings                                                         | Pipeline quality flags (e.g. `low_geocode_confidence`, `outside_study_area`, `exposure_unknown`, `small_n`). |
+| `getis_ord_z`            | number \| `null`                                                         | Getis-Ord Gi\* z-score on the exposure-normalized rate, where computed. |
+| `getis_ord_significant`  | boolean \| `null`                                                        | Whether the segment is a statistically significant cluster after Benjamini-Hochberg FDR correction. `null` when `getis_ord_z` is `null`. |
 | `confidence_label`       | `certain` \| `uncertain` \| `exposure_unknown`                           | Plain-language reliability label surfaced in the map and table. |
+| `hazard_breakdown`       | object (closed hazard vocabulary → integer)                              | Counts of reports at this feature by hazard type; suppressed (emitted as `{}`) for segments below `small_n`. |
+| `quality_flags`          | array of strings                                                         | Pipeline quality flags from the published vocabulary `low_sample`, `geocode_low_confidence`, `exposure_unknown` (see [Quality flags](#published-quality-flags)). |
 
 The intake (private) report schema — what a contributor actually submits — is separately
 documented in `schema/report.schema.json` and includes the optional free-text note, the
-pseudonymous contributor token, and the precise location, **none of which appear in the
-published dataset at full fidelity** (see privacy section).
+pseudonymous contributor token, the optional BCP-47 `language` tag, and the precise location
+(`location` lat/lon **or** a free-text `address` — see [How a report enters](#how-a-report-enters)),
+**none of which appear in the published dataset at full fidelity** (see privacy section).
+
+### Embedded self-describing metadata member
+
+The published GeoJSON `FeatureCollection` carries a top-level `metadata` member (a foreign
+member permitted by RFC 7946) so a consumer reading only the file still gets the version, the
+provenance, and the privacy parameters that govern interpretation. It includes:
+`dataset_version` (`0.1.0`), `schema_version` (`1.0.0`), `license` (`Apache-2.0`), `city`,
+`exposure_unit`, `segments_published`, `segments_withheld_low_count`, `dataset_note` (a
+synthetic-demo / provenance label), a plain-language `privacy` note, and a `significance` note
+(the Getis-Ord Gi\* / FDR method).
+
+The **metadata sidecar** (`<city-slug>.metadata.json`, e.g. `davis.metadata.json`) carries the
+content hash (`geojson_sha256`) plus the full `methods` block (`confidence_z`, `fdr_alpha`,
+`getis_ord_band_m`, `kde_bandwidth_m`, `min_publish_n`, `rate_per`, `small_n`, and the
+`significance` string) and a `summary` block (`reports_in`, `duplicates_removed`, `snapped`,
+`unsnapped`, `exposure_coverage`, `segments_total`, `segments_published`,
+`segments_withheld_low_count`), the `report_intensity_peak_segment` (a segment id only, never a
+coordinate), and a pointer to this data card (`docs/DATA-CARD.md`).
+
+### Published quality flags
+
+A published feature's `quality_flags` array draws from a small closed vocabulary; the briefs
+and the table surface these so a consumer can filter. The flags that reach the published
+dataset are:
+
+| Flag | Meaning |
+|---|---|
+| `low_sample` | The contributing report count (`n`) is below the small-sample threshold (`small_n`); the rate and any ranking are uncertain — read it with the wide interval, and note the `hazard_breakdown` is suppressed (`{}`). |
+| `geocode_low_confidence` | This segment aggregates one or more low-positional-accuracy or geocoded-from-address locations; placement is less certain. |
+| `exposure_unknown` | No exposure denominator was available; `exposure_estimate`, `rate`, and the CI bounds are `null`, and the feature is labeled exposure-unknown rather than rated. |
+
+These names replace any earlier flag spellings (e.g. `low_geocode_confidence`,
+`outside_study_area`, `small_n`). The authoritative, versioned flag vocabulary — including
+additional internal flags and the config thresholds behind each — lives in
+`schema/dataset.schema.md`.
 
 ### Instances, labels, and what is missing
 
 - **Instances:** aggregated segment/point features, not individual reports. Count and
-  geographic extent depend on the deployment (city) and the reporting window; the data card
-  sidecar records the exact totals for each release.
-- **"Labels":** the `hazard_type`, `getis_ord_significant`, and `confidence_label` fields are
-  the closest thing to labels. They are **classifier and statistical outputs**, not adjudicated
-  ground truth.
-- **Deliberately absent:** per-report coordinates, any per-report timestamp, contributor
-  identity, the free-text note, mode, severity, heading, route/home-end information, and any
-  field that would let a reader reconstruct an individual's routine. These are withheld by
-  design, not lost.
+  geographic extent depend on the deployment (city) and the reporting window; the metadata
+  sidecar's `summary` block (and the embedded `metadata` member) records the exact totals for
+  each release.
+- **"Labels":** the `hazard_breakdown` keys, `getis_ord_significant`, and `confidence_label`
+  fields are the closest thing to labels. They are **classifier and statistical outputs**, not
+  adjudicated ground truth.
+- **Deliberately absent:** per-report coordinates (whether submitted as a `location` or as a
+  geocoded `address`), any per-report timestamp, contributor identity, the free-text note, the
+  report `language`, mode, severity, heading, route/home-end information, and any field that
+  would let a reader reconstruct an individual's routine. These are withheld by design, not lost.
 
 ### Relationship to other datasets
 
@@ -180,9 +235,26 @@ are cited per feature.
 ### How a report enters
 
 Reports are made by people on bikes and on foot through a short form, a documented JSON
-submission, or an import path, and capture: location, time, mode, hazard type, an optional
+submission, or an import path, and capture: location, time, mode, hazard type, a self-reported
 severity, and an optional free-text note. Reporting is **self-selected and voluntary** — this
 is central to the bias discussion below.
+
+A report carries its location in **one of two ways**: a precise WGS84 `location` (lat/lon),
+**or** a free-text `address`/intersection (e.g. "B St & 3rd St, Davis CA"). The intake schema
+requires one or the other (an `anyOf` constraint), so an address-only report is a first-class
+submission rather than an error. An address-only report is resolved to coordinates at the
+geocode stage by a **pluggable geocoder** (see [Pipeline transforms](#pipeline-transforms-recorded-inspectable)).
+The default geocoder is an **offline `GazetteerGeocoder`** backed by a committed
+address→coordinate table, configured by the `gazetteer` config key (a JSON file of the form
+`{"addresses":[{"address","lat","lon"}]}`); matching is case-insensitive and
+whitespace-normalized. A networked geocoder (e.g. Nominatim) would implement the same protocol
+but is **not** the default, so the analysis runs anywhere with no external service. Either way,
+the resolved precise coordinate is treated as private location data and is never published.
+
+A report may also carry an optional BCP-47 `language` tag (e.g. `en`, `es`) recording the
+language it was submitted in; it defaults to `en` when absent. The tag is used to characterize
+language-based under-representation (see [Known reporting biases](#known-reporting-biases-who-is-over--and-under-represented))
+and to drive the bilingual brief; it is not published per report.
 
 ### Intake and validation (`intake.py`)
 
@@ -199,25 +271,36 @@ published number traces back to its inputs:
 1. **Dedupe** (`pipeline/dedupe.py`) — collapse duplicate and near-duplicate submissions
    (same event reported twice, or by two people) using spatial/temporal/type proximity, so
    one event is not double-counted.
-2. **Geocode** (`pipeline/geocode.py`) — resolve location text or coarse input to coordinates,
-   attaching a geocode-confidence value; low-confidence results are flagged, not dropped.
+2. **Geocode** (`pipeline/geocode.py`) — for an address-only report, resolve the free-text
+   `address` to coordinates via the configured pluggable geocoder (the default offline
+   `GazetteerGeocoder`); reports that already carry a precise `location` pass through. A geocode
+   confidence is attached, and low-confidence results are flagged (`geocode_low_confidence`),
+   not dropped.
 3. **Snap-to-segment** (`pipeline/snap.py`) — snap each report to a street segment so analysis
    is per-segment rather than per-pin; the precise offset is used internally and discarded
    before publication.
 4. **Classify** (`pipeline/classify.py`) — assign the `hazard_type` from the report's
    structured fields (and, where present, the note) into the documented categories.
-5. **Quality-flag** (`pipeline/quality.py`) — attach `quality_flags` (e.g. low geocode
-   confidence, outside study area, small sample, exposure unknown) that follow the record
-   into publication so consumers can filter.
+5. **Quality-flag** (`pipeline/quality.py`) — attach `quality_flags` (`low_sample`,
+   `geocode_low_confidence`, `exposure_unknown`) that follow the record into publication so
+   consumers can filter.
 
 A single bad geocode or bad report flags and continues; it never aborts the rebuild.
 
+**Exposure join.** Exposure rows join to streets by **exact `segment_id`**. A *total* mismatch
+— no exposure id matching any street id, which almost always means the two layers use different
+id schemes — raises a clear error rather than silently producing 0% coverage that would read as
+"no denominators." A *partial* mismatch warns and lists the unmatched ids, so a miswired
+exposure layer is visible rather than silently dropped.
+
 ### Timeframe, languages, and consent
 
-- **Timeframe:** each release covers a stated reporting window recorded in the data card
-  sidecar (`period_start`/`period_end`).
-- **Language:** intake supports the report form in the languages of the community it is
-  deployed for; coverage is uneven and is itself a known bias (below).
+- **Timeframe:** each release covers a stated reporting window recorded in the metadata
+  sidecar.
+- **Language:** reports may carry an optional BCP-47 `language` tag (e.g. `en`, `es`), and the
+  brief renders in English or Spanish (`nearmiss brief --lang es`, via `src/nearmiss/i18n.py`).
+  Intake supports the report form in the languages of the community it is deployed for; coverage
+  is uneven and is itself a known bias (below).
 - **Consent:** contributors submit voluntarily and pseudonymously, with the understanding
   (stated at intake) that a segment-aggregated, de-identified form of their report will be
   published openly under Apache-2.0, and that the precise report will not be.
@@ -231,8 +314,9 @@ publication. Every step is deterministic and seeded so a rebuild reproduces the 
 
 - **Deduplication** removes double-reported events; the surviving `report_count` reflects
   distinct events, not raw submissions.
-- **Geocoding** normalizes location to coordinates with a confidence score; results below the
-  configured confidence threshold are flagged `low_geocode_confidence` and are eligible for
+- **Geocoding** resolves an address-only report to coordinates via the configured pluggable
+  geocoder (default offline gazetteer) and attaches a confidence score; results below the
+  configured confidence threshold are flagged `geocode_low_confidence` and are eligible for
   exclusion from rate estimates while remaining visible in the report-volume layer.
 - **Snapping** moves analysis to the segment level; this is also a privacy step, because it
   removes the exact point a reporter chose.
@@ -253,16 +337,18 @@ The raw, precise data is **never** part of any published or committed artifact.
 
 This is the section a traffic engineer will read first, so it is explicit.
 
-**Every rate in this dataset is `report_count / exposure_value`.** The exposure value is an
-*estimate* of how much biking/walking happened on that segment in that window — the
-denominator that turns a count into a rate. Without it, more reports on a busy street would
-masquerade as more danger.
+**Every rate in this dataset is `report_count / exposure_estimate`.** The exposure estimate is
+an *estimate* of how much biking/walking happened on that segment in that window — the
+denominator that turns a count into a rate, reported in the dataset's `exposure_unit` (e.g.
+"bike trips"). Without it, more reports on a busy street would masquerade as more danger.
+Exposure rows join to streets by exact `segment_id`; a total id mismatch raises a clear error,
+and a partial mismatch warns, so a miswired denominator is never silently read as 0% coverage.
 
-- **What exposure can be.** Depending on the deployment, `exposure_value` comes from one of:
+- **What exposure can be.** Depending on the deployment, `exposure_estimate` comes from one of:
   observed bike/pedestrian counts where a count program exists; a demand model; or an imported
   exposure layer (e.g. a Strava/StreetLight-style volume surface). The specific source and its
   vintage are recorded per feature in `exposure_source` and `exposure_date`, and
-  summarized in the data card sidecar. **Sources are interchangeable behind one interface**, so
+  summarized in the metadata sidecar. **Sources are interchangeable behind one interface**, so
   a given city's denominators may come from a different source than another's.
 - **Assumptions baked into the denominator.** The rate is only as good as the exposure
   estimate. Known assumptions and their failure modes:
@@ -279,10 +365,11 @@ masquerade as more danger.
     influences where people report, the denominator and numerator are not fully independent.
     This is disclosed where it applies.
 - **What this means for the numbers.** Rates are **estimates with intervals**, computed with a
-  count model appropriate to the data and a small-count interval method for sparse segments
-  (`ci_method`). A segment is never ranked above another on a difference the interval does not
-  support. The exposure sensitivity of the headline findings is checked in a reproducible
-  notebook, and material sensitivity is stated in the briefs.
+  count model appropriate to the data and a small-count interval method for sparse segments;
+  every rate ships its `rate_ci_low`/`rate_ci_high` bounds and `n`. A segment is never ranked
+  above another on a difference the interval does not support. The exposure sensitivity of the
+  headline findings is checked in a reproducible notebook, and material sensitivity is stated in
+  the briefs.
 
 If you change the exposure source, you change the ranking. That is expected and is why every
 rate ships its denominator's identity and date.
@@ -336,14 +423,15 @@ Contributor privacy is a hard rule, and the published dataset is engineered arou
   infrastructure) — **not** a perturbed point and **not** a report location. No per-report
   coordinate is published.
 - **No per-report timestamp.** No per-report timestamp is published; only the aggregation
-  window (`period_start`/`period_end`) appears.
+  window recorded in the metadata sidecar appears.
 - **k-anonymity / minimum occupancy.** Any segment with a non-zero report count below
-  `min_publish_n` (default 3) is **withheld entirely** from the published GeoJSON, the data
-  card sidecar metadata, and the briefs. No published place can mean "one or two people
+  `min_publish_n` (default 3) is **withheld entirely** from the published GeoJSON, its embedded
+  and sidecar metadata, and the briefs. No published place can mean "one or two people
   reported an incident here." This is enforced in `publish.py` by `assert_published_clean`
   (which raises) and `assert_metadata_clean`, and is covered by the test suite.
-- **Small-sample suppression.** Hazard-type breakdowns for segments with a count below
-  `small_n` are suppressed (emitted as `{}`), and `small_n` is flagged.
+- **Small-sample suppression.** Hazard-type breakdowns (`hazard_breakdown`) for segments with a
+  count below `small_n` are suppressed (emitted as `{}`), and the segment is flagged
+  `low_sample`.
 - **What is deliberately withheld.** Per-report coordinates; any per-report timestamp; the
   free-text note; contributor token/identity; mode, severity, and heading; route and home-end
   detail; and any combination that could re-identify an individual. Publication is enforced by
@@ -422,12 +510,18 @@ ways this kind of data is misused.
   the repository's GitHub issues. Single maintainer; no other contributors at this time.
 - **Update cadence.** The published dataset is regenerated on scheduled rebuilds as new reports
   accumulate and on each release. There is no service-level guarantee on freshness; the live
-  window and the build date are always recorded in the data card sidecar. As an independent,
+  window and the build date are always recorded in the metadata sidecar. As an independent,
   zero-cost, volunteer project, update frequency is best-effort, not contractual.
 - **Reproducibility.** The dataset is fully reproducible from raw inputs: `make reproduce`
   regenerates every published figure, table, and GeoJSON deterministically (seeded pipelines and
   analyses). `make verify` reproduces the full CI gate (lint, types, tests including
   planted-hotspot fixtures, accessibility, security).
+- **Accessibility of the views.** The two views over this dataset (map, table) are checked by a
+  structural accessibility gate (`tools/a11y_check.py`) and a real automated axe-core run in
+  jsdom (`make axe`, via `web/package.json` + `tools/axe_check.mjs`). The segment-name table
+  column is sticky (usable at 200% zoom) and column sorts announce through an aria-live region.
+  Manual NVDA / VoiceOver screen-reader review is **still pending** and is named here as an
+  open item, not claimed as done.
 - **Versioning and stability.** Releases follow semver. The published GeoJSON schema is
   versioned with a deprecation policy and migrations; schema changes are recorded in the
   CHANGELOG and ADRs. Published artifacts are content-hashed so tampering or drift is detectable.
@@ -451,7 +545,7 @@ restrictive license — the data is meant to be free.
 
 **Third-party exposure sources** (count programs, demand models, exposure layers) used as
 denominators retain their own licenses and terms; consult `exposure_source` /
-`exposure_date` and the data card sidecar before redistributing derived exposure values.
+`exposure_date` and the metadata sidecar before redistributing derived exposure values.
 
 ### How to cite
 
@@ -473,5 +567,7 @@ this dataset, and a number from here without them is not this dataset's claim.
 - `schema/dataset.schema.md` — published GeoJSON schema (authoritative field reference).
 - `docs/METHODOLOGY.md` — full statistical methodology (rates, intervals, KDE, Getis-Ord Gi\*).
 - `docs/THREAT-MODEL.md` — privacy threat model and the basis for the withheld-precision rules.
-- `data/published/datacard.json` — per-release machine-readable card (versions, hashes, sources,
-  windows, totals).
+- `data/published/<city-slug>.metadata.json` (e.g. `davis.metadata.json`) — per-release
+  machine-readable metadata sidecar (versions, content hash, methods, sources, windows, totals).
+- `data/published/<city-slug>.geojson` (e.g. `davis.geojson`) — the published open GeoJSON, with
+  its self-describing top-level `metadata` member.
