@@ -8,7 +8,7 @@
 **Maintainer:** Chelsea Kelly-Reif (GitHub [@ChelseaKR](https://github.com/ChelseaKR))
 
 This document is the contract for the **published, open** dataset that `publish.py` emits — the
-aggregated, jittered GeoJSON that the accessible map (`server.py`) and the briefs (`brief.py`) read,
+aggregated GeoJSON that the accessible map (`server.py`) and the briefs (`brief.py`) read,
 and that anyone may mirror, fork, load in QGIS or Leaflet, and redistribute under Apache-2.0. It is a
 different artifact from the **intake** contract in
 [`report.schema.json`](report.schema.json): that schema accepts a single precise raw report; this one
@@ -26,9 +26,9 @@ traffic engineer pushes back. Every property that carries a risk claim is define
 - **HR3** — Reporting bias is named, not hidden. The dataset-level bias statement and per-feature
   `quality_flags` surface who and where is over- or under-represented; the data card carries the full
   account.
-- **HR4** — Contributor privacy is protected. This artifact is aggregated and jittered. It contains
-  **no raw precise reports**, no reporter token, no per-report timestamps, and no un-fuzzed
-  coordinates. See [Privacy and the jitter/aggregation note](#privacy-and-the-jitteraggregation-note).
+- **HR4** — Contributor privacy is protected. This artifact is aggregated to public street segments. It
+  contains **no raw precise reports**, no reporter token, no per-report timestamps, and no per-report
+  coordinates. See [Privacy: aggregation and minimum occupancy](#privacy-aggregation-and-minimum-occupancy).
 - **HR5** — Open and reproducible end to end. This file, its schema, the pipeline, and the notebooks
   are open; `make reproduce` regenerates it from raw inputs and a hashed manifest pins what was built.
 
@@ -83,9 +83,7 @@ still gets the version, the build provenance, and the privacy parameters that go
     "report_window": { "start": "2025-01-01", "end": "2026-05-31" },
     "aggregation": {
       "unit": "street_segment",
-      "min_reports_per_feature": 3,
-      "jitter_radius_m": 25,
-      "timestamp_resolution": "month"
+      "min_reports_per_feature": 3
     },
     "exposure_default_source": "city-bike-ped-counts-2024",
     "bias_statement": "Reporters over-represent commute corridors and app-using cyclists; quiet residential and non-English-speaking areas are under-represented. See DATA-CARD.md §Bias.",
@@ -99,8 +97,9 @@ still gets the version, the build provenance, and the privacy parameters that go
 ```
 
 `metadata` is descriptive, not a place to hide a claim: anything that affects how a rate should be read
-(the default exposure source, the aggregation unit, the jitter radius, the bias statement) is here and
-is repeated, in full, in the data card. `content_hash` and `rng_seed` make the file reproducible and
+(the default exposure source, the aggregation unit, the minimum reports per published feature, the bias
+statement) is here and is repeated, in full, in the data card. `content_hash` and `rng_seed` make the
+file reproducible and
 its integrity checkable (**HR5**); a reproduction from raw that does not match the hash is evidence of
 tampering or drift.
 
@@ -112,13 +111,15 @@ Each entry in `features` is a GeoJSON `Feature` with a `geometry` and a `propert
 
 | Geometry type | When used | Privacy note |
 |---|---|---|
-| `LineString` | A street segment (the default aggregation unit). Coordinates trace the snapped segment from the base network. | The segment is a *place*, not a person; sub-segment precision was already discarded at snap time in the pipeline. |
-| `Point` | A coarse aggregation cell or a node-like feature (e.g. an intersection approach) where a segment is not the right unit. | The point is the **jittered, aggregated** centroid of a cell, not a report location. See the [jitter note](#privacy-and-the-jitteraggregation-note). |
+| `LineString` | A street segment (the default aggregation unit). Coordinates trace the real public street centerline from the base network. | The segment is a *place*, not a person; the published geometry is public infrastructure, and sub-segment precision was already discarded at snap time in the pipeline. |
+| `Point` | A coarse aggregation cell or a node-like feature (e.g. an intersection approach) where a segment is not the right unit. | The point is the **public aggregation-unit representative** (the cell's representative point), not a report location. There is **no jitter** and **no raw report coordinate**. See [Privacy: aggregation and minimum occupancy](#privacy-aggregation-and-minimum-occupancy). |
 
-Geometry is WGS84 (EPSG:4326), `[longitude, latitude]` order, RFC 7946. No feature carries a raw
-report coordinate. For `Point` features the coordinate is the cell representative after jitter; for
-`LineString` features the geometry is the public base-network segment, which is independent of where
-within the segment any report fell. There is exactly one geometry per feature and one CRS for the file.
+Geometry is WGS84 (EPSG:4326), `[longitude, latitude]` order, RFC 7946. No feature carries a raw or
+per-report coordinate. For `Point` features the coordinate is the public aggregation-unit
+representative (the cell's representative point) — it is not jittered and is not a report location. For
+`LineString` features the geometry is the real public base-network street centerline, which is
+independent of where within the segment any report fell. There is exactly one geometry per feature and
+one CRS for the file.
 
 ---
 
@@ -188,8 +189,9 @@ of where people report, and that caveat is stated rather than overridden by the 
 
 Only **aggregated counts** appear here. Per-report fields — the free-text note, exact time, severity,
 mode at the individual level, heading, reporter token — are **not** present in the published dataset.
-Where a hazard breakdown for a feature is built from very few reports, the `low_sample` quality flag
-(below) signals that the mix is itself uncertain.
+Where a feature's count is below the small-sample threshold (`small_n`), the `hazard_breakdown` is
+**suppressed** and published as an empty object (`{}`), because a mix built from very few reports is both
+uncertain and a re-identification risk; the `low_sample` quality flag (below) also marks such features.
 
 ### 4.6 Quality flags
 
@@ -215,36 +217,47 @@ flag are in the data card so the flagging is reproducible and auditable.
 
 ---
 
-## 5. Privacy and the jitter/aggregation note (HR4)
+## 5. Privacy: aggregation and minimum occupancy (HR4)
 
-Every published feature is the product of **deliberate aggregation and jitter**, and that is recorded
-both in `metadata.aggregation` and, in plain language, in the data card. This is not lossy rounding by
-accident; it is a privacy control with auditable parameters.
+Every published feature is the product of **deliberate aggregation to a public street segment** and
+the **withholding of low-count segments**, and that is recorded both in `metadata.aggregation` and, in
+plain language, in the data card. This is not lossy rounding by accident; it is a privacy control with
+auditable parameters, enforced in code rather than promised in prose.
 
 What that means concretely for a consumer of this file:
 
-- **Aggregated, never per-report.** A feature represents *at least* `metadata.aggregation.min_reports_per_feature`
-  reports (default 3). A place that does not meet the minimum is not published as its own feature; it is
-  merged into a coarser unit or withheld, so the public unit is always a place, not a person.
-- **Jittered geometry.** `Point`/cell geometries are displaced within
-  `metadata.aggregation.jitter_radius_m` (default 25 m). The home/work ends of trips are additionally
-  fuzzed in `publish.py` before this stage. No coordinate in this file is a raw report location.
-- **Coarsened time.** There are **no per-report timestamps** in this artifact. Temporal information, if
-  present, is bucketed to `metadata.aggregation.timestamp_resolution` (default monthly), enough for
-  trend analysis and not fine enough to reconstruct an individual's commute. No feature exposes an
-  ordered per-contributor sequence.
+- **Aggregated to a public segment, never per-report.** Reports are aggregated onto the real public
+  street centerline (public infrastructure). The published geometry is the segment itself, not a
+  perturbed point and not a report location. The public unit is always a place, not a person.
+- **Minimum occupancy (k-anonymity), or withheld.** Any segment whose non-zero report count is below
+  `min_publish_n` (default 3) is **withheld entirely** — from the published GeoJSON, from the metadata,
+  and from the brief. No published place can mean "one or two people reported an incident here." This is
+  enforced by `assert_published_clean()` (which raises on violation) and covered by the test suite.
+- **No jitter, no published coordinate.** There is **no coordinate fuzzing and no jitter** anywhere in
+  `publish.py`. Privacy comes from aggregation onto a public segment plus withholding low-count
+  segments — not from perturbing a point. No per-report coordinate is ever published.
+- **No per-report timestamp.** **No per-report timestamp is published** in this artifact, and no feature
+  exposes an ordered per-contributor sequence.
+- **Small-sample suppression of breakdowns.** A `hazard_breakdown` for a segment with a count below the
+  small-sample threshold (`small_n`) is suppressed (published as `{}`), so a thin mix cannot be read off
+  a sparse segment.
+- **Intensity peak as a segment id only.** The KDE report-intensity peak is published **only as a
+  segment id**, never as a coordinate.
 - **No identity or sensitive text.** No `reporter_token`, no free-text `note`, no per-report `severity`,
   `mode`, `heading`, or `accuracy` reaches this file. Reports are pseudonymous upstream and the linkage
-  is dropped at publication.
-- **Raw is never here.** Precise reports live only in the gitignored `data/raw/` private store. Nothing
-  in the public path (`publish.py`, `server.py`, this GeoJSON, the map) reads from raw, and a CI privacy
-  check inspects the published artifact for minimum aggregation, minimum cell occupancy, and the absence
-  of raw-precision fields, failing the build if violated (see the
-  [threat model](../docs/THREAT-MODEL.md), T1).
+  is dropped at publication. What is allowed into a published feature is fixed by an allowlist in
+  `publish._feature`, and `assert_published_clean()` additionally enforces a denylist invariant (with
+  `assert_metadata_clean()` covering the sidecar metadata).
+- **Raw is never here.** Precise raw reports live only in the gitignored `data/raw/` private store and
+  are never published or committed. Nothing in the public path (`publish.py`, `server.py`, this GeoJSON,
+  the map) reads from raw. The dev server (`server.py` / `nearmiss serve`) is read-only (GET/HEAD) and
+  refuses any request under `data/raw/` or any dotfile path with HTTP 403, even when launched on the
+  repo root. See the [threat model](../docs/THREAT-MODEL.md), T1.
 
-Residual risk is stated honestly in the threat model and the data card: jitter and aggregation protect a
-single report well and scattered reports adequately, but a contributor who files many reports clustered
-at one origin can still leak a pattern. That limitation is named, not hidden.
+Residual risk is stated honestly in the threat model and the data card: aggregation to a public segment
+plus withholding of low-count segments protect a single report well and scattered reports adequately,
+but a contributor who files reports across several segments can still leak a linkage pattern. Aggregation
+and withholding reduce that risk; they do not erase it. That limitation is named, not hidden.
 
 ---
 
@@ -355,13 +368,18 @@ confirm, and treats unknown additive content as ignorable.
 ## 8. What is guaranteed to be absent
 
 To make **HR4** checkable rather than merely promised, the following are guaranteed **never** to appear
-in this artifact, and the CI privacy check enforces it:
+in this artifact. The guarantee is enforced in code: `publish._feature` writes only allowlisted fields,
+`assert_published_clean()` enforces a denylist invariant and the minimum-occupancy rule (and raises on
+violation), and `assert_metadata_clean()` covers the sidecar metadata — all covered by the test suite.
 
-- Raw or un-fuzzed report coordinates; any coordinate at sub-jitter precision.
-- Per-report records of any kind — every value is an aggregate over `min_reports_per_feature`+ reports.
+- Raw or per-report coordinates of any kind. The only geometry published is a public street segment
+  centerline or a public aggregation-cell representative point — no jitter, no report location.
+- Per-report records of any kind — every value is an aggregate, and any segment below `min_publish_n`
+  reports is withheld entirely.
 - `reporter_token`, account ids, emails, device identifiers, or any field reversible to a person.
 - Free-text `note` content (never republished verbatim).
-- Per-report `occurred_at` timestamps, per-report `severity`, `mode`, `heading_deg`, or `accuracy_m`.
+- Per-report `occurred_at` timestamps (no per-report timestamp is published), per-report `severity`,
+  `mode`, `heading_deg`, or `accuracy_m`.
 - Any ordered per-contributor sequence of reports.
 
 If you find any of the above in a published `nearmiss` dataset, treat it as a privacy defect and report

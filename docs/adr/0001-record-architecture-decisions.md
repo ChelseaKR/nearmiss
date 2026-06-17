@@ -11,8 +11,8 @@
 The same standard applies to how the project is built, not only to what it publishes. The dataset and
 the analysis are the product, and their value is entirely a function of trust, so the decisions that
 shape the pipeline — how reports are deduped, how a denominator is attached, which significance test
-defines a "cluster," how coordinates are fuzzed before publication — are load-bearing. They deserve a
-record that explains *why*, not just a diff that shows *what changed*.
+defines a "cluster," the minimum-occupancy floor below which a segment is withheld from publication —
+are load-bearing. They deserve a record that explains *why*, not just a diff that shows *what changed*.
 
 This project has specific properties that make undocumented decisions expensive:
 
@@ -21,9 +21,9 @@ This project has specific properties that make undocumented decisions expensive:
   future contributor or auditor, without a verbal hand-off that will never happen.
 - **It is reproducible end to end (HR5).** `make reproduce` regenerates every figure and table from
   raw inputs. The *code* of a transform is reproducible, but the *reasoning* behind a parameter — why
-  Getis-Ord Gi\* rather than raw KDE peaks for "statistically significant cluster," why a particular
-  fuzzing radius, why a given small-sample threshold — is not visible in the code and is exactly what a
-  reviewer needs to evaluate.
+  Getis-Ord Gi\* rather than raw KDE peaks for "statistically significant cluster," why the public
+  street segment as the aggregation unit, why a given minimum-occupancy floor or small-sample threshold
+  — is not visible in the code and is exactly what a reviewer needs to evaluate.
 - **It makes statistical and privacy commitments that constrain design.** The five hard rules (no rate
   without a denominator; no estimate without an interval; reporting bias named, not hidden; contributor
   privacy protected; open and reproducible) are enforced in CI and by policy. When a design choice

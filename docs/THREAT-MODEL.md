@@ -21,8 +21,8 @@ ones. The rules are enforced in CI and by policy, not treated as aspirations.
 - **HR1** — No rate without a denominator.
 - **HR2** — No estimate without an interval.
 - **HR3** — Reporting bias is named, not hidden.
-- **HR4** — Contributor privacy is protected (pseudonymous, fuzzed, aggregated, jittered; raw stays
-  private).
+- **HR4** — Contributor privacy is protected (pseudonymous; aggregated to public street segments;
+  low-count segments withheld; raw stays private).
 - **HR5** — Open and reproducible end to end (`make reproduce` regenerates every figure and table).
 
 ## Assets
@@ -88,38 +88,44 @@ the hard rules and the architecture, and where mitigation stops.
 **Asset:** contributor privacy. **Actor:** re-identification adversary.
 
 A report's location and timestamp are quasi-identifiers. The acute risk is the *home/work end* of a
-trip and *repeat structure*: a single fuzzed point is fairly safe, but several reports from the same
-contributor that all originate near one address, at commute times, can be linked and re-identified even
-after independent jitter. Raw precision or raw timing in any published artifact would defeat the whole
-privacy promise.
+trip and *repeat structure*: a single report aggregated into a busy segment is fairly safe, but several
+reports from the same contributor that all originate near one address, at commute times, can be linked
+and re-identified across segments even when no individual report location is published. Raw precision or
+raw timing in any published artifact would defeat the whole privacy promise.
 
 **Mitigations (HR4):**
 
 - **Raw stays private and is gitignored.** Precise reports live only in `data/raw/`, which is
   gitignored and never committed; nothing in the public path (`publish.py`, `server.py`, the GeoJSON,
   the map) can read from it. The map server reads only published artifacts by design.
-- **Fuzz the sensitive ends before publication.** Exact home-end coordinates are fuzzed in
-  `publish.py`; no report is published at a precision that could identify a person's routine. Jitter is
-  a configured parameter (in the versioned config), so the privacy radius is explicit and auditable,
-  not an accident of rounding.
-- **Aggregate and jitter the open dataset.** The public dataset is aggregated to segments / coarse
-  cells and jittered, so the published unit is a place, not a person. Snapping to a street segment in
-  the pipeline already discards sub-segment precision before publication.
+- **Aggregate to public street segments.** The open dataset is aggregated to public street segments, and
+  the published geometry is the real public street centerline (public infrastructure) — never a report
+  location and never a per-report point. The published unit is a place, not a person; snapping to a
+  street segment in the pipeline discards sub-segment precision before publication.
+- **Publish nothing per-report.** No per-report coordinate, timestamp, reporter token, note, mode,
+  severity, or heading is ever published. This is enforced positively by an allowlist in
+  `publish._feature` (only segment-level aggregate fields are emitted) and negatively by a forbidden-key
+  denylist invariant in `assert_published_clean()`, with `assert_metadata_clean()` applying the same
+  denylist to the sidecar metadata. The KDE report-intensity peak is published only as a segment id,
+  never a coordinate.
 - **Pseudonymity, not identity.** Reports are pseudonymous; no account, email, or device identifier is
   carried into the dataset, so reports cannot be trivially chained to a real person by an identifier
   field.
-- **Coarsen timing.** Timestamps are published at a reduced resolution (e.g., bucketed) sufficient for
-  temporal analysis but not fine enough to reconstruct an individual's exact commute, and per-segment
-  outputs do not expose an ordered per-contributor sequence.
-- **Test privacy as a property.** Per the README, "no report is published at a precision that could
-  expose a person's routine" is *tested against the published dataset* — a `make`/CI check that
-  inspects published artifacts for minimum aggregation, minimum cell occupancy, and absence of
-  raw-precision fields, failing the build if violated. Synthetic fixtures include planted
-  near-home clusters so the check is exercised against a known-bad input.
+- **No per-report timestamp is published.** Because no timestamp leaves the private store, the published
+  artifacts cannot reconstruct an individual's commute timing, and per-segment outputs do not expose an
+  ordered per-contributor sequence.
+- **Minimum occupancy (k-anonymity withholding).** Any segment with a non-zero report count below
+  `min_publish_n` (default 3) is withheld entirely from the published GeoJSON, the metadata, and the
+  brief — no published place can mean "one or two people reported an incident here." This is enforced by
+  `assert_published_clean()` (which raises on violation) and covered by the test suite.
+- **Small-sample suppression.** Hazard breakdowns for segments with a count below `small_n` are
+  suppressed (emitted as `{}`), so a thin breakdown cannot single out a rare incident type at a
+  near-home segment.
 
-**Stops at:** the linkage / repeat-visitor problem (see **Residual risk**). Jitter and aggregation
-reduce but do not eliminate the risk from a contributor with many reports concentrated at one location,
-or from an adversary who already knows a candidate address and is only confirming.
+**Stops at:** the linkage / repeat-visitor problem (see **Residual risk**). Aggregation to public
+segments and withholding low-count segments reduce but do not eliminate the risk from a contributor with
+many reports concentrated near one location whose segments could be linked across the dataset, or from
+an adversary who already knows a candidate address and is only confirming.
 
 ### T2 — Report spam / poisoning to manipulate hotspots
 
@@ -243,8 +249,10 @@ reaching everything at once.
 - **Minimal, inspectable surface.** The stack is framework-free on the web side and uses a standard,
   small geospatial stack; fewer dependencies mean fewer places for a compromise to hide. Stages emit
   plain, inspectable data between them, so an anomalous transform output is visible.
-- **Least privilege in the public path.** `server.py` is read-only and reads only published artifacts;
-  a compromise of the serving layer cannot reach `data/raw/`.
+- **Least privilege in the public path.** `server.py` (`nearmiss serve`) is read-only — it answers only
+  `GET`/`HEAD` — and it refuses any request under `data/raw/` or any dotfile path with HTTP 403, even
+  when launched on the repo root (HTTP-verified). A compromise of the serving layer cannot reach
+  `data/raw/`.
 
 **Stops at:** a compromise of a pinned dependency *at the version the hash already trusts* (a malicious
 release that lands before any advisory), or a compromise of GitHub/CI infrastructure itself. See
@@ -280,12 +288,13 @@ reused password) — outside what repo scanning can see. See **Residual risk**.
 What is *not* fully mitigated. This section is the point of the document: an honest threat model names
 the gaps. None of the following should be read as "handled."
 
-- **Repeat-contributor linkage (from T1).** Jitter and aggregation protect a single report well and a
-  handful of scattered reports adequately, but a contributor who files many reports clustered at one
-  origin still leaks a pattern that a motivated adversary with side knowledge could re-identify.
-  Aggregation thresholds and timestamp coarsening reduce this; they do not erase it. A contributor
-  worried about this should report sparingly near home. This limitation belongs in the data card and in
-  any contributor-facing guidance, stated plainly, because consent should be informed.
+- **Repeat-contributor linkage (from T1).** Aggregation to public segments and withholding low-count
+  segments protect a single report well and a handful of scattered reports adequately, but a contributor
+  who files many reports clustered near one origin still leaks a pattern that a motivated adversary with
+  side knowledge could re-identify across segments. Aggregation and the minimum-occupancy threshold
+  reduce this; they do not erase it. A contributor worried about this should report sparingly near home.
+  This limitation belongs in the data card and in any contributor-facing guidance, stated plainly,
+  because consent should be informed.
 - **Patient, distributed poisoning (from T2).** Rate limiting, dedupe, exposure normalization, and
   significance testing defeat crude flooding. They do not defeat a determined actor who submits a
   modest number of *plausible, unique* reports over time from varied origins. The statistical defenses

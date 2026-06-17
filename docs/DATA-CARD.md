@@ -1,7 +1,7 @@
 # Data Card — nearmiss published open dataset
 
-This card documents the **published, open** nearmiss dataset: the aggregated, jittered
-GeoJSON and accompanying rate tables emitted by `publish.py`. It follows the spirit of
+This card documents the **published, open** nearmiss dataset: the GeoJSON aggregated to
+public street segments and the accompanying rate tables emitted by `publish.py`. It follows the spirit of
 *Datasheets for Datasets* (Gebru et al.) and HuggingFace dataset cards: what the data is,
 how it was made, what it can and cannot support, and where it will mislead you if you
 misuse it.
@@ -33,8 +33,9 @@ core idea is that raw report counts confound *danger* with *traffic*: the busies
 collects the most reports whether or not it is the most dangerous. The published dataset is
 therefore not a pile of pins. It is:
 
-1. an **aggregated, jittered point/segment GeoJSON** of near-miss reports, with precise
-   geometry deliberately withheld, plus
+1. a **segment-aggregated GeoJSON** of near-miss reports, where the published geometry is the
+   real public street centerline (public infrastructure) and no per-report coordinate is
+   published, plus
 2. **per-segment rate estimates** that divide report counts by an **exposure denominator**
    (a bike/pedestrian volume or demand estimate), each carrying a **confidence interval**
    and an **n**, plus
@@ -57,9 +58,10 @@ This card is bound by the project's five hard rules (enforced in CI and by polic
 2. **No estimate without an interval.** Every published rate, ranking, and comparison carries
    a confidence interval and an `n`. Small-sample segments are marked uncertain, not ranked.
 3. **Reporting bias is named, not hidden.** See [Known reporting biases](#known-reporting-biases-who-is-over--and-under-represented).
-4. **Contributor privacy is protected.** Reports are pseudonymous; home-end coordinates are
-   fuzzed; the open dataset is aggregated and jittered; raw precise reports stay private. See
-   [Privacy, aggregation, and jitter](#privacy-aggregation-and-jitter).
+4. **Contributor privacy is protected.** Reports are pseudonymous; the open dataset is
+   aggregated to public street segments, low-count segments are withheld entirely, and raw
+   precise reports stay private. See
+   [Privacy: aggregation and minimum occupancy](#privacy-aggregation-and-minimum-occupancy).
 5. **Open and reproducible end to end.** `make reproduce` regenerates every figure and table
    from raw inputs. See [Maintenance and updates](#maintenance-and-updates).
 
@@ -105,18 +107,18 @@ city's data portal or goodwill.
 The published dataset has two coupled layers, both keyed to **street segments** (not to
 addresses or to exact points):
 
-- **Report-volume layer** — aggregated, jittered geometry representing where near-miss
-  reports cluster. A feature here answers "how many reports of what type fell on/near this
-  segment," **after** aggregation and jitter. It is explicitly labeled report volume, not
-  danger.
+- **Report-volume layer** — segment-aggregated geometry representing where near-miss
+  reports cluster. A feature here answers "how many reports of what type fell on this
+  segment," **after** aggregation to the public street segment. It is explicitly labeled
+  report volume, not danger.
 - **Rate layer** — per-segment rate estimates: report count over an exposure denominator,
   with an interval and an `n`. This is the layer that makes a risk claim.
 
-A published record is therefore a **GeoJSON `Feature`** whose `geometry` is a jittered point
-or a (snapped, generalized) `LineString` for a segment, and whose `properties` carry the
+A published record is therefore a **GeoJSON `Feature`** whose `geometry` is the real public
+street centerline `LineString` for a segment, and whose `properties` carry the
 classification, counts, exposure, rate, interval, and quality/significance flags. **No
-published record is an individual person's report at full precision.** Individual raw reports
-exist only in the private store.
+published record is an individual person's report, and no per-report coordinate is
+published.** Individual raw reports exist only in the private store.
 
 ### Published feature fields
 
@@ -140,10 +142,9 @@ table below is the human summary; if the two disagree, the schema file wins.
 | `ci_method`              | string                                                                   | The interval method used (small-count method for sparse segments). |
 | `n`                      | integer ≥ 0                                                              | Sample size behind the estimate (alias of the contributing report count). |
 | `gi_star_z`              | number \| `null`                                                         | Getis-Ord Gi\* z-score, where computed. |
-| `gi_star_significant`    | boolean                                                                  | Whether the segment is a statistically significant cluster after multiple-comparison handling. |
+| `getis_ord_significant`  | boolean                                                                  | Whether the segment is a statistically significant cluster after multiple-comparison handling. |
 | `quality_flags`          | array of strings                                                         | Pipeline quality flags (e.g. `low_geocode_confidence`, `outside_study_area`, `exposure_unknown`, `small_n`). |
 | `confidence_label`       | `certain` \| `uncertain` \| `exposure_unknown`                           | Plain-language reliability label surfaced in the map and table. |
-| `jitter_applied`         | boolean (always `true` for points)                                       | Confirms publish-time spatial perturbation was applied. |
 
 The intake (private) report schema — what a contributor actually submits — is separately
 documented in `schema/report.schema.json` and includes the optional free-text note, the
@@ -155,13 +156,13 @@ published dataset at full fidelity** (see privacy section).
 - **Instances:** aggregated segment/point features, not individual reports. Count and
   geographic extent depend on the deployment (city) and the reporting window; the data card
   sidecar records the exact totals for each release.
-- **"Labels":** the `hazard_type`, `gi_star_significant`, and `confidence_label` fields are
+- **"Labels":** the `hazard_type`, `getis_ord_significant`, and `confidence_label` fields are
   the closest thing to labels. They are **classifier and statistical outputs**, not adjudicated
   ground truth.
-- **Deliberately absent:** exact coordinates, exact timestamps below the documented temporal
-  bucket, contributor identity, the free-text note, route/home-end information, and any field
-  that would let a reader reconstruct an individual's routine. These are withheld by design,
-  not lost.
+- **Deliberately absent:** per-report coordinates, any per-report timestamp, contributor
+  identity, the free-text note, mode, severity, heading, route/home-end information, and any
+  field that would let a reader reconstruct an individual's routine. These are withheld by
+  design, not lost.
 
 ### Relationship to other datasets
 
@@ -218,7 +219,7 @@ A single bad geocode or bad report flags and continues; it never aborts the rebu
 - **Language:** intake supports the report form in the languages of the community it is
   deployed for; coverage is uneven and is itself a known bias (below).
 - **Consent:** contributors submit voluntarily and pseudonymously, with the understanding
-  (stated at intake) that an aggregated, jittered, de-identified form of their report will be
+  (stated at intake) that a segment-aggregated, de-identified form of their report will be
   published openly under Apache-2.0, and that the precise report will not be.
 
 ---
@@ -241,10 +242,10 @@ publication. Every step is deterministic and seeded so a rebuild reproduces the 
   or too sparse to support a rate. A segment with no exposure data is published with
   `confidence_label = exposure_unknown` and a `null` rate — **shown, not silently dropped and
   not falsely rated.**
-- **Aggregation and jitter** (the final, irreversible cleaning step) are applied by
-  `publish.py` — see the privacy section.
+- **Aggregation to public street segments and withholding of low-count segments** (the final,
+  irreversible cleaning step) are applied by `publish.py` — see the privacy section.
 
-The raw, unjittered, precise data is **never** part of any published or committed artifact.
+The raw, precise data is **never** part of any published or committed artifact.
 
 ---
 
@@ -324,30 +325,38 @@ that could be artifacts of who reports are labeled as such in the outputs.
 
 ---
 
-## Privacy, aggregation, and jitter
+## Privacy: aggregation and minimum occupancy
 
 Contributor privacy is a hard rule, and the published dataset is engineered around it.
 
 - **Pseudonymous reports.** Reports carry an opaque contributor token, not an identity. The
   token is **not** published.
-- **Home-end fuzzing.** Where a report includes route or home-end context, exact home-end
-  coordinates are fuzzed before any publication, so a person's origin/destination cannot be
-  recovered.
-- **Aggregation to segments and windows.** Publication aggregates reports to street segments
-  and to a temporal bucket. Individual exact points and exact timestamps are not published.
-- **Publish-time jitter.** Point geometry in the public dataset is spatially perturbed
-  (`jitter_applied = true`) so a published location does not reveal where a specific report was
-  actually made. The jitter magnitude is a documented config value.
-- **Minimum-aggregation / small-n handling.** Segments with very few reports are not published
-  in a way that could single out a person's routine; they are suppressed or shown only as
-  uncertain, and `small_n` is flagged.
-- **What is deliberately withheld.** Exact coordinates; exact timestamps finer than the
-  published bucket; the free-text note; contributor token/identity; route and home-end detail;
-  and any combination that could re-identify an individual. **No report is published at a
-  precision that could identify a person's routine**, and this property is tested against the
-  published dataset before release.
+- **Aggregation to public street segments.** Publication aggregates reports to public street
+  segments. The published geometry is the real public street centerline (public
+  infrastructure) — **not** a perturbed point and **not** a report location. No per-report
+  coordinate is published.
+- **No per-report timestamp.** No per-report timestamp is published; only the aggregation
+  window (`period_start`/`period_end`) appears.
+- **k-anonymity / minimum occupancy.** Any segment with a non-zero report count below
+  `min_publish_n` (default 3) is **withheld entirely** from the published GeoJSON, the data
+  card sidecar metadata, and the briefs. No published place can mean "one or two people
+  reported an incident here." This is enforced in `publish.py` by `assert_published_clean`
+  (which raises) and `assert_metadata_clean`, and is covered by the test suite.
+- **Small-sample suppression.** Hazard-type breakdowns for segments with a count below
+  `small_n` are suppressed (emitted as `{}`), and `small_n` is flagged.
+- **What is deliberately withheld.** Per-report coordinates; any per-report timestamp; the
+  free-text note; contributor token/identity; mode, severity, and heading; route and home-end
+  detail; and any combination that could re-identify an individual. Publication is enforced by
+  an allowlist in `publish._feature` and a denylist invariant in `assert_published_clean()`,
+  with `assert_metadata_clean()` covering the sidecar metadata. The KDE report-intensity peak
+  is published only as a segment id, never a coordinate.
 - **The raw store is private.** Precise reports live only in `data/raw/`, which is gitignored
-  and never committed, deployed, or served.
+  and never committed, deployed, or served. The dev server (`server.py` / `nearmiss serve`) is
+  read-only (GET/HEAD) and refuses any request under `data/raw/` or any dotfile path with HTTP
+  403, even when launched on the repo root.
+- **Residual risk.** Aggregation and withholding reduce but do not erase re-identification
+  risk: a repeat contributor reporting across multiple segments could still be linked across
+  those segments. This residual risk remains and is not claimed away.
 
 These are publishing-rule and threat-model protections, not license restrictions — the data
 itself is meant to be free, so the privacy lives in *what* is published, not in legal terms.
@@ -383,9 +392,9 @@ ways this kind of data is misused.
 
 - **Do not treat it as a census or an unbiased sample.** It is a voluntary, self-selected,
   biased sample of *reported* near misses, not a complete record of hazards or of risk.
-- **Do not rank or target individual addresses, homes, or people.** The data is aggregated,
-  jittered, and segment-level on purpose. Any apparent precise location is perturbed; using it
-  to infer a person's routine, identity, residence, or movements is a misuse and is defeated by
+- **Do not rank or target individual addresses, homes, or people.** The data is aggregated to
+  public street segments on purpose, and no per-report coordinate is published; using it to
+  infer a person's routine, identity, residence, or movements is a misuse and is defeated by
   the published precision.
 - **Do not read raw report volume as danger.** The report-volume layer is labeled report
   volume. Mapping raw counts as "where it's dangerous" reproduces exactly the lie this project

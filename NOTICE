@@ -18,8 +18,9 @@ complaint inbox for any public-works department.
 Data, privacy, and honesty
 ------------------------------------------------------------------------------
 Precise raw reports are private and are never published or committed to version
-control. The published open dataset is aggregated and jittered to protect
-contributor privacy (see docs/THREAT-MODEL.md and docs/DATA-CARD.md). Every
+control. The published open dataset is aggregated to public street segments,
+with low-count segments withheld (k-anonymity) to protect contributor privacy
+(see docs/THREAT-MODEL.md and docs/DATA-CARD.md). Every
 published risk figure is exposure-normalized and carries a confidence interval;
 the reporting bias of the dataset is named, not hidden (see docs/METHODOLOGY.md).
 

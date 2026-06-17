@@ -160,9 +160,10 @@ document that explains the policy the audit verifies.
 ### Privacy
 
 - **`<date>-privacy-review.md`** — verifies the contributor-privacy controls before a dataset version
-  ships (HR4): that the public dataset is aggregated and jittered, that home-end coordinates are fuzzed,
-  that no report is published at a precision that could identify a person's routine, and that raw precise
-  reports remain private and gitignored (`data/raw/` is never committed). Companion:
+  ships (HR4): that the public dataset is aggregated to public street segments, that low-count segments
+  are withheld (k-anonymity), and that no precise coordinate, timestamp, or reporter token appears in any
+  published artifact, so no report is published at a precision that could identify a person's routine,
+  and that raw precise reports remain private and gitignored (`data/raw/` is never committed). Companion:
   [`THREAT-MODEL.md`](../THREAT-MODEL.md), [`DATA-CARD.md`](../DATA-CARD.md).
 
 This list grows as the project does. A new standing check earns a new `<kind>`; a one-off investigation

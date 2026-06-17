@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/ChelseaKR/nearmiss/main/schema/report.schema.json",
   "title": "nearmiss incoming report",
-  "description": "Schema for a single incoming road-hazard or near-miss report, validated at intake by intake.py before the report lands in the private raw store (data/raw/). This is the INTAKE contract for precise, pre-aggregation reports: it intentionally accepts location at full submitted precision and, optionally, a pseudonymous reporter token. Such precise reports are private and gitignored; they are never published as-is. Coordinate fuzzing, aggregation, and jitter happen downstream in publish.py, in line with the contributor-privacy rule. This schema does not attach exposure denominators, rates, or confidence intervals; those are computed later in exposure.py and stats/, never claimed at intake.",
+  "description": "Schema for a single incoming road-hazard or near-miss report, validated at intake by intake.py before the report lands in the private raw store (data/raw/). This is the INTAKE contract for precise, pre-aggregation reports: it intentionally accepts location at full submitted precision and, optionally, a pseudonymous reporter token. Such precise reports are private and gitignored; they are never published as-is. Downstream in publish.py the data is aggregated to public street segments with minimum-occupancy withholding, and no precise coordinate or timestamp is published, in line with the contributor-privacy rule. This schema does not attach exposure denominators, rates, or confidence intervals; those are computed later in exposure.py and stats/, never claimed at intake.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -44,7 +44,7 @@
     },
     "location": {
       "title": "Location of occurrence",
-      "description": "Where the hazard or near-miss occurred, as a WGS84 (EPSG:4326) latitude/longitude pair with a reported positional accuracy. Accepted here at full submitted precision for snapping and analysis; coordinates are fuzzed, aggregated, and jittered before any publication so that no report identifies a person's routine.",
+      "description": "Where the hazard or near-miss occurred, as a WGS84 (EPSG:4326) latitude/longitude pair with a reported positional accuracy. Accepted here at full submitted precision for snapping and analysis; precise reports are private and never published. Downstream, the data is aggregated to public street segments with minimum-occupancy withholding, and no precise coordinate or timestamp is published, so that no report identifies a person's routine.",
       "type": "object",
       "additionalProperties": false,
       "required": [
