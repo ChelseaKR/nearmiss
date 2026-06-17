@@ -1,0 +1,47 @@
+cff-version: 1.2.0
+message: >-
+  If you use nearmiss — the software, the pipeline, or the published open
+  dataset it produces — please cite it using the metadata below. nearmiss is
+  both a software project and a dataset: the analysis code and the
+  aggregated, jittered open dataset (GeoJSON plus data card) are released
+  together. When citing a specific published dataset release, also cite the
+  versioned GeoJSON and its accompanying data card (docs/DATA-CARD.md), and
+  state the exposure source and its date alongside any rate you quote, since
+  every rate here is normalized by an exposure estimate and carries a
+  confidence interval.
+title: nearmiss
+abstract: >-
+  nearmiss is an open dataset and a statistically honest analysis of road
+  hazards and near misses for safe-streets advocacy. It turns the close-pass,
+  door-zone, blind-corner, and surface-hazard reports that cyclists and
+  pedestrians already make into a rigorous, open, reusable dataset and an
+  analysis that refuses to lie with a heat map. Reports are validated against a
+  published schema, deduplicated, geocoded, snapped to street segments,
+  classified, and quality-flagged through a recorded, reproducible pipeline.
+  Counts are normalized by an exposure estimate so that risk is reported as a
+  rate, never as raw report volume; every published rate, ranking, and
+  comparison carries a confidence interval and an n; reporting bias is named
+  rather than hidden; and statistically significant clusters are identified
+  with Getis-Ord Gi* rather than inferred from kernel-density appearance alone.
+  Contributor privacy is protected: precise raw reports stay private, and the
+  open dataset is aggregated and jittered before publication.
+type: software
+authors:
+  - given-names: Chelsea
+    family-names: Kelly-Reif
+    alias: ChelseaKR
+version: 0.1.0
+date-released: '2026-06-16'
+license: Apache-2.0
+repository-code: https://github.com/ChelseaKR/nearmiss
+url: https://github.com/ChelseaKR/nearmiss
+keywords:
+  - road safety
+  - near miss
+  - cycling
+  - pedestrian safety
+  - open data
+  - spatial statistics
+  - Getis-Ord
+  - exposure normalization
+  - advocacy
