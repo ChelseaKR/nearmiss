@@ -41,7 +41,7 @@ community-owned evidence base.
 > `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
 > accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
 > pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
-> (see [Roadmap](#roadmap)). The repository is still private during pre-1.0 development.
+> (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta.
 
 ---
 

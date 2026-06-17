@@ -271,8 +271,10 @@ private data.
 
 - **Env-only secrets.** Secrets are provided via environment variables, never committed; configuration
   is config-over-code with credentials kept out of the checked-in config files.
-- **`gitleaks` in CI.** Secret scanning runs as a CI gate and catches an accidental commit before it
-  merges; the repo is private during development, narrowing exposure while the practice is enforced.
+- **`gitleaks` in CI.** Secret scanning runs as a CI gate (and as a pre-commit hook) and catches an
+  accidental commit before it merges. The repository is **public**, so there is no privacy buffer: the
+  control is that secrets never enter version control in the first place (env-only) and any leak is
+  caught and must be rotated, not relied on to stay hidden.
 - **Scoped, rotatable keys.** Provider keys are least-privilege and rotatable; the maintainer runbook
   includes rotating an exposure source, so a suspected leak has a defined response.
 - **No secrets in logs.** Structured logging on intake and pipeline stages is written to avoid emitting

@@ -19,7 +19,7 @@ weak, this card says so plainly. Read the "Out-of-scope and discouraged uses" an
 - **Maintainer:** Chelsea Kelly-Reif (GitHub [@ChelseaKR](https://github.com/ChelseaKR)).
   Contact via the GitHub repository's issues. This is an independent personal open-source
   project, unaffiliated with any employer or client.
-- **Repository:** `github.com/ChelseaKR/nearmiss` (private during development).
+- **Repository:** `github.com/ChelseaKR/nearmiss` (public, pre-1.0 beta).
 - **License:** Apache-2.0 (see [License and citation](#license-and-citation)).
 - **Schema:** report intake schema at `schema/report.schema.json`; published GeoJSON schema
   at `schema/dataset.schema.md`.
