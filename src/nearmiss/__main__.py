@@ -23,8 +23,9 @@ from .brief import render_brief
 from .config import load_config
 from .engine import build_analysis
 from .errors import NearmissError
+from .figures import write_figures
 from .intake import run_intake
-from .publish import publish
+from .publish import _slug, publish
 from .server import serve
 
 
@@ -112,6 +113,15 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_figures(args: argparse.Namespace) -> int:
+    config = load_config(args.config)
+    out_dir = Path(args.out) if args.out else config.out_dir
+    paths = write_figures(config, out_dir, _slug(config.city))
+    for p in paths:
+        print(f"figures: {p}")
+    return 0
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     serve(Path(args.dir), port=args.port)
     return 0
@@ -159,6 +169,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--out", help="also write the brief to this file")
     p_run.add_argument("--lang", default="en", choices=["en", "es"], help="brief language")
     p_run.set_defaults(func=_cmd_run)
+
+    p_fig = sub.add_parser("figures", help="render the deterministic SVG chart + ranked table")
+    add_config(p_fig)
+    p_fig.add_argument("--out", help="output directory (defaults to the published dir)")
+    p_fig.set_defaults(func=_cmd_figures)
 
     p_serve = sub.add_parser("serve", help="serve the accessible map + data view (read-only)")
     p_serve.add_argument("--dir", default=".", help="directory to serve (repo root)")
