@@ -1,0 +1,187 @@
+/* nearmiss accessible map UI — framework-free.
+   Risk and significance are never conveyed by color alone; contrast targets
+   WCAG 2.2 AA (>= 4.5:1 text), focus is always visible, and interactive targets
+   are at least 24x24 px (WCAG 2.5.8). */
+
+:root {
+  --fg: #15202b;
+  --bg: #ffffff;
+  --muted: #4a5560;
+  --accent: #0b4f9c; /* >= 4.5:1 on white */
+  --hot: #8a1c1c; /* paired ALWAYS with text/pattern, never color alone */
+  --line: #c3ccd6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  padding: 0 1rem 3rem;
+}
+
+header,
+main,
+footer {
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 1rem 0 0.25rem;
+}
+
+.lede {
+  color: var(--fg);
+  max-width: 48rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+a:focus-visible,
+button:focus-visible,
+.table-wrap:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--bg);
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--accent);
+}
+
+.skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  z-index: 10;
+}
+
+figure {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+#map {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  background: #f5f7fa;
+}
+
+figcaption {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 44rem;
+}
+
+caption {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  color: var(--muted);
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  border-bottom: 2px solid var(--fg);
+}
+
+th button {
+  font: inherit;
+  font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  min-height: 24px;
+  min-width: 24px;
+  padding: 0.15rem 0.35rem;
+}
+
+th button:hover {
+  text-decoration: underline;
+}
+
+/* A significant hotspot row gets a thick left border (a PATTERN, not color
+   alone) AND an explicit text marker rendered in the cell. */
+tr.is-hotspot td {
+  border-left: 6px solid var(--hot);
+  background: #fbeeee;
+}
+
+.tag {
+  display: inline-block;
+  border: 1px solid var(--fg);
+  border-radius: 999px;
+  padding: 0 0.4rem;
+  font-size: 0.85rem;
+}
+
+.tag-hot {
+  border-color: var(--hot);
+  color: var(--hot);
+  font-weight: 700;
+}
+
+.uncertain {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

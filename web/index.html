@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>nearmiss — where the danger actually is (Davis)</title>
+    <meta
+      name="description"
+      content="Exposure-normalized road-hazard rates with confidence intervals and Getis-Ord hotspots. The data table is the authoritative, non-visual equivalent of the map."
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the data</a>
+
+    <header>
+      <h1>nearmiss — where the danger actually is</h1>
+      <p class="lede">
+        Road-hazard and near-miss <strong>rates, normalized by exposure</strong>, each with a
+        95% confidence interval and an <em>n</em>. Raw counts are report volume, not danger.
+        The <a href="#data-table">data table</a> below carries every finding and is the
+        authoritative, non-visual equivalent of the map.
+      </p>
+    </header>
+
+    <main id="main">
+      <section aria-labelledby="map-heading">
+        <h2 id="map-heading">Map</h2>
+        <p id="map-desc">
+          A schematic map of street segments. Significant hotspots are drawn thicker and
+          dashed and are labeled in text; nothing here is conveyed by color alone. The map is
+          supplementary — the same information is in the
+          <a href="#data-table">data table</a>.
+        </p>
+        <figure>
+          <svg
+            id="map"
+            role="img"
+            aria-labelledby="map-heading map-desc"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="xMidYMid meet"
+          ></svg>
+          <figcaption id="map-caption">Loading map…</figcaption>
+        </figure>
+      </section>
+
+      <section aria-labelledby="data-heading">
+        <h2 id="data-heading">Ranked segments</h2>
+        <p>
+          Sort the table with the column buttons. <strong>Significance</strong> and
+          <strong>confidence</strong> are stated in words, not by color.
+        </p>
+        <div class="table-wrap" tabindex="0" role="region" aria-labelledby="data-heading">
+          <table id="data-table">
+            <caption id="data-caption">
+              Exposure-normalized hazard rates by segment. Loading…
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">
+                  <button type="button" data-sort="name">Segment</button>
+                </th>
+                <th scope="col">
+                  <button type="button" data-sort="rate">Rate /1000</button>
+                </th>
+                <th scope="col">95% CI</th>
+                <th scope="col">
+                  <button type="button" data-sort="n">Reports (n)</button>
+                </th>
+                <th scope="col">Confidence</th>
+                <th scope="col">
+                  <button type="button" data-sort="getis_ord_z">Hotspot (Gi*)</button>
+                </th>
+                <th scope="col">Quality flags</th>
+              </tr>
+            </thead>
+            <tbody id="data-body">
+              <tr>
+                <td colspan="7">Loading published data…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="legend-heading">
+        <h2 id="legend-heading">How to read this</h2>
+        <ul>
+          <li><strong>Rate /1000</strong> — reports per 1000 units of exposure, not a raw count.</li>
+          <li><strong>95% CI</strong> — the plausible range. A wide range means uncertainty.</li>
+          <li>
+            <strong>Confidence</strong> — “uncertain” marks small samples; “exposure unknown”
+            marks segments with no denominator (never ranked as if certain).
+          </li>
+          <li>
+            <strong>Hotspot (Gi*)</strong> — “★ Significant” marks a statistically significant
+            cluster (Getis-Ord Gi*, z &gt; 1.96): hot beyond what exposure and chance explain.
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Open data, Apache-2.0. Methods: <code>docs/METHODOLOGY.md</code>; limits and biases:
+        <code>docs/DATA-CARD.md</code>. Every figure regenerates with <code>make reproduce</code>.
+      </p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
