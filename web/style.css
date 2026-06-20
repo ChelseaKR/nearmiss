@@ -129,10 +129,78 @@ figure {
   gap: 1rem;
 }
 
-@media (max-width: 48rem) {
-  .map-split {
+/* R10: single-map toggle. When one view is selected, the other figure collapses
+   and the shown map spans the full width. */
+.map-split[data-view="reports"] {
+  grid-template-columns: 1fr;
+}
+.map-split[data-view="reports"] .map-fig:nth-of-type(2) {
+  display: none;
+}
+.map-split[data-view="rate"] {
+  grid-template-columns: 1fr;
+}
+.map-split[data-view="rate"] .map-fig:nth-of-type(1) {
+  display: none;
+}
+
+/* R11/R27: stack the two maps sooner so each stays usable on phones / at 200%. */
+@media (max-width: 60rem) {
+  .map-split[data-view="both"] {
     grid-template-columns: 1fr;
   }
+}
+
+.map-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.map-toggle button {
+  font: inherit;
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  min-height: 24px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--accent);
+  border-radius: 4px;
+}
+
+.map-toggle button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.table-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.table-controls input[type="search"] {
+  font: inherit;
+  padding: 0.3rem 0.5rem;
+  min-height: 24px;
+  border: 1px solid var(--muted);
+  border-radius: 4px;
+}
+
+.filter-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Briefly highlight a segment row when deep-linked (#seg-…) from the summary. */
+tbody th[scope="row"]:target {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
 }
 
 .map-fig {

@@ -49,7 +49,14 @@
           Summarizing hotspots…
         </p>
 
-        <div class="map-split">
+        <div class="map-toggle" role="group" aria-labelledby="map-toggle-label">
+          <span id="map-toggle-label" data-i18n="mv_label">Show:</span>
+          <button type="button" data-mapview="both" aria-pressed="true" data-i18n="mv_both">Both maps</button>
+          <button type="button" data-mapview="reports" aria-pressed="false" data-i18n="mv_reports">Reports only</button>
+          <button type="button" data-mapview="rate" aria-pressed="false" data-i18n="mv_rate">Rate only</button>
+        </div>
+
+        <div class="map-split" data-view="both">
           <figure class="map-fig">
             <figcaption class="map-title" data-i18n="map_reports_t">
               ① Raw report count — what most maps show
@@ -87,6 +94,11 @@
           <strong>confidence</strong> are stated in words, not by color.
         </p>
         <p id="sort-status" class="visually-hidden" aria-live="polite"></p>
+        <div class="table-controls">
+          <label for="table-filter" data-i18n="filter_label">Filter segments by name</label>
+          <input type="search" id="table-filter" autocomplete="off" />
+          <span id="filter-status" class="filter-status" aria-live="polite"></span>
+        </div>
         <div class="table-wrap" tabindex="0" role="region" aria-label="Ranked segments table (scrollable)">
           <table id="data-table">
             <caption id="data-caption">Loading…</caption>
@@ -95,18 +107,18 @@
                 <th scope="col">
                   <button type="button" data-sort="name" data-i18n="th_segment">Segment</button>
                 </th>
-                <th scope="col">
+                <th scope="col" data-i18n-title="tt_rate">
                   <button type="button" data-sort="rate" data-i18n="th_rate">Rate /1000</button>
                 </th>
-                <th scope="col" data-i18n="th_ci">95% CI</th>
-                <th scope="col">
+                <th scope="col" data-i18n="th_ci" data-i18n-title="tt_ci">95% CI</th>
+                <th scope="col" data-i18n-title="tt_n">
                   <button type="button" data-sort="n" data-i18n="th_n">Reports (n)</button>
                 </th>
-                <th scope="col" data-i18n="th_conf">Confidence</th>
-                <th scope="col">
+                <th scope="col" data-i18n="th_conf" data-i18n-title="tt_conf">Confidence</th>
+                <th scope="col" data-i18n-title="tt_hot">
                   <button type="button" data-sort="getis_ord_z" data-i18n="th_hot">Hotspot (Gi*)</button>
                 </th>
-                <th scope="col" data-i18n="th_flags">Quality flags</th>
+                <th scope="col" data-i18n="th_flags" data-i18n-title="tt_flags">Quality flags</th>
               </tr>
             </thead>
             <tbody id="data-body">
@@ -184,7 +196,8 @@
         <a href="https://github.com/ChelseaKR/nearmiss">Source on GitHub</a> ·
         <a href="https://chelseakr.com">chelseakr.com</a>. Maps ©
         <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Methods:
-        <code>docs/METHODOLOGY.md</code>; limits and biases: <code>docs/DATA-CARD.md</code>.
+        <code>docs/METHODOLOGY.md</code>; what it can't tell you: <code>docs/LIMITATIONS.md</code>;
+        limits and biases: <code>docs/DATA-CARD.md</code>.
         Every figure regenerates with <code>make reproduce</code>.
       </p>
     </footer>
