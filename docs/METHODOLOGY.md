@@ -17,6 +17,22 @@ support](#10-limitations-what-these-numbers-do-not-support). They are the whole 
 
 ---
 
+## TL;DR (one screen)
+
+For a council member, a journalist, or anyone who needs the method in ten lines:
+
+1. **Count.** Snap each report to a street segment (a block between intersections); count reports per block.
+2. **Normalize.** Divide by **exposure** — how much cycling that block carries — to get a *rate per rider*, not a raw count. This is the whole game: a busy street collects many reports because many people use it, not because it is dangerous.
+3. **No denominator, no rate.** A block with no trustworthy exposure is published as **"exposure unknown,"** never ranked as if we were sure (HR1).
+4. **Put error bars on it.** Every rate carries a 95% confidence interval and its sample size `n`; small samples are marked uncertain, not ranked as certain (HR2). The interval covers the count, not yet the exposure (see [LIMITATIONS](LIMITATIONS.md)).
+5. **Find real hotspots.** A block is flagged **★ Significant** only when Getis-Ord Gi\* (with a Benjamini-Hochberg false-discovery-rate correction) says it is hotter than exposure and chance alone explain — not merely "loud."
+6. **Name the bias.** Who reports is self-selected; the bias is described, not hidden (HR3).
+7. **Reproduce it.** `make reproduce` regenerates every published number from raw inputs (HR5).
+
+The honest one-liner: nearmiss tells you **where the near-miss rate per rider is statistically higher than exposure and chance explain** — a narrower, more defensible claim than "the most dangerous street." Everything below is the detail behind these seven steps.
+
+---
+
 ## Table of contents
 
 1. [Notation and the unit of analysis](#1-notation-and-the-unit-of-analysis)

@@ -83,6 +83,30 @@ python tools/fetch_osm_streets.py --from-file overpass.json --out streets.geojso
 `segment_id` is stable (`osm-w<wayid>-<block>`), so re-running on the same area is reproducible.
 Choose the road classes with `--highway`, or keep whole ways with `--no-split`.
 
+### Joining the published data to your own layers (segment IDs)
+
+The published GeoJSON uses the project's own `segment_id`, which is *not* your city's
+centerline key — so here is the crosswalk (this is roadmap item **R31**):
+
+| Source of streets | `segment_id` format | How to recover the source key |
+|---|---|---|
+| OpenStreetMap (this fetcher) | `osm-w<wayid>-<block>` | The OSM way is the middle field: split on `-`, take `w<wayid>` → OSM way `https://www.openstreetmap.org/way/<wayid>`. `<block>` is the 1-based segment between intersections along that way. |
+| Synthetic fixtures (demo) | `seg-NN` | A demo identifier only; not a real-world key. |
+| Your own `streets.geojson` | whatever you put in `properties.segment_id` (or `id`) | The loader (`loaders.load_streets`) takes `segment_id`, then `id`, then the GeoJSON feature `id`, in that order. |
+
+To conflate to a municipal centerline file, two practical routes:
+
+1. **Via OSM way id.** Recover `<wayid>` as above and join to any layer that carries OSM
+   ids (many open street layers do, or can be matched once).
+2. **Spatial conflation.** Buffer each published `LineString` a few metres and take the
+   maximum-overlap centerline segment. Because each published segment is already a
+   single block (split at intersections), one-to-one matches are common; review the
+   ambiguous ones. A documented conflation helper is a future tool.
+
+Every published segment is `LineString` geometry in WGS84 ([lon, lat]) per RFC 7946, so it
+joins in QGIS/PostGIS without a custom reader; the full attribute contract (and which fields
+are nullable / suppressed) is in [`schema/dataset.schema.md`](../schema/dataset.schema.md).
+
 ## 3. Exposure — the genuinely hard part (but real data exists)
 
 `exposure.json` is the denominator: how much cycling each segment carries. **This is the make-or-break

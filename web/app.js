@@ -105,6 +105,23 @@
       tt_conf: "“uncertain” = small sample; “exposure unknown” = no denominator.",
       tt_hot: "Getis-Ord Gi* z-score; ★ Significant is a real cluster (z > 1.96, FDR-corrected).",
       tt_flags: "Data-quality caveats for this segment.",
+      th_hazards: "Hazards",
+      tt_hazards: "What kinds of hazard were reported here (suppressed for very small samples).",
+      hz_close_pass: "close pass",
+      hz_dooring: "dooring",
+      hz_surface_hazard: "surface hazard",
+      hz_sightline: "sightline",
+      hz_signal: "signal",
+      hz_debris: "debris",
+      hz_other: "other",
+      blLoading: "Summarizing…",
+      blSummary:
+        "Bottom line: {hot} of {n} analyzed blocks are statistically significant hotspots — hotter " +
+        "than traffic (exposure) explains. Highest rate per rider: {list}. Raw volume is not danger.",
+      blNone:
+        "Bottom line: none of the {n} analyzed blocks is a statistically significant hotspot — no " +
+        "street is hotter than exposure and chance explain. Raw volume is not danger.",
+      blEmpty: "Bottom line: no analyzed segments in this dataset yet.",
       map_h: "Two maps, the same reports",
       map_desc:
         "The same near-miss reports, mapped two ways on a real street map. On the left, the " +
@@ -243,6 +260,25 @@
       tt_conf: "“incierto” = muestra pequeña; “exposición desconocida” = sin denominador.",
       tt_hot: "Puntuación z de Getis-Ord Gi*; ★ Significativo es un grupo real (z > 1.96, con corrección FDR).",
       tt_flags: "Advertencias de calidad de datos para este segmento.",
+      th_hazards: "Peligros",
+      tt_hazards: "Qué tipos de peligro se reportaron aquí (suprimido en muestras muy pequeñas).",
+      hz_close_pass: "paso cercano",
+      hz_dooring: "apertura de puerta",
+      hz_surface_hazard: "peligro en el pavimento",
+      hz_sightline: "visibilidad",
+      hz_signal: "señal",
+      hz_debris: "escombros",
+      hz_other: "otro",
+      blLoading: "Resumiendo…",
+      blSummary:
+        "En resumen: {hot} de {n} cuadras analizadas son puntos calientes estadísticamente " +
+        "significativos — más peligrosos de lo que explica el tráfico (exposición). Mayor tasa por " +
+        "persona: {list}. El volumen crudo no es peligro.",
+      blNone:
+        "En resumen: ninguna de las {n} cuadras analizadas es un punto caliente estadísticamente " +
+        "significativo — ninguna calle es más peligrosa de lo que explican exposición y azar. El " +
+        "volumen crudo no es peligro.",
+      blEmpty: "En resumen: aún no hay segmentos analizados en este conjunto.",
       map_h: "Dos mapas, los mismos reportes",
       map_desc:
         "Los mismos reportes de cuasi-accidentes, mapeados de dos formas sobre un mapa de calles real. " +
@@ -371,6 +407,20 @@
       tr.appendChild(cell("td", fmt(p.rate)));
       tr.appendChild(cell("td", fmt(p.rate_ci_low) + " – " + fmt(p.rate_ci_high)));
       tr.appendChild(cell("td", String(p.n)));
+
+      // R24: the reported hazard mix, where it survives small-sample suppression.
+      var hb = p.hazard_breakdown || {};
+      var hbKeys = Object.keys(hb).sort(function (a, b) {
+        return hb[b] - hb[a];
+      });
+      var hzText = hbKeys.length
+        ? hbKeys
+            .map(function (k) {
+              return (t("hz_" + k) || k) + " (" + hb[k] + ")";
+            })
+            .join(", ")
+        : t("none");
+      tr.appendChild(cell("td", hzText));
 
       var conf = cell("td", t("conf_" + p.confidence_label) || p.confidence_label);
       if (p.confidence_label !== "certain") conf.className = "uncertain";
@@ -717,6 +767,37 @@
     if (parts[1]) el.appendChild(document.createTextNode(parts[1]));
   }
 
+  // R4/R5 — a plain-language "bottom line" for a council member or neighbor: how
+  // many blocks are real hotspots out of how many, the worst few by rate per
+  // rider, and the one-line catch that volume is not danger.
+  function applyBottomLine() {
+    var el = document.getElementById("bottom-line");
+    if (!el || !rows.length) return;
+    var dataRows = rows.filter(hasRate);
+    if (!dataRows.length) {
+      el.textContent = t("blEmpty");
+      return;
+    }
+    var hot = dataRows.filter(function (p) {
+      return p.getis_ord_significant;
+    });
+    if (!hot.length) {
+      el.textContent = tpl(t("blNone"), { n: dataRows.length });
+      return;
+    }
+    var top = dataRows
+      .slice()
+      .sort(function (a, b) {
+        return (b.rate || 0) - (a.rate || 0);
+      })
+      .slice(0, 3)
+      .map(function (p) {
+        return (p.name || p.segment_id) + " (" + fmt(p.rate) + ")";
+      })
+      .join(", ");
+    el.textContent = tpl(t("blSummary"), { hot: hot.length, n: dataRows.length, list: top });
+  }
+
   // R22 — point the download link at whatever dataset is actually loaded, and
   // name it (city, version, segment count) so people know what they're getting.
   function applyDownload() {
@@ -792,6 +873,7 @@
         applyI18n();
         applyProvenance();
         applyHotspotSummary();
+        applyBottomLine();
         applyDownload();
         if (rows.length) {
           renderTable();
@@ -806,7 +888,7 @@
     body.textContent = "";
     var tr = document.createElement("tr");
     var td = document.createElement("td");
-    td.setAttribute("colspan", "7");
+    td.setAttribute("colspan", "8");
     td.textContent = tpl(t("fail"), { msg: message });
     tr.appendChild(td);
     body.appendChild(tr);
@@ -835,6 +917,7 @@
       renderTable();
       renderMaps();
       applyHotspotSummary();
+      applyBottomLine();
       applyDownload();
     })
     .catch(function (e) {

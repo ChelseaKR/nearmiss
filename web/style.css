@@ -41,6 +41,18 @@ h1 {
   max-width: 48rem;
 }
 
+/* Plain-language "bottom line" for a hurried reader (council member / neighbor).
+   Prominent but not alarming; the words carry the meaning, not color alone. */
+.bottom-line {
+  max-width: 48rem;
+  margin: 1rem 0;
+  padding: 0.6rem 0.85rem;
+  background: #eef3f9;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-size: 1.02rem;
+}
+
 .lang-switch {
   display: flex;
   gap: 0.25rem;

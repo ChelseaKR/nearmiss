@@ -26,12 +26,15 @@ does not flatter the current build, and explicitly marks the things we should
 > banner), **R22** (dataset download), **R2** (header glossary tooltips), **R6**
 > (modeled-exposure flag surfaced), **R10** (single-map toggle), **R11/R27**
 > (earlier map stacking), **R20** (per-segment deep links from the summary),
-> **R21** (table name filter), and **R3 + partial R28** (the
-> [limitations page](../LIMITATIONS.md), incl. the CI-scope caveat). The large
-> remaining items (R40/R44 intake + abuse design, R36/E10 exposure adapters,
-> E5 official-collision fusion, E2 before/after evaluation, E17/E18 API & tiles)
-> are intentionally deferred — they need live data sources and/or the
-> abuse/privacy design the panel flagged as a prerequisite.
+> **R21** (table name filter), **R3 + partial R28** (the
+> [limitations page](../LIMITATIONS.md), incl. the CI-scope caveat), **R4/R5** (a
+> plain-language "bottom line" callout), **R24** (hazard-type breakdown column),
+> **R31** (a segment-ID join crosswalk in REAL-DATA.md), and **R46** (a
+> methodology TL;DR). The gated big-ticket **R40–R44 / E13–E16** (contributor
+> intake + abuse defense) is now **scoped** in
+> [INTAKE-AND-ABUSE.md](../INTAKE-AND-ABUSE.md). Still deferred pending live data
+> sources: R36/E10 exposure adapters, E5 official-collision fusion, E2
+> before/after evaluation, E17/E18 API & tiles.
 
 ## Contents
 
