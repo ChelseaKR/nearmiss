@@ -35,6 +35,7 @@
   var DATA_URL = resolveDataUrl();
   var lang = "en";
   var rows = [];
+  var filterText = ""; // R21 table name filter (lowercased)
   var meta = {}; // embedded dataset metadata (city, dataset_note, exposure_unit, …)
   var maps = {}; // { reports: L.Map, rate: L.Map }
   var dataLayers = { reports: [], rate: [] };
@@ -56,7 +57,54 @@
       demo_synth:
         "⚠️ Showing the <strong>{city} synthetic demo</strong> dataset — generated test data, not real reports.",
       demo_real:
-        "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {note}",
+        "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {source}",
+      source_label: "Source:",
+      hsLoading: "Summarizing hotspots…",
+      hsSummary:
+        "{n} statistically significant hotspot(s) — hotter than exposure and chance explain: {list}.",
+      hsSummaryNone:
+        "No statistically significant hotspots in this dataset (no street is hotter than exposure and chance explain).",
+      hsEmpty: "No analyzed segments to summarize.",
+      download: "Download this dataset (GeoJSON)",
+      downloadMeta: " — {city}, dataset v{ver} ({n} segments)",
+      faq_h: "Questions people ask",
+      faq_q1: "Why isn’t my busy street the most dangerous one?",
+      faq_a1:
+        "Because volume is not danger. A busy street collects the most reports simply because the " +
+        "most people use it. We divide reports by exposure (how much cycling each street carries), " +
+        "so the map shows the rate per rider, not the raw count. A high-traffic street can have many " +
+        "reports and still be safer per trip than a quiet one with a few.",
+      faq_q2: "Is a near-miss the same as a crash?",
+      faq_a2:
+        "No. These are self-reported near-misses and hazards, which by definition usually leave no " +
+        "police report. They are an early-warning signal, not verified injuries or collision " +
+        "statistics, and we never present them as such.",
+      faq_q3: "What does “exposure unknown” mean?",
+      faq_a3:
+        "It means we have no trustworthy count of how many people cycle that street, so we will not " +
+        "invent a denominator. Those segments are shown as uncertain and are never ranked as if we " +
+        "were sure. A rate without a denominator is not published.",
+      faq_q4: "How do I know which streets are really hotspots?",
+      faq_a4:
+        "A street is marked “★ Significant” only when a statistical test (Getis-Ord Gi*, with a " +
+        "false-discovery-rate correction) says it is hotter than exposure and chance alone would " +
+        "explain. Everything else carries a confidence interval so you can see how sure — or unsure " +
+        "— the number is.",
+      mv_label: "Show:",
+      mv_both: "Both maps",
+      mv_reports: "Reports only",
+      mv_rate: "Rate only",
+      filter_label: "Filter segments by name",
+      filterStatus: "Showing {shown} of {n} segments",
+      captionFiltered:
+        "Exposure-normalized hazard rates — showing {shown} of {n} analyzed segments (filtered).",
+      flag_modeled_exposure: "modeled exposure (not measured)",
+      tt_rate: "Reports per 1000 units of exposure — risk per rider, not a raw count.",
+      tt_ci: "95% confidence interval: the plausible range. Wide means uncertain.",
+      tt_n: "Number of reports on this segment (the sample size).",
+      tt_conf: "“uncertain” = small sample; “exposure unknown” = no denominator.",
+      tt_hot: "Getis-Ord Gi* z-score; ★ Significant is a real cluster (z > 1.96, FDR-corrected).",
+      tt_flags: "Data-quality caveats for this segment.",
       map_h: "Two maps, the same reports",
       map_desc:
         "The same near-miss reports, mapped two ways on a real street map. On the left, the " +
@@ -84,7 +132,8 @@
         'Open data, Apache-2.0. <a href="https://github.com/ChelseaKR/nearmiss">Source on GitHub</a> · ' +
         '<a href="https://chelseakr.com">chelseakr.com</a>. Maps © ' +
         '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Methods: ' +
-        "<code>docs/METHODOLOGY.md</code>; limits and biases: <code>docs/DATA-CARD.md</code>. " +
+        "<code>docs/METHODOLOGY.md</code>; what it can't tell you: <code>docs/LIMITATIONS.md</code>; " +
+        "limits and biases: <code>docs/DATA-CARD.md</code>. " +
         "Every figure regenerates with <code>make reproduce</code>.",
       th_segment: "Segment",
       th_rate: "Rate /1000",
@@ -143,7 +192,57 @@
       demo_synth:
         "⚠️ Mostrando la <strong>demostración sintética de {city}</strong> — datos de prueba, no reportes reales.",
       demo_real:
-        "✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. {note}",
+        "✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. {source}",
+      source_label: "Fuente:",
+      hsLoading: "Resumiendo puntos calientes…",
+      hsSummary:
+        "{n} punto(s) caliente(s) estadísticamente significativo(s) — más peligrosos de lo que " +
+        "explican exposición y azar: {list}.",
+      hsSummaryNone:
+        "No hay puntos calientes estadísticamente significativos en este conjunto (ninguna calle es " +
+        "más peligrosa de lo que explican exposición y azar).",
+      hsEmpty: "No hay segmentos analizados para resumir.",
+      download: "Descargar este conjunto de datos (GeoJSON)",
+      downloadMeta: " — {city}, datos v{ver} ({n} segmentos)",
+      faq_h: "Preguntas frecuentes",
+      faq_q1: "¿Por qué mi calle más transitada no es la más peligrosa?",
+      faq_a1:
+        "Porque el volumen no es peligro. Una calle transitada acumula más reportes simplemente " +
+        "porque la usa más gente. Dividimos los reportes por la exposición (cuánta bicicleta lleva " +
+        "cada calle), así que el mapa muestra la tasa por persona, no el conteo crudo. Una calle muy " +
+        "transitada puede tener muchos reportes y aun así ser más segura por viaje que una tranquila " +
+        "con pocos.",
+      faq_q2: "¿Un cuasi-accidente es lo mismo que un choque?",
+      faq_a2:
+        "No. Son cuasi-accidentes y peligros autoinformados que, por definición, normalmente no " +
+        "dejan un reporte policial. Son una señal de alerta temprana, no lesiones verificadas ni " +
+        "estadísticas de colisiones, y nunca los presentamos como tales.",
+      faq_q3: "¿Qué significa “exposición desconocida”?",
+      faq_a3:
+        "Significa que no tenemos un conteo confiable de cuánta gente circula en bicicleta por esa " +
+        "calle, así que no inventaremos un denominador. Esos segmentos se muestran como inciertos y " +
+        "nunca se clasifican como si estuviéramos seguros. Una tasa sin denominador no se publica.",
+      faq_q4: "¿Cómo sé qué calles son realmente puntos calientes?",
+      faq_a4:
+        "Una calle se marca “★ Significativo” solo cuando una prueba estadística (Getis-Ord Gi*, con " +
+        "corrección de tasa de falso descubrimiento) indica que es más peligrosa de lo que explican " +
+        "exposición y azar por sí solos. Todo lo demás lleva un intervalo de confianza para que vea " +
+        "qué tan seguro — o inseguro — es el número.",
+      mv_label: "Mostrar:",
+      mv_both: "Ambos mapas",
+      mv_reports: "Solo reportes",
+      mv_rate: "Solo tasa",
+      filter_label: "Filtrar segmentos por nombre",
+      filterStatus: "Mostrando {shown} de {n} segmentos",
+      captionFiltered:
+        "Tasas normalizadas por exposición — mostrando {shown} de {n} segmentos analizados (filtrado).",
+      flag_modeled_exposure: "exposición modelada (no medida)",
+      tt_rate: "Reportes por 1000 unidades de exposición — riesgo por persona, no un conteo crudo.",
+      tt_ci: "Intervalo de confianza del 95%: el rango plausible. Amplio significa incierto.",
+      tt_n: "Número de reportes en este segmento (el tamaño de muestra).",
+      tt_conf: "“incierto” = muestra pequeña; “exposición desconocida” = sin denominador.",
+      tt_hot: "Puntuación z de Getis-Ord Gi*; ★ Significativo es un grupo real (z > 1.96, con corrección FDR).",
+      tt_flags: "Advertencias de calidad de datos para este segmento.",
       map_h: "Dos mapas, los mismos reportes",
       map_desc:
         "Los mismos reportes de cuasi-accidentes, mapeados de dos formas sobre un mapa de calles real. " +
@@ -171,7 +270,8 @@
         'Datos abiertos, Apache-2.0. <a href="https://github.com/ChelseaKR/nearmiss">Código en GitHub</a> · ' +
         '<a href="https://chelseakr.com">chelseakr.com</a>. Mapas © ' +
         '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contribuyentes. Métodos: ' +
-        "<code>docs/METHODOLOGY.md</code>; límites y sesgos: <code>docs/DATA-CARD.md</code>. " +
+        "<code>docs/METHODOLOGY.md</code>; lo que no puede decirle: <code>docs/LIMITATIONS.md</code>; " +
+        "límites y sesgos: <code>docs/DATA-CARD.md</code>. " +
         "Cada cifra se regenera con <code>make reproduce</code>.",
       th_segment: "Segmento",
       th_rate: "Tasa /1000",
@@ -246,19 +346,27 @@
     });
   }
 
+  function matchesFilter(p) {
+    if (!filterText) return true;
+    return String(p.name || p.segment_id).toLowerCase().indexOf(filterText) !== -1;
+  }
+
   function renderTable() {
     var body = document.getElementById("data-body");
     body.textContent = "";
     // The table is the authoritative DATA view: only analyzed segments (those with
     // an exposure denominator and a rate). The maps' gray context streets carry no
     // data, so they are not table rows.
-    var dataRows = rows.filter(hasRate);
+    var allData = rows.filter(hasRate);
+    var dataRows = allData.filter(matchesFilter);
     dataRows.forEach(function (p) {
       var tr = document.createElement("tr");
       if (p.getis_ord_significant) tr.className = "is-hotspot";
 
-      tr.appendChild(cell("th", p.name || p.segment_id));
-      tr.firstChild.setAttribute("scope", "row");
+      var th = cell("th", p.name || p.segment_id);
+      th.setAttribute("scope", "row");
+      th.id = "seg-" + p.segment_id; // R20: stable deep-link / anchor target
+      tr.appendChild(th);
 
       tr.appendChild(cell("td", fmt(p.rate)));
       tr.appendChild(cell("td", fmt(p.rate_ci_low) + " – " + fmt(p.rate_ci_high)));
@@ -280,10 +388,26 @@
       var flags = (p.quality_flags || []).map(function (fl) {
         return t("flag_" + fl) || fl;
       });
+      // R6: a modeled (not measured) exposure denominator is surfaced as a flag,
+      // never silently treated as a real count.
+      if (p.exposure_source && /modeled/i.test(p.exposure_source)) {
+        flags.push(t("flag_modeled_exposure"));
+      }
       tr.appendChild(cell("td", flags.length ? flags.join(", ") : t("none")));
       body.appendChild(tr);
     });
-    document.getElementById("data-caption").textContent = tpl(t("caption"), { n: dataRows.length });
+    var caption = document.getElementById("data-caption");
+    if (dataRows.length === allData.length) {
+      caption.textContent = tpl(t("caption"), { n: allData.length });
+    } else {
+      caption.textContent = tpl(t("captionFiltered"), { shown: dataRows.length, n: allData.length });
+    }
+    var status = document.getElementById("filter-status");
+    if (status) {
+      status.textContent = filterText
+        ? tpl(t("filterStatus"), { shown: dataRows.length, n: allData.length })
+        : "";
+    }
   }
 
   // ---- Maps -----------------------------------------------------------------
@@ -520,6 +644,10 @@
     document.querySelectorAll("[data-i18n]").forEach(function (el) {
       el.innerHTML = t(el.getAttribute("data-i18n"));
     });
+    // R2: translated tooltips on the table column headers (glossary on hover).
+    document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+      el.setAttribute("title", t(el.getAttribute("data-i18n-title")));
+    });
     document.querySelectorAll(".lang-switch button").forEach(function (b) {
       b.setAttribute("aria-pressed", b.getAttribute("data-lang") === lang ? "true" : "false");
     });
@@ -542,7 +670,69 @@
       note.innerHTML = tpl(t("demo_synth"), { city: city || "demo" });
     } else {
       note.className = "real-note";
-      note.innerHTML = tpl(t("demo_real"), { city: city, unit: unit, note: rawNote });
+      // Keep the banner sentence fully in the active language; the source note is
+      // mostly proper nouns (BikeMaps, OpenStreetMap), shown after a translated
+      // "Source:" label, with any leading "Real data:"/"Datos reales:" stripped so
+      // it doesn't read as a second, English sentence (R16).
+      var cleaned = rawNote.replace(/^\s*(real data|datos reales)\s*:?\s*/i, "");
+      var source = cleaned ? t("source_label") + " " + cleaned : "";
+      note.innerHTML = tpl(t("demo_real"), { city: city, unit: unit, source: source });
+    }
+  }
+
+  // R8 — a text equivalent of the map's main finding for screen-reader users (and
+  // everyone): which segments are statistically significant hotspots, in words.
+  function applyHotspotSummary() {
+    var el = document.getElementById("hotspot-summary");
+    if (!el || !rows.length) return; // pre-load: leave the "summarizing…" text
+    var dataRows = rows.filter(hasRate);
+    if (!dataRows.length) {
+      el.textContent = t("hsEmpty");
+      return;
+    }
+    var hot = dataRows
+      .filter(function (p) {
+        return p.getis_ord_significant;
+      })
+      .sort(function (a, b) {
+        return (b.rate || 0) - (a.rate || 0);
+      });
+    if (!hot.length) {
+      el.textContent = t("hsSummaryNone");
+      return;
+    }
+    // R20: each named hotspot links to its row in the authoritative table, so a
+    // reader (or a journalist citing it) can jump straight to the numbers.
+    el.textContent = "";
+    var template = t("hsSummary");
+    var parts = template.split("{list}");
+    el.appendChild(document.createTextNode(tpl(parts[0], { n: hot.length })));
+    hot.forEach(function (p, i) {
+      if (i > 0) el.appendChild(document.createTextNode(", "));
+      var a = document.createElement("a");
+      a.href = "#seg-" + p.segment_id;
+      a.textContent = p.name || p.segment_id;
+      el.appendChild(a);
+    });
+    if (parts[1]) el.appendChild(document.createTextNode(parts[1]));
+  }
+
+  // R22 — point the download link at whatever dataset is actually loaded, and
+  // name it (city, version, segment count) so people know what they're getting.
+  function applyDownload() {
+    var a = document.getElementById("download-data");
+    if (a) a.setAttribute("href", DATA_URL);
+    var m = document.getElementById("download-meta");
+    if (!m) return;
+    if (rows.length && meta && Object.keys(meta).length) {
+      var n = meta.segments_published != null ? meta.segments_published : rows.filter(hasRate).length;
+      m.textContent = tpl(t("downloadMeta"), {
+        city: meta.city || "",
+        ver: meta.dataset_version || "?",
+        n: n,
+      });
+    } else {
+      m.textContent = "";
     }
   }
 
@@ -565,12 +755,44 @@
     });
   }
 
+  function wireFilter() {
+    var input = document.getElementById("table-filter");
+    if (!input) return;
+    input.addEventListener("input", function () {
+      filterText = input.value.toLowerCase().trim();
+      renderTable();
+    });
+  }
+
+  // R10: let the reader show one map at a time (kinder on small screens and at
+  // high zoom). Leaflet must recompute its size when a hidden map reappears.
+  function wireMapToggle() {
+    var split = document.querySelector(".map-split");
+    var buttons = document.querySelectorAll(".map-toggle button[data-mapview]");
+    buttons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        buttons.forEach(function (b) {
+          b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+        });
+        if (split) split.setAttribute("data-view", btn.getAttribute("data-mapview"));
+        if (maps.reports) {
+          setTimeout(function () {
+            maps.reports.invalidateSize();
+            maps.rate.invalidateSize();
+          }, 0);
+        }
+      });
+    });
+  }
+
   function wireLangSwitch() {
     document.querySelectorAll(".lang-switch button").forEach(function (b) {
       b.addEventListener("click", function () {
         lang = b.getAttribute("data-lang");
         applyI18n();
         applyProvenance();
+        applyHotspotSummary();
+        applyDownload();
         if (rows.length) {
           renderTable();
           renderMaps();
@@ -595,6 +817,8 @@
 
   applyI18n();
   wireSorting();
+  wireFilter();
+  wireMapToggle();
   wireLangSwitch();
 
   fetch(DATA_URL)
@@ -610,6 +834,8 @@
       setSortState("rate", false);
       renderTable();
       renderMaps();
+      applyHotspotSummary();
+      applyDownload();
     })
     .catch(function (e) {
       fail(e.message);
