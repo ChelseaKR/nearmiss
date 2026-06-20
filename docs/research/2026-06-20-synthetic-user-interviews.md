@@ -20,6 +20,19 @@ does not flatter the current build, and explicitly marks the things we should
 > perform expert cognitive walkthroughs, not live assistive-technology or field
 > testing; their findings are hypotheses to validate, not measurements.
 
+> **Implementation status (updated 2026-06-20).** A first and second cut of the
+> self-contained, no-new-privacy-surface items are already shipped: **R1/R45**
+> (FAQ), **R8** (screen-reader hotspot summary), **R16** (Spanish provenance
+> banner), **R22** (dataset download), **R2** (header glossary tooltips), **R6**
+> (modeled-exposure flag surfaced), **R10** (single-map toggle), **R11/R27**
+> (earlier map stacking), **R20** (per-segment deep links from the summary),
+> **R21** (table name filter), and **R3 + partial R28** (the
+> [limitations page](../LIMITATIONS.md), incl. the CI-scope caveat). The large
+> remaining items (R40/R44 intake + abuse design, R36/E10 exposure adapters,
+> E5 official-collision fusion, E2 before/after evaluation, E17/E18 API & tiles)
+> are intentionally deferred — they need live data sources and/or the
+> abuse/privacy design the panel flagged as a prerequisite.
+
 ## Contents
 
 - [Method & how to read this](#method--how-to-read-this)
