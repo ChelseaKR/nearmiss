@@ -45,6 +45,10 @@
           <a href="#data-table">data table</a>, which the maps supplement.
         </p>
 
+        <p id="hotspot-summary" class="hotspot-summary" aria-live="polite" data-i18n="hsLoading">
+          Summarizing hotspots…
+        </p>
+
         <div class="map-split">
           <figure class="map-fig">
             <figcaption class="map-title" data-i18n="map_reports_t">
@@ -112,6 +116,11 @@
             </tbody>
           </table>
         </div>
+        <p class="downloads">
+          <a id="download-data" href="../data/published/davis.geojson" download data-i18n="download"
+            >Download this dataset (GeoJSON)</a
+          ><span id="download-meta"></span>
+        </p>
       </section>
 
       <section aria-labelledby="legend-heading">
@@ -128,6 +137,44 @@
             cluster (Getis-Ord Gi*, z &gt; 1.96): hot beyond what exposure and chance explain.
           </li>
         </ul>
+      </section>
+
+      <section aria-labelledby="faq-heading">
+        <h2 id="faq-heading" data-i18n="faq_h">Questions people ask</h2>
+        <details class="faq">
+          <summary data-i18n="faq_q1">Why isn’t my busy street the most dangerous one?</summary>
+          <p data-i18n="faq_a1">
+            Because volume is not danger. A busy street collects the most reports simply because the
+            most people use it. We divide reports by exposure (how much cycling each street carries),
+            so the map shows the rate per rider, not the raw count. A high-traffic street can have
+            many reports and still be safer per trip than a quiet one with a few.
+          </p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq_q2">Is a near-miss the same as a crash?</summary>
+          <p data-i18n="faq_a2">
+            No. These are self-reported near-misses and hazards, which by definition usually leave no
+            police report. They are an early-warning signal, not verified injuries or collision
+            statistics, and we never present them as such.
+          </p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq_q3">What does “exposure unknown” mean?</summary>
+          <p data-i18n="faq_a3">
+            It means we have no trustworthy count of how many people cycle that street, so we will not
+            invent a denominator. Those segments are shown as uncertain and are never ranked as if we
+            were sure. A rate without a denominator is not published.
+          </p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq_q4">How do I know which streets are really hotspots?</summary>
+          <p data-i18n="faq_a4">
+            A street is marked “★ Significant” only when a statistical test (Getis-Ord Gi*, with a
+            false-discovery-rate correction) says it is hotter than exposure and chance alone would
+            explain. Everything else carries a confidence interval so you can see how sure — or
+            unsure — the number is.
+          </p>
+        </details>
       </section>
     </main>
 

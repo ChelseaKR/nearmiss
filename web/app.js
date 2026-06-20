@@ -56,7 +56,39 @@
       demo_synth:
         "⚠️ Showing the <strong>{city} synthetic demo</strong> dataset — generated test data, not real reports.",
       demo_real:
-        "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {note}",
+        "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {source}",
+      source_label: "Source:",
+      hsLoading: "Summarizing hotspots…",
+      hsSummary:
+        "{n} statistically significant hotspot(s) — hotter than exposure and chance explain: {list}.",
+      hsSummaryNone:
+        "No statistically significant hotspots in this dataset (no street is hotter than exposure and chance explain).",
+      hsEmpty: "No analyzed segments to summarize.",
+      download: "Download this dataset (GeoJSON)",
+      downloadMeta: " — {city}, dataset v{ver} ({n} segments)",
+      faq_h: "Questions people ask",
+      faq_q1: "Why isn’t my busy street the most dangerous one?",
+      faq_a1:
+        "Because volume is not danger. A busy street collects the most reports simply because the " +
+        "most people use it. We divide reports by exposure (how much cycling each street carries), " +
+        "so the map shows the rate per rider, not the raw count. A high-traffic street can have many " +
+        "reports and still be safer per trip than a quiet one with a few.",
+      faq_q2: "Is a near-miss the same as a crash?",
+      faq_a2:
+        "No. These are self-reported near-misses and hazards, which by definition usually leave no " +
+        "police report. They are an early-warning signal, not verified injuries or collision " +
+        "statistics, and we never present them as such.",
+      faq_q3: "What does “exposure unknown” mean?",
+      faq_a3:
+        "It means we have no trustworthy count of how many people cycle that street, so we will not " +
+        "invent a denominator. Those segments are shown as uncertain and are never ranked as if we " +
+        "were sure. A rate without a denominator is not published.",
+      faq_q4: "How do I know which streets are really hotspots?",
+      faq_a4:
+        "A street is marked “★ Significant” only when a statistical test (Getis-Ord Gi*, with a " +
+        "false-discovery-rate correction) says it is hotter than exposure and chance alone would " +
+        "explain. Everything else carries a confidence interval so you can see how sure — or unsure " +
+        "— the number is.",
       map_h: "Two maps, the same reports",
       map_desc:
         "The same near-miss reports, mapped two ways on a real street map. On the left, the " +
@@ -143,7 +175,42 @@
       demo_synth:
         "⚠️ Mostrando la <strong>demostración sintética de {city}</strong> — datos de prueba, no reportes reales.",
       demo_real:
-        "✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. {note}",
+        "✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. {source}",
+      source_label: "Fuente:",
+      hsLoading: "Resumiendo puntos calientes…",
+      hsSummary:
+        "{n} punto(s) caliente(s) estadísticamente significativo(s) — más peligrosos de lo que " +
+        "explican exposición y azar: {list}.",
+      hsSummaryNone:
+        "No hay puntos calientes estadísticamente significativos en este conjunto (ninguna calle es " +
+        "más peligrosa de lo que explican exposición y azar).",
+      hsEmpty: "No hay segmentos analizados para resumir.",
+      download: "Descargar este conjunto de datos (GeoJSON)",
+      downloadMeta: " — {city}, datos v{ver} ({n} segmentos)",
+      faq_h: "Preguntas frecuentes",
+      faq_q1: "¿Por qué mi calle más transitada no es la más peligrosa?",
+      faq_a1:
+        "Porque el volumen no es peligro. Una calle transitada acumula más reportes simplemente " +
+        "porque la usa más gente. Dividimos los reportes por la exposición (cuánta bicicleta lleva " +
+        "cada calle), así que el mapa muestra la tasa por persona, no el conteo crudo. Una calle muy " +
+        "transitada puede tener muchos reportes y aun así ser más segura por viaje que una tranquila " +
+        "con pocos.",
+      faq_q2: "¿Un cuasi-accidente es lo mismo que un choque?",
+      faq_a2:
+        "No. Son cuasi-accidentes y peligros autoinformados que, por definición, normalmente no " +
+        "dejan un reporte policial. Son una señal de alerta temprana, no lesiones verificadas ni " +
+        "estadísticas de colisiones, y nunca los presentamos como tales.",
+      faq_q3: "¿Qué significa “exposición desconocida”?",
+      faq_a3:
+        "Significa que no tenemos un conteo confiable de cuánta gente circula en bicicleta por esa " +
+        "calle, así que no inventaremos un denominador. Esos segmentos se muestran como inciertos y " +
+        "nunca se clasifican como si estuviéramos seguros. Una tasa sin denominador no se publica.",
+      faq_q4: "¿Cómo sé qué calles son realmente puntos calientes?",
+      faq_a4:
+        "Una calle se marca “★ Significativo” solo cuando una prueba estadística (Getis-Ord Gi*, con " +
+        "corrección de tasa de falso descubrimiento) indica que es más peligrosa de lo que explican " +
+        "exposición y azar por sí solos. Todo lo demás lleva un intervalo de confianza para que vea " +
+        "qué tan seguro — o inseguro — es el número.",
       map_h: "Dos mapas, los mismos reportes",
       map_desc:
         "Los mismos reportes de cuasi-accidentes, mapeados de dos formas sobre un mapa de calles real. " +
@@ -542,7 +609,61 @@
       note.innerHTML = tpl(t("demo_synth"), { city: city || "demo" });
     } else {
       note.className = "real-note";
-      note.innerHTML = tpl(t("demo_real"), { city: city, unit: unit, note: rawNote });
+      // Keep the banner sentence fully in the active language; the source note is
+      // mostly proper nouns (BikeMaps, OpenStreetMap), shown after a translated
+      // "Source:" label, with any leading "Real data:"/"Datos reales:" stripped so
+      // it doesn't read as a second, English sentence (R16).
+      var cleaned = rawNote.replace(/^\s*(real data|datos reales)\s*:?\s*/i, "");
+      var source = cleaned ? t("source_label") + " " + cleaned : "";
+      note.innerHTML = tpl(t("demo_real"), { city: city, unit: unit, source: source });
+    }
+  }
+
+  // R8 — a text equivalent of the map's main finding for screen-reader users (and
+  // everyone): which segments are statistically significant hotspots, in words.
+  function applyHotspotSummary() {
+    var el = document.getElementById("hotspot-summary");
+    if (!el || !rows.length) return; // pre-load: leave the "summarizing…" text
+    var dataRows = rows.filter(hasRate);
+    if (!dataRows.length) {
+      el.textContent = t("hsEmpty");
+      return;
+    }
+    var hot = dataRows
+      .filter(function (p) {
+        return p.getis_ord_significant;
+      })
+      .sort(function (a, b) {
+        return (b.rate || 0) - (a.rate || 0);
+      });
+    if (!hot.length) {
+      el.textContent = t("hsSummaryNone");
+      return;
+    }
+    var list = hot
+      .map(function (p) {
+        return p.name || p.segment_id;
+      })
+      .join(", ");
+    el.textContent = tpl(t("hsSummary"), { n: hot.length, list: list });
+  }
+
+  // R22 — point the download link at whatever dataset is actually loaded, and
+  // name it (city, version, segment count) so people know what they're getting.
+  function applyDownload() {
+    var a = document.getElementById("download-data");
+    if (a) a.setAttribute("href", DATA_URL);
+    var m = document.getElementById("download-meta");
+    if (!m) return;
+    if (rows.length && meta && Object.keys(meta).length) {
+      var n = meta.segments_published != null ? meta.segments_published : rows.filter(hasRate).length;
+      m.textContent = tpl(t("downloadMeta"), {
+        city: meta.city || "",
+        ver: meta.dataset_version || "?",
+        n: n,
+      });
+    } else {
+      m.textContent = "";
     }
   }
 
@@ -571,6 +692,8 @@
         lang = b.getAttribute("data-lang");
         applyI18n();
         applyProvenance();
+        applyHotspotSummary();
+        applyDownload();
         if (rows.length) {
           renderTable();
           renderMaps();
@@ -610,6 +733,8 @@
       setSortState("rate", false);
       renderTable();
       renderMaps();
+      applyHotspotSummary();
+      applyDownload();
     })
     .catch(function (e) {
       fail(e.message);
