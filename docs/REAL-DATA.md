@@ -63,6 +63,29 @@ conflict — honesty over precision we don't have.
 BikeMaps publishes its points publicly (already slightly fuzzed for privacy), so using them does not
 re-expose anyone; we still aggregate to segments downstream like any other source.
 
+### Another real source: SimRa (and it carries exposure too)
+
+[SimRa](https://github.com/simra-project/dataset) (TU Berlin) is an openly-published,
+GitHub-hosted dataset of **bicycle near-crashes with GPS** for Berlin, London, Munich and other
+regions. It is doubly useful: the annotated incidents are the numerator, and the *ride GPS traces in
+the same files* are a natural exposure denominator — a rare case where one source can normalize
+itself. Because it lives on GitHub, it can be fetched even from a restricted build environment.
+
+`tools/fetch_simra.py` reads a SimRa region folder and emits intake-schema reports, mapping SimRa's
+incident enum to our `hazard_type` vocabulary (close pass → `close_pass`, near-dooring → `dooring`,
+dodging an obstacle → `surface_hazard`, other conflicts → `other`); every SimRa record is a
+near-miss, so `severity` is always `near_miss`, and epoch-ms timestamps become RFC 3339 UTC.
+
+```bash
+# Pull the dataset (it is large; one region is enough to start):
+#   git clone https://github.com/simra-project/dataset
+python tools/fetch_simra.py --dir dataset/Berlin_2023_03 --city berlin --out reports.json
+```
+
+A single partial month of Berlin data yields ~68 schema-valid real near-misses (31 close passes,
+16 near-doorings, …). The remaining inputs for a full Berlin publish are streets (OSM) and exposure —
+and the SimRa ride traces are themselves a candidate exposure layer (count ride-points per segment).
+
 ## 2. Street network — real, available today (OpenStreetMap)
 
 `streets.geojson` is the base network reports snap to (`segment_id`, `name`, `LineString`). The real
