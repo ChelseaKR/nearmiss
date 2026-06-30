@@ -60,6 +60,34 @@ _EN: dict[str, str] = {
         "candidates for hot because dangerous, not hot because busy:"
     ),
     "significant_none": "No segment reaches statistical significance at this sample size.",
+    "robustness_heading": "## Robustness checks (overdispersion & re-segmentation)",
+    "overdispersion_present": (
+        "- **Overdispersion (clustered reporting).** The report counts are overdispersed "
+        "(dispersion ≈ {phi}): reports cluster, so the Poisson 95% intervals above are roughly "
+        "{infl}× narrower than that clustering alone would justify. {clause}"
+    ),
+    "overdispersion_applied": (
+        "Those intervals have already been widened accordingly (quasi-Poisson)."
+    ),
+    "overdispersion_not_applied": (
+        "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening is "
+        "available via the `overdispersion_adjust` setting)."
+    ),
+    "overdispersion_none": (
+        "- **Overdispersion.** Report counts show no material overdispersion (dispersion ≈ "
+        "{phi}); the Poisson intervals stand as computed."
+    ),
+    "maup_survives": (
+        "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from "
+        "{fine}) leaves **{name}** the highest-rate, still-significant cluster — the hotspot is "
+        "not an artifact of where the block lines were drawn. Top-{k} rank overlap: {overlap}."
+    ),
+    "maup_dissolves": (
+        "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from "
+        "{fine}), **{name}** stays the highest-rate unit but loses statistical significance at "
+        "the coarser scale — read it as scale-sensitive, a lead to confirm rather than a settled "
+        "cluster. Top-{k} rank overlap: {overlap}."
+    ),
     "bias_heading": "## Reporting bias (named, not hidden)",
     "bias_counterweight": (
         "This does not mean nothing can be concluded — an exposure-normalized rate with a "
