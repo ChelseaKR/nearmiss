@@ -20,6 +20,7 @@ exposure = "../data/real/sacramento/exposure.json"
 
 raw_dir = "../data/real/sacramento/store"
 out_dir = "../data/real/sacramento/published"
+submissions_dir = "../data/real/sacramento/pending"  # PRIVATE moderation queue, gitignored (HR4)
 
 ref_lat = 38.5816
 ref_lon = -121.4944

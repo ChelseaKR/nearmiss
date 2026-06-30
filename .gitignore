@@ -14,8 +14,12 @@ data/raw/**
 
 # Public-submission moderation queue — precise pending/approved reports, private
 # like data/raw/. Only aggregated, published artifacts are ever committed (HR4).
+# Matched at any depth (e.g. data/real/<city>/pending/) so a moderation store can
+# never be committed regardless of where a config's submissions_dir resolves.
 data/pending/
 data/pending/**
+**/pending/
+**/pending/**
 
 # Real-city working tree: fetched inputs and isolated outputs from the real-data
 # pipeline (BikeMaps + OSM + counts). Not committed — fetch it locally; the

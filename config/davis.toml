@@ -20,6 +20,7 @@ exposure = "../data/real/davis/exposure.json"
 
 raw_dir = "../data/real/davis/store"      # PRIVATE working store, gitignored
 out_dir = "../data/real/davis/published"  # isolated from the committed demo dataset
+submissions_dir = "../data/real/davis/pending"  # PRIVATE moderation queue, gitignored (HR4)
 
 ref_lat = 38.5449
 ref_lon = -121.7405
