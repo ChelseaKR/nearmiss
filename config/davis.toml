@@ -1,0 +1,38 @@
+# Davis, CA — REAL data config (not the synthetic demo; see config/davis-demo.toml).
+#
+# Inputs are fetched by the real-data tools, NOT committed (they live under the
+# gitignored data/real/ tree), so a real run never clobbers the committed demo
+# dataset or the `make reproduce` gate. Populate the three inputs, then run:
+#
+#   make real CITY=davis           # fetch all three inputs
+#   nearmiss run --config config/davis.toml
+#
+# See docs/REAL-DATA.md. Davis bike-count data is sparse and crowdsourced
+# near-miss coverage is thin here, so expect many "exposure unknown" segments —
+# which the pipeline reports honestly rather than papering over.
+city = "Davis"
+dataset_note = "Real data: BikeMaps.org near-misses, OpenStreetMap streets, California AT bicycle counts."
+exposure_unit = "bike counts (CA AT Count Dataset)"
+
+streets = "../data/real/davis/streets.geojson"
+reports = "../data/real/davis/reports.json"
+exposure = "../data/real/davis/exposure.json"
+
+raw_dir = "../data/real/davis/store"      # PRIVATE working store, gitignored
+out_dir = "../data/real/davis/published"  # isolated from the committed demo dataset
+
+ref_lat = 38.5449
+ref_lon = -121.7405
+
+[thresholds]
+snap_max_m = 25
+dedupe_window_s = 600
+dedupe_distance_m = 15
+small_n = 5
+min_publish_n = 3       # k-anonymity: withhold segments with 0 < reports < this
+rate_per = 1000
+confidence_z = 1.96
+fdr_alpha = 0.05
+gi_band_m = 300
+kde_bandwidth_m = 150
+kde_grid = 20

@@ -32,7 +32,19 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lint type test accessibility axe security verify \
-        reproduce demo publish serve bench clean
+        reproduce demo publish serve bench bikemaps osm-streets real clean
+
+# Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
+# Override CITY and the output paths as needed.
+CITY            ?= victoria
+BIKEMAPS_OUT    ?= build/$(CITY)-reports.json
+OSM_STREETS_OUT ?= build/$(CITY)-streets.geojson
+# `make real` assembles the three inputs for a committed real config (davis,
+# sacramento) into its gitignored input dir. Provide COUNTS=path to a bike-count
+# file (GeoJSON points or CSV) for the exposure step; omit it to leave exposure
+# unknown (honest) until you have counts.
+REAL_DIR        ?= data/real/$(CITY)
+COUNTS          ?=
 
 help: ## Show this help — every target with its description
 	@echo "nearmiss — open dataset + honest analysis of road near-misses"
@@ -108,6 +120,32 @@ serve: ## Serve the accessible map + data view (read-only) at /web/index.html
 
 bench: ## Performance benchmark: time the pipeline + statistics on a city-scale synthetic dataset
 	$(PYTHON) tools/benchmark.py
+
+bikemaps: ## Fetch REAL near-miss reports from BikeMaps.org (CITY=victoria) into BIKEMAPS_OUT
+	@mkdir -p $(dir $(BIKEMAPS_OUT))
+	$(PYTHON) tools/fetch_bikemaps.py --city $(CITY) --out $(BIKEMAPS_OUT)
+	@echo "bikemaps: real reports in $(BIKEMAPS_OUT) (intake schema)."
+	@echo "          Next: real streets + exposure, then 'nearmiss run' — see docs/REAL-DATA.md."
+
+osm-streets: ## Fetch the REAL OSM street network (CITY=victoria) into OSM_STREETS_OUT
+	@mkdir -p $(dir $(OSM_STREETS_OUT))
+	$(PYTHON) tools/fetch_osm_streets.py --city $(CITY) --out $(OSM_STREETS_OUT)
+	@echo "osm-streets: real street network in $(OSM_STREETS_OUT) (split at intersections)."
+	@echo "             Remaining real input: exposure — see docs/REAL-DATA.md."
+
+real: ## Assemble all REAL inputs for a committed config (CITY=davis|sacramento; COUNTS=path optional)
+	@mkdir -p $(REAL_DIR)
+	$(PYTHON) tools/fetch_osm_streets.py --city $(CITY) --out $(REAL_DIR)/streets.geojson
+	$(PYTHON) tools/fetch_bikemaps.py    --city $(CITY) --out $(REAL_DIR)/reports.json
+ifneq ($(COUNTS),)
+	$(PYTHON) tools/build_exposure.py --streets $(REAL_DIR)/streets.geojson --counts "$(COUNTS)" \
+		--source "$(CITY) bike counts" --out $(REAL_DIR)/exposure.json
+else
+	@echo '{"segments": []}' > $(REAL_DIR)/exposure.json
+	@echo "real: no COUNTS given — exposure left empty (all segments 'exposure unknown')."
+	@echo "      Provide COUNTS=path to a bike-count file to normalize. See docs/REAL-DATA.md."
+endif
+	@echo "real: inputs assembled in $(REAL_DIR)/. Now: nearmiss run --config config/$(CITY).toml"
 
 clean: ## Remove build/test/cache artifacts — NEVER data/raw/ (HR4)
 	rm -rf build/ dist/ web/node_modules \

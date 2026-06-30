@@ -207,13 +207,17 @@ jobs:
       - name: Install dev dependencies
         run: python -m pip install -e ".[dev]"
 
-      # Dependency vulnerability scan. Tolerate the advisory-database fetch
-      # failing on a network hiccup (CI runners are not guaranteed egress) so a
-      # transient outage does not red-wall the merge; a real finding still
-      # prints in the log. Hard-failing pip-audit is a future hardening once the
-      # hashed requirements.lock (`make lock`) is committed.
+      # Dependency vulnerability scan — blocking. A known-vulnerable dependency
+      # fails the build (no `|| true`), per SECURITY-AND-SUPPLY-CHAIN §3. The
+      # retry absorbs a transient advisory-database fetch failure (CI runners are
+      # not guaranteed egress) without silencing a real finding.
       - name: pip-audit (known-vulnerable dependencies)
-        run: python -m pip_audit --strict || true
+        run: |
+          for attempt in 1 2 3; do
+            python -m pip_audit --strict && exit 0
+            echo "pip-audit attempt $attempt failed; retrying in 10s..." && sleep 10
+          done
+          python -m pip_audit --strict
 
       - name: gitleaks (committed secrets)
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2
