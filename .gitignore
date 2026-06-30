@@ -12,6 +12,11 @@ data/raw/**
 *.raw.geojson
 *.private.json
 
+# Public-submission moderation queue — precise pending/approved reports, private
+# like data/raw/. Only aggregated, published artifacts are ever committed (HR4).
+data/pending/
+data/pending/**
+
 # Real-city working tree: fetched inputs and isolated outputs from the real-data
 # pipeline (BikeMaps + OSM + counts). Not committed — fetch it locally; the
 # committed published dataset stays the reproducible demo. See docs/REAL-DATA.md.

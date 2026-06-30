@@ -26,6 +26,7 @@ class Config:
     exposure_path: Path
     raw_dir: Path
     out_dir: Path
+    submissions_dir: Path = Path("data/pending")  # PRIVATE moderation queue (gitignored)
     ref_lat: float | None = None
     ref_lon: float | None = None
     gazetteer_path: Path | None = None  # address -> coordinate table for the geocoder
@@ -97,6 +98,7 @@ def load_config(path: str | Path) -> Config:
         exposure_path=_resolve(base, need("exposure")),
         raw_dir=_resolve(base, str(data.get("raw_dir", "data/raw"))),
         out_dir=_resolve(base, str(data.get("out_dir", "data/published"))),
+        submissions_dir=_resolve(base, str(data.get("submissions_dir", "data/pending"))),
         ref_lat=ref_lat,
         ref_lon=ref_lon,
         gazetteer_path=(_resolve(base, str(data["gazetteer"])) if "gazetteer" in data else None),

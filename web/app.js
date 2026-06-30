@@ -54,6 +54,7 @@
         "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not " +
         "real reports. The method is the point: swap in real reports with no code change.",
       titleCity: "nearmiss — where the danger actually is ({city})",
+      report_cta: "Report a near-miss →",
       demo_synth:
         "⚠️ Showing the <strong>{city} synthetic demo</strong> dataset — generated test data, not real reports.",
       demo_real:
@@ -206,6 +207,7 @@
         "⚠️ Mostrando el conjunto de <strong>demostración sintética de Davis</strong> — datos de prueba, no " +
         "reportes reales. El método es lo importante: se cambian por reportes reales sin tocar el código.",
       titleCity: "nearmiss — dónde está realmente el peligro ({city})",
+      report_cta: "Reportar un cuasi-accidente →",
       demo_synth:
         "⚠️ Mostrando la <strong>demostración sintética de {city}</strong> — datos de prueba, no reportes reales.",
       demo_real:
