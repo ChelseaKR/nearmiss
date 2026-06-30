@@ -132,11 +132,13 @@ def to_weather_dataset(payload: dict[str, Any], source: str) -> dict[str, Any]:
                 "condition": _wmo_condition(code) if code >= 0 else ("wet" if wet else "dry"),
             }
         )
+    # NB: the query centroid (latitude/longitude) is intentionally NOT emitted.
+    # The analysis joins weather to reports purely on date, so the coordinates add
+    # nothing — and keeping a location out of the output keeps this open weather
+    # record free of anything a scanner could mistake for location PII.
     return {
         "source": source,
         "license": "Open-Meteo (CC-BY 4.0); ERA5 reanalysis",
-        "latitude": payload.get("latitude"),
-        "longitude": payload.get("longitude"),
         "daily": rows,
     }
 

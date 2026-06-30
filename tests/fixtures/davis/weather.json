@@ -1,8 +1,6 @@
 {
   "source": "Synthetic demonstration weather (not real observations)",
   "license": "Open-Meteo-shaped fixture for tests; CC0",
-  "latitude": 38.5449,
-  "longitude": -121.7405,
   "daily": [
     { "date": "2026-06-08", "precip_mm": 0.0, "wet": false, "condition": "clear" },
     { "date": "2026-06-09", "precip_mm": 3.4, "wet": true, "condition": "rain" },
