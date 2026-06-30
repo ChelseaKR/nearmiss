@@ -1,7 +1,12 @@
 # Contributor intake & abuse defense — design proposal
 
-**Status:** proposal / scoping (not yet built). Drives backlog items **R40–R44**
-and **E13–E16** from the [synthetic user-research panel](research/2026-06-20-synthetic-user-interviews.md).
+**Status:** design + phase-1 slice built. The contributor form and the
+moderation queue described here are **implemented** — see
+[`docs/SUBMISSIONS.md`](SUBMISSIONS.md) for what shipped (the form, the
+pending → approved/rejected lifecycle, schema validation, identifier-leak and
+near-duplicate flagging) and what remains future work (the network-edge defenses
+B2–B3/B6 below). Drives backlog items **R40–R44** and **E13–E16** from the
+[synthetic user-research panel](research/2026-06-20-synthetic-user-interviews.md).
 
 Three advocacy personas came to *contribute a near-miss* and found no door — the
 site is read-only; intake today is a JSON schema (`schema/report.schema.json`)

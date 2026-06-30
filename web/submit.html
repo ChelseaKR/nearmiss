@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>nearmiss — report a near-miss</title>
+    <meta
+      name="description"
+      content="Report a road-hazard or near-miss in under a minute. Submissions are reviewed by a human before they enter the open dataset; we publish only aggregated street-block rates and never your exact location, time, or any identifier."
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the form</a>
+
+    <header>
+      <h1>Report a near-miss</h1>
+      <p class="lede">
+        A close pass, a door zone, a blind corner, a surface hazard — the close calls that never
+        reach a police report. It takes under a minute. Every field except location is optional.
+      </p>
+    </header>
+
+    <main id="main">
+      <!-- Privacy explainer BEFORE the first field (docs/INTAKE-AND-ABUSE.md A1). -->
+      <section class="privacy-note" aria-labelledby="privacy-heading">
+        <h2 id="privacy-heading">Your privacy</h2>
+        <ul>
+          <li>
+            We ask for <strong>no name, email, account, or phone number</strong> — and please keep
+            them out of the note too.
+          </li>
+          <li>
+            Your submission is <strong>reviewed by a person</strong> before it counts. Nothing you
+            send appears on the map as-is.
+          </li>
+          <li>
+            We publish only <strong>aggregated street-block rates</strong>: never your exact spot,
+            never the time, never any identifier. Low-count blocks are withheld entirely.
+          </li>
+          <li>Full detail: <code>docs/THREAT-MODEL.md</code> and <code>docs/SUBMISSIONS.md</code>.</li>
+        </ul>
+      </section>
+
+      <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+
+      <form id="report-form" novalidate>
+        <fieldset>
+          <legend>Where did it happen? <span class="req">(required)</span></legend>
+          <p class="field-help" id="loc-help">
+            Use your current location, or type a place. We snap it to a public street block and never
+            publish the precise point.
+          </p>
+          <div class="field-row">
+            <button type="button" id="use-location">Use my current location</button>
+            <span id="geo-status" class="field-inline-status" aria-live="polite"></span>
+          </div>
+          <div class="field">
+            <label for="lat">Latitude</label>
+            <input type="number" id="lat" name="lat" step="any" inputmode="decimal" aria-describedby="loc-help" />
+          </div>
+          <div class="field">
+            <label for="lon">Longitude</label>
+            <input type="number" id="lon" name="lon" step="any" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="address">…or a street / intersection</label>
+            <input type="text" id="address" name="address" autocomplete="off" maxlength="200"
+              placeholder="e.g. B St &amp; 3rd St, Davis CA" />
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>What kind of hazard? <span class="req">(required)</span></legend>
+          <div class="radio-grid" role="radiogroup" aria-label="Hazard type">
+            <label><input type="radio" name="hazard_type" value="close_pass" /> Close pass (vehicle too close)</label>
+            <label><input type="radio" name="hazard_type" value="dooring" /> Dooring (car door)</label>
+            <label><input type="radio" name="hazard_type" value="surface_hazard" /> Surface hazard (pothole, etc.)</label>
+            <label><input type="radio" name="hazard_type" value="sightline" /> Blind corner / sightline</label>
+            <label><input type="radio" name="hazard_type" value="signal" /> Signal conflict</label>
+            <label><input type="radio" name="hazard_type" value="debris" /> Debris in the path</label>
+            <label><input type="radio" name="hazard_type" value="other" /> Other</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>How serious? <span class="req">(required)</span></legend>
+          <div class="radio-grid" role="radiogroup" aria-label="Severity">
+            <label><input type="radio" name="severity" value="near_miss" /> Near miss (no contact)</label>
+            <label><input type="radio" name="severity" value="minor" /> Minor (contact / fall, little injury)</label>
+            <label><input type="radio" name="severity" value="serious" /> Serious (significant injury)</label>
+          </div>
+          <p class="field-help">
+            This is your own assessment, never presented as a medical or police classification.
+          </p>
+        </fieldset>
+
+        <fieldset>
+          <legend>A few more details (optional)</legend>
+          <div class="field">
+            <label for="mode">How were you travelling?</label>
+            <select id="mode" name="mode">
+              <option value="cyclist" selected>Cycling</option>
+              <option value="pedestrian">Walking</option>
+              <option value="wheelchair">Wheelchair</option>
+              <option value="scooter">Scooter</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="language">Submission language</label>
+            <select id="language" name="language">
+              <option value="en" selected>English</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="note">What happened? (optional)</label>
+            <textarea id="note" name="note" maxlength="1000" rows="3"
+              aria-describedby="note-help"></textarea>
+            <p class="field-help" id="note-help">
+              Please do <strong>not</strong> include names, license plates, phone numbers, or emails.
+              Notes are kept private and are never republished verbatim.
+            </p>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" id="build-submission">Prepare my submission</button>
+        </div>
+      </form>
+
+      <!-- Result: the schema-valid report, ready to send to moderation. Because the
+           site is static and serverless by default, we hand the contributor their
+           JSON to download or send; a deployment can set data-endpoint to POST it. -->
+      <section id="result" class="result" hidden aria-labelledby="result-heading">
+        <h2 id="result-heading">Your submission is ready for review</h2>
+        <p>
+          This is your near-miss as structured data. It enters a <strong>moderation queue</strong>
+          and a human approves it before it ever reaches the dataset. Send it to the maintainers
+          (or your local advocacy org) to add it, or keep a copy.
+        </p>
+        <div class="form-actions">
+          <button type="button" id="download-submission">Download as .json</button>
+          <button type="button" id="copy-submission">Copy to clipboard</button>
+        </div>
+        <label for="submission-json" class="visually-hidden">Submission JSON</label>
+        <textarea id="submission-json" readonly rows="12" spellcheck="false"></textarea>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        <a href="index.html">← Back to the map and data</a> · Open data, Apache-2.0.
+        <a href="https://github.com/ChelseaKR/nearmiss">Source on GitHub</a>. How submissions are
+        handled: <code>docs/SUBMISSIONS.md</code>; privacy: <code>docs/THREAT-MODEL.md</code>.
+      </p>
+    </footer>
+
+    <script src="submit.js"></script>
+  </body>
+</html>

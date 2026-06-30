@@ -122,3 +122,30 @@ def test_metadata_carries_no_coordinate_and_passes_gate(
     assert "kde_peak" not in meta
     # And the metadata passes its own privacy gate.
     assert_metadata_clean(meta, load_city(config).reports)
+
+
+def test_committed_configs_keep_moderation_store_gitignored() -> None:
+    """HR4: every committed config's submissions_dir must resolve to a gitignored
+    path. Pending submissions are precise private reports; if a config's
+    submissions_dir landed on a tracked path (e.g. the bare default resolving next
+    to the config dir), `git add .` could leak them. This locks that invariant."""
+    import subprocess
+    from pathlib import Path
+
+    from nearmiss.config import load_config
+
+    repo_root = Path(__file__).resolve().parent.parent
+    configs = sorted((repo_root / "config").glob("*.toml"))
+    assert configs, "expected committed configs under config/"
+    for cfg_path in configs:
+        cfg = load_config(cfg_path)
+        probe = cfg.submissions_dir / "queue.json"
+        proc = subprocess.run(
+            ["git", "check-ignore", "-q", str(probe)],
+            cwd=repo_root,
+            check=False,
+        )
+        assert proc.returncode == 0, (
+            f"{cfg_path.name}: submissions_dir {cfg.submissions_dir} is NOT gitignored — "
+            "pending submissions could be committed (HR4 violation)"
+        )

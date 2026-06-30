@@ -87,6 +87,40 @@ _EN: dict[str, str] = {
     "label_certain": "certain",
     "label_uncertain": "uncertain",
     "label_exposure_unknown": "exposure unknown",
+    "temporal_heading": "## When hazards get reported (volume, not risk)",
+    "temporal_intro": (
+        "This is **report volume** by time of day, not a rate: there is no time-of-day exposure "
+        "denominator, so it reflects *when people ride and report*, not when a street is most "
+        "dangerous. Read it as a lead for outreach timing, not a risk ranking."
+    ),
+    "temporal_line": "- **{part}**: {n} reports ({pct}%)",
+    "temporal_peak": (
+        "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
+    ),
+    "temporal_small": (
+        "*Small sample: too few timed reports to read these peaks with confidence.*"
+    ),
+    "temporal_suppressed": (
+        "*Time-of-day breakdown withheld: too few timed reports to share without risking "
+        "contributor privacy (k-anonymity).*"
+    ),
+    "temporal_weather": (
+        "**Weather (association, not a risk rate):** {rws} of matched reports fell on wet days, "
+        "while {bws} of days in the weather record were wet. Wet days usually carry far fewer "
+        "riders, so this is an association to investigate, not a weather risk rate. Source: {src}."
+    ),
+    "part_overnight": "overnight (00–06)",
+    "part_am_peak": "morning commute (06–10)",
+    "part_midday": "midday (10–16)",
+    "part_pm_peak": "evening commute (16–20)",
+    "part_evening": "evening (20–24)",
+    "dow_Mon": "Monday",
+    "dow_Tue": "Tuesday",
+    "dow_Wed": "Wednesday",
+    "dow_Thu": "Thursday",
+    "dow_Fri": "Friday",
+    "dow_Sat": "Saturday",
+    "dow_Sun": "Sunday",
 }
 
 _ES: dict[str, str] = {
@@ -174,6 +208,43 @@ _ES: dict[str, str] = {
     "label_certain": "cierto",
     "label_uncertain": "incierto",
     "label_exposure_unknown": "exposición desconocida",
+    "temporal_heading": "## Cuándo se reportan los peligros (volumen, no riesgo)",
+    "temporal_intro": (
+        "Esto es **volumen de reportes** por hora del día, no una tasa: no hay denominador de "
+        "exposición por hora, así que refleja *cuándo la gente circula y reporta*, no cuándo una "
+        "calle es más peligrosa. Léalo como pista para programar difusión, no como ranking de "
+        "riesgo."
+    ),
+    "temporal_line": "- **{part}**: {n} reportes ({pct}%)",
+    "temporal_peak": (
+        "La mayoría de los reportes llegan durante la **{part}**; el día más activo es "
+        "**{weekday}**."
+    ),
+    "temporal_small": (
+        "*Muestra pequeña: muy pocos reportes con hora para leer estos picos con confianza.*"
+    ),
+    "temporal_suppressed": (
+        "*Desglose por hora omitido: muy pocos reportes con hora para compartir sin arriesgar la "
+        "privacidad de quienes reportan (anonimato-k).*"
+    ),
+    "temporal_weather": (
+        "**Clima (asociación, no tasa de riesgo):** {rws} de los reportes emparejados ocurrieron "
+        "en días lluviosos, mientras que {bws} de los días del registro fueron lluviosos. Los días "
+        "lluviosos suelen tener muchos menos ciclistas, así que es una asociación a investigar, no "
+        "una tasa de riesgo por clima. Fuente: {src}."
+    ),
+    "part_overnight": "madrugada (00–06)",
+    "part_am_peak": "hora pico matutina (06–10)",
+    "part_midday": "mediodía (10–16)",
+    "part_pm_peak": "hora pico vespertina (16–20)",
+    "part_evening": "noche (20–24)",
+    "dow_Mon": "lunes",
+    "dow_Tue": "martes",
+    "dow_Wed": "miércoles",
+    "dow_Thu": "jueves",
+    "dow_Fri": "viernes",
+    "dow_Sat": "sábado",
+    "dow_Sun": "domingo",
 }
 
 _BUNDLES: dict[str, dict[str, str]] = {"en": _EN, "es": _ES}

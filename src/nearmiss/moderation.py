@@ -1,0 +1,255 @@
+"""Public-submission moderation queue.
+
+This is the server-side counterpart to the public submission form
+(``web/submit.html``): the path a crowdsourced near-miss takes from "someone on
+the curb pressed submit" to "part of the dataset". The design is in
+``docs/INTAKE-AND-ABUSE.md``; this module implements the core of it — a
+**moderation queue** with an explicit pending → approved/rejected lifecycle.
+
+The hard invariant: **a submission never reaches the dataset until a human
+approves it.** Submissions land *pending* in a PRIVATE store
+(``data/pending/``, gitignored like ``data/raw/`` — hard rule #4), are validated
+against the same ``report.schema.json`` contract as every other report, and only
+``approve`` moves a report into the approved store that the pipeline consumes.
+Everything else (rates, k-anonymity, the publish boundary) is unchanged: an
+approved report still flows raw → pipeline → ``publish.py`` (aggregate, withhold
+low-count) before anything is public.
+
+Abuse defenses here are a small, **testable** subset of the full B-series in the
+design doc: schema validation, near-duplicate detection, and light
+identifier-leak heuristics that *flag for review* (never auto-publish, never
+silently drop). The expensive controls (rate limiting, proof-of-work) belong at
+the network edge and are out of scope for this library module.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import uuid
+from collections.abc import Iterable
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from pathlib import Path
+
+from .config import Config
+from .errors import NearmissError, ValidationError
+from .validation import validate_report
+
+# Submission lifecycle states. A submission is born ``pending``; a human moves it.
+Status = str  # one of: "pending", "approved", "rejected"
+PENDING = "pending"
+APPROVED = "approved"
+REJECTED = "rejected"
+
+_QUEUE_FILE = "queue.json"
+_APPROVED_FILE = "approved-reports.json"
+
+# Light identifier-leak heuristics. These do NOT block — they raise a flag so a
+# moderator looks before approving (the note field is asked to omit identifiers).
+_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+_PHONE_RE = re.compile(r"\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b")
+# A loose US/Canada plate-ish token: 5–8 chars mixing letters and digits.
+_PLATE_RE = re.compile(r"\b(?=[A-Z0-9]{5,8}\b)(?=[A-Z0-9]*[A-Z])(?=[A-Z0-9]*\d)[A-Z0-9]{5,8}\b")
+
+
+@dataclass
+class Submission:
+    """One public submission plus its moderation state. ``report`` stays private."""
+
+    submission_id: str
+    status: Status
+    received_at: str  # ISO-8601 UTC, submission time (NOT the event time)
+    report: dict[str, object]
+    flags: list[str] = field(default_factory=list)
+    reason: str | None = None  # set on reject (or an approver note)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "submission_id": self.submission_id,
+            "status": self.status,
+            "received_at": self.received_at,
+            "flags": list(self.flags),
+            "reason": self.reason,
+            "report": self.report,
+        }
+
+    @staticmethod
+    def from_dict(d: dict[str, object]) -> Submission:
+        report = d.get("report")
+        raw_flags = d.get("flags")
+        flags = [str(f) for f in raw_flags] if isinstance(raw_flags, list) else []
+        return Submission(
+            submission_id=str(d["submission_id"]),
+            status=str(d.get("status", PENDING)),
+            received_at=str(d.get("received_at", "")),
+            report=dict(report) if isinstance(report, dict) else {},
+            flags=flags,
+            reason=(str(d["reason"]) if d.get("reason") is not None else None),
+        )
+
+
+def _queue_path(config: Config) -> Path:
+    return config.submissions_dir / _QUEUE_FILE
+
+
+def _approved_path(config: Config) -> Path:
+    return config.submissions_dir / _APPROVED_FILE
+
+
+def _load_queue(config: Config) -> list[Submission]:
+    path = _queue_path(config)
+    if not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise NearmissError(f"could not read moderation queue {path}: {exc}") from exc
+    rows = data.get("submissions", []) if isinstance(data, dict) else data
+    if not isinstance(rows, list):
+        raise NearmissError(f"{path}: expected a list of submissions")
+    return [Submission.from_dict(dict(r)) for r in rows]
+
+
+def _write_json(path: Path, payload: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _save_queue(config: Config, submissions: Iterable[Submission]) -> None:
+    _write_json(_queue_path(config), {"submissions": [s.to_dict() for s in submissions]})
+
+
+def _coarse_key(report: dict[str, object]) -> tuple[object, ...]:
+    """A near-duplicate key: coarse location + hazard type + event hour."""
+    loc = report.get("location")
+    lat = lon = None
+    if isinstance(loc, dict):
+        try:
+            lat = round(float(loc.get("lat", 0.0)), 4)  # ~11 m
+            lon = round(float(loc.get("lon", 0.0)), 4)
+        except (TypeError, ValueError):
+            lat = lon = None
+    occurred = str(report.get("occurred_at", ""))[:13]  # to the hour
+    return (lat, lon, report.get("address"), report.get("hazard_type"), occurred)
+
+
+def _detect_flags(report: dict[str, object], existing: list[Submission]) -> list[str]:
+    """Compute review flags. These surface a submission for a closer look; they
+    never block submission or auto-approve it."""
+    flags: list[str] = []
+    note = report.get("note")
+    if isinstance(note, str) and note:
+        if _EMAIL_RE.search(note):
+            flags.append("possible_email_in_note")
+        if _PHONE_RE.search(note):
+            flags.append("possible_phone_in_note")
+        if _PLATE_RE.search(note.upper()):
+            flags.append("possible_plate_in_note")
+    key = _coarse_key(report)
+    if any(s.status != REJECTED and _coarse_key(s.report) == key for s in existing):
+        flags.append("possible_duplicate")
+    return flags
+
+
+def submit(config: Config, report: dict[str, object]) -> Submission:
+    """Validate and enqueue a public submission as PENDING. Never auto-approves.
+
+    Raises :class:`ValidationError` (listing every problem) if the report does
+    not satisfy ``report.schema.json`` — a malformed or malicious submission is
+    rejected at this boundary, exactly as CLI/file intake is.
+    """
+    problems = validate_report(report)
+    if problems:
+        raise ValidationError(
+            f"submission failed validation ({len(problems)} problem(s))", problems
+        )
+    queue = _load_queue(config)
+    flags = _detect_flags(report, queue)
+    submission = Submission(
+        submission_id=str(uuid.uuid4()),
+        status=PENDING,
+        received_at=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        report=dict(report),
+        flags=flags,
+    )
+    queue.append(submission)
+    _save_queue(config, queue)
+    return submission
+
+
+def list_submissions(config: Config, status: Status | None = None) -> list[Submission]:
+    """List queued submissions, optionally filtered by status."""
+    queue = _load_queue(config)
+    return [s for s in queue if status is None or s.status == status]
+
+
+def _find(queue: list[Submission], submission_id: str) -> Submission:
+    for s in queue:
+        if s.submission_id == submission_id:
+            return s
+    raise NearmissError(f"no submission with id {submission_id!r} in the moderation queue")
+
+
+def approve(config: Config, submission_id: str, note: str | None = None) -> Submission:
+    """Approve a pending submission: mark approved and append it to the approved
+    reports store the pipeline can consume. Idempotent for already-approved ids."""
+    queue = _load_queue(config)
+    sub = _find(queue, submission_id)
+    if sub.status == APPROVED:
+        return sub
+    if sub.status == REJECTED:
+        raise NearmissError(
+            f"submission {submission_id!r} was rejected; it cannot be approved without resubmission"
+        )
+    sub.status = APPROVED
+    sub.reason = note
+    _save_queue(config, queue)
+    _append_approved(config, sub.report)
+    return sub
+
+
+def reject(config: Config, submission_id: str, reason: str) -> Submission:
+    """Reject a submission with a recorded reason. The report never enters the
+    approved store."""
+    queue = _load_queue(config)
+    sub = _find(queue, submission_id)
+    sub.status = REJECTED
+    sub.reason = reason
+    _save_queue(config, queue)
+    return sub
+
+
+def _append_approved(config: Config, report: dict[str, object]) -> None:
+    path = _approved_path(config)
+    reports: list[dict[str, object]] = []
+    if path.is_file():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise NearmissError(f"could not read approved store {path}: {exc}") from exc
+        existing = data.get("reports", []) if isinstance(data, dict) else data
+        if isinstance(existing, list):
+            reports = [dict(r) for r in existing]
+    # De-duplicate by report id so re-approving never double-counts.
+    rid = report.get("id")
+    if not any(r.get("id") == rid for r in reports):
+        reports.append(dict(report))
+    _write_json(path, {"reports": reports})
+
+
+def approved_reports(config: Config) -> list[dict[str, object]]:
+    """Return the approved reports (the moderated feed into the pipeline).
+
+    This is the ONLY path by which a public submission reaches the dataset:
+    pending and rejected submissions are never returned here.
+    """
+    path = _approved_path(config)
+    if not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise NearmissError(f"could not read approved store {path}: {exc}") from exc
+    rows = data.get("reports", []) if isinstance(data, dict) else data
+    return [dict(r) for r in rows] if isinstance(rows, list) else []

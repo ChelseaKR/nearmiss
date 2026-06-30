@@ -12,6 +12,7 @@ exposure = "../tests/fixtures/davis/exposure.json"
 
 raw_dir = "../data/raw/davis"        # PRIVATE, gitignored
 out_dir = "../data/published"        # open, committed
+submissions_dir = "../data/pending"  # PRIVATE moderation queue, gitignored (HR4)
 
 ref_lat = 38.5449
 ref_lon = -121.7405

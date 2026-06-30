@@ -1,0 +1,13 @@
+{
+  "source": "Synthetic demonstration weather (not real observations)",
+  "license": "Open-Meteo-shaped fixture for tests; CC0",
+  "daily": [
+    { "date": "2026-06-08", "precip_mm": 0.0, "wet": false, "condition": "clear" },
+    { "date": "2026-06-09", "precip_mm": 3.4, "wet": true, "condition": "rain" },
+    { "date": "2026-06-10", "precip_mm": 0.0, "wet": false, "condition": "clear" },
+    { "date": "2026-06-11", "precip_mm": 1.2, "wet": true, "condition": "rain" },
+    { "date": "2026-06-12", "precip_mm": 0.0, "wet": false, "condition": "partly_cloudy" },
+    { "date": "2026-06-13", "precip_mm": 0.0, "wet": false, "condition": "clear" },
+    { "date": "2026-06-14", "precip_mm": 6.1, "wet": true, "condition": "showers" }
+  ]
+}

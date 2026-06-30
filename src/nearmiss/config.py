@@ -26,9 +26,11 @@ class Config:
     exposure_path: Path
     raw_dir: Path
     out_dir: Path
+    submissions_dir: Path = Path("data/pending")  # PRIVATE moderation queue (gitignored)
     ref_lat: float | None = None
     ref_lon: float | None = None
     gazetteer_path: Path | None = None  # address -> coordinate table for the geocoder
+    weather_path: Path | None = None  # optional open/supplied weather dataset (date -> conditions)
     geocoder: str | None = None  # "nominatim" to opt into the networked adapter
     geocoder_user_agent: str = "nearmiss/0.1 (+https://github.com/ChelseaKR/nearmiss)"
     exposure_unit: str = "exposure units"  # human-readable denominator unit for the brief
@@ -96,9 +98,11 @@ def load_config(path: str | Path) -> Config:
         exposure_path=_resolve(base, need("exposure")),
         raw_dir=_resolve(base, str(data.get("raw_dir", "data/raw"))),
         out_dir=_resolve(base, str(data.get("out_dir", "data/published"))),
+        submissions_dir=_resolve(base, str(data.get("submissions_dir", "data/pending"))),
         ref_lat=ref_lat,
         ref_lon=ref_lon,
         gazetteer_path=(_resolve(base, str(data["gazetteer"])) if "gazetteer" in data else None),
+        weather_path=(_resolve(base, str(data["weather"])) if "weather" in data else None),
         geocoder=(str(data["geocoder"]) if "geocoder" in data else None),
         geocoder_user_agent=str(
             data.get("geocoder_user_agent", "nearmiss/0.1 (+https://github.com/ChelseaKR/nearmiss)")

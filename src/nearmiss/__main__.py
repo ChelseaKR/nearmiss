@@ -2,10 +2,12 @@
 
 nearmiss intake   <reports.json>   --config C   # validate -> private raw store
 nearmiss pipeline  --config C [--dump]          # dedupe/geocode/snap/classify/quality
-nearmiss analyze   --config C                   # rates+CIs, bias, KDE, Getis-Ord
+nearmiss analyze   --config C                   # rates+CIs, bias, KDE, Getis-Ord, time-of-day
 nearmiss publish   --config C                   # open GeoJSON + aggregated public data
 nearmiss brief     --config C [--out FILE]      # advocacy brief (markdown)
 nearmiss run       --config C                   # intake -> ... -> brief, end to end
+nearmiss submit   <submission.json> --config C  # queue a public submission (PENDING)
+nearmiss moderate  list|approve|reject|export --config C   # review the moderation queue
 nearmiss serve     [--dir D] [--port P]         # accessible map + data view (read-only)
 nearmiss version
 """
@@ -21,10 +23,21 @@ from pathlib import Path
 from . import __version__
 from .brief import render_brief
 from .config import load_config
-from .engine import build_analysis
+from .engine import AnalysisBundle, build_analysis
 from .errors import NearmissError
 from .figures import write_figures
 from .intake import run_intake
+from .loaders import load_reports
+from .moderation import (
+    APPROVED,
+    PENDING,
+    REJECTED,
+    approve,
+    approved_reports,
+    list_submissions,
+    reject,
+    submit,
+)
 from .publish import _slug, publish
 from .server import serve
 
@@ -77,7 +90,32 @@ def _cmd_analyze(args: argparse.Namespace) -> int:
             f"  {s.segment_id}: rate={s.rate} "
             f"CI=[{s.rate_ci_low}, {s.rate_ci_high}] n={s.n} ({s.confidence_label}){flag}"
         )
+    _print_temporal(bundle)
     return 0
+
+
+def _print_temporal(bundle: AnalysisBundle) -> None:
+    """Print the city-wide time-of-day report-volume breakdown (volume, not a rate)."""
+    t = bundle.result.temporal
+    if t.suppressed:
+        print(
+            f"  time-of-day: withheld ({t.total_timed} timed reports, below the k-anonymity floor)"
+        )
+        return
+    parts = ", ".join(f"{p}={n}" for p, n in t.by_part_of_day.items())
+    print(f"  time-of-day (report VOLUME, not a rate): {parts}")
+    if t.peak_part_of_day is not None:
+        print(f"    busiest part of day: {t.peak_part_of_day}; busiest weekday: {t.peak_weekday}")
+    if t.small_sample:
+        print("    (small sample — peaks shown with caution)")
+    w = t.weather
+    if w is not None:
+        rws = "n/a" if w.report_wet_share is None else f"{w.report_wet_share:.0%}"
+        bws = "n/a" if w.baseline_wet_share is None else f"{w.baseline_wet_share:.0%}"
+        print(
+            f"  weather (association, not a risk rate): {rws} of matched reports on wet days "
+            f"vs {bws} of days wet [source: {w.source}]"
+        )
 
 
 def _cmd_publish(args: argparse.Namespace) -> int:
@@ -124,6 +162,64 @@ def _cmd_figures(args: argparse.Namespace) -> int:
     for p in paths:
         print(f"figures: {p}")
     return 0
+
+
+def _normalize_reports(source: Path) -> list[dict[str, object]]:
+    """Accept a single report object, a list, or a {'reports': [...]} wrapper."""
+    data = json.loads(source.read_text(encoding="utf-8"))
+    if isinstance(data, dict) and "reports" not in data:
+        return [data]  # a lone report object, as the web form emits
+    return load_reports(source)
+
+
+def _cmd_submit(args: argparse.Namespace) -> int:
+    """Ingest a public submission (the form's JSON) into the moderation queue."""
+    config = load_config(args.config)
+    reports = _normalize_reports(Path(args.source))
+    for report in reports:
+        sub = submit(config, report)
+        flags = f" flags={sub.flags}" if sub.flags else ""
+        print(f"submit: queued {sub.submission_id} (pending review){flags}")
+    print(f"submit: {len(reports)} submission(s) pending in {config.submissions_dir}")
+    return 0
+
+
+def _cmd_moderate(args: argparse.Namespace) -> int:
+    config = load_config(args.config)
+    action = args.action
+    if action == "list":
+        status = args.status
+        subs = list_submissions(config, status)
+        if not subs:
+            print(f"moderate: no submissions{f' with status {status}' if status else ''}.")
+            return 0
+        for s in subs:
+            flags = f" flags={s.flags}" if s.flags else ""
+            reason = f" reason={s.reason!r}" if s.reason else ""
+            print(f"  [{s.status}] {s.submission_id} received={s.received_at}{flags}{reason}")
+        print(f"moderate: {len(subs)} submission(s).")
+        return 0
+    if action == "approve":
+        sub = approve(config, args.id, args.note)
+        print(
+            f"moderate: approved {sub.submission_id} -> approved store (now in the pipeline feed)"
+        )
+        return 0
+    if action == "reject":
+        sub = reject(config, args.id, args.reason)
+        print(f"moderate: rejected {sub.submission_id} ({sub.reason})")
+        return 0
+    if action == "export":
+        reports = approved_reports(config)
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(
+            json.dumps({"reports": reports}, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"moderate: exported {len(reports)} approved report(s) to {out}")
+        return 0
+    raise NearmissError(f"unknown moderate action {action!r}")  # pragma: no cover
 
 
 def _cmd_serve(args: argparse.Namespace) -> int:
@@ -178,6 +274,26 @@ def build_parser() -> argparse.ArgumentParser:
     add_config(p_fig)
     p_fig.add_argument("--out", help="output directory (defaults to the published dir)")
     p_fig.set_defaults(func=_cmd_figures)
+
+    p_submit = sub.add_parser("submit", help="queue a public submission for moderation (pending)")
+    p_submit.add_argument("source", help="submission JSON (one report, a list, or {reports:[...]})")
+    add_config(p_submit)
+    p_submit.set_defaults(func=_cmd_submit)
+
+    p_mod = sub.add_parser("moderate", help="review the public-submission moderation queue")
+    add_config(p_mod)
+    mod_sub = p_mod.add_subparsers(dest="action", required=True)
+    m_list = mod_sub.add_parser("list", help="list queued submissions")
+    m_list.add_argument("--status", choices=[PENDING, APPROVED, REJECTED], help="filter by status")
+    m_approve = mod_sub.add_parser("approve", help="approve a pending submission into the dataset")
+    m_approve.add_argument("id", help="submission id")
+    m_approve.add_argument("--note", help="optional approver note")
+    m_reject = mod_sub.add_parser("reject", help="reject a submission with a reason")
+    m_reject.add_argument("id", help="submission id")
+    m_reject.add_argument("--reason", required=True, help="why it was rejected")
+    m_export = mod_sub.add_parser("export", help="write approved reports as a pipeline-ready file")
+    m_export.add_argument("out", help="output reports JSON path")
+    p_mod.set_defaults(func=_cmd_moderate)
 
     p_serve = sub.add_parser("serve", help="serve the accessible map + data view (read-only)")
     p_serve.add_argument("--dir", default=".", help="directory to serve (repo root)")

@@ -40,4 +40,40 @@ Core commitments (see [`docs/ACCESSIBILITY.md`](../docs/ACCESSIBILITY.md) and th
   clear labels and error text.
 - **Honest legends.** A raw-count layer is labeled "report volume," never "danger."
 
-Accessibility is a **merge-blocking CI gate** (axe + manual NVDA/VoiceOver review).
+Accessibility is a **merge-blocking CI gate** (axe + manual NVDA/VoiceOver review). All three pages
+below are checked by `make accessibility` and the `axe` run.
+
+## Pages
+
+| File | What it is |
+| --- | --- |
+| `index.html` + `app.js` | the two-map view + authoritative data table (above) |
+| `submit.html` + `submit.js` | the **public submission form** — accessible, serverless-honest; builds a schema-valid report for the moderation queue (see [`docs/SUBMISSIONS.md`](../docs/SUBMISSIONS.md)) |
+| `embed.html` + `embed.js` + `embed.css` | the **embeddable hotspot widget** (below) |
+| `nearmiss-embed.js` | one-line `<script>`-tag loader that injects the widget as a sandboxed iframe |
+
+## Embeddable hotspot widget
+
+A self-contained, framework-free widget an advocacy site can drop in to show the
+exposure-normalized hotspot map. Two ways to embed:
+
+**iframe** (simplest, fully sandboxed):
+
+```html
+<iframe src="https://nearmiss.report/embed.html?city=davis"
+        title="nearmiss hazard hotspot map" width="100%" height="380"
+        style="border:1px solid #d3dae2;border-radius:6px"></iframe>
+```
+
+**script tag** (injects the sandboxed iframe for you):
+
+```html
+<script src="https://nearmiss.report/nearmiss-embed.js"
+        data-city="davis" data-height="380" async></script>
+```
+
+The widget is source-agnostic the same way the main page is (`?city=`/`?data=`),
+renders only the published, aggregated dataset (no tracking, no cookies), encodes
+magnitude by line thickness and significance by a dashed pattern **and** text
+(never color alone), and ships a text list of the significant hotspots as the
+non-visual equivalent plus a link back to the full map, data, and methods.

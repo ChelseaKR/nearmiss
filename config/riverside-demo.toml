@@ -10,6 +10,7 @@ exposure = "../tests/fixtures/riverside/exposure.json"
 
 raw_dir = "../data/raw/riverside"   # PRIVATE, gitignored
 out_dir = "../data/published"       # open, committed
+submissions_dir = "../data/pending" # PRIVATE moderation queue, gitignored (HR4)
 
 ref_lat = 33.9533
 ref_lon = -117.3962

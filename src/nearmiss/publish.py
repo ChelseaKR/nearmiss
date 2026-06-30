@@ -24,6 +24,7 @@ from .config import Config
 from .engine import build_analysis, load_city
 from .errors import PrivacyError
 from .models import Report, Segment, SegmentStats
+from .stats.temporal import to_metadata as temporal_to_metadata
 
 # Property/field keys that must NEVER appear in any published artifact.
 _FORBIDDEN_KEYS = frozenset(
@@ -84,12 +85,12 @@ def build_geojson(stats: list[SegmentStats], segments: list[Segment]) -> dict[st
 def _iter_lonlat(coords: object) -> Iterator[tuple[float, float]]:
     """Yield every leaf (lon, lat) pair from any GeoJSON coordinate nesting."""
     if (
-        isinstance(coords, (list, tuple))
+        isinstance(coords, list | tuple)
         and len(coords) == 2
-        and all(isinstance(c, (int, float)) for c in coords)
+        and all(isinstance(c, int | float) for c in coords)
     ):
         yield float(coords[0]), float(coords[1])
-    elif isinstance(coords, (list, tuple)):
+    elif isinstance(coords, list | tuple):
         for item in coords:
             yield from _iter_lonlat(item)
 
@@ -213,6 +214,9 @@ def publish(config: Config) -> PublishResult:
         },
         # The KDE report-intensity peak is reported ONLY as a segment id, never a coordinate.
         "report_intensity_peak_segment": bundle.result.kde_peak_segment,
+        # City-wide time-of-day / weather report-VOLUME breakdown (never a per-report
+        # timestamp; withheld below the k-anonymity floor). Volume, not a rate.
+        "temporal": temporal_to_metadata(bundle.result.temporal),
         "geojson_sha256": sha,
         "privacy": (
             "Aggregated to public street segments; segments with a non-zero report count below "

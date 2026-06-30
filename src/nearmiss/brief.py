@@ -152,11 +152,51 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         out.append(t["peak"].format(name=name_of(peak_seg)))
         out.append("")
 
+    _render_temporal(out, bundle, t)
+
     out.append("---")
     out.append("")
     out.append(t["footer"])
     out.append("")
     return "\n".join(out)
+
+
+def _render_temporal(out: list[str], bundle: AnalysisBundle, t: dict[str, str]) -> None:
+    """Append the time-of-day / weather section (report VOLUME, never a rate)."""
+    tb = bundle.result.temporal
+    out.append(t["temporal_heading"])
+    out.append("")
+    if tb.suppressed:
+        out.append(t["temporal_suppressed"])
+        out.append("")
+        return
+    out.append(t["temporal_intro"])
+    out.append("")
+    total = tb.total_timed or 1
+    for part, n in tb.by_part_of_day.items():
+        out.append(
+            t["temporal_line"].format(
+                part=t.get(f"part_{part}", part), n=n, pct=f"{n / total * 100:.0f}"
+            )
+        )
+    out.append("")
+    if tb.peak_part_of_day is not None and tb.peak_weekday is not None:
+        out.append(
+            t["temporal_peak"].format(
+                part=t.get(f"part_{tb.peak_part_of_day}", tb.peak_part_of_day),
+                weekday=t.get(f"dow_{tb.peak_weekday}", tb.peak_weekday),
+            )
+        )
+        out.append("")
+    if tb.small_sample:
+        out.append(t["temporal_small"])
+        out.append("")
+    w = tb.weather
+    if w is not None:
+        rws = "—" if w.report_wet_share is None else f"{w.report_wet_share * 100:.0f}%"
+        bws = "—" if w.baseline_wet_share is None else f"{w.baseline_wet_share * 100:.0f}%"
+        out.append(t["temporal_weather"].format(rws=rws, bws=bws, src=w.source))
+        out.append("")
 
 
 def build_brief(config: Config, lang: str = "en") -> str:
