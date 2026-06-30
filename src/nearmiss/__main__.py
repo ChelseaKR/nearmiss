@@ -21,7 +21,7 @@ from pathlib import Path
 from . import __version__
 from .brief import render_brief
 from .config import load_config
-from .engine import build_analysis
+from .engine import AnalysisBundle, build_analysis
 from .errors import NearmissError
 from .figures import write_figures
 from .intake import run_intake
@@ -77,7 +77,32 @@ def _cmd_analyze(args: argparse.Namespace) -> int:
             f"  {s.segment_id}: rate={s.rate} "
             f"CI=[{s.rate_ci_low}, {s.rate_ci_high}] n={s.n} ({s.confidence_label}){flag}"
         )
+    _print_temporal(bundle)
     return 0
+
+
+def _print_temporal(bundle: AnalysisBundle) -> None:
+    """Print the city-wide time-of-day report-volume breakdown (volume, not a rate)."""
+    t = bundle.result.temporal
+    if t.suppressed:
+        print(
+            f"  time-of-day: withheld ({t.total_timed} timed reports, below the k-anonymity floor)"
+        )
+        return
+    parts = ", ".join(f"{p}={n}" for p, n in t.by_part_of_day.items())
+    print(f"  time-of-day (report VOLUME, not a rate): {parts}")
+    if t.peak_part_of_day is not None:
+        print(f"    busiest part of day: {t.peak_part_of_day}; busiest weekday: {t.peak_weekday}")
+    if t.small_sample:
+        print("    (small sample — peaks shown with caution)")
+    w = t.weather
+    if w is not None:
+        rws = "n/a" if w.report_wet_share is None else f"{w.report_wet_share:.0%}"
+        bws = "n/a" if w.baseline_wet_share is None else f"{w.baseline_wet_share:.0%}"
+        print(
+            f"  weather (association, not a risk rate): {rws} of matched reports on wet days "
+            f"vs {bws} of days wet [source: {w.source}]"
+        )
 
 
 def _cmd_publish(args: argparse.Namespace) -> int:

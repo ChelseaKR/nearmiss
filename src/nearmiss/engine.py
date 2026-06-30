@@ -58,8 +58,26 @@ def build_analysis(config: Config) -> AnalysisBundle:
         )
     unmatched = sorted(exp_ids - seg_ids)
 
+    # Optional open/supplied weather dataset for the time-of-day correlation hook.
+    weather_days = None
+    weather_source = None
+    if config.weather_path is not None:
+        from .stats.temporal import load_weather
+
+        record = load_weather(config.weather_path)
+        weather_days = record.days
+        weather_source = record.source
+
     records, summary = pipeline.run(city.reports, city.segments, config)
-    result = analyze(records, city.reports, city.segments, city.exposure, config)
+    result = analyze(
+        records,
+        city.reports,
+        city.segments,
+        city.exposure,
+        config,
+        weather=weather_days,
+        weather_source=weather_source,
+    )
     return AnalysisBundle(
         result=result,
         records=records,

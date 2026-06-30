@@ -28,5 +28,29 @@
     "snapped": 20,
     "unsnapped": 0
   },
+  "temporal": {
+    "basis": "Report volume by time of day and day of week (city-wide aggregate). NOT an exposure-normalized rate: it reflects when people report, which tracks when they ride. Treat as a lead, not a risk ranking.",
+    "by_hour": {
+      "10": 3,
+      "11": 3,
+      "12": 3,
+      "13": 3,
+      "14": 3,
+      "8": 2,
+      "9": 3
+    },
+    "by_part_of_day": {
+      "am_peak": 5,
+      "midday": 15
+    },
+    "by_weekday": {
+      "Mon": 20
+    },
+    "peak_part_of_day": "midday",
+    "peak_weekday": "Mon",
+    "small_sample_caveat": false,
+    "suppressed_low_count": false,
+    "total_reports_timed": 20
+  },
   "version": "0.1.0"
 }

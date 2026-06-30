@@ -22,6 +22,7 @@ from .bias import BiasReport, characterize_bias
 from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
 from .kde import KdeResult, kde
 from .rates import rate_with_ci
+from .temporal import TemporalBreakdown, WeatherDay, temporal_breakdown
 
 __all__ = ["AnalysisResult", "analyze"]
 
@@ -36,6 +37,7 @@ class AnalysisResult:
     kde: KdeResult
     exposure_coverage: float
     kde_peak_segment: str | None
+    temporal: TemporalBreakdown
 
 
 def _published_quality_flags(
@@ -58,6 +60,8 @@ def analyze(
     segments: list[Segment],
     exposure_map: dict[str, Exposure],
     config: Config,
+    weather: dict[str, WeatherDay] | None = None,
+    weather_source: str | None = None,
 ) -> AnalysisResult:
     agg = aggregate(records)
     seg_ids = [s.id for s in segments]
@@ -134,10 +138,13 @@ def analyze(
                 key=lambda s: haversine_m(peak_cell.lat, peak_cell.lon, *centroids[s.segment_id]),
             ).segment_id
 
+    temporal = temporal_breakdown(records, config, weather, weather_source)
+
     return AnalysisResult(
         segments=stats,
         bias=bias,
         kde=surface,
         exposure_coverage=coverage(attached),
         kde_peak_segment=peak_segment,
+        temporal=temporal,
     )
