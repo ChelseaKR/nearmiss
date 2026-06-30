@@ -1,0 +1,98 @@
+/* Self-contained styles for the embeddable nearmiss hotspot widget.
+ * Kept independent of the main site stylesheet so the widget is portable. */
+
+:root {
+  --embed-fg: #16202c;
+  --embed-muted: #4a5663;
+  --embed-bg: #ffffff;
+  --embed-link: #0b4f9c;
+  --embed-border: #d3dae2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body.embed {
+  margin: 0;
+  padding: 0;
+  background: var(--embed-bg);
+  color: var(--embed-fg);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: #fff;
+  color: var(--embed-link);
+  padding: 8px 12px;
+  z-index: 1000;
+}
+.skip-link:focus {
+  left: 8px;
+  top: 8px;
+}
+
+.embed-main {
+  padding: 0;
+}
+
+.embed-map {
+  width: 100%;
+  height: 320px;
+  min-height: 220px;
+  border: 1px solid var(--embed-border);
+}
+
+.embed-caption {
+  margin: 0.5rem 0.6rem;
+  color: var(--embed-muted);
+  font-size: 0.92rem;
+}
+
+.embed-list {
+  margin: 0 0.6rem;
+}
+.embed-list ul {
+  margin: 0.25rem 0;
+  padding-left: 1.1rem;
+}
+.embed-list li {
+  margin: 0.15rem 0;
+}
+
+.embed-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin: 0.5rem 0.6rem 0.7rem;
+  font-size: 0.86rem;
+  color: var(--embed-muted);
+}
+
+.embed-footer a {
+  color: var(--embed-link);
+}
+
+/* Focus visibility for keyboard users inside the iframe. */
+a:focus,
+button:focus {
+  outline: 3px solid #0b5bd3;
+  outline-offset: 2px;
+}

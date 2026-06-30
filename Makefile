@@ -78,7 +78,7 @@ test: ## Run pytest against synthetic fixtures with KNOWN planted-hotspot answer
 	$(PYTHON) -m pytest -q
 
 accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
-	$(PYTHON) tools/a11y_check.py web/index.html
+	$(PYTHON) tools/a11y_check.py web/index.html web/submit.html web/embed.html
 	@echo "accessibility: structural checks passed."
 	@echo "NOTE: CI also runs axe; full conformance also requires manual NVDA + VoiceOver"
 	@echo "      review — see docs/accessibility/ACR.md (this gate is the floor, not the ceiling)."

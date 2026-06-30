@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>nearmiss hotspot map (embed)</title>
+    <meta
+      name="description"
+      content="Embeddable nearmiss hotspot widget: exposure-normalized road-hazard rates with statistically significant hotspots, for advocacy sites."
+    />
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="embed.css" />
+  </head>
+  <body class="embed">
+    <a class="skip-link" href="#main">Skip to the hotspot list</a>
+    <main id="main" class="embed-main">
+      <h1 class="visually-hidden">nearmiss exposure-normalized hazard hotspots</h1>
+
+      <div
+        id="embed-map"
+        class="embed-map"
+        role="group"
+        aria-label="Map of exposure-normalized hazard rates with significant hotspots. A text list of hotspots follows."
+        aria-describedby="embed-caption"
+      ></div>
+
+      <p id="embed-caption" class="embed-caption" aria-live="polite">Loading hotspot data…</p>
+
+      <!-- Non-visual equivalent: nothing here is conveyed by color alone. -->
+      <section class="embed-list" aria-labelledby="embed-list-heading">
+        <h2 id="embed-list-heading" class="visually-hidden">Significant hotspots (text)</h2>
+        <ul id="embed-hotspots"></ul>
+      </section>
+
+      <p class="embed-footer">
+        <span id="embed-source">Exposure-normalized rates · open data</span>
+        <a id="embed-fulllink" href="https://nearmiss.report" target="_blank" rel="noopener"
+          >View the full map, data & methods →</a
+        >
+      </p>
+    </main>
+    <script src="vendor/leaflet/leaflet.js"></script>
+    <script src="embed.js"></script>
+  </body>
+</html>
