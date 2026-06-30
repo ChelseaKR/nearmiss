@@ -48,6 +48,11 @@ dev = [
   "ruff>=0.4",
   "mypy>=1.10",
   "pip-audit>=2.7",
+  # pip-audit pulls in CacheControl -> msgpack transitively; pin the fixed
+  # version so the blocking pip-audit gate cannot resolve to msgpack 1.2.0
+  # (GHSA-6v7p-g79w-8964, fixed in 1.2.1). Keeps the SCA gate deterministically
+  # green instead of relying on the resolver to pick the newest msgpack.
+  "msgpack>=1.2.1",
   "pre-commit>=3.7",
 ]
 
