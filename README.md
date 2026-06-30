@@ -211,7 +211,13 @@ nearmiss brief --config config/davis-demo.toml --lang es       # English/Spanish
 nearmiss pipeline --config config/davis-demo.toml [--dump]  # --dump prints the intermediate clean records
 
 # Attach exposure denominators and compute exposure-normalized rates with intervals
-nearmiss analyze --config config/davis-demo.toml            # rates + CIs + bias report + KDE + Getis-Ord Gi*
+nearmiss analyze --config config/davis-demo.toml            # rates + CIs + bias + KDE + Gi* + time-of-day
+
+# Public crowdsourced submissions: queue one for review, then moderate it in
+nearmiss submit submission.json --config config/davis-demo.toml      # -> PENDING (private)
+nearmiss moderate list --config config/davis-demo.toml               # review the queue + flags
+nearmiss moderate approve <id> --config config/davis-demo.toml       # only approved enter the dataset
+nearmiss moderate export approved.json --config config/davis-demo.toml
 
 # Publish the open GeoJSON aggregated to public street segments + data card
 nearmiss publish --config config/davis-demo.toml
@@ -519,10 +525,10 @@ If you believe a published artifact leaks identifying precision, treat it as a s
 | [`schema/`](schema/) | [`report.schema.json`](schema/report.schema.json) (intake) and [`dataset.schema.md`](schema/dataset.schema.md) (published GeoJSON) |
 | [`src/nearmiss/`](src/nearmiss/) | intake, pipeline stages, exposure, statistics, publish, brief, accessible server, config |
 | [`notebooks/`](notebooks/) | deterministic analysis notebooks; the reproducibility backbone |
-| [`web/`](web/) | framework-free WCAG 2.2 AA map UI with list/table equivalent |
+| [`web/`](web/) | framework-free WCAG 2.2 AA map UI with list/table equivalent; public submission form (`submit.html`); embeddable hotspot widget (`embed.html` + `nearmiss-embed.js`) |
 | [`data/`](data/) | `raw/` (private, gitignored) and `published/` (open GeoJSON + data card) |
 | [`tests/`](tests/) | pytest suites and planted-hotspot fixtures with known answers |
-| [`docs/`](docs/) | [METHODOLOGY](docs/METHODOLOGY.md), [DATA-CARD](docs/DATA-CARD.md), [ADAPTING](docs/ADAPTING.md), [THREAT-MODEL](docs/THREAT-MODEL.md), [ACCESSIBILITY](docs/ACCESSIBILITY.md), [ADRs](docs/adr/), [audits](docs/audits/), [accessibility ACR](docs/accessibility/ACR.md) |
+| [`docs/`](docs/) | [METHODOLOGY](docs/METHODOLOGY.md), [DATA-CARD](docs/DATA-CARD.md), [ADAPTING](docs/ADAPTING.md), [THREAT-MODEL](docs/THREAT-MODEL.md), [SUBMISSIONS](docs/SUBMISSIONS.md), [INTAKE-AND-ABUSE](docs/INTAKE-AND-ABUSE.md), [ACCESSIBILITY](docs/ACCESSIBILITY.md), [ADRs](docs/adr/), [audits](docs/audits/), [accessibility ACR](docs/accessibility/ACR.md) |
 | [`infra/`](infra/) | optional serverless intake + scheduled rebuild; scale-to-zero |
 | [`.github/`](.github/) | [CI](.github/workflows/ci.yml), Dependabot, CodeQL, issue/PR templates, CODEOWNERS |
 
