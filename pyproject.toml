@@ -38,7 +38,7 @@ classifiers = [
 # analysis runs anywhere Python 3.11+ runs, with no native/geospatial build step.
 # Versions are pinned and hashed in the generated lock file used for reproducible runs.
 dependencies = [
-  "jsonschema>=4.21",
+  "jsonschema>=4.26.0",
 ]
 
 [project.optional-dependencies]
