@@ -42,6 +42,11 @@ class Config:
     min_publish_n: int = 3  # k-anonymity: segments with 0 < count < this are withheld
     rate_per: float = 1000.0
     confidence_z: float = 1.96
+    # RR-02: when true, widen every published rate interval by sqrt(dispersion) if the
+    # report counts are overdispersed (quasi-Poisson). Off by default so enabling it is
+    # a deliberate, versioned methodology change rather than a silent rewrite of every
+    # published interval; the dispersion itself is always computed and reported.
+    overdispersion_adjust: bool = False
     fdr_alpha: float = 0.05  # Benjamini-Hochberg false-discovery-rate level
     gi_band_m: float = 300.0
     kde_bandwidth_m: float = 150.0
@@ -88,6 +93,14 @@ def load_config(path: str | Path) -> Config:
     def thr(key: str, default: float) -> float:
         return num(th[key], key) if key in th else default
 
+    def flag(key: str, default: bool) -> bool:
+        raw_val = th[key] if key in th else data.get(key, default)
+        if isinstance(raw_val, bool):
+            return raw_val
+        if isinstance(raw_val, str):
+            return raw_val.strip().lower() in {"1", "true", "yes", "on"}
+        return bool(raw_val)
+
     ref_lat = num(data["ref_lat"], "ref_lat") if "ref_lat" in data else None
     ref_lon = num(data["ref_lon"], "ref_lon") if "ref_lon" in data else None
 
@@ -115,6 +128,7 @@ def load_config(path: str | Path) -> Config:
         min_publish_n=int(thr("min_publish_n", 3)),
         rate_per=thr("rate_per", 1000.0),
         confidence_z=thr("confidence_z", 1.96),
+        overdispersion_adjust=flag("overdispersion_adjust", False),
         fdr_alpha=thr("fdr_alpha", 0.05),
         gi_band_m=thr("gi_band_m", 300.0),
         kde_bandwidth_m=thr("kde_bandwidth_m", 150.0),

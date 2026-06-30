@@ -21,7 +21,8 @@ from .aggregate import aggregate
 from .bias import BiasReport, characterize_bias
 from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
 from .kde import KdeResult, kde
-from .rates import rate_with_ci
+from .maup import RankStability, rank_stability
+from .rates import pearson_dispersion, rate_with_ci
 from .temporal import TemporalBreakdown, WeatherDay, temporal_breakdown
 
 __all__ = ["AnalysisResult", "analyze"]
@@ -38,6 +39,14 @@ class AnalysisResult:
     exposure_coverage: float
     kde_peak_segment: str | None
     temporal: TemporalBreakdown
+    # Quasi-Poisson dispersion of the report counts (RR-02); ~1 is clean Poisson,
+    # materially above 1 is overdispersion (clustered reporting), in which case the
+    # per-segment Poisson intervals understate uncertainty by ~sqrt(dispersion).
+    dispersion: float = 1.0
+    # Whether the per-segment intervals were widened for that dispersion.
+    overdispersion_adjusted: bool = False
+    # MAUP rank-stability under re-segmentation (RR-05).
+    rank_stability: RankStability | None = None
 
 
 def _published_quality_flags(
@@ -68,6 +77,25 @@ def analyze(
     attached = attach_exposure(seg_ids, exposure_map)
     centroids = {s.id: polyline_centroid(s.coords) for s in segments}
 
+    # RR-02: estimate the quasi-Poisson dispersion of the report counts against
+    # exposure. Clustered reporting makes counts more variable than Poisson, which
+    # makes the pure Poisson interval too narrow; when overdispersion is present we
+    # can widen every per-segment interval by sqrt(dispersion). The dispersion is
+    # always computed and reported (the brief surfaces it); whether it is applied
+    # to the published intervals is an explicit, versioned config choice so the
+    # published methodology is never silently changed under a consumer.
+    usable_counts: list[int] = []
+    usable_exposures: list[float] = []
+    for s in segments:
+        exp = attached.get(s.id)
+        if is_usable(exp):
+            assert exp is not None
+            a = agg.get(s.id)
+            usable_counts.append(a.count if a else 0)
+            usable_exposures.append(exp.estimate)
+    dispersion = pearson_dispersion(usable_counts, usable_exposures)
+    ci_dispersion = dispersion if config.overdispersion_adjust else 1.0
+
     rate_values: dict[str, float] = {}
     stats: list[SegmentStats] = []
     for s in segments:
@@ -81,7 +109,9 @@ def analyze(
         conf: ConfidenceLabel
         if usable:
             assert exp is not None
-            rate, lo, hi = rate_with_ci(count, exp.estimate, config.rate_per, config.confidence_z)
+            rate, lo, hi = rate_with_ci(
+                count, exp.estimate, config.rate_per, config.confidence_z, ci_dispersion
+            )
             rate_values[s.id] = rate
             conf = "uncertain" if count < config.small_n else "certain"
         else:
@@ -140,6 +170,9 @@ def analyze(
 
     temporal = temporal_breakdown(records, config, weather, weather_source)
 
+    # RR-05: re-segment the network and report whether the top hotspots survive.
+    stability = rank_stability(stats, segments, exposure_map, config)
+
     return AnalysisResult(
         segments=stats,
         bias=bias,
@@ -147,4 +180,7 @@ def analyze(
         exposure_coverage=coverage(attached),
         kde_peak_segment=peak_segment,
         temporal=temporal,
+        dispersion=round(dispersion, 4),
+        overdispersion_adjusted=config.overdispersion_adjust,
+        rank_stability=stability,
     )
