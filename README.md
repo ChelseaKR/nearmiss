@@ -450,8 +450,13 @@ yet a track record (v0.1.0).
 source, publish a brief); a pipeline status output. **Administrability** — config-over-code is
 implemented; [`src/nearmiss/config.py`](src/nearmiss/config.py) loads
 [`config/davis-demo.toml`](config/davis-demo.toml), so thresholds and sources are versioned rather than
-coded. **Observability** — structured
+coded. **Observability** (Tier C per the portfolio OBSERVABILITY-STANDARD — a local-only CLI, so OTel
+tracing/metrics/SLOs are out-of-scope) — structured
 logs and metrics on intake and each pipeline stage; rebuilds report coverage and quality-flag counts.
+The read-only server ([`src/nearmiss/server.py`](src/nearmiss/server.py)) emits one JSON line per request
+(method, status, latency, `request_id`, and a **redacted** path — a protected `data/raw/` or dotfile target
+collapses to `<blocked>`, so hard rule #4 holds in the log stream too) and exposes `GET /livez` (liveness)
+and `GET /readyz` (readiness — fail-closed 503 when the served data dir is unavailable).
 **Debuggability** — the figure → notebook → statistic → dataset → raw trace is defined in
 [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md), and `nearmiss pipeline --config <cfg> --dump` emits the
 intermediate clean records for inspection. **Serviceability / supportability** — issue templates and a "paste this to reproduce" path.
