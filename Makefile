@@ -32,7 +32,7 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lint type test accessibility axe security verify \
-        reproduce demo publish serve bench bikemaps osm-streets real clean
+        reproduce demo publish serve bench bikemaps osm-streets real clean mutation
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
 # Override CITY and the output paths as needed.
@@ -96,6 +96,20 @@ axe: ## Deeper accessibility check: run axe-core against the built web page (nee
 
 verify: lint type test accessibility security ## Full merge gate: lint + type + test + accessibility + security
 	@echo "verify: all merge gates green (lint, type, test, accessibility, security)."
+
+mutation: ## ADVISORY (never a merge gate): mutation-test the spatial-stats core with mutmut
+	@echo "mutation: ADVISORY ONLY — this is NOT part of 'make verify' and never gates a PR"
+	@echo "          (backlog #15). It probes the correctness of the Getis-Ord Gi* hotspot"
+	@echo "          and the Poisson/Wilson rate CIs — see docs/MUTATION-TESTING.md."
+	@# Install the isolated mutation extra on demand (kept OUT of the dev extra so the
+	@# security gate's audited dependency surface is unchanged). mutmut is scoped to
+	@# stats/getis_ord.py + stats/rates.py via [tool.mutmut] in pyproject.toml.
+	@$(PYTHON) -c "import mutmut" 2>/dev/null || $(PIP) install -e ".[mutation]"
+	@# `-` prefixes keep this target advisory: surviving mutants never fail the build.
+	-$(PYTHON) -m mutmut run
+	-$(PYTHON) -m mutmut results
+	@echo "mutation: advisory run complete. Review any survivors above against the"
+	@echo "          documented baseline in docs/MUTATION-TESTING.md (equivalent mutants noted)."
 
 reproduce: ## HR5: rebuild every published dataset + figures + brief; fail if output changed
 	$(PYTHON) -m $(PACKAGE) run --config $(CONFIG) --out build/brief.md
