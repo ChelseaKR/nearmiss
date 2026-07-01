@@ -32,6 +32,7 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lint type test accessibility axe security verify \
+        i18n i18n-compile \
         reproduce demo publish serve bench bikemaps osm-streets real clean mutation
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
@@ -94,8 +95,36 @@ security: ## Scan deps (pip-audit) and history for secrets (gitleaks)
 axe: ## Deeper accessibility check: run axe-core against the built web page (needs node)
 	cd web && npm ci && npm run axe
 
-verify: lint type test accessibility security ## Full merge gate: lint + type + test + accessibility + security
-	@echo "verify: all merge gates green (lint, type, test, accessibility, security)."
+i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + BCP-47
+	# G2-lite — regenerate the extraction template and fail if it drifts from the
+	# committed one (so a new/changed user-facing string without a re-extract is a
+	# merge-blocker). The normalizer freezes volatile header/flag noise so this is
+	# a meaningful diff, not a flaky timestamp check. Local == CI.
+	$(PYTHON) -m babel.messages.frontend extract -F babel.cfg --no-location \
+		--sort-output --project=$(PACKAGE) --version=0.1.0 \
+		-o src/$(PACKAGE)/locales/messages.pot src/
+	$(PYTHON) tools/i18n_normalize_pot.py src/$(PACKAGE)/locales/messages.pot
+	git diff --exit-code -- src/$(PACKAGE)/locales/messages.pot
+	# G7 — every PO compiles cleanly (format + domain checks), no msgfmt errors.
+	msgfmt --check --check-format --check-domain -o /dev/null \
+		src/$(PACKAGE)/locales/en/LC_MESSAGES/messages.po
+	msgfmt --check --check-format --check-domain -o /dev/null \
+		src/$(PACKAGE)/locales/es/LC_MESSAGES/messages.po
+	# G6 EN/ES key-parity + G5 completeness/placeholder parity.
+	$(PYTHON) tools/check_catalog_parity.py
+	# G3 — BCP 47 / RFC 5646 validity of every authored locale tag.
+	$(PYTHON) tools/check_bcp47.py
+	@echo "i18n: POT current; EN/ES key-parity + completeness; PO compiles; BCP-47 valid."
+
+i18n-compile: ## Compile the committed PO catalogs to MO (run after editing a .po)
+	msgfmt -o src/$(PACKAGE)/locales/en/LC_MESSAGES/messages.mo \
+		src/$(PACKAGE)/locales/en/LC_MESSAGES/messages.po
+	msgfmt -o src/$(PACKAGE)/locales/es/LC_MESSAGES/messages.mo \
+		src/$(PACKAGE)/locales/es/LC_MESSAGES/messages.po
+	@echo "i18n-compile: refreshed messages.mo for en, es."
+
+verify: lint type test accessibility security i18n ## Full merge gate: lint + type + test + accessibility + security + i18n
+	@echo "verify: all merge gates green (lint, type, test, accessibility, security, i18n)."
 
 mutation: ## ADVISORY (never a merge gate): mutation-test the spatial-stats core with mutmut
 	@echo "mutation: ADVISORY ONLY — this is NOT part of 'make verify' and never gates a PR"

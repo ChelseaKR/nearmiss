@@ -292,9 +292,12 @@ nearmiss run   --config config/your-city.toml --lang es --out build/brief.es.md
 nearmiss brief --config config/your-city.toml --lang es          # brief only, to stdout
 ```
 
-The bilingual brief (via [`src/nearmiss/i18n.py`](../src/nearmiss/i18n.py)) carries a plain-language
-glossary, a bottom-line sentence, the exposure unit you configured, and a bias counterweight, in
-whichever of the two supported languages you choose; an unknown language falls back to English.
+The bilingual brief (English/Spanish gettext catalogs under
+[`src/nearmiss/locales/`](../src/nearmiss/locales/), loaded via
+[`src/nearmiss/i18n.py`](../src/nearmiss/i18n.py)) carries a plain-language glossary, a bottom-line
+sentence, the exposure unit you configured, and a bias counterweight, in whichever of the two
+supported languages you choose; an unknown language falls back to English. See
+[`docs/I18N.md`](I18N.md) for the catalog, the translation workflow, and the merge-blocking gates.
 
 You can also run the stages individually for debugging:
 
