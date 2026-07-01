@@ -204,7 +204,7 @@ nearmiss intake reports.json --config config/davis-demo.toml   # validated again
                                                                # a report carries a lat/lon OR an address (geocoded
                                                                # offline via the configured gazetteer)
 
-# Render the advocacy brief in English (default) or Spanish via src/nearmiss/i18n.py
+# Render the advocacy brief in English (default) or Spanish (gettext catalogs via src/nearmiss/i18n.py)
 nearmiss brief --config config/davis-demo.toml --lang es       # English/Spanish brief; en is the default
 
 # Run the documented pipeline: dedupe -> geocode -> snap -> classify -> quality-flag
@@ -252,7 +252,7 @@ nearmiss/
 │   ├── stats/                     # rates.py (CIs), bias.py, kde.py, getis_ord.py
 │   ├── publish.py                 # build open <city>.geojson + <city>.metadata.json (hashed)
 │   ├── brief.py                   # generate advocacy briefs (ranked locations, intervals, prose)
-│   ├── i18n.py                    # English/Spanish message bundles for the bilingual brief
+│   ├── i18n.py                    # gettext seam (locales/) for the English/Spanish bilingual brief
 │   ├── server.py                  # accessible map + equivalent data table; read-only
 │   └── config.py                  # cities, exposure sources, thresholds as versioned files
 ├── notebooks/                     # reproducible analysis: hotspots, trends, exposure sensitivity

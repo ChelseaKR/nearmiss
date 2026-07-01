@@ -5,13 +5,25 @@ clusters are flagged from Getis-Ord Gi* (FDR-corrected); the reporting bias is
 named in plain language; and a plain-language glossary plus a bottom-line
 sentence make it usable without a statistics background. The output is
 deterministic markdown and can render in English or Spanish.
+
+This is nearmiss's only end-user-facing, natural-language surface. Every such
+string is wrapped in gettext ``_()``/``ngettext()`` (INTERNATIONALIZATION-
+STANDARD §3) and extracted into ``locales/messages.pot``; the translation for a
+requested ``lang`` is loaded via :mod:`nearmiss.i18n`.
 """
 
 from __future__ import annotations
 
+import gettext
+
 from .config import Config
 from .engine import AnalysisBundle, build_analysis
-from .i18n import strings
+from .i18n import (
+    confidence_label,
+    get_translation,
+    part_of_day_label,
+    weekday_label,
+)
 from .models import Segment, SegmentStats
 from .stats.bias import BiasFinding
 
@@ -25,7 +37,9 @@ def _fmt(value: float | None) -> str:
 
 
 def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> str:
-    t = strings(lang)
+    translation = get_translation(lang)
+    _ = translation.gettext
+    ngettext = translation.ngettext
     names = _names(bundle.segments)
     stats = bundle.result.segments
     per = int(config.rate_per)
@@ -36,11 +50,9 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     def name_of(sid: str) -> str:
         return names.get(sid, sid)
 
-    def label(confidence_label: str) -> str:
-        return t.get(f"label_{confidence_label}", confidence_label.replace("_", " "))
-
     def bias_line(f: BiasFinding) -> str:
-        return t["share_line"].format(
+        template: str = _("- {name}: {rshare}% of reports vs {eshare}% of exposure")
+        return template.format(
             name=name_of(f.segment_id),
             rshare=f"{f.report_share * 100:.0f}",
             eshare=f"{f.exposure_share * 100:.0f}",
@@ -53,32 +65,76 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     )
 
     out: list[str] = []
-    out.append(f"# {t['title'].format(city=config.city)}")
+    title = _("Where the danger actually is — {city}").format(city=config.city)
+    out.append(f"# {title}")
     out.append("")
     if config.dataset_note:
         out.append(f"> ⚠️ **{config.dataset_note}**")
         out.append("")
-    out.append(t["intro"].format(per=per, unit=unit))
+    out.append(
+        _(
+            "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence "
+            "interval and an n. Raw counts are not danger; they are report volume. Read the "
+            "caveats — they are the point."
+        ).format(per=per, unit=unit)
+    )
     out.append("")
-    out.append(t["coverage"].format(pct=f"{bundle.result.exposure_coverage * 100:.0f}"))
+    out.append(
+        _(
+            "**Exposure coverage:** {pct}% of segments have an exposure denominator. "
+            "Segments without one are listed as *exposure unknown*, not ranked."
+        ).format(pct=f"{bundle.result.exposure_coverage * 100:.0f}")
+    )
     out.append("")
     if withheld:
-        out.append(t["withheld"].format(n=withheld, floor=config.min_publish_n))
+        out.append(
+            ngettext(
+                "*{n} segment with fewer than {floor} reports is withheld from this brief and "
+                "the open dataset to protect contributor privacy (k-anonymity).*",
+                "*{n} segments with fewer than {floor} reports are withheld from this brief and "
+                "the open dataset to protect contributor privacy (k-anonymity).*",
+                withheld,
+            ).format(n=withheld, floor=config.min_publish_n)
+        )
         out.append("")
 
     # Plain-language glossary.
-    out.append(t["glossary_heading"])
+    out.append(_("## What the numbers mean (plain language)"))
     out.append("")
-    out.append(t["glossary_rate"].format(per=per, unit=unit))
-    out.append(t["glossary_ci"])
-    out.append(t["glossary_gi"])
+    out.append(
+        _(
+            "- **Rate** — reports per {per} {unit}. It adjusts for how many people travel a "
+            "street, so a quiet street with a few reports can rank above a busy one with many."
+        ).format(per=per, unit=unit)
+    )
+    out.append(
+        _(
+            "- **95% CI (confidence interval)** — the plausible range for the true rate. A wide "
+            "range means few reports and real uncertainty; treat those rankings gently."
+        )
+    )
+    out.append(
+        _(
+            "- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot *beyond* "
+            "what traffic and chance explain, after a multiple-comparison correction: a real "
+            "cluster, not a fluke. Several streets can share a rate while only one is a "
+            "significant cluster."
+        )
+    )
     out.append("")
 
     # Bottom-line sentence (the headline a non-statistician can read aloud).
     if ranked:
         top = ranked[0]
+        sig = _(", and it is a statistically significant cluster") if top.significant else ""
         out.append(
-            t["bottom_line"].format(
+            _(
+                "**Bottom line:** the highest exposure-normalized near-miss rate is on "
+                "**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
+                "n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a "
+                "busy street; still, it rests on {n} reports, so read it with the interval and "
+                "the reporting-bias caveats below."
+            ).format(
                 name=name_of(top.segment_id),
                 rate=_fmt(top.rate),
                 per=per,
@@ -86,19 +142,25 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
                 lo=_fmt(top.rate_ci_low),
                 hi=_fmt(top.rate_ci_high),
                 n=top.n,
-                sig=t["sig_yes"] if top.significant else t["sig_no"],
+                sig=sig,
             )
         )
         out.append("")
 
     # Highest-rate table.
-    out.append(t["highest_heading"])
+    out.append(_("## Highest-rate segments (exposure-normalized)"))
     out.append("")
-    header = (
-        f"| {t['th_rank']} | {t['th_segment']} | {t['th_rate'].format(per=per)} | "
-        f"{t['th_ci']} | {t['th_n']} | {t['th_confidence']} | {t['th_hotspot']} |"
+    th_rank = _("Rank")
+    th_segment = _("Segment")
+    th_rate = _("Rate /{per}").format(per=per)
+    th_ci = _("95% CI")
+    th_n = _("n")
+    th_confidence = _("Confidence")
+    th_hotspot = _("Hotspot")
+    out.append(
+        f"| {th_rank} | {th_segment} | {th_rate} | {th_ci} | {th_n} | {th_confidence} | "
+        f"{th_hotspot} |"
     )
-    out.append(header)
     out.append("| ---: | --- | ---: | --- | ---: | --- | --- |")
     for i, s in enumerate(ranked[:10], start=1):
         ci = f"{_fmt(s.rate_ci_low)}-{_fmt(s.rate_ci_high)}"
@@ -107,95 +169,167 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         )
         out.append(
             f"| {i} | {name_of(s.segment_id)} | {_fmt(s.rate)} | "
-            f"{ci} | {s.n} | {label(s.confidence_label)} | {hotspot} |"
+            f"{ci} | {s.n} | {confidence_label(translation, s.confidence_label)} | {hotspot} |"
         )
     out.append("")
 
     # Significant hotspots.
-    sig: list[SegmentStats] = [s for s in stats if s.significant and s.publishable]
-    out.append(t["significant_heading"])
+    sig_segments: list[SegmentStats] = [s for s in stats if s.significant and s.publishable]
+    out.append(_("## Statistically significant hotspots (Getis-Ord Gi\\*)"))
     out.append("")
-    if sig:
-        out.append(t["significant_intro"])
+    if sig_segments:
+        out.append(
+            _(
+                "These segments are hot *beyond* what exposure and spatial structure explain — "
+                "candidates for hot because dangerous, not hot because busy:"
+            )
+        )
         out.append("")
-        for s in sorted(sig, key=lambda s: s.getis_ord_z or 0.0, reverse=True):
+        bullet = _("- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})")
+        for s in sorted(sig_segments, key=lambda s: s.getis_ord_z or 0.0, reverse=True):
             out.append(
-                f"- **{name_of(s.segment_id)}** — Gi* z = "
-                f"{s.getis_ord_z:.2f}, rate {_fmt(s.rate)}/{per} (CI "
-                f"{_fmt(s.rate_ci_low)}-{_fmt(s.rate_ci_high)}, n={s.n})"
+                bullet.format(
+                    name=name_of(s.segment_id),
+                    z=f"{s.getis_ord_z:.2f}",
+                    rate=_fmt(s.rate),
+                    per=per,
+                    lo=_fmt(s.rate_ci_low),
+                    hi=_fmt(s.rate_ci_high),
+                    n=s.n,
+                )
             )
     else:
-        out.append(t["significant_none"])
+        out.append(_("No segment reaches statistical significance at this sample size."))
     out.append("")
 
     # Reporting bias, with a counterweight so honesty does not read as "conclude nothing."
     bias = bundle.result.bias
-    out.append(t["bias_heading"])
+    out.append(_("## Reporting bias (named, not hidden)"))
     out.append("")
-    out.append(t["bias_note"])
+    out.append(
+        _(
+            "Shares compare where reports land against where exposure is. They cannot, on their "
+            "own, separate 'more dangerous' from 'more reported': reporter pools skew by route "
+            "choice, demographics, app access, and language. Treat over-represented segments as "
+            "candidates for attention and scrutiny, not as confirmed rankings."
+        )
+    )
     out.append("")
-    out.append(t["bias_counterweight"])
+    out.append(
+        _(
+            "This does not mean nothing can be concluded — an exposure-normalized rate with a "
+            "stated interval and a flagged bias is a far better basis for action than a raw heat "
+            "map. It means: act on the strongest, most-significant signals, and treat the rest "
+            "as leads to investigate, not verdicts."
+        )
+    )
     out.append("")
     over = [f for f in bias.over_represented if f.segment_id in publishable]
     under = [f for f in bias.under_represented if f.segment_id in publishable]
     if over:
-        out.append(t["over_heading"])
+        out.append(
+            _("**Over-represented vs exposure** (more reports than traffic alone predicts):")
+        )
         out.extend(bias_line(f) for f in over)
         out.append("")
     if under:
-        out.append(t["under_heading"])
+        out.append(
+            _("**Under-represented vs exposure** (quiet in the data, not necessarily safe):")
+        )
         out.extend(bias_line(f) for f in under)
         out.append("")
 
     peak_seg = bundle.result.kde_peak_segment
     if peak_seg is not None:
-        out.append(t["peak"].format(name=name_of(peak_seg)))
+        out.append(
+            _(
+                "**Report-intensity peak (KDE, not danger):** around {name}. This shows where "
+                "reports concentrate, which is not the same as where risk is highest."
+            ).format(name=name_of(peak_seg))
+        )
         out.append("")
 
-    _render_temporal(out, bundle, t)
+    _render_temporal(out, bundle, translation)
 
     out.append("---")
     out.append("")
-    out.append(t["footer"])
+    out.append(
+        _(
+            "Every figure above regenerates from raw inputs with `make reproduce`. Data and "
+            "methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
+        )
+    )
     out.append("")
     return "\n".join(out)
 
 
-def _render_temporal(out: list[str], bundle: AnalysisBundle, t: dict[str, str]) -> None:
+def _render_temporal(
+    out: list[str], bundle: AnalysisBundle, translation: gettext.NullTranslations
+) -> None:
     """Append the time-of-day / weather section (report VOLUME, never a rate)."""
+    _ = translation.gettext
+    ngettext = translation.ngettext
     tb = bundle.result.temporal
-    out.append(t["temporal_heading"])
+    out.append(_("## When hazards get reported (volume, not risk)"))
     out.append("")
     if tb.suppressed:
-        out.append(t["temporal_suppressed"])
+        out.append(
+            _(
+                "*Time-of-day breakdown withheld: too few timed reports to share without risking "
+                "contributor privacy (k-anonymity).*"
+            )
+        )
         out.append("")
         return
-    out.append(t["temporal_intro"])
+    out.append(
+        _(
+            "This is **report volume** by time of day, not a rate: there is no time-of-day "
+            "exposure denominator, so it reflects *when people ride and report*, not when a "
+            "street is most dangerous. Read it as a lead for outreach timing, not a risk "
+            "ranking."
+        )
+    )
     out.append("")
     total = tb.total_timed or 1
     for part, n in tb.by_part_of_day.items():
+        line = ngettext(
+            "- **{part}**: {n} report ({pct}%)",
+            "- **{part}**: {n} reports ({pct}%)",
+            n,
+        )
         out.append(
-            t["temporal_line"].format(
-                part=t.get(f"part_{part}", part), n=n, pct=f"{n / total * 100:.0f}"
+            line.format(
+                part=part_of_day_label(translation, part),
+                n=n,
+                pct=f"{n / total * 100:.0f}",
             )
         )
     out.append("")
     if tb.peak_part_of_day is not None and tb.peak_weekday is not None:
         out.append(
-            t["temporal_peak"].format(
-                part=t.get(f"part_{tb.peak_part_of_day}", tb.peak_part_of_day),
-                weekday=t.get(f"dow_{tb.peak_weekday}", tb.peak_weekday),
+            _(
+                "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
+            ).format(
+                part=part_of_day_label(translation, tb.peak_part_of_day),
+                weekday=weekday_label(translation, tb.peak_weekday),
             )
         )
         out.append("")
     if tb.small_sample:
-        out.append(t["temporal_small"])
+        out.append(_("*Small sample: too few timed reports to read these peaks with confidence.*"))
         out.append("")
     w = tb.weather
     if w is not None:
         rws = "—" if w.report_wet_share is None else f"{w.report_wet_share * 100:.0f}%"
         bws = "—" if w.baseline_wet_share is None else f"{w.baseline_wet_share * 100:.0f}%"
-        out.append(t["temporal_weather"].format(rws=rws, bws=bws, src=w.source))
+        out.append(
+            _(
+                "**Weather (association, not a risk rate):** {rws} of matched reports fell on "
+                "wet days, while {bws} of days in the weather record were wet. Wet days usually "
+                "carry far fewer riders, so this is an association to investigate, not a weather "
+                "risk rate. Source: {src}."
+            ).format(rws=rws, bws=bws, src=w.source)
+        )
         out.append("")
 
 

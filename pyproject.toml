@@ -48,6 +48,12 @@ dev = [
   "ruff>=0.4",
   "mypy>=1.10",
   "pip-audit>=2.7",
+  # i18n message-catalog tooling (INTERNATIONALIZATION-STANDARD §3/§4). Babel
+  # provides `pybabel extract` and the CLDR-backed `Locale.parse` used by the
+  # i18n gates. Pure Python (no PyICU/native ICU build) so the "runs anywhere
+  # Python runs, no native build step" property is preserved; `msgfmt` (G7) is
+  # a system gettext binary, like gitleaks, not a pip dependency.
+  "babel>=2.16",
   # pip-audit pulls in CacheControl -> msgpack transitively; pin the fixed
   # version so the blocking pip-audit gate cannot resolve to msgpack 1.2.0
   # (GHSA-6v7p-g79w-8964, fixed in 1.2.1). Keeps the SCA gate deterministically

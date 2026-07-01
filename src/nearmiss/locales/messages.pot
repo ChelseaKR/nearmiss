@@ -1,0 +1,249 @@
+# Translations template for nearmiss.
+# Copyright (C) YEAR ORGANIZATION
+# This file is distributed under the same license as the nearmiss project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nearmiss 0.1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-06-30 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel\n"
+
+msgid "## Highest-rate segments (exposure-normalized)"
+msgstr ""
+
+msgid "## Reporting bias (named, not hidden)"
+msgstr ""
+
+msgid "## Statistically significant hotspots (Getis-Ord Gi\\*)"
+msgstr ""
+
+msgid "## What the numbers mean (plain language)"
+msgstr ""
+
+msgid "## When hazards get reported (volume, not risk)"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"**Bottom line:** the highest exposure-normalized near-miss rate is on "
+"**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
+"n={n}){sig}. Because it is normalized by exposure, this is a rate, not "
+"just a busy street; still, it rests on {n} reports, so read it with the "
+"interval and the reporting-bias caveats below."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"**Exposure coverage:** {pct}% of segments have an exposure denominator. "
+"Segments without one are listed as *exposure unknown*, not ranked."
+msgstr ""
+
+msgid ""
+"**Over-represented vs exposure** (more reports than traffic alone "
+"predicts):"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"**Report-intensity peak (KDE, not danger):** around {name}. This shows "
+"where reports concentrate, which is not the same as where risk is "
+"highest."
+msgstr ""
+
+msgid ""
+"**Under-represented vs exposure** (quiet in the data, not necessarily "
+"safe):"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"**Weather (association, not a risk rate):** {rws} of matched reports fell"
+" on wet days, while {bws} of days in the weather record were wet. Wet "
+"days usually carry far fewer riders, so this is an association to "
+"investigate, not a weather risk rate. Source: {src}."
+msgstr ""
+
+msgid "*Small sample: too few timed reports to read these peaks with confidence.*"
+msgstr ""
+
+msgid ""
+"*Time-of-day breakdown withheld: too few timed reports to share without "
+"risking contributor privacy (k-anonymity).*"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"*{n} segment with fewer than {floor} reports is withheld from this brief "
+"and the open dataset to protect contributor privacy (k-anonymity).*"
+msgid_plural ""
+"*{n} segments with fewer than {floor} reports are withheld from this "
+"brief and the open dataset to protect contributor privacy (k-anonymity).*"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ", and it is a statistically significant cluster"
+msgstr ""
+
+msgid ""
+"- **95% CI (confidence interval)** — the plausible range for the true "
+"rate. A wide range means few reports and real uncertainty; treat those "
+"rankings gently."
+msgstr ""
+
+msgid ""
+"- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot "
+"*beyond* what traffic and chance explain, after a multiple-comparison "
+"correction: a real cluster, not a fluke. Several streets can share a rate"
+" while only one is a significant cluster."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- **Rate** — reports per {per} {unit}. It adjusts for how many people "
+"travel a street, so a quiet street with a few reports can rank above a "
+"busy one with many."
+msgstr ""
+
+#, python-brace-format
+msgid "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
+msgstr ""
+
+#, python-brace-format
+msgid "- **{part}**: {n} report ({pct}%)"
+msgid_plural "- **{part}**: {n} reports ({pct}%)"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-brace-format
+msgid "- {name}: {rshare}% of reports vs {eshare}% of exposure"
+msgstr ""
+
+msgid "95% CI"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"> Rates are reports per {per} {unit}. Every rate carries a 95% confidence"
+" interval and an n. Raw counts are not danger; they are report volume. "
+"Read the caveats — they are the point."
+msgstr ""
+
+msgid "Confidence"
+msgstr ""
+
+msgid ""
+"Every figure above regenerates from raw inputs with `make reproduce`. "
+"Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and "
+"`docs/DATA-CARD.md`."
+msgstr ""
+
+msgid "Friday"
+msgstr ""
+
+msgid "Hotspot"
+msgstr ""
+
+msgid "Monday"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Most reports arrive during the **{part}**; the busiest day is "
+"**{weekday}**."
+msgstr ""
+
+msgid "No segment reaches statistical significance at this sample size."
+msgstr ""
+
+msgid "Rank"
+msgstr ""
+
+#, python-brace-format
+msgid "Rate /{per}"
+msgstr ""
+
+msgid "Saturday"
+msgstr ""
+
+msgid "Segment"
+msgstr ""
+
+msgid ""
+"Shares compare where reports land against where exposure is. They cannot,"
+" on their own, separate 'more dangerous' from 'more reported': reporter "
+"pools skew by route choice, demographics, app access, and language. Treat"
+" over-represented segments as candidates for attention and scrutiny, not "
+"as confirmed rankings."
+msgstr ""
+
+msgid "Sunday"
+msgstr ""
+
+msgid ""
+"These segments are hot *beyond* what exposure and spatial structure "
+"explain — candidates for hot because dangerous, not hot because busy:"
+msgstr ""
+
+msgid ""
+"This does not mean nothing can be concluded — an exposure-normalized rate"
+" with a stated interval and a flagged bias is a far better basis for "
+"action than a raw heat map. It means: act on the strongest, most-"
+"significant signals, and treat the rest as leads to investigate, not "
+"verdicts."
+msgstr ""
+
+msgid ""
+"This is **report volume** by time of day, not a rate: there is no time-"
+"of-day exposure denominator, so it reflects *when people ride and "
+"report*, not when a street is most dangerous. Read it as a lead for "
+"outreach timing, not a risk ranking."
+msgstr ""
+
+msgid "Thursday"
+msgstr ""
+
+msgid "Tuesday"
+msgstr ""
+
+msgid "Wednesday"
+msgstr ""
+
+#, python-brace-format
+msgid "Where the danger actually is — {city}"
+msgstr ""
+
+msgid "certain"
+msgstr ""
+
+msgid "evening (20–24)"
+msgstr ""
+
+msgid "evening commute (16–20)"
+msgstr ""
+
+msgid "exposure unknown"
+msgstr ""
+
+msgid "midday (10–16)"
+msgstr ""
+
+msgid "morning commute (06–10)"
+msgstr ""
+
+msgid "n"
+msgstr ""
+
+msgid "overnight (00–06)"
+msgstr ""
+
+msgid "uncertain"
+msgstr ""
