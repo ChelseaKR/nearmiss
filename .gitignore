@@ -66,6 +66,14 @@ coverage.xml
 .nox/
 .hypothesis/
 
+# Mutation testing (mutmut) — advisory only; its working copy and stats are
+# regenerated on every run and must never be committed (see docs/MUTATION-TESTING.md).
+mutants/
+.mutmut-cache
+mutmut-stats.json
+mutmut-cicd-stats.json
+html/
+
 # Notebooks
 .ipynb_checkpoints/
 
