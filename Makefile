@@ -74,8 +74,10 @@ lint: ## Lint with ruff (style + import order + bugbear) and check formatting
 type: ## Type-check with mypy --strict (config in pyproject.toml)
 	$(PYTHON) -m mypy
 
-test: ## Run pytest against synthetic fixtures with KNOWN planted-hotspot answers
-	$(PYTHON) -m pytest -q
+test: ## Run pytest (synthetic fixtures, KNOWN answers) under a branch-coverage floor
+	$(PYTHON) -m pytest -q \
+		--cov=src/nearmiss --cov-branch \
+		--cov-report=term-missing --cov-fail-under=90
 
 accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
 	$(PYTHON) tools/a11y_check.py web/index.html web/submit.html web/embed.html

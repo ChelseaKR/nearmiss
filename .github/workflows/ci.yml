@@ -142,7 +142,9 @@ jobs:
       - name: Install dev dependencies
         run: python -m pip install -e ".[dev]"
 
-      - name: pytest (planted hotspot seg-06 recovered, interval coverage checks)
+      - name: pytest (planted hotspot seg-06 recovered, branch-coverage floor enforced)
+        # `make test` runs pytest with --cov-branch and --cov-fail-under=90, so a
+        # drop in meaningful coverage fails the merge gate (not just a test failure).
         run: make test
 
   accessibility:
