@@ -7,19 +7,36 @@ default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   # Ruff — lint + format (configured in pyproject.toml [tool.ruff]).
+  # Pinned to the same ruff the CI `lint` job installs from ".[dev]" (ruff>=0.4
+  # resolves to 0.15.x); keep this rev in step with the ruff `make lint` runs.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.10
+    rev: v0.15.17
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
       - id: ruff-format
 
   # mypy — strict typing (configured in pyproject.toml [tool.mypy]).
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+  # Run the PROJECT-INSTALLED mypy through `make type` (a local system hook)
+  # rather than pre-commit's isolated mirror. The mirror ran with
+  # additional_dependencies: [] and passed file arguments, so it (a) could not
+  # see pytest/jsonschema/babel and emitted false "untyped decorator" positives
+  # on the test suite, and (b) type-checked tools/ — outside the pyproject
+  # `files = ["src", "tests"]` scope that `make type` (and the CI `type` job)
+  # enforce. Both forced contributors onto `git commit --no-verify`. Shelling out
+  # to the same `make type` target makes local == CI by construction: identical
+  # mypy version, identical [tool.mypy] strict config, identical dependency
+  # stubs, identical file scope. (.venv is the repo's documented dev interpreter
+  # — see the Makefile PYTHON override note and .gitignore.)
+  - repo: local
     hooks:
       - id: mypy
-        additional_dependencies: []
+        name: mypy --strict (make type)
+        entry: make type PYTHON=.venv/bin/python
+        language: system
+        types_or: [python, pyi]
+        pass_filenames: false
+        require_serial: true
 
   # gitleaks — backstop against committing secrets or precise raw report data.
   # This is a safety net, not permission to be careless (see CONTRIBUTING.md).
@@ -32,8 +49,14 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
+      # Vendored third-party assets (web/vendor/) are kept byte-for-byte as
+      # upstream ships them — the minified leaflet.js has no trailing newline by
+      # design — so the whitespace/EOF fixers must not rewrite them (doing so
+      # only produced a spurious diff that forced `git commit --no-verify`).
       - id: trailing-whitespace
+        exclude: ^web/vendor/
       - id: end-of-file-fixer
+        exclude: ^web/vendor/
       - id: check-yaml
       - id: check-json
       - id: check-merge-conflict
