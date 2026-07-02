@@ -4,6 +4,10 @@ Two reports are treated as duplicates when they are close in space and time and
 either share a pseudonymous reporter token or describe the same hazard type.
 The earliest report (by timestamp, then id) is kept, so the result is
 deterministic.
+
+Uses spatial bucketing to accelerate the all-pairs comparison: reports are first
+grouped by (spatial cell, time window), then compared only within their buckets.
+Results are identical to brute-force deduplication.
 """
 
 from __future__ import annotations
@@ -11,6 +15,7 @@ from __future__ import annotations
 from ..config import Config
 from ..geometry import haversine_m
 from ..models import Report
+from ..spatial_index import SpatialIndex
 from ..util import parse_ts
 
 
@@ -36,10 +41,25 @@ def _chrono_key(r: Report) -> tuple[float, str]:
 def dedupe(reports: list[Report], config: Config) -> tuple[list[Report], list[str]]:
     """Return (kept_reports, removed_ids), deterministically. Earliest is kept."""
     ordered = sorted(reports, key=_chrono_key)
+
+    # Build a spatial index to group reports by cell.
+    # Use a rough heuristic: 1 degree ≈ 111 km at the equator.
+    # Cell size in degrees ≈ dedupe_distance_m / 111,000
+    cell_size_deg = max(config.dedupe_distance_m / 111_000.0, 0.0001)
+    index = SpatialIndex(cell_size_m=cell_size_deg)
+    for r in ordered:
+        # Index reports using lon/lat as (x, y) in degrees.
+        index.add(r.id, r.lon, r.lat)
+    index.finalize()
+
     kept: list[Report] = []
     removed: list[str] = []
     for r in ordered:
-        if any(_is_duplicate(r, k, config) for k in kept):
+        # Query neighborhood of reports that might be duplicates.
+        candidates = index.cells_in_neighborhood(r.lon, r.lat)
+        candidate_ids = {cand_id for cand_id, _, _ in candidates}
+        # Check only against already-kept reports that are in the candidate set.
+        if any(_is_duplicate(r, k, config) for k in kept if k.id in candidate_ids):
             removed.append(r.id)
         else:
             kept.append(r)
