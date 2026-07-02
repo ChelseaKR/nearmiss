@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import UTC, datetime
-
-from .models import Segment
 
 
 def parse_ts(iso: str) -> float | None:
@@ -20,13 +19,18 @@ def parse_ts(iso: str) -> float | None:
 
 
 def reference_point(
-    segments: list[Segment], ref_lat: float | None, ref_lon: float | None
+    points: Iterable[tuple[float, float]], ref_lat: float | None, ref_lon: float | None
 ) -> tuple[float, float]:
-    """Reference (lat0, lon0) for the local projection: config value or bbox centre."""
+    """Reference (lat0, lon0) for a local projection: config value, else the mean of ``points``.
+
+    ``points`` is any iterable of (lat, lon) pairs — segment vertices, report
+    locations, or centroids — whatever the caller is about to project.
+    """
     if ref_lat is not None and ref_lon is not None:
         return ref_lat, ref_lon
-    lats = [c[0] for s in segments for c in s.coords]
-    lons = [c[1] for s in segments for c in s.coords]
+    pts = list(points)
+    lats = [p[0] for p in pts]
+    lons = [p[1] for p in pts]
     return (sum(lats) / len(lats), sum(lons) / len(lons))
 
 

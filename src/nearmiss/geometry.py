@@ -62,6 +62,23 @@ def point_to_polyline_m(
     return best
 
 
+def projection_margin_m(radius_m: float) -> float:
+    """Safety margin (metres) to pad a metric search radius built on ``project()``.
+
+    ``project()`` scales longitude by ``cos(lat0)`` at a single reference latitude,
+    not each point's own latitude, so distances between points far from ``lat0``
+    are systematically over- or under-stated relative to the true great-circle
+    (haversine) distance. For any real deployment (a single city, spanning at
+    most a couple of degrees of latitude from its reference point) that residual
+    error is well under 1%, but a fixed spatial-index search radius must still be
+    padded by more than the worst case so it can never under-count true
+    candidates — the earlier "raw degrees, fixed 3x3 window" bug in dedupe.py is
+    exactly what under-counting looks like. 10% plus a flat floor comfortably
+    covers city-scale deployments while costing only a few extra candidates.
+    """
+    return radius_m * 0.10 + 5.0
+
+
 def polyline_centroid(coords: tuple[tuple[float, float], ...]) -> tuple[float, float]:
     """Length-weighted centroid (lat, lon) of a polyline."""
     if len(coords) == 1:
