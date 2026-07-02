@@ -112,7 +112,7 @@ def assign(
     aggregate: str,
 ) -> tuple[dict[str, float], int]:
     """Snap each observation to a segment and aggregate per-segment counts."""
-    lat0, lon0 = reference_point(segments, None, None)
+    lat0, lon0 = reference_point((c for s in segments for c in s.coords), None, None)
     buckets: dict[str, list[float]] = {}
     unsnapped = 0
     for lat, lon, count in obs:

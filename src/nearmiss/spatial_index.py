@@ -57,23 +57,35 @@ class SpatialIndex:
 
         This uses a grid+distance filter: first, collect all items in cells
         within the bounding square of the radius, then filter by actual distance.
+
+        An id may have been ``add()``-ed at more than one (x, y) — e.g. every
+        vertex of a street segment shares that segment's id (see
+        ``pipeline/snap.py``). At most one entry per id is returned, but *any*
+        one of its instances passing the distance filter is enough: an id is
+        only excluded from further consideration once one of its instances has
+        actually been included, never merely because some other, farther
+        instance of the same id was the first one visited. (An id's instances
+        can straddle the bounding square too — some inside radius_m, some
+        outside — so visit order must not let an out-of-range instance shadow
+        an in-range one.)
         """
         # Determine the bounding square in cell coordinates.
         cell_radius = int(radius_m / self.cell_size_m) + 1
         cx, cy = self._cell_key(x, y)
         result: list[tuple[str, float, float]] = []
-        seen: set[str] = set()
+        found: set[str] = set()  # ids already present in `result`
         for dcx in range(-cell_radius, cell_radius + 1):
             for dcy in range(-cell_radius, cell_radius + 1):
                 cell_key = (cx + dcx, cy + dcy)
                 if cell_key in self.cells:
                     for item_id, ix, iy in self.cells[cell_key]:
-                        if item_id not in seen:
-                            seen.add(item_id)
-                            dx, dy = ix - x, iy - y
-                            dist_sq = dx * dx + dy * dy
-                            if dist_sq <= radius_m * radius_m:
-                                result.append((item_id, ix, iy))
+                        if item_id in found:
+                            continue
+                        dx, dy = ix - x, iy - y
+                        dist_sq = dx * dx + dy * dy
+                        if dist_sq <= radius_m * radius_m:
+                            found.add(item_id)
+                            result.append((item_id, ix, iy))
         # Sort by id for determinism.
         result.sort(key=lambda item: item[0])
         return result
