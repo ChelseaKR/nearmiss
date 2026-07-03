@@ -261,6 +261,12 @@ jobs:
       - name: axe-core (jsdom) accessibility check
         run: cd web && npm ci && npm run axe
 
+      # Web-consumer contract gate (FIX-10): boot app.js against a committed
+      # published GeoJSON in jsdom and assert it honors schema/dataset.schema.json
+      # (every consumed property is schema-required; dropping one breaks the map).
+      - name: dataset schema contract (jsdom web consumer)
+        run: cd web && npm run contract
+
   security:
     name: security (pip-audit + gitleaks + CodeQL)
     runs-on: ubuntu-24.04

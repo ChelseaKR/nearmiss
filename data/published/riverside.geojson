@@ -184,6 +184,7 @@
     "license": "Apache-2.0",
     "privacy": "Aggregated to public street segments; low-count segments withheld (k-anonymity); no per-report coordinate, time, reporter, mode, or severity is published.",
     "schema_doc": "schema/dataset.schema.md",
+    "schema_json": "schema/dataset.schema.json",
     "schema_version": "1.0.0",
     "segments_published": 5,
     "segments_withheld_low_count": 1,

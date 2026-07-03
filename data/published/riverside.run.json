@@ -1,0 +1,85 @@
+{
+  "manifest_digest": "b9b30853532b13034a068d50ebc5f0428a1e2ca1fe1f5407f900f6cb4e141324",
+  "provenance": {
+    "config_digest": "a832bc90c7f2e75b1eb7ae745641508052366a6242f551b0c11c01cf3e034050",
+    "effective_config": {
+      "city": "Riverside",
+      "confidence_z": 1.96,
+      "dataset_note": "Synthetic demonstration data — not real reports.",
+      "dedupe_distance_m": 15.0,
+      "dedupe_window_s": 600,
+      "exposure_unit": "bike trips (synthetic)",
+      "fdr_alpha": 0.05,
+      "geocoder": null,
+      "gi_band_m": 300.0,
+      "kde_bandwidth_m": 150.0,
+      "kde_grid": 20,
+      "min_publish_n": 3,
+      "rate_per": 1000.0,
+      "small_n": 5,
+      "snap_max_m": 25.0
+    },
+    "inputs": {
+      "exposure": {
+        "filename": "exposure.json",
+        "sha256": "80dbda3c82d792514c105b0515d1d45bcafae10de7b757ec7953566a6560213c"
+      },
+      "reports": {
+        "filename": "reports.json",
+        "sha256": "00f5fd9cc2ac93ff7a248c2f233b7c76945c3f47606ba3c2d51a2fdea3c44561"
+      },
+      "streets": {
+        "filename": "streets.geojson",
+        "sha256": "c4c937ccbeb62c18640d91edf52b9e535a140a96276dc9ee1347df610462b7ed"
+      }
+    },
+    "manifest_schema_version": "1.0.0",
+    "nearmiss_version": "0.1.0",
+    "stages": [
+      {
+        "counts": {
+          "exposure": 6,
+          "reports": 20,
+          "segments": 6
+        },
+        "stage": "load"
+      },
+      {
+        "counts": {
+          "duplicates_removed": 0,
+          "out_of_window": 0,
+          "reports_in": 20,
+          "snapped": 20,
+          "unsnapped": 0
+        },
+        "stage": "pipeline"
+      },
+      {
+        "counts": {
+          "exposure_matched": 6,
+          "exposure_unmatched": 0,
+          "segments_publishable": 5,
+          "segments_total": 6,
+          "segments_withheld_low_count": 1
+        },
+        "stage": "analyze"
+      }
+    ]
+  },
+  "timings": {
+    "stages": [
+      {
+        "ms": 0.308,
+        "stage": "load"
+      },
+      {
+        "ms": 33.805,
+        "stage": "pipeline"
+      },
+      {
+        "ms": 9.999,
+        "stage": "analyze"
+      }
+    ]
+  }
+}

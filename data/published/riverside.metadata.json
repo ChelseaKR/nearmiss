@@ -2,26 +2,10 @@
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "4cf21ff09a6a875ca9ca5ac3b96072ded58efb6f98caa7fdd4fe0ca658fa786c",
+  "geojson_sha256": "86b3c051feefb611ae165575592c6ec1392bc6e2f597337fdf1b4c84bfd5424b",
   "license": "Apache-2.0",
-  "maup_rank_stability": {
-    "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
-    "coarse_units": 3,
-    "fine_units": 6,
-    "k": 5,
-    "top_hotspot_coarse_rank": 1,
-    "top_hotspot_segment": "rs-3",
-    "top_hotspot_still_significant": false,
-    "top_hotspot_survives": false,
-    "topk_overlap": 1.0
-  },
   "methods": {
     "confidence_z": 1.96,
-    "dispersion": {
-      "adjusted": false,
-      "model": "quasi-Poisson (Pearson) on the rate/offset model",
-      "phi": 15.2193
-    },
     "fdr_alpha": 0.05,
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
@@ -33,11 +17,11 @@
   "privacy": "Aggregated to public street segments; segments with a non-zero report count below min_publish_n are withheld (k-anonymity). No per-report coordinate, time, reporter token, note, mode, or severity is published. Small-n hazard breakdowns are suppressed.",
   "report_intensity_peak_segment": "rs-3",
   "schema": "schema/dataset.schema.md",
+  "schema_json": "schema/dataset.schema.json",
   "schema_version": "1.0.0",
   "summary": {
     "duplicates_removed": 0,
     "exposure_coverage": 1.0,
-    "out_of_window": 0,
     "reports_in": 20,
     "segments_published": 5,
     "segments_total": 6,
@@ -69,9 +53,5 @@
     "suppressed_low_count": false,
     "total_reports_timed": 20
   },
-  "version": "0.1.0",
-  "window": {
-    "end": "2026-12-31",
-    "start": "2026-01-01"
-  }
+  "version": "0.1.0"
 }

@@ -2,26 +2,10 @@
   "city": "Davis",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "079e583537629858693925a7097540d78e04c63cdd4c8cbae2665c99b806c984",
+  "geojson_sha256": "bbe576bb24eb7d94c4771c7698b8d6f19bf173d62f505d1dd4207d594a1b9adf",
   "license": "Apache-2.0",
-  "maup_rank_stability": {
-    "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
-    "coarse_units": 90,
-    "fine_units": 180,
-    "k": 5,
-    "top_hotspot_coarse_rank": 1,
-    "top_hotspot_segment": "seg-06",
-    "top_hotspot_still_significant": true,
-    "top_hotspot_survives": true,
-    "topk_overlap": 0.8
-  },
   "methods": {
     "confidence_z": 1.96,
-    "dispersion": {
-      "adjusted": false,
-      "model": "quasi-Poisson (Pearson) on the rate/offset model",
-      "phi": 11.1761
-    },
     "fdr_alpha": 0.05,
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
@@ -33,11 +17,11 @@
   "privacy": "Aggregated to public street segments; segments with a non-zero report count below min_publish_n are withheld (k-anonymity). No per-report coordinate, time, reporter token, note, mode, or severity is published. Small-n hazard breakdowns are suppressed.",
   "report_intensity_peak_segment": "seg-06",
   "schema": "schema/dataset.schema.md",
+  "schema_json": "schema/dataset.schema.json",
   "schema_version": "1.0.0",
   "summary": {
     "duplicates_removed": 1,
     "exposure_coverage": 0.0667,
-    "out_of_window": 0,
     "reports_in": 59,
     "segments_published": 177,
     "segments_total": 180,
@@ -86,9 +70,5 @@
     "suppressed_low_count": false,
     "total_reports_timed": 58
   },
-  "version": "0.1.0",
-  "window": {
-    "end": "2026-12-31",
-    "start": "2026-01-01"
-  }
+  "version": "0.1.0"
 }

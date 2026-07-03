@@ -114,6 +114,7 @@ The embedded `metadata` member is descriptive, not a place to hide a claim. Its 
 | `dataset_note` | string \| null | A provenance / demo label from config (e.g. a synthetic-demonstration marker). `null` when no note is configured. |
 | `exposure_unit` | string | The human-readable denominator unit (from config `exposure_unit`, e.g. `"bike trips"`) the rates are expressed against; also shown in the brief. |
 | `schema_doc` | string | Repo-relative path to this schema document. |
+| `schema_json` | string | Repo-relative path to the machine-checkable JSON Schema ([`schema/dataset.schema.json`](dataset.schema.json)) that this document mirrors; the published GeoJSON is validated against it in CI (see [Versioning](#versioning-and-deprecation-policy)). |
 | `data_card` | string | Repo-relative path to the data card (`docs/DATA-CARD.md`). |
 | `segments_published` | integer | Count of features actually published in this file. |
 | `segments_withheld_low_count` | integer | Count of segments withheld entirely under the minimum-occupancy floor (k-anonymity). See [Privacy](#5-privacy-aggregation-and-minimum-occupancy-hr4). |
@@ -128,7 +129,7 @@ Anything that affects how a rate should be read is mirrored, in full, in the dat
 > `methods` and `summary`. The sidecar is the integrity manifest: a reproduction from raw whose canonical
 > GeoJSON does not hash to the recorded `geojson_sha256` is evidence of tampering or drift (**HR5**). The
 > sidecar's top-level fields are `city`, `version`, `schema_version`, `dataset_note`, `license`, `schema`,
-> `data_card`, `methods` (the rate denominator, confidence level, small-n and min-publish-n thresholds,
+> `schema_json`, `data_card`, `methods` (the rate denominator, confidence level, small-n and min-publish-n thresholds,
 > the FDR level, the Getis-Ord band and KDE bandwidth, and the significance statement), `summary`
 > (segment and report counts plus `exposure_coverage`), `report_intensity_peak_segment` (the KDE peak as a
 > **segment id only**, never a coordinate), `geojson_sha256`, and a `privacy` note. The sidecar is held to
@@ -407,9 +408,11 @@ What each bump means for this published artifact:
    its sidecar (`<city-slug>.metadata.json`) pins `geojson_sha256`, so a consumer can always tell exactly
    which schema version and which build a file conforms to and verify it was not altered after the fact
    (**HR5**).
-4. `$schema`/machine-validation: the published GeoJSON is validated in CI against a JSON Schema that
-   mirrors this document; that validator is versioned in lockstep and is the authoritative,
-   machine-checkable form of this contract.
+4. `$schema`/machine-validation: the published GeoJSON is validated in CI against the JSON Schema
+   [`schema/dataset.schema.json`](dataset.schema.json), which mirrors this document; that validator is
+   versioned in lockstep (`const` `schema_version` `1.0.0`) and is the authoritative, machine-checkable
+   form of this contract. `publish.py` runs the same validation before writing any file, so a build that
+   would violate the contract fails instead of shipping.
 
 Older published files are not rewritten in place when the schema advances; each release is an immutable,
 hashed artifact at its own version. A consumer pins to a `MAJOR` line, reads `metadata.schema_version` to
