@@ -33,7 +33,7 @@ PUBLISHED_DIR := data/published
 
 .PHONY: help install lock lint type test accessibility axe security verify \
         i18n i18n-compile \
-        reproduce demo publish serve bench bikemaps osm-streets real clean mutation
+        reproduce demo teach publish serve bench bikemaps osm-streets real clean mutation
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
 # Override CITY and the output paths as needed.
@@ -154,6 +154,23 @@ demo: ## Demonstrability: run the full pipeline over fixtures and render a sampl
 	$(PYTHON) -m $(PACKAGE) analyze --config $(CONFIG)
 	@echo "demo: sample brief written to build/demo-brief.md"
 	@echo "      (recovers the planted hotspot seg-06 from tests/fixtures — a known answer)."
+
+teach: ## EXP-12 teaching module: execute the bilingual "lie with heat maps" notebooks
+	@# The Jupyter execution stack lives in the isolated `teaching` extra (NOT in
+	@# `dev`), so the pip-audit security gate's dependency surface is unchanged —
+	@# same pattern as `make mutation`. Install it on demand, then execute every
+	@# teaching notebook into the gitignored, clean-able notebooks/_build/.
+	@$(PYTHON) -c "import nbconvert" 2>/dev/null || $(PIP) install -e ".[teaching]"
+	@mkdir -p notebooks/_build
+	@# `--record_timing=False` strips the volatile per-cell execution timestamps so
+	@# the executed notebooks are byte-identical across runs (deterministic, like
+	@# `make reproduce`). The notebooks are seeded/known-answer over the synthetic
+	@# Davis fixtures — no RNG, no network, no new analysis dependency.
+	$(PYTHON) -m nbconvert --to notebook --execute \
+		--ExecutePreprocessor.record_timing=False \
+		--output-dir notebooks/_build notebooks/teaching/*.ipynb
+	@echo "teach: executed the EXP-12 teaching notebooks into notebooks/_build/ (gitignored)."
+	@echo "       Facilitator guide: docs/teaching/FACILITATOR-GUIDE.md (EN) / .es.md (ES)."
 
 publish: ## Build the open GeoJSON + aggregated public dataset (privacy-checked)
 	$(PYTHON) -m $(PACKAGE) publish --config $(CONFIG)
