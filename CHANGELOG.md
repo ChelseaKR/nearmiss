@@ -45,6 +45,20 @@ under **Planned** within `0.1.0` (real geocoder adapters, more cities, the deepe
 NVDA/VoiceOver audit, reproducible notebooks, a committed hashed `requirements.lock`, and benchmarking);
 each will move here under its own `### Added` entry as it lands.
 
+### Added
+
+- **Moderation transparency report** (`nearmiss moderate stats`). Publishes an aggregate, privacy-floored
+  view of the moderation queue: submission totals by status (pending/approved/rejected), review-flag
+  frequencies, rejection-reason **category** counts, and the median review latency in hours
+  (`received_at` → `decided_at`). Rejection free text is never emitted — a small fixed taxonomy
+  (`duplicate`, `spam`, `identifier-leak`, `invalid-location`, `off-topic`, `other`) buckets it first.
+  Every per-cell count passes through the same k-anonymity floor as the published map data
+  (`min_publish_n`, default 3): a non-zero cell below the floor is withheld (`null`) and tallied under
+  `withheld_cells`, so "how many did not make it" stays explicit without exposing a group too small to
+  be anonymous. `--out PATH` writes a dated Markdown (`docs/audits/YYYY-MM-DD-moderation.md` style) or
+  JSON artifact. Submissions now carry a `decided_at` timestamp (set on approve/reject; legacy queue
+  entries without it load fine and are excluded from latency).
+
 ### Intake report schema (`schema/report.schema.json`)
 
 - No changes since `1.0.0`.
