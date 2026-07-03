@@ -48,6 +48,11 @@ dev = [
   "ruff>=0.15",
   "mypy>=1.18",
   "pip-audit>=2.10.1",
+  # Property/metamorphic testing for the spatial-statistics core (FIX-14). A
+  # dev-only, audited dependency surface: it lives in `dev`, so the blocking
+  # `pip-audit --strict` security gate in `make verify` scans it like every
+  # other dev tool. Pure Python, no native build step.
+  "hypothesis>=6.100",
   # i18n message-catalog tooling (INTERNATIONALIZATION-STANDARD §3/§4). Babel
   # provides `pybabel extract` and the CLDR-backed `Locale.parse` used by the
   # i18n gates. Pure Python (no PyICU/native ICU build) so the "runs anywhere
@@ -144,6 +149,12 @@ minversion = "8.0"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --strict-config --import-mode=importlib"
 xfail_strict = true
+markers = [
+  # Seeded Monte-Carlo interval-coverage simulation (METHODOLOGY §9.2). It runs
+  # thousands of Poisson draws, so it is markered `slow` and can be deselected
+  # with `-m 'not slow'` for a fast inner loop; the full gate still runs it.
+  "slow: marks a test as slow (deselect with '-m \"not slow\"')",
+]
 
 # ---------------------------------------------------------------------------
 # Mutation testing — mutmut. ADVISORY ONLY (backlog #15), never a merge gate.
