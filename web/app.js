@@ -68,6 +68,8 @@
       hsEmpty: "No analyzed segments to summarize.",
       download: "Download this dataset (GeoJSON)",
       downloadMeta: " — {city}, dataset v{ver} ({n} segments)",
+      share_card: "Download share card (PNG)",
+      shareCardDone: "Share card downloaded (1200×630 PNG).",
       faq_h: "Questions people ask",
       faq_q1: "Why isn’t my busy street the most dangerous one?",
       faq_a1:
@@ -223,6 +225,8 @@
       hsEmpty: "No hay segmentos analizados para resumir.",
       download: "Descargar este conjunto de datos (GeoJSON)",
       downloadMeta: " — {city}, datos v{ver} ({n} segmentos)",
+      share_card: "Descargar tarjeta para compartir (PNG)",
+      shareCardDone: "Tarjeta descargada (PNG de 1200×630).",
       faq_h: "Preguntas frecuentes",
       faq_q1: "¿Por qué mi calle más transitada no es la más peligrosa?",
       faq_a1:
@@ -838,6 +842,20 @@
     });
   }
 
+  // E19 — a shareable PNG "card" of the honest headline (how many significant
+  // hotspots, plus the top few) drawn client-side from the data already loaded,
+  // via share-card.js. No new fetch, no map tiles, no external service.
+  function wireShareCard() {
+    var btn = document.getElementById("share-card-btn");
+    if (!btn || !window.NearmissShareCard) return;
+    btn.addEventListener("click", function () {
+      if (!rows.length) return;
+      NearmissShareCard.download(NearmissShareCard.buildData(rows, meta));
+      var status = document.getElementById("share-card-status");
+      if (status) status.textContent = t("shareCardDone");
+    });
+  }
+
   function wireFilter() {
     var input = document.getElementById("table-filter");
     if (!input) return;
@@ -904,6 +922,7 @@
   wireFilter();
   wireMapToggle();
   wireLangSwitch();
+  wireShareCard();
 
   fetch(DATA_URL)
     .then(function (r) {
@@ -921,6 +940,8 @@
       applyHotspotSummary();
       applyBottomLine();
       applyDownload();
+      var shareBtn = document.getElementById("share-card-btn");
+      if (shareBtn && window.NearmissShareCard) shareBtn.disabled = false;
     })
     .catch(function (e) {
       fail(e.message);

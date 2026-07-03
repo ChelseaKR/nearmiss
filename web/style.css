@@ -278,6 +278,34 @@ figcaption {
   color: var(--muted);
 }
 
+.share-card-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#share-card-btn {
+  font: inherit;
+  cursor: pointer;
+  padding: 0.3rem 0.7rem;
+  min-height: 24px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--accent);
+  border-radius: 4px;
+}
+
+#share-card-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+#share-card-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
 .faq {
   border: 1px solid var(--line);
   border-radius: 6px;
