@@ -22,6 +22,7 @@ from .engine import AnalysisBundle, build_analysis
 from .i18n import (
     confidence_label,
     get_translation,
+    hazard_type_label,
     part_of_day_label,
     weekday_label,
 )
@@ -197,6 +198,62 @@ def _render_top_table(
             f"{ci} | {s.n} | {confidence_label(translation, s.confidence_label)} | {hotspot} |"
         )
     out.append("")
+
+
+def _render_dominant_hazard(
+    out: list[str],
+    ranked: list[SegmentStats],
+    name_of: Callable[[str], str],
+    config: Config,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the dominant-hazard-type-by-segment section.
+
+    Dominant hazard, with its own rate, for each ranked segment that publishes a
+    per-hazard-type rate layer. The headline rate above is pooled across ALL
+    hazard types (a union); this names the single most common conflict type at a
+    place and gives ITS exposure-normalized rate, so "a corridor of close passes"
+    reads differently from "a corridor of surface defects" — with a rate, not a
+    raw count. Types below the small-sample threshold are suppressed, so a
+    segment may rank without a dominant-hazard line.
+    """
+    _ = translation.gettext
+    per = int(config.rate_per)
+    dominant: list[tuple[SegmentStats, str, dict[str, float]]] = []
+    for s in ranked[:10]:
+        if not s.rates_by_type:
+            continue
+        # Most common qualifying hazard type (ties broken by name, for determinism).
+        top_type = max(sorted(s.rates_by_type), key=lambda t: s.rates_by_type[t]["count"])
+        dominant.append((s, top_type, s.rates_by_type[top_type]))
+    if dominant:
+        out.append(_("## Dominant hazard type by segment (with its own rate)"))
+        out.append("")
+        out.append(
+            _(
+                "The headline rate is pooled across every hazard type (a union). This names the "
+                "single most common conflict type at each ranked segment and gives *its* "
+                "exposure-normalized rate; types with too few reports to share are omitted."
+            )
+        )
+        out.append("")
+        dom_line = _(
+            "- **{name}** — most common: **{hazard}** ({count} reports), "
+            "rate {rate}/{per} (CI {lo}-{hi})"
+        )
+        for s, top_type, layer in dominant:
+            out.append(
+                dom_line.format(
+                    name=name_of(s.segment_id),
+                    hazard=hazard_type_label(translation, top_type),
+                    count=int(layer["count"]),
+                    rate=_fmt(layer["rate"]),
+                    per=per,
+                    lo=_fmt(layer["rate_ci_low"]),
+                    hi=_fmt(layer["rate_ci_high"]),
+                )
+            )
+        out.append("")
 
 
 def _render_hotspots(
@@ -411,6 +468,7 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     _render_glossary(out, config, translation)
     _render_bottom_line(out, ranked, name_of, config, translation)
     _render_top_table(out, ranked, name_of, config, translation)
+    _render_dominant_hazard(out, ranked, name_of, config, translation)
     _render_hotspots(out, stats, name_of, config, translation)
     # Robustness checks: overdispersion (RR-02) and MAUP re-segmentation (RR-05).
     _render_robustness(out, bundle, translation, name_of)

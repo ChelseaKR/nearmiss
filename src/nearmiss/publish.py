@@ -67,6 +67,14 @@ def _feature(stat: SegmentStats, segment: Segment) -> dict[str, object]:
             "getis_ord_significant": stat.significant,
             "confidence_label": stat.confidence_label,
             "hazard_breakdown": dict(sorted(stat.hazard_breakdown.items())),
+            # Per-hazard-type rate layers. The ``rate`` above is the pooled rate
+            # across all hazard types (an explicit union); these are the
+            # type-specific exposure-normalized rates, present only for types
+            # whose count clears the small-sample threshold (others suppressed).
+            "rates_by_type": {
+                t: dict(rates_by_type_entry)
+                for t, rates_by_type_entry in sorted(stat.rates_by_type.items())
+            },
             "quality_flags": list(stat.quality_flags),
         },
     }
@@ -219,6 +227,10 @@ def publish(config: Config) -> PublishResult:
                 "model": "quasi-Poisson (Pearson) on the rate/offset model",
                 "adjusted": bundle.result.overdispersion_adjusted,
             },
+            "rate_definition": (
+                "pooled across all hazard types (union); per-type rates in "
+                "rates_by_type where count >= small_n"
+            ),
         },
         "summary": {
             "segments_total": len(bundle.segments),

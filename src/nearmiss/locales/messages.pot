@@ -17,6 +17,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel\n"
 
+msgid "## Dominant hazard type by segment (with its own rate)"
+msgstr ""
+
 msgid "## Highest-rate segments (exposure-normalized)"
 msgstr ""
 
@@ -162,6 +165,12 @@ msgid "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
 msgstr ""
 
 #, python-brace-format
+msgid ""
+"- **{name}** — most common: **{hazard}** ({count} reports), rate "
+"{rate}/{per} (CI {lo}-{hi})"
+msgstr ""
+
+#, python-brace-format
 msgid "- **{part}**: {n} report ({pct}%)"
 msgid_plural "- **{part}**: {n} reports ({pct}%)"
 msgstr[0] ""
@@ -238,6 +247,13 @@ msgid "Sunday"
 msgstr ""
 
 msgid ""
+"The headline rate is pooled across every hazard type (a union). This "
+"names the single most common conflict type at each ranked segment and "
+"gives *its* exposure-normalized rate; types with too few reports to share"
+" are omitted."
+msgstr ""
+
+msgid ""
 "These segments are hot *beyond* what exposure and spatial structure "
 "explain — candidates for hot because dangerous, not hot because busy:"
 msgstr ""
@@ -273,7 +289,19 @@ msgstr ""
 msgid "Where the danger actually is — {city}"
 msgstr ""
 
+msgid "blocked sightline"
+msgstr ""
+
 msgid "certain"
+msgstr ""
+
+msgid "close pass"
+msgstr ""
+
+msgid "debris"
+msgstr ""
+
+msgid "dooring"
 msgstr ""
 
 msgid "evening (20–24)"
@@ -294,7 +322,16 @@ msgstr ""
 msgid "n"
 msgstr ""
 
+msgid "other"
+msgstr ""
+
 msgid "overnight (00–06)"
+msgstr ""
+
+msgid "signal conflict"
+msgstr ""
+
+msgid "surface hazard"
 msgstr ""
 
 msgid "uncertain"
