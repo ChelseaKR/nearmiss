@@ -29,6 +29,7 @@ does not flatter the current build, and explicitly marks the things we should
 > **R21** (table name filter), **R3 + partial R28** (the
 > [limitations page](../LIMITATIONS.md), incl. the CI-scope caveat), **R4/R5** (a
 > plain-language "bottom line" callout), **R24** (hazard-type breakdown column),
+> **R23** (council-ready print / save-as-PDF export with caveats baked in),
 > **R31** (a segment-ID join crosswalk in REAL-DATA.md), and **R46** (a
 > methodology TL;DR). The gated big-ticket **R40–R44 / E13–E16** (contributor
 > intake + abuse defense) is now **scoped** in
@@ -397,7 +398,11 @@ Grouped by theme. Each: `R# — what` · personas · effort · priority · notes
   it only sorts. · P02,P05,P14 · M · P1
 - **R22 — Visible "download dataset (GeoJSON/CSV) + checksum"** affordance. · P11,P14,P12 · S · P1 · HR5
 - **R23 — Print/PDF/PNG export** of the two maps + ranked table with caveats baked
-  in (for council). · P01,P07 · M · **P1**
+  in (for council). · P01,P07 · M · **P1** — **✓ shipped**: a "Print / save as PDF"
+  button plus a print stylesheet (no external PDF library) forces both maps visible,
+  un-filters the table, keeps the Significance/CI columns, and bakes a print-only
+  header (title, city, generated date, key caveat) and footer (site URL + timestamp)
+  into the page; `print-color-adjust: exact` keeps map tiles and hotspot colors.
 - **R24 — Surface `hazard_type` / breakdown** where not suppressed, so sidewalk &
   dooring hazards are findable. · P19,P02,P14 · S · P1
 - **R25 — Offline/poor-connection grace**: when tiles fail, say so and keep the

@@ -36,6 +36,22 @@
     </header>
 
     <main id="main">
+      <!-- R23: print-only header, shown only when the page is printed / saved as
+           PDF for a council packet. On screen it is display:none (see @media print
+           in style.css). Kept out of the tab order and off the AT tree on screen. -->
+      <div class="print-only print-header">
+        <p class="print-title" data-i18n="h1">nearmiss — where the danger actually is</p>
+        <p class="print-meta">
+          <span data-i18n="print_generated_label">Generated:</span>
+          <span id="print-generated"></span>
+        </p>
+        <p class="print-caveat" data-i18n="print_caveat">
+          Rates are shown with 95% confidence intervals. Segments without a
+          trustworthy exposure denominator are shown as uncertain and are never
+          ranked as if certain.
+        </p>
+      </div>
+
       <p id="bottom-line" class="bottom-line" data-i18n="blLoading">Summarizing…</p>
 
       <section aria-labelledby="map-heading">
@@ -60,6 +76,13 @@
           <button type="button" data-mapview="reports" aria-pressed="false" data-i18n="mv_reports">Reports only</button>
           <button type="button" data-mapview="rate" aria-pressed="false" data-i18n="mv_rate">Rate only</button>
         </div>
+
+        <!-- R23: council-ready print / save-as-PDF. No external PDF library — the
+             print stylesheet forces both maps visible, unfilters the table, and
+             bakes in the caveats. -->
+        <p class="print-control">
+          <button type="button" id="print-btn" data-i18n="print_btn">Print / save as PDF</button>
+        </p>
 
         <div class="map-split" data-view="both">
           <figure class="map-fig">
@@ -200,6 +223,15 @@
           </p>
         </details>
       </section>
+
+      <!-- R23: print-only footer (site URL + generated timestamp) for the packet. -->
+      <div class="print-only print-footer">
+        <p>
+          <span data-i18n="print_footer">nearmiss — near-miss rates, normalized by exposure · https://nearmiss.report</span>
+          <span data-i18n="print_generated_label">Generated:</span>
+          <span id="print-generated-footer"></span>
+        </p>
+      </div>
     </main>
 
     <footer>
