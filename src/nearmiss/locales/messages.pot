@@ -32,6 +32,15 @@ msgstr ""
 msgid "## When hazards get reported (volume, not risk)"
 msgstr ""
 
+msgid ""
+"**Analysis window:** all available data (no window configured — rates "
+"below are all-time and not bounded to a stated period)."
+msgstr ""
+
+#, python-brace-format
+msgid "**Analysis window:** {start} to {end}."
+msgstr ""
+
 #, python-brace-format
 msgid ""
 "**Bottom line:** the highest exposure-normalized near-miss rate is on "

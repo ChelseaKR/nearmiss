@@ -48,6 +48,32 @@ def test_non_numeric_threshold_raises_config_error(tmp_path: Path) -> None:
         load_config(cfg)
 
 
+def _window_cfg(tmp_path: Path, start: str, end: str) -> Path:
+    cfg = tmp_path / "city.toml"
+    cfg.write_text(
+        'city = "X"\nstreets = "s"\nreports = "r"\nexposure = "e"\n'
+        f'[window]\nstart = "{start}"\nend = "{end}"\n',
+        encoding="utf-8",
+    )
+    return cfg
+
+
+def test_unparseable_window_date_raises_config_error(tmp_path: Path) -> None:
+    with pytest.raises(ConfigError):
+        load_config(_window_cfg(tmp_path, "2024-13-40", "2025-01-01"))
+
+
+def test_reversed_window_raises_config_error(tmp_path: Path) -> None:
+    with pytest.raises(ConfigError):
+        load_config(_window_cfg(tmp_path, "2025-12-31", "2024-01-01"))
+
+
+def test_valid_window_parses(tmp_path: Path) -> None:
+    config = load_config(_window_cfg(tmp_path, "2024-01-01", "2025-12-31"))
+    assert config.window_start == "2024-01-01"
+    assert config.window_end == "2025-12-31"
+
+
 def test_total_exposure_mismatch_raises(config: object, tmp_path: Path) -> None:
     import dataclasses
 

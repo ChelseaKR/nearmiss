@@ -10,6 +10,7 @@ new city is a new config plus an exposure layer — no code change
 
 from __future__ import annotations
 
+import datetime
 import json
 import tomllib
 from dataclasses import dataclass, field
@@ -49,6 +50,13 @@ class Config:
     # Optional provenance note carried into the brief and the published metadata
     # (e.g. to mark a dataset as synthetic demonstration data).
     dataset_note: str | None = None
+    # First-class analysis window (METHODOLOGY §1: "a rate with no window attached is
+    # not a publishable number"). ISO-8601 dates (inclusive). Records whose
+    # occurred_at date falls outside are filtered before analysis; the window is
+    # stamped into every published artifact and brief. Optional, but a real config
+    # should set one so published rates are traceable to a stated period.
+    window_start: str | None = None
+    window_end: str | None = None
     raw: dict[str, object] = field(default_factory=dict)
 
 
@@ -91,6 +99,32 @@ def load_config(path: str | Path) -> Config:
     ref_lat = num(data["ref_lat"], "ref_lat") if "ref_lat" in data else None
     ref_lon = num(data["ref_lon"], "ref_lon") if "ref_lon" in data else None
 
+    # Optional [window] table: an ISO-8601 (YYYY-MM-DD) start/end bounding the
+    # analysis period. Validate parseability up front so a typo fails at load
+    # time, not silently mid-pipeline, and reject a reversed range.
+    win = data.get("window", {})
+    win = win if isinstance(win, dict) else {}
+
+    def win_date(key: str) -> str | None:
+        if key not in win:
+            return None
+        value = str(win[key])
+        try:
+            datetime.date.fromisoformat(value)
+        except ValueError as exc:
+            raise ConfigError(
+                f"config {cfg_path}: [window] {key!r} must be an ISO-8601 date "
+                f"(YYYY-MM-DD), got {value!r}"
+            ) from exc
+        return value
+
+    window_start = win_date("start")
+    window_end = win_date("end")
+    if window_start is not None and window_end is not None and window_start > window_end:
+        raise ConfigError(
+            f"config {cfg_path}: [window] start {window_start!r} is after end {window_end!r}"
+        )
+
     return Config(
         city=need("city"),
         streets_path=_resolve(base, need("streets")),
@@ -120,5 +154,7 @@ def load_config(path: str | Path) -> Config:
         kde_bandwidth_m=thr("kde_bandwidth_m", 150.0),
         kde_grid=int(thr("kde_grid", 24)),
         dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),
+        window_start=window_start,
+        window_end=window_end,
         raw=data,
     )

@@ -35,3 +35,21 @@ def test_spanish_brief_renders_in_spanish(bundle: AnalysisBundle, config: Config
 
 def test_unknown_language_falls_back_to_english(bundle: AnalysisBundle, config: Config) -> None:
     assert render_brief(bundle, config, "xx") == render_brief(bundle, config, "en")
+
+
+def test_brief_states_the_configured_window(bundle: AnalysisBundle, config: Config) -> None:
+    import dataclasses
+
+    cfg = dataclasses.replace(config, window_start="2026-01-01", window_end="2026-12-31")
+    text = render_brief(bundle, cfg, "en")
+    assert "Analysis window" in text
+    assert "2026-01-01 to 2026-12-31" in text
+
+
+def test_brief_warns_when_no_window_configured(bundle: AnalysisBundle, config: Config) -> None:
+    import dataclasses
+
+    cfg = dataclasses.replace(config, window_start=None, window_end=None)
+    text = render_brief(bundle, cfg, "en")
+    assert "Analysis window" in text
+    assert "no window configured" in text
