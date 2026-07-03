@@ -15,6 +15,7 @@ requested ``lang`` is loaded via :mod:`nearmiss.i18n`.
 from __future__ import annotations
 
 import gettext
+from collections.abc import Callable
 
 from .config import Config
 from .engine import AnalysisBundle, build_analysis
@@ -202,6 +203,9 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         out.append(_("No segment reaches statistical significance at this sample size."))
     out.append("")
 
+    # Robustness checks: overdispersion (RR-02) and MAUP re-segmentation (RR-05).
+    _render_robustness(out, bundle, translation, name_of)
+
     # Reporting bias, with a counterweight so honesty does not read as "conclude nothing."
     bias = bundle.result.bias
     out.append(_("## Reporting bias (named, not hidden)"))
@@ -261,6 +265,91 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     )
     out.append("")
     return "\n".join(out)
+
+
+# A quasi-Poisson dispersion at or above this is reported as *material*
+# overdispersion in the brief (≈5%+ wider intervals than pure Poisson). Below it,
+# sqrt(phi) rounding noise is not worth alarming a reader with. The dispersion phi
+# itself is always published in the metadata regardless of this display threshold.
+_OVERDISPERSION_MATERIAL = 1.1
+
+
+def _render_robustness(
+    out: list[str],
+    bundle: AnalysisBundle,
+    translation: gettext.NullTranslations,
+    name_of: Callable[[str], str],
+) -> None:
+    """Append the RR-02 overdispersion and RR-05 MAUP re-segmentation checks.
+
+    These are the skeptic-facing robustness answers: whether the Poisson intervals
+    understate uncertainty (clustered reporting) and whether the top hotspot is an
+    artifact of where the block lines were drawn.
+    """
+    _ = translation.gettext
+    phi = bundle.result.dispersion
+    stability = bundle.result.rank_stability
+    out.append(_("## Robustness checks (overdispersion & re-segmentation)"))
+    out.append("")
+
+    if phi >= _OVERDISPERSION_MATERIAL:
+        if bundle.result.overdispersion_adjusted:
+            clause = _("Those intervals have already been widened accordingly (quasi-Poisson).")
+        else:
+            clause = _(
+                "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening "
+                "is available via the `overdispersion_adjust` setting)."
+            )
+        out.append(
+            _(
+                "- **Overdispersion (clustered reporting).** The report counts are overdispersed "
+                "(dispersion ≈ {phi}): reports cluster, so the Poisson 95% intervals above are "
+                "roughly {infl}× narrower than that clustering alone would justify. {clause}"
+            ).format(phi=f"{phi:.2f}", infl=f"{phi**0.5:.2f}", clause=clause)
+        )
+    else:
+        out.append(
+            _(
+                "- **Overdispersion.** Report counts show no material overdispersion (dispersion "
+                "≈ {phi}); the Poisson intervals stand as computed."
+            ).format(phi=f"{phi:.2f}")
+        )
+
+    if stability is not None and stability.top_hotspot_id is not None:
+        name = name_of(stability.top_hotspot_id)
+        overlap = f"{stability.topk_overlap:.2f}"
+        if stability.top_hotspot_survives:
+            out.append(
+                _(
+                    "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
+                    "units (from {fine}) leaves **{name}** the highest-rate, still-significant "
+                    "cluster — the hotspot is not an artifact of where the block lines were "
+                    "drawn. Top-{k} rank overlap: {overlap}."
+                ).format(
+                    coarse=stability.coarse_units,
+                    fine=stability.fine_units,
+                    name=name,
+                    k=stability.k,
+                    overlap=overlap,
+                )
+            )
+        else:
+            out.append(
+                _(
+                    "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
+                    "units (from {fine}), **{name}** stays the highest-rate unit but loses "
+                    "statistical significance at the coarser scale — read it as scale-sensitive, "
+                    "a lead to confirm rather than a settled cluster. Top-{k} rank overlap: "
+                    "{overlap}."
+                ).format(
+                    coarse=stability.coarse_units,
+                    fine=stability.fine_units,
+                    name=name,
+                    k=stability.k,
+                    overlap=overlap,
+                )
+            )
+    out.append("")
 
 
 def _render_temporal(

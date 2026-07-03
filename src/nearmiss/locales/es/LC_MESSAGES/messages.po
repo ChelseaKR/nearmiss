@@ -318,3 +318,28 @@ msgstr "madrugada (00–06)"
 
 msgid "uncertain"
 msgstr "incierto"
+
+msgid "## Robustness checks (overdispersion & re-segmentation)"
+msgstr "## Comprobaciones de robustez (sobredispersión y re-segmentación)"
+
+msgid "Those intervals have already been widened accordingly (quasi-Poisson)."
+msgstr "Esos intervalos ya se han ampliado en consecuencia (cuasi-Poisson)."
+
+msgid "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening is available via the `overdispersion_adjust` setting)."
+msgstr "Léalos como una cota inferior de la incertidumbre real (hay disponible una ampliación cuasi-Poisson mediante el ajuste `overdispersion_adjust`)."
+
+#, python-brace-format
+msgid "- **Overdispersion (clustered reporting).** The report counts are overdispersed (dispersion ≈ {phi}): reports cluster, so the Poisson 95% intervals above are roughly {infl}× narrower than that clustering alone would justify. {clause}"
+msgstr "- **Sobredispersión (reportes agrupados).** Los recuentos de reportes están sobredispersos (dispersión ≈ {phi}): los reportes se agrupan, por lo que los intervalos de Poisson del 95% anteriores son aproximadamente {infl}× más estrechos de lo que esa agrupación por sí sola justificaría. {clause}"
+
+#, python-brace-format
+msgid "- **Overdispersion.** Report counts show no material overdispersion (dispersion ≈ {phi}); the Poisson intervals stand as computed."
+msgstr "- **Sobredispersión.** Los recuentos de reportes no muestran sobredispersión relevante (dispersión ≈ {phi}); los intervalos de Poisson se mantienen tal como se calcularon."
+
+#, python-brace-format
+msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}) leaves **{name}** the highest-rate, still-significant cluster — the hotspot is not an artifact of where the block lines were drawn. Top-{k} rank overlap: {overlap}."
+msgstr "- **Re-segmentación (MAUP).** Al redibujar la red en {coarse} unidades más gruesas (desde {fine}), **{name}** sigue siendo el conglomerado de mayor tasa y aún significativo — el punto caliente no es un artefacto de dónde se trazaron los límites de las manzanas. Solapamiento de rango top-{k}: {overlap}."
+
+#, python-brace-format
+msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}), **{name}** stays the highest-rate unit but loses statistical significance at the coarser scale — read it as scale-sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank overlap: {overlap}."
+msgstr "- **Re-segmentación (MAUP).** Al redibujar la red en {coarse} unidades más gruesas (desde {fine}), **{name}** sigue siendo la unidad de mayor tasa pero pierde significación estadística a la escala más gruesa — léalo como sensible a la escala, una pista por confirmar más que un conglomerado establecido. Solapamiento de rango top-{k}: {overlap}."

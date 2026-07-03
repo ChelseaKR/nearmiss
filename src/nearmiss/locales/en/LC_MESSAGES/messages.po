@@ -307,3 +307,28 @@ msgstr "overnight (00–06)"
 
 msgid "uncertain"
 msgstr "uncertain"
+
+msgid "## Robustness checks (overdispersion & re-segmentation)"
+msgstr "## Robustness checks (overdispersion & re-segmentation)"
+
+msgid "Those intervals have already been widened accordingly (quasi-Poisson)."
+msgstr "Those intervals have already been widened accordingly (quasi-Poisson)."
+
+msgid "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening is available via the `overdispersion_adjust` setting)."
+msgstr "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening is available via the `overdispersion_adjust` setting)."
+
+#, python-brace-format
+msgid "- **Overdispersion (clustered reporting).** The report counts are overdispersed (dispersion ≈ {phi}): reports cluster, so the Poisson 95% intervals above are roughly {infl}× narrower than that clustering alone would justify. {clause}"
+msgstr "- **Overdispersion (clustered reporting).** The report counts are overdispersed (dispersion ≈ {phi}): reports cluster, so the Poisson 95% intervals above are roughly {infl}× narrower than that clustering alone would justify. {clause}"
+
+#, python-brace-format
+msgid "- **Overdispersion.** Report counts show no material overdispersion (dispersion ≈ {phi}); the Poisson intervals stand as computed."
+msgstr "- **Overdispersion.** Report counts show no material overdispersion (dispersion ≈ {phi}); the Poisson intervals stand as computed."
+
+#, python-brace-format
+msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}) leaves **{name}** the highest-rate, still-significant cluster — the hotspot is not an artifact of where the block lines were drawn. Top-{k} rank overlap: {overlap}."
+msgstr "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}) leaves **{name}** the highest-rate, still-significant cluster — the hotspot is not an artifact of where the block lines were drawn. Top-{k} rank overlap: {overlap}."
+
+#, python-brace-format
+msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}), **{name}** stays the highest-rate unit but loses statistical significance at the coarser scale — read it as scale-sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank overlap: {overlap}."
+msgstr "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}), **{name}** stays the highest-rate unit but loses statistical significance at the coarser scale — read it as scale-sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank overlap: {overlap}."

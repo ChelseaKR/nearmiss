@@ -24,6 +24,7 @@ from .config import Config
 from .engine import build_analysis, load_city
 from .errors import PrivacyError
 from .models import Report, Segment, SegmentStats
+from .stats.maup import to_metadata as maup_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
 
 # Property/field keys that must NEVER appear in any published artifact.
@@ -201,6 +202,17 @@ def publish(config: Config) -> PublishResult:
             "getis_ord_band_m": config.gi_band_m,
             "kde_bandwidth_m": config.kde_bandwidth_m,
             "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
+            # RR-02: quasi-Poisson dispersion of the report counts. phi ~1 is a clean
+            # Poisson process; phi materially above 1 is overdispersion (clustered
+            # reporting) that makes the pure Poisson intervals too narrow. When
+            # `adjusted` is true the published per-segment intervals were widened by
+            # sqrt(phi) (config `overdispersion_adjust`); when false phi is reported
+            # but the intervals stand as a lower bound on the true uncertainty.
+            "dispersion": {
+                "phi": bundle.result.dispersion,
+                "model": "quasi-Poisson (Pearson) on the rate/offset model",
+                "adjusted": bundle.result.overdispersion_adjusted,
+            },
         },
         "summary": {
             "segments_total": len(bundle.segments),
@@ -217,6 +229,13 @@ def publish(config: Config) -> PublishResult:
         # City-wide time-of-day / weather report-VOLUME breakdown (never a per-report
         # timestamp; withheld below the k-anonymity floor). Volume, not a rate.
         "temporal": temporal_to_metadata(bundle.result.temporal),
+        # RR-05: does the top hotspot survive re-drawing the block boundaries (MAUP)?
+        # Unit counts, a segment id, ranks, and boolean summaries only — no coordinate.
+        "maup_rank_stability": (
+            maup_to_metadata(bundle.result.rank_stability)
+            if bundle.result.rank_stability is not None
+            else None
+        ),
         "geojson_sha256": sha,
         "privacy": (
             "Aggregated to public street segments; segments with a non-zero report count below "

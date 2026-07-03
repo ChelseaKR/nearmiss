@@ -44,8 +44,13 @@ The five [hard rules](../README.md) are referenced as HR1–HR5.
 5. **The unit of analysis is a block, and blocks are arbitrary (MAUP).** Results
    can shift if you draw the segments differently — the modifiable areal unit
    problem. We split streets at intersections for a defensible, reproducible unit,
-   but a hotspot at one granularity may dissolve at another. Rank *stability*
-   under re-segmentation is a known open analysis (and an honest place to push).
+   but a hotspot at one granularity may dissolve at another. Rank *stability* under
+   re-segmentation is now **measured, not just caveated**: every published dataset
+   carries a `maup_rank_stability` block (and the brief a robustness note) reporting
+   whether the top hotspot survives a coarser re-segmentation and the top-k rank
+   overlap (`stats/maup.py`). It is still a real limit — the check answers one
+   re-segmentation, not every possible one — but the honest place to push now comes
+   with a published answer you can check.
 
 ## More specific limits
 
