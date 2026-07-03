@@ -220,3 +220,81 @@ def test_submit_then_moderate_lifecycle(
 def test_moderate_list_empty_queue(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["moderate", "--config", str(_config(tmp_path)), "list"]) == 0
     assert "no submissions" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------- #
+# contributor data-rights (token = auth)
+# --------------------------------------------------------------------------- #
+def _write_raw_store(tmp_path: Path, reports: list[dict[str, object]]) -> None:
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    (raw_dir / "reports.json").write_text(json.dumps({"reports": reports}), encoding="utf-8")
+
+
+def test_contributor_export_and_delete_roundtrip(
+    tmp_path: Path, a_valid_report: dict[str, object], capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _config(tmp_path)
+    mine = copy.deepcopy(a_valid_report)
+    mine["reporter_token"] = "tok-mine-0001"
+    theirs = copy.deepcopy(a_valid_report)
+    theirs["id"] = "44444444-4444-4444-8444-444444444444"
+    theirs["reporter_token"] = "tok-theirs-9999"
+    _write_raw_store(tmp_path, [mine, theirs])
+
+    # export to a file
+    out = tmp_path / "my-reports.json"
+    assert (
+        main(["contributor", "--config", str(cfg), "export", "tok-mine-0001", "--out", str(out)])
+        == 0
+    )
+    bundle = json.loads(out.read_text(encoding="utf-8"))
+    assert bundle["count"] == 1
+    assert bundle["auth"] == "token-possession-only"
+    assert [r["id"] for r in bundle["raw"]] == [mine["id"]]
+
+    # export to stdout also works
+    capsys.readouterr()
+    assert main(["contributor", "--config", str(cfg), "export", "tok-mine-0001"]) == 0
+    assert "tok-mine-0001" in capsys.readouterr().out
+
+    # delete
+    capsys.readouterr()
+    assert main(["contributor", "--config", str(cfg), "delete", "tok-mine-0001"]) == 0
+    out_text = capsys.readouterr().out
+    assert "deleted 1 report" in out_text
+    assert "make reproduce" in out_text  # honest reproduce-after-delete note
+
+    # residue gone from the raw store; the other contributor untouched.
+    raw_text = (tmp_path / "raw" / "reports.json").read_text(encoding="utf-8")
+    assert "tok-mine-0001" not in raw_text
+    assert str(mine["id"]) not in raw_text
+    assert "tok-theirs-9999" in raw_text
+
+
+def _config_with_retention(tmp_path: Path, days: int) -> Path:
+    base = _config(tmp_path).read_text(encoding="utf-8")
+    cfg = tmp_path / "city-retention.toml"
+    cfg.write_text(base + f"retention_days = {days}\n", encoding="utf-8")
+    return cfg
+
+
+def test_contributor_purge_expired(
+    tmp_path: Path, a_valid_report: dict[str, object], capsys: pytest.CaptureFixture[str]
+) -> None:
+    old = copy.deepcopy(a_valid_report)
+    old["occurred_at"] = "2000-01-01T00:00:00Z"
+    _write_raw_store(tmp_path, [old])
+    cfg = _config_with_retention(tmp_path, 30)
+    assert main(["contributor", "--config", str(cfg), "purge-expired"]) == 0
+    assert "purged 1 raw record" in capsys.readouterr().out
+    raw_text = (tmp_path / "raw" / "reports.json").read_text(encoding="utf-8")
+    assert str(old["id"]) not in raw_text
+
+
+def test_contributor_purge_expired_disabled_is_noop(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _config(tmp_path)  # retention_days defaults to 0
+    assert main(["contributor", "--config", str(cfg), "purge-expired"]) == 0
+    assert "retention disabled" in capsys.readouterr().out

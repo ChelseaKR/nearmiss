@@ -219,6 +219,13 @@ nearmiss moderate list --config config/davis-demo.toml               # review th
 nearmiss moderate approve <id> --config config/davis-demo.toml       # only approved enter the dataset
 nearmiss moderate export approved.json --config config/davis-demo.toml
 
+# Contributor data-rights (token possession is the ONLY auth — no account/identity):
+nearmiss contributor export <reporter_token> --config config/davis-demo.toml   # my reports, as JSON
+nearmiss contributor delete <reporter_token> --config config/davis-demo.toml   # delete + tombstone them
+nearmiss contributor purge-expired --config config/davis-demo.toml             # enforce retention_days
+# NOTE: after a delete/purge, `make reproduce` output legitimately changes — the
+# deleted reports no longer feed aggregation; re-run and commit the new artifacts.
+
 # Publish the open GeoJSON aggregated to public street segments + data card
 nearmiss publish --config config/davis-demo.toml
 

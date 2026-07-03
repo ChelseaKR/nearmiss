@@ -46,6 +46,10 @@ class Config:
     gi_band_m: float = 300.0
     kde_bandwidth_m: float = 150.0
     kde_grid: int = 24
+    # Contributor data-rights: retention window (days) for the PRIVATE raw store.
+    # `nearmiss contributor purge-expired` tombstone-deletes raw records whose
+    # event time is older than this window. 0 disables retention (keep forever).
+    retention_days: int = 0
     # Optional provenance note carried into the brief and the published metadata
     # (e.g. to mark a dataset as synthetic demonstration data).
     dataset_note: str | None = None
@@ -119,6 +123,7 @@ def load_config(path: str | Path) -> Config:
         gi_band_m=thr("gi_band_m", 300.0),
         kde_bandwidth_m=thr("kde_bandwidth_m", 150.0),
         kde_grid=int(thr("kde_grid", 24)),
+        retention_days=int(thr("retention_days", 0)),
         dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),
         raw=data,
     )
