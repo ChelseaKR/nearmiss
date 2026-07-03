@@ -1,27 +1,48 @@
 {
+  "bias": {
+    "caveat": "Shares compare where reports land against where exposure is. They cannot, on their own, separate 'more dangerous' from 'more reported': reporter pools skew by route choice, demographics, app access, and language. Treat over-represented segments as candidates for attention and scrutiny, not as confirmed rankings.",
+    "over_represented": [
+      {
+        "exposure_share": 0.0159,
+        "report_share": 0.1053,
+        "segment_id": "seg-06"
+      },
+      {
+        "exposure_share": 0.0212,
+        "report_share": 0.1053,
+        "segment_id": "seg-02"
+      },
+      {
+        "exposure_share": 0.0212,
+        "report_share": 0.1053,
+        "segment_id": "seg-05"
+      }
+    ],
+    "under_represented": [
+      {
+        "exposure_share": 0.0794,
+        "report_share": 0.0,
+        "segment_id": "seg-12"
+      },
+      {
+        "exposure_share": 0.0794,
+        "report_share": 0.0,
+        "segment_id": "seg-09"
+      },
+      {
+        "exposure_share": 0.4233,
+        "report_share": 0.3509,
+        "segment_id": "seg-03"
+      }
+    ]
+  },
   "city": "Davis",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "079e583537629858693925a7097540d78e04c63cdd4c8cbae2665c99b806c984",
+  "geojson_sha256": "25c60324739f59cf21f0b1904760ecf5585fc866fce60da8a7ed980def021b8f",
   "license": "Apache-2.0",
-  "maup_rank_stability": {
-    "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
-    "coarse_units": 90,
-    "fine_units": 180,
-    "k": 5,
-    "top_hotspot_coarse_rank": 1,
-    "top_hotspot_segment": "seg-06",
-    "top_hotspot_still_significant": true,
-    "top_hotspot_survives": true,
-    "topk_overlap": 0.8
-  },
   "methods": {
     "confidence_z": 1.96,
-    "dispersion": {
-      "adjusted": false,
-      "model": "quasi-Poisson (Pearson) on the rate/offset model",
-      "phi": 11.1761
-    },
     "fdr_alpha": 0.05,
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
@@ -37,7 +58,6 @@
   "summary": {
     "duplicates_removed": 1,
     "exposure_coverage": 0.0667,
-    "out_of_window": 0,
     "reports_in": 59,
     "segments_published": 177,
     "segments_total": 180,
@@ -86,9 +106,5 @@
     "suppressed_low_count": false,
     "total_reports_timed": 58
   },
-  "version": "0.1.0",
-  "window": {
-    "end": "2026-12-31",
-    "start": "2026-01-01"
-  }
+  "version": "0.1.0"
 }

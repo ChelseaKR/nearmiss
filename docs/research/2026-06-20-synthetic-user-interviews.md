@@ -29,8 +29,9 @@ does not flatter the current build, and explicitly marks the things we should
 > **R21** (table name filter), **R3 + partial R28** (the
 > [limitations page](../LIMITATIONS.md), incl. the CI-scope caveat), **R4/R5** (a
 > plain-language "bottom line" callout), **R24** (hazard-type breakdown column),
-> **R31** (a segment-ID join crosswalk in REAL-DATA.md), and **R46** (a
-> methodology TL;DR). The gated big-ticket **R40–R44 / E13–E16** (contributor
+> **R31** (a segment-ID join crosswalk in REAL-DATA.md), **R46** (a
+> methodology TL;DR), and **R48** (the reporting-bias audit surfaced as a visible
+> web panel, driven by a privacy-safe `bias` metadata block). The gated big-ticket **R40–R44 / E13–E16** (contributor
 > intake + abuse defense) is now **scoped** in
 > [INTAKE-AND-ABUSE.md](../INTAKE-AND-ABUSE.md). Still deferred pending live data
 > sources: R36/E10 exposure adapters, E5 official-collision fusion, E2
@@ -443,7 +444,12 @@ Grouped by theme. Each: `R# — what` · personas · effort · priority · notes
 - **R47 — Re-identification model for rare hazard types** documented; k & jitter
   rationale visible. · P23 · M · P1 · HR4
 - **R48 — Bias-audit panel** from `bias.py` made visible (who's over/under-
-  represented). · P15,P10,P19 · M · P1 · HR3
+  represented). · P15,P10,P19 · M · P1 · HR3 · **✅ Shipped** — `stats/bias.py`
+  gains a privacy-safe `to_metadata()` (publishable segments only, rounded shares,
+  no coordinates/counts/reporter fields); `publish.py` emits a `bias` block in both
+  the sidecar and embedded metadata; the web UI renders a collapsible "Reporting
+  bias" panel (caveat note verbatim + over-/under-represented lists with report-share
+  vs exposure-share), bilingual and degrading gracefully when the block is absent.
 
 *(R49–R70: the long tail — emit GeoPackage; .qml + Mapbox/Leaflet style presets;
 embeddable iframe widget; per-district printable; "report on behalf of a route";

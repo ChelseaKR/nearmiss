@@ -1,27 +1,43 @@
 {
+  "bias": {
+    "caveat": "Shares compare where reports land against where exposure is. They cannot, on their own, separate 'more dangerous' from 'more reported': reporter pools skew by route choice, demographics, app access, and language. Treat over-represented segments as candidates for attention and scrutiny, not as confirmed rankings.",
+    "over_represented": [
+      {
+        "exposure_share": 0.0394,
+        "report_share": 0.4,
+        "segment_id": "rs-3"
+      },
+      {
+        "exposure_share": 0.126,
+        "report_share": 0.2,
+        "segment_id": "rs-2"
+      },
+      {
+        "exposure_share": 0.126,
+        "report_share": 0.2,
+        "segment_id": "rs-6"
+      }
+    ],
+    "under_represented": [
+      {
+        "exposure_share": 0.2362,
+        "report_share": 0.0,
+        "segment_id": "rs-5"
+      },
+      {
+        "exposure_share": 0.2362,
+        "report_share": 0.15,
+        "segment_id": "rs-1"
+      }
+    ]
+  },
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "4cf21ff09a6a875ca9ca5ac3b96072ded58efb6f98caa7fdd4fe0ca658fa786c",
+  "geojson_sha256": "7d048a243d6fcb81c1cd5402a0ffe123a4f6f413fc90dda8d82221aeff3da7fd",
   "license": "Apache-2.0",
-  "maup_rank_stability": {
-    "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
-    "coarse_units": 3,
-    "fine_units": 6,
-    "k": 5,
-    "top_hotspot_coarse_rank": 1,
-    "top_hotspot_segment": "rs-3",
-    "top_hotspot_still_significant": false,
-    "top_hotspot_survives": false,
-    "topk_overlap": 1.0
-  },
   "methods": {
     "confidence_z": 1.96,
-    "dispersion": {
-      "adjusted": false,
-      "model": "quasi-Poisson (Pearson) on the rate/offset model",
-      "phi": 15.2193
-    },
     "fdr_alpha": 0.05,
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
@@ -37,7 +53,6 @@
   "summary": {
     "duplicates_removed": 0,
     "exposure_coverage": 1.0,
-    "out_of_window": 0,
     "reports_in": 20,
     "segments_published": 5,
     "segments_total": 6,
@@ -69,9 +84,5 @@
     "suppressed_low_count": false,
     "total_reports_timed": 20
   },
-  "version": "0.1.0",
-  "window": {
-    "end": "2026-12-31",
-    "start": "2026-01-01"
-  }
+  "version": "0.1.0"
 }
