@@ -299,3 +299,333 @@ msgstr ""
 
 msgid "uncertain"
 msgstr ""
+
+msgid "web.app.asc"
+msgstr ""
+
+msgid "web.app.blEmpty"
+msgstr ""
+
+msgid "web.app.blLoading"
+msgstr ""
+
+msgid "web.app.blNone"
+msgstr ""
+
+msgid "web.app.blSummary"
+msgstr ""
+
+msgid "web.app.capRate"
+msgstr ""
+
+msgid "web.app.capRateNone"
+msgstr ""
+
+msgid "web.app.capReports"
+msgstr ""
+
+msgid "web.app.caption"
+msgstr ""
+
+msgid "web.app.captionFiltered"
+msgstr ""
+
+msgid "web.app.conf_certain"
+msgstr ""
+
+msgid "web.app.conf_exposure_unknown"
+msgstr ""
+
+msgid "web.app.conf_uncertain"
+msgstr ""
+
+msgid "web.app.data_h"
+msgstr ""
+
+msgid "web.app.demo"
+msgstr ""
+
+msgid "web.app.demo_real"
+msgstr ""
+
+msgid "web.app.demo_synth"
+msgstr ""
+
+msgid "web.app.desc"
+msgstr ""
+
+msgid "web.app.download"
+msgstr ""
+
+msgid "web.app.downloadMeta"
+msgstr ""
+
+msgid "web.app.fail"
+msgstr ""
+
+msgid "web.app.faq_a1"
+msgstr ""
+
+msgid "web.app.faq_a2"
+msgstr ""
+
+msgid "web.app.faq_a3"
+msgstr ""
+
+msgid "web.app.faq_a4"
+msgstr ""
+
+msgid "web.app.faq_h"
+msgstr ""
+
+msgid "web.app.faq_q1"
+msgstr ""
+
+msgid "web.app.faq_q2"
+msgstr ""
+
+msgid "web.app.faq_q3"
+msgstr ""
+
+msgid "web.app.faq_q4"
+msgstr ""
+
+msgid "web.app.filterStatus"
+msgstr ""
+
+msgid "web.app.filter_label"
+msgstr ""
+
+msgid "web.app.flag_exposure_unknown"
+msgstr ""
+
+msgid "web.app.flag_geocode_low_confidence"
+msgstr ""
+
+msgid "web.app.flag_low_sample"
+msgstr ""
+
+msgid "web.app.flag_modeled_exposure"
+msgstr ""
+
+msgid "web.app.footer"
+msgstr ""
+
+msgid "web.app.h1"
+msgstr ""
+
+msgid "web.app.hsEmpty"
+msgstr ""
+
+msgid "web.app.hsLoading"
+msgstr ""
+
+msgid "web.app.hsSummary"
+msgstr ""
+
+msgid "web.app.hsSummaryNone"
+msgstr ""
+
+msgid "web.app.hz_close_pass"
+msgstr ""
+
+msgid "web.app.hz_debris"
+msgstr ""
+
+msgid "web.app.hz_dooring"
+msgstr ""
+
+msgid "web.app.hz_other"
+msgstr ""
+
+msgid "web.app.hz_sightline"
+msgstr ""
+
+msgid "web.app.hz_signal"
+msgstr ""
+
+msgid "web.app.hz_surface_hazard"
+msgstr ""
+
+msgid "web.app.lblBusiest"
+msgstr ""
+
+msgid "web.app.lblHotspot"
+msgstr ""
+
+msgid "web.app.lede"
+msgstr ""
+
+msgid "web.app.legend"
+msgstr ""
+
+msgid "web.app.legend_h"
+msgstr ""
+
+msgid "web.app.loading"
+msgstr ""
+
+msgid "web.app.loading_map"
+msgstr ""
+
+msgid "web.app.mapEmpty"
+msgstr ""
+
+msgid "web.app.mapNoLeaflet"
+msgstr ""
+
+msgid "web.app.map_desc"
+msgstr ""
+
+msgid "web.app.map_h"
+msgstr ""
+
+msgid "web.app.map_rate_t"
+msgstr ""
+
+msgid "web.app.map_reports_t"
+msgstr ""
+
+msgid "web.app.mv_both"
+msgstr ""
+
+msgid "web.app.mv_label"
+msgstr ""
+
+msgid "web.app.mv_rate"
+msgstr ""
+
+msgid "web.app.mv_reports"
+msgstr ""
+
+msgid "web.app.none"
+msgstr ""
+
+msgid "web.app.report_cta"
+msgstr ""
+
+msgid "web.app.shareCardDone"
+msgstr ""
+
+msgid "web.app.share_card"
+msgstr ""
+
+msgid "web.app.sig"
+msgstr ""
+
+msgid "web.app.sigShort"
+msgstr ""
+
+msgid "web.app.skip"
+msgstr ""
+
+msgid "web.app.sortStatus"
+msgstr ""
+
+msgid "web.app.sort_help"
+msgstr ""
+
+msgid "web.app.source_label"
+msgstr ""
+
+msgid "web.app.th_ci"
+msgstr ""
+
+msgid "web.app.th_conf"
+msgstr ""
+
+msgid "web.app.th_flags"
+msgstr ""
+
+msgid "web.app.th_hazards"
+msgstr ""
+
+msgid "web.app.th_hot"
+msgstr ""
+
+msgid "web.app.th_n"
+msgstr ""
+
+msgid "web.app.th_rate"
+msgstr ""
+
+msgid "web.app.th_segment"
+msgstr ""
+
+msgid "web.app.tipRate"
+msgstr ""
+
+msgid "web.app.tipReports"
+msgstr ""
+
+msgid "web.app.title"
+msgstr ""
+
+msgid "web.app.titleCity"
+msgstr ""
+
+msgid "web.app.tt_ci"
+msgstr ""
+
+msgid "web.app.tt_conf"
+msgstr ""
+
+msgid "web.app.tt_flags"
+msgstr ""
+
+msgid "web.app.tt_hazards"
+msgstr ""
+
+msgid "web.app.tt_hot"
+msgstr ""
+
+msgid "web.app.tt_n"
+msgstr ""
+
+msgid "web.app.tt_rate"
+msgstr ""
+
+msgid "web.submit.geo_denied"
+msgstr ""
+
+msgid "web.submit.geo_filled"
+msgstr ""
+
+msgid "web.submit.geo_locating"
+msgstr ""
+
+msgid "web.submit.geo_unavailable"
+msgstr ""
+
+msgid "web.submit.need_coords"
+msgstr ""
+
+msgid "web.submit.need_hazard"
+msgstr ""
+
+msgid "web.submit.need_location"
+msgstr ""
+
+msgid "web.submit.need_severity"
+msgstr ""
+
+msgid "web.submit.status_copied"
+msgstr ""
+
+msgid "web.submit.status_copy_manual"
+msgstr ""
+
+msgid "web.submit.status_missing"
+msgstr ""
+
+msgid "web.submit.status_ready"
+msgstr ""
+
+msgid "web.submit.status_received"
+msgstr ""
+
+msgid "web.submit.status_send_failed"
+msgstr ""
+
+msgid "web.submit.status_sending"
+msgstr ""

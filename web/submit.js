@@ -20,6 +20,22 @@
   var jsonEl = document.getElementById("submission-json");
   var geoStatus = document.getElementById("geo-status");
 
+  // The form's user-facing status text is single-sourced from the same gettext
+  // catalogs as the rest of the site (web/locales/<lang>.json via po2json), under
+  // the "web.submit." namespace. ?lang=xx selects the locale; English is the
+  // fallback. t("key") mirrors app.js so call sites read the same.
+  var i18n = window.NearmissI18n.create("web.submit.");
+  var lang = window.NearmissI18n.langFromQuery("en");
+
+  function t(key) {
+    return i18n.t(key);
+  }
+  function tpl(s, obj) {
+    return s.replace(/\{(\w+)\}/g, function (_, k) {
+      return obj[k];
+    });
+  }
+
   function setStatus(msg, isError) {
     statusEl.textContent = msg;
     statusEl.classList.toggle("is-error", !!isError);
@@ -76,18 +92,18 @@
   if (geoBtn) {
     geoBtn.addEventListener("click", function () {
       if (!navigator.geolocation) {
-        geoStatus.textContent = "Geolocation isn't available — type a location instead.";
+        geoStatus.textContent = t("geo_unavailable");
         return;
       }
-      geoStatus.textContent = "Locating…";
+      geoStatus.textContent = t("geo_locating");
       navigator.geolocation.getCurrentPosition(
         function (pos) {
           document.getElementById("lat").value = pos.coords.latitude.toFixed(6);
           document.getElementById("lon").value = pos.coords.longitude.toFixed(6);
-          geoStatus.textContent = "Location filled in. You can adjust it.";
+          geoStatus.textContent = t("geo_filled");
         },
         function () {
-          geoStatus.textContent = "Couldn't get your location — type a place instead.";
+          geoStatus.textContent = t("geo_denied");
         },
         { enableHighAccuracy: true, timeout: 10000 }
       );
@@ -101,13 +117,13 @@
     var hasCoords = !isNaN(lat) && !isNaN(lon);
 
     var problems = [];
-    if (!hasCoords && !address) problems.push("a location (use my location, lat/lon, or an address)");
+    if (!hasCoords && !address) problems.push(t("need_location"));
     if (hasCoords && (lat < -90 || lat > 90 || lon < -180 || lon > 180))
-      problems.push("a valid latitude (−90..90) and longitude (−180..180)");
-    if (!checked("hazard_type")) problems.push("a hazard type");
-    if (!checked("severity")) problems.push("a severity");
+      problems.push(t("need_coords"));
+    if (!checked("hazard_type")) problems.push(t("need_hazard"));
+    if (!checked("severity")) problems.push(t("need_severity"));
     if (problems.length) {
-      setStatus("Please provide: " + problems.join("; ") + ".", true);
+      setStatus(tpl(t("status_missing"), { fields: problems.join("; ") }), true);
       return null;
     }
 
@@ -130,12 +146,12 @@
   function showResult(report) {
     jsonEl.value = JSON.stringify(report, null, 2);
     resultEl.hidden = false;
-    setStatus("Your submission is ready below — it still needs human review before it counts.", false);
+    setStatus(t("status_ready"), false);
     resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function postToEndpoint(endpoint, report) {
-    setStatus("Sending your submission for review…", false);
+    setStatus(t("status_sending"), false);
     fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -143,15 +159,12 @@
     })
       .then(function (resp) {
         if (!resp.ok) throw new Error("HTTP " + resp.status);
-        setStatus("Thank you. Your near-miss was received and is awaiting review.", false);
+        setStatus(t("status_received"), false);
         form.reset();
       })
       .catch(function () {
         // Fall back to the offline path so a curbside submission is never lost.
-        setStatus(
-          "Couldn't reach the server — here is your submission to send manually instead.",
-          true
-        );
+        setStatus(t("status_send_failed"), true);
         showResult(report);
       });
   }
@@ -195,7 +208,19 @@
       } catch (err) {
         ok = false;
       }
-      setStatus(ok ? "Copied to clipboard." : "Select the text and copy it manually.", !ok);
+      setStatus(ok ? t("status_copied") : t("status_copy_manual"), !ok);
     });
   }
+
+  // Load the English fallback and the requested locale so the form's status text
+  // is localized the moment the user acts. Handlers above read t() lazily, so no
+  // re-wiring is needed once the catalogs resolve.
+  i18n
+    .load("en")
+    .then(function () {
+      return lang === "en" ? null : i18n.load(lang);
+    })
+    .then(function () {
+      i18n.setLang(lang);
+    });
 })();
