@@ -441,7 +441,9 @@ Grouped by theme. Each: `R# — what` · personas · effort · priority · notes
   · P05,P07,P15 · S · P1
 - **R46 — Methodology one-pager** (exportable) for staff reports. · P06,P07 · S · P1
 - **R47 — Re-identification model for rare hazard types** documented; k & jitter
-  rationale visible. · P23 · M · P1 · HR4
+  rationale visible. · P23 · M · P1 · HR4 · **DONE** ([`docs/RE-IDENTIFICATION.md`](../RE-IDENTIFICATION.md);
+  documents the rare-`hazard_type` attack, the `min_publish_n=3` / `small_n=5` rationale, and
+  clarifies that the pipeline withholds/snaps rather than jitters)
 - **R48 — Bias-audit panel** from `bias.py` made visible (who's over/under-
   represented). · P15,P10,P19 · M · P1 · HR3
 

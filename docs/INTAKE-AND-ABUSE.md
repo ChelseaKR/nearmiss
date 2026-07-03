@@ -122,7 +122,9 @@ updating that document, not just this one.
 - A rare `hazard_type` on a low-traffic block at a fine location could re-identify
   a reporter even after aggregation. Suppress rare-attribute combinations below a
   threshold (extend the existing small-n `hazard_breakdown` suppression), and
-  document the re-identification model (R47).
+  document the re-identification model (R47). The re-identification model is now
+  documented in [`RE-IDENTIFICATION.md`](RE-IDENTIFICATION.md); the
+  extend-suppression half of B7 is still pending.
 
 ### B8. Reproducibility of the defenses
 - Every automated control (rate caps, influence caps, burst detection) is a
