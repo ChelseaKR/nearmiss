@@ -154,6 +154,31 @@ def test_metadata_window_keys_present_when_unconfigured(config: Config, tmp_path
     assert meta["window"] == {"start": None, "end": None}
 
 
+def test_run_manifest_artifact_is_written_and_privacy_clean(
+    config: Config, tmp_path: object
+) -> None:
+    """publish() drops a <slug>.run.json whose provenance passes the metadata gate."""
+    import dataclasses
+    from pathlib import Path
+
+    assert isinstance(tmp_path, Path)
+    cfg = dataclasses.replace(config, out_dir=tmp_path)
+    result = publish(cfg)
+
+    assert result.manifest_path.name.endswith(".run.json")
+    assert result.manifest_path.is_file()
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    prov = manifest["provenance"]
+    # Provenance is counts-and-hashes only — it passes the same privacy gate.
+    assert_metadata_clean(prov, load_city(config).reports)
+    # Input identity is by content hash, never by report content.
+    assert set(prov["inputs"]) == {"streets", "reports", "exposure"}
+    # No forbidden per-report key anywhere in the manifest.
+    text = json.dumps(manifest)
+    for forbidden in ("reporter_token", "occurred_at", "note", "heading_deg", "severity"):
+        assert f'"{forbidden}"' not in text
+
+
 def test_committed_configs_keep_moderation_store_gitignored() -> None:
     """HR4: every committed config's submissions_dir must resolve to a gitignored
     path. Pending submissions are precise private reports; if a config's

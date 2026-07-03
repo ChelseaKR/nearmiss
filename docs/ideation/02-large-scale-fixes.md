@@ -203,7 +203,17 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
 - **Excellent looks like:** a misspelled threshold cannot alter a published dataset;
   `tests/test_robustness.py` gains the typo cases.
 
-### FIX-09 — Run manifest + pipeline-stage telemetry
+### FIX-09 — Run manifest + pipeline-stage telemetry ✅ DONE
+- **Status:** Done (branch `roadmap/fix-09-run-manifest-pipeline-stage-telem`). New
+  stdlib-only `src/nearmiss/manifest.py` (`sha256_file`, `effective_config`,
+  `build_manifest`); `engine.build_analysis` times each stage and attaches
+  `{stage, counts, ms}` to `AnalysisBundle.stages`; `publish()` writes
+  `<slug>.run.json` (gitignored — the timings sidecar is unhashed and not
+  byte-stable) and runs its provenance section through `assert_metadata_clean`;
+  `__main__ run` emits one `msg="stage"` JSON line per stage via `obs.get_logger()`.
+  The `manifest_digest` covers the provenance section only, so `make reproduce`
+  stays byte-stable. Tests: `tests/test_manifest.py` + extensions to
+  `test_observability.py`, `test_publish_privacy.py`, `test_reproduce.py`.
 - **Pitch:** Emit a machine-readable provenance manifest per run (input file SHA256s,
   effective config hash, package version, per-stage counts, wall-times) next to the
   published artifacts, and structured stage logs via the existing `obs.py`.
