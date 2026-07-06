@@ -186,6 +186,14 @@ table in the briefs from raw inputs. `make demo` runs the full pipeline over the
 fixtures and renders a sample brief — a good way to see the whole system end to end without
 any real data.
 
+This project is also held to the cross-cutting portfolio standards vendored at
+[`docs/standards/`](docs/standards/) (pinned to a specific release via
+`docs/standards/.standards-version`). See the README's
+[Standards conformance](README.md#standards-conformance) table for which ones apply to nearmiss and
+the current state of each; a change that touches lint/type/test config, CI, release, accessibility,
+i18n, observability, or the privacy/threat-model surface should hold up against the relevant vendored
+standard, not just against this file.
+
 Dependencies are **pinned and hashed**. Do not bump them by hand in a feature PR; dependency
 updates flow through Dependabot and a documented bump path so the hashes and the audit stay
 in sync.

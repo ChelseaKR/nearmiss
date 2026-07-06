@@ -15,6 +15,7 @@ requested ``lang`` is loaded via :mod:`nearmiss.i18n`.
 from __future__ import annotations
 
 import gettext
+from collections.abc import Callable
 
 from .config import Config
 from .engine import AnalysisBundle, build_analysis
@@ -36,35 +37,18 @@ def _fmt(value: float | None) -> str:
     return "—" if value is None else f"{value:.2f}"
 
 
-def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> str:
-    translation = get_translation(lang)
+def _render_intro(
+    out: list[str],
+    bundle: AnalysisBundle,
+    config: Config,
+    withheld: int,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the title, dataset note, rate caveat, exposure coverage, and k-anonymity notice."""
     _ = translation.gettext
     ngettext = translation.ngettext
-    names = _names(bundle.segments)
-    stats = bundle.result.segments
     per = int(config.rate_per)
     unit = config.exposure_unit
-    publishable = {s.segment_id for s in stats if s.publishable}
-    withheld = sum(1 for s in stats if not s.publishable)
-
-    def name_of(sid: str) -> str:
-        return names.get(sid, sid)
-
-    def bias_line(f: BiasFinding) -> str:
-        template: str = _("- {name}: {rshare}% of reports vs {eshare}% of exposure")
-        return template.format(
-            name=name_of(f.segment_id),
-            rshare=f"{f.report_share * 100:.0f}",
-            eshare=f"{f.exposure_share * 100:.0f}",
-        )
-
-    ranked = sorted(
-        (s for s in stats if s.rate is not None and s.publishable),
-        key=lambda s: s.rate or 0.0,
-        reverse=True,
-    )
-
-    out: list[str] = []
     title = _("Where the danger actually is — {city}").format(city=config.city)
     out.append(f"# {title}")
     out.append("")
@@ -98,7 +82,12 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         )
         out.append("")
 
-    # Plain-language glossary.
+
+def _render_glossary(out: list[str], config: Config, translation: gettext.NullTranslations) -> None:
+    """Append the plain-language glossary section."""
+    _ = translation.gettext
+    per = int(config.rate_per)
+    unit = config.exposure_unit
     out.append(_("## What the numbers mean (plain language)"))
     out.append("")
     out.append(
@@ -123,31 +112,53 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     )
     out.append("")
 
-    # Bottom-line sentence (the headline a non-statistician can read aloud).
-    if ranked:
-        top = ranked[0]
-        sig = _(", and it is a statistically significant cluster") if top.significant else ""
-        out.append(
-            _(
-                "**Bottom line:** the highest exposure-normalized near-miss rate is on "
-                "**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
-                "n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a "
-                "busy street; still, it rests on {n} reports, so read it with the interval and "
-                "the reporting-bias caveats below."
-            ).format(
-                name=name_of(top.segment_id),
-                rate=_fmt(top.rate),
-                per=per,
-                unit=unit,
-                lo=_fmt(top.rate_ci_low),
-                hi=_fmt(top.rate_ci_high),
-                n=top.n,
-                sig=sig,
-            )
-        )
-        out.append("")
 
-    # Highest-rate table.
+def _render_bottom_line(
+    out: list[str],
+    ranked: list[SegmentStats],
+    name_of: Callable[[str], str],
+    config: Config,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the headline sentence a non-statistician can read aloud, if there is a ranking."""
+    if not ranked:
+        return
+    _ = translation.gettext
+    per = int(config.rate_per)
+    unit = config.exposure_unit
+    top = ranked[0]
+    sig = _(", and it is a statistically significant cluster") if top.significant else ""
+    out.append(
+        _(
+            "**Bottom line:** the highest exposure-normalized near-miss rate is on "
+            "**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
+            "n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a "
+            "busy street; still, it rests on {n} reports, so read it with the interval and "
+            "the reporting-bias caveats below."
+        ).format(
+            name=name_of(top.segment_id),
+            rate=_fmt(top.rate),
+            per=per,
+            unit=unit,
+            lo=_fmt(top.rate_ci_low),
+            hi=_fmt(top.rate_ci_high),
+            n=top.n,
+            sig=sig,
+        )
+    )
+    out.append("")
+
+
+def _render_top_table(
+    out: list[str],
+    ranked: list[SegmentStats],
+    name_of: Callable[[str], str],
+    config: Config,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the highest-rate (top 10) segments table."""
+    _ = translation.gettext
+    per = int(config.rate_per)
     out.append(_("## Highest-rate segments (exposure-normalized)"))
     out.append("")
     th_rank = _("Rank")
@@ -173,7 +184,17 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         )
     out.append("")
 
-    # Significant hotspots.
+
+def _render_hotspots(
+    out: list[str],
+    stats: list[SegmentStats],
+    name_of: Callable[[str], str],
+    config: Config,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the statistically-significant-hotspots section."""
+    _ = translation.gettext
+    per = int(config.rate_per)
     sig_segments: list[SegmentStats] = [s for s in stats if s.significant and s.publishable]
     out.append(_("## Statistically significant hotspots (Getis-Ord Gi\\*)"))
     out.append("")
@@ -202,7 +223,25 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         out.append(_("No segment reaches statistical significance at this sample size."))
     out.append("")
 
-    # Reporting bias, with a counterweight so honesty does not read as "conclude nothing."
+
+def _render_bias_section(
+    out: list[str],
+    bundle: AnalysisBundle,
+    publishable: set[str],
+    name_of: Callable[[str], str],
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the reporting-bias section, the over/under-represented lists, and the KDE peak."""
+    _ = translation.gettext
+
+    def bias_line(f: BiasFinding) -> str:
+        template: str = _("- {name}: {rshare}% of reports vs {eshare}% of exposure")
+        return template.format(
+            name=name_of(f.segment_id),
+            rshare=f"{f.report_share * 100:.0f}",
+            eshare=f"{f.exposure_share * 100:.0f}",
+        )
+
     bias = bundle.result.bias
     out.append(_("## Reporting bias (named, not hidden)"))
     out.append("")
@@ -249,6 +288,31 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         )
         out.append("")
 
+
+def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> str:
+    translation = get_translation(lang)
+    _ = translation.gettext
+    names = _names(bundle.segments)
+    stats = bundle.result.segments
+    publishable = {s.segment_id for s in stats if s.publishable}
+    withheld = sum(1 for s in stats if not s.publishable)
+
+    def name_of(sid: str) -> str:
+        return names.get(sid, sid)
+
+    ranked = sorted(
+        (s for s in stats if s.rate is not None and s.publishable),
+        key=lambda s: s.rate or 0.0,
+        reverse=True,
+    )
+
+    out: list[str] = []
+    _render_intro(out, bundle, config, withheld, translation)
+    _render_glossary(out, config, translation)
+    _render_bottom_line(out, ranked, name_of, config, translation)
+    _render_top_table(out, ranked, name_of, config, translation)
+    _render_hotspots(out, stats, name_of, config, translation)
+    _render_bias_section(out, bundle, publishable, name_of, translation)
     _render_temporal(out, bundle, translation)
 
     out.append("---")

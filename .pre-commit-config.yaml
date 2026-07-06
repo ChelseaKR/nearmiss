@@ -41,7 +41,7 @@ repos:
   # gitleaks — backstop against committing secrets or precise raw report data.
   # This is a safety net, not permission to be careless (see CONTRIBUTING.md).
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.4
+    rev: v8.30.1
     hooks:
       - id: gitleaks
 

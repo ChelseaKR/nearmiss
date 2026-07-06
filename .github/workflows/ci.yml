@@ -24,6 +24,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    # Nightly re-scan of `main` (SEC-08's nightly-CodeQL requirement), independent of push/PR
+    # activity — a dependency's newly-published CVE or a new CodeQL query pack can surface a
+    # finding on code that hasn't changed. Every job except `security` guards itself out on this
+    # trigger (`if: github.event_name != 'schedule'`) so a nightly run re-executes only the
+    # CodeQL-bearing security job, not the whole suite.
+    - cron: "0 7 * * *"
 
 # Least privilege by default. Individual jobs widen scope only where a specific
 # action needs it (CodeQL writes to the security-events API).
@@ -38,9 +45,11 @@ concurrency:
 
 env:
   # CI installs the editable package with its dev extras (`pip install -e
-  # ".[dev]"`, the same as `make install`). A hashed reproducible install from a
-  # generated `requirements.lock` (`make lock`) is the planned hardening once
-  # that artifact is committed.
+  # ".[dev]"`, the same as `make install`). `requirements.lock` (hashed,
+  # `make lock`) is committed at the repo root; installing CI itself with
+  # `--require-hashes` from it (or migrating CI to `uv sync --frozen` against
+  # `uv.lock`) is a planned hardening, tracked in
+  # audit-2026-07-05/nearmiss-REMEDIATION.md P1-4 — not yet done.
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   PIP_NO_PYTHON_VERSION_WARNING: "1"
   PYTHONHASHSEED: "0"
@@ -83,6 +92,7 @@ jobs:
 
   lint:
     name: lint (ruff)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -103,6 +113,7 @@ jobs:
 
   type:
     name: type (mypy --strict)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -123,6 +134,7 @@ jobs:
 
   test:
     name: test (pytest, known-answer fixtures)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -149,6 +161,7 @@ jobs:
 
   i18n:
     name: i18n (gettext catalog gate)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -178,6 +191,7 @@ jobs:
 
   accessibility:
     name: accessibility (structural WCAG gate + axe-core on web UI)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -208,12 +222,15 @@ jobs:
 
       # Real automated axe-core run in jsdom (tools/axe_check.mjs), so the
       # axe-core check runs on every CI run in addition to the structural gate.
-      # `npm ci` requires a committed lockfile; until web/package-lock.json is
-      # committed, install resolves from package.json. Manual NVDA/VoiceOver
-      # review is inherently human and is intentionally OUT of CI scope — it
-      # stays tracked in docs/accessibility/ACR.md.
+      # `web/package-lock.json` is committed, so this merge-blocking job installs
+      # with `npm ci` — it resolves axe-core/jsdom exactly from the committed
+      # lockfile instead of a fresh registry resolve, matching the local `make
+      # axe` target (Makefile) and closing the supply-chain gap where a
+      # merge-blocking gate ran unpinned code. Manual NVDA/VoiceOver review is
+      # inherently human and is intentionally OUT of CI scope — it stays tracked
+      # in docs/accessibility/ACR.md.
       - name: axe-core (jsdom) accessibility check
-        run: cd web && npm install --no-audit --no-fund && npm run axe
+        run: cd web && npm ci && npm run axe
 
   security:
     name: security (pip-audit + gitleaks + CodeQL)
@@ -255,19 +272,45 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Initialize CodeQL (python)
-        uses: github/codeql-action/init@dd903d2e4f5405488e5ef1422510ee31c8b32357  # v3
+      # Python, the web JS (web/app.js, submit.js, embed.js, nearmiss-embed.js — CICD-20's prior
+      # "JS unscanned since 6/21" finding), and the workflow YAML itself (the "actions" CodeQL
+      # language, GA since codeql-action v3.28). One init/analyze pair covers all three; the
+      # action auto-scopes each language's SARIF to its own code-scanning category, so no manual
+      # `category:` override is needed (and would be wrong once >1 language is configured).
+      - name: Initialize CodeQL (python, javascript, actions)
+        uses: github/codeql-action/init@dd903d2e4f5405488e5ef1422510ee31c8b32357  # v3.36.2
         with:
-          languages: python
+          languages: python, javascript, actions
           queries: security-extended
 
       - name: Analyze with CodeQL
-        uses: github/codeql-action/analyze@dd903d2e4f5405488e5ef1422510ee31c8b32357  # v3
+        uses: github/codeql-action/analyze@dd903d2e4f5405488e5ef1422510ee31c8b32357  # v3.36.2
+
+  zizmor:
+    name: zizmor (GitHub Actions workflow SAST)
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      # `advanced-security: false` makes zizmor-action itself fail the job on a
+      # finding at or above `min-severity` — a real merge-blocking gate that does
+      # not depend on GitHub Advanced Security or a configured code-scanning
+      # merge-protection rule (CICD-19). zizmor's top severity tier is `high`
+      # (there is no separate "critical"), so `min-severity: high` is this
+      # project's High/Critical bar.
+      - name: zizmor (workflow SAST, blocking on high severity)
+        uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa  # v0.5.7
         with:
-          category: "/language:python"
+          advanced-security: false
+          min-severity: high
 
   reproducibility:
     name: reproducibility (make reproduce + diff published artifacts)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
