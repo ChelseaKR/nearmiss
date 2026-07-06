@@ -1,5 +1,19 @@
 # Accessibility Conformance Report (ACR)
 
+> **⚠ STALE (flagged 2026-07-05):** this report's date (below) and every table in it describe only
+> `index.html` + `app.js` + `style.css` — the surfaces that existed on 2026-06-17. **The public
+> submission form (`web/submit.html` / `submit.js`) and the embeddable hotspot widget
+> (`web/embed.html` / `embed.js` / `nearmiss-embed.js`), shipped 2026-06-29 (#18), are not evaluated
+> anywhere in this document.** Both pages pass the same automated gates as `index.html` today
+> (`tools/a11y_check.py` structural gate and the axe-core run both run against all three pages — see
+> `Makefile` `accessibility`/`axe` targets — and both do pass), but neither has a per-criterion VPAT
+> row, an ARIA-APG audit for the submission form's custom controls, a plain-language/cognitive review
+> of the form (WCAG 3.3.7/3.3.8 redundant-entry), or a third-party/embed audit for the vendored
+> Leaflet map used in the widget. A full re-issue covering both new surfaces is an M-effort item
+> (`P2-3` in `audit-2026-07-05/nearmiss-REMEDIATION.md`) and was judged out of scope for this pass;
+> this banner exists so the gap is loud rather than silently implied-covered by an unchanged document.
+> Do not read this ACR as certifying `submit.html` or `embed.html`.
+
 ## Voluntary Product Accessibility Template (VPAT) Version 2.5 — Revised Section 508 Edition
 
 > **Status at v0.1.0 — implementation exists, passes the structural gate, and now passes an automated

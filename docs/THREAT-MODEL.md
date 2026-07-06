@@ -1,5 +1,11 @@
 # Threat model
 
+**Last reviewed and signed off: 2026-07-05, Chelsea Kelly-Reif (sole maintainer).** This review added
+the dated sign-off itself and the structured [Residual risk register](#residual-risk-register) below;
+the threat/mitigation analysis in the body of the document was already substantive and is carried
+forward unchanged. Next scheduled review: alongside the next schema change, new exposure source, or
+hazard type, and at minimum before any `0.2.0`-scale release — see [Maintenance](#maintenance).
+
 This document states what `nearmiss` is trying to protect, who might try to break it, how, and what is
 done about it. It is scoped to the system described in the README: report intake, a recorded pipeline,
 the statistics layer, the published open dataset, and the read-only accessible map. It is written to
@@ -327,6 +333,29 @@ the gaps. None of the following should be read as "handled."
   fork (by design, so the evidence base survives), but the *canonical* site and the intake run on one
   account; an outage or takedown there reduces availability until a mirror is promoted. The portability
   of the artifact is the mitigation, not a guaranteed-up service.
+
+## Residual risk register
+
+The prose above is the analysis; this table is the same eight residual risks as a tracked register
+(RTF-06) — added 2026-07-05, reviewed alongside the rest of this document. "Residual severity" is
+qualitative (Low/Medium/High), assessed *after* the mitigations in the corresponding threat section
+above are applied, not before. There is one maintainer, so "Owner" is uniformly the maintainer; this is
+named explicitly rather than left implicit, per the same honesty standard as the rest of this document.
+
+| ID | Risk (from) | Likelihood | Impact if realized | Residual severity | Owner | Status / next action |
+|---|---|---|---|---|---|---|
+| RR-1 | Repeat-contributor linkage (T1) | Low–Medium — requires a motivated adversary with side knowledge of a candidate contributor | High — re-identifies a specific person's routine | **Medium** | Maintainer | Accepted, disclosed. Mitigation: aggregation + `min_publish_n`. Contributor-facing guidance ("report sparingly near home") lives in the data card; consider raising `min_publish_n` for very sparse deployments as a future hardening. |
+| RR-2 | Patient, distributed poisoning (T2) | Low — requires sustained, plausible-report effort with no payoff until many reports land | Medium — pollutes underlying data even though statistical treatment keeps it from reading as confident | **Low–Medium** | Maintainer | Accepted, disclosed. No identity verification by design (pseudonymity is non-negotiable). Burst/outlier detection (`INTAKE-AND-ABUSE.md` §B5) is designed but not yet fully implemented for the public-submission path — tracked there. |
+| RR-3 | Upstream exposure corruption (T3) | Low — requires a compromised or careless third-party exposure provider | High — skews every rate on affected segments without an obviously fake report | **Medium** | Maintainer | Accepted, disclosed. Mitigation: named/dated sources, sensitivity analysis, corroboration where multiple sources exist. No independent audit capability over third-party counts exists or is planned. |
+| RR-4 | Loss of control once republished (T4) | Medium — screenshots and re-captions of public data are common and cannot be prevented | Medium — a mis-captioned surface can misinform a specific decision | **Medium** | Maintainer | Accepted, disclosed. Mitigation is making the honest, labeled artifact the prominent, citable one; no takedown mechanism for third-party re-postings exists or is planned (out of scope for a personal OSS project). |
+| RR-5 | Trusted-version / GitHub infrastructure compromise (T5) | Low | High — could reach the pipeline or published artifact at build time | **Medium** | Maintainer | Accepted, disclosed. Mitigation: hash-pinning, reproducibility as a tripwire (detection, not prevention). SBOM + cosign signing (P1-1 in the current remediation plan) would add a second, independent verification path once built. |
+| RR-6 | Out-of-band secret / maintainer-account compromise (T6) | Low | High — could reach the private raw store or tamper with the pipeline | **Medium** | Maintainer | Accepted. No second reviewer / separation of duties exists (solo maintainer) — this is a structural limitation of a personal OSS project, not a solved problem, and is named as such rather than hidden. |
+| RR-7 | Targeted, well-resourced adversary (nation-state, large-scale correlation with external datasets, physical device access) | Low for a community advocacy dataset | High if it occurred | **Low** (low likelihood keeps this from being higher despite high impact) | Maintainer | Explicitly out of scope. No mitigation is claimed; stated here so it is not silently assumed away. |
+| RR-8 | Single-host availability (canonical site + intake run on one account) | Medium — any single-account outage or takedown affects the canonical URL | Low–Medium — the artifact itself is portable and mirrorable; only *canonical* availability is at risk | **Low** | Maintainer | Accepted. Mitigation: the published GeoJSON is a single file anyone can mirror or fork; no SLA or multi-region hosting is planned for a zero-cost personal project. |
+
+None of the above are claimed as "solved" — a register entry with a mitigation still names its residual
+severity, because the point of this table (like the rest of the threat model) is to make the gaps
+checkable, not to make them disappear on paper.
 
 ## Maintenance
 

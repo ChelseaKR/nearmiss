@@ -86,11 +86,14 @@ accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
 	@echo "NOTE: CI also runs axe; full conformance also requires manual NVDA + VoiceOver"
 	@echo "      review — see docs/accessibility/ACR.md (this gate is the floor, not the ceiling)."
 
-security: ## Scan deps (pip-audit) and history for secrets (gitleaks)
+security: ## Scan deps (pip-audit), history for secrets (gitleaks), and workflow YAML (zizmor)
 	$(PYTHON) -m pip_audit --strict
 	@command -v gitleaks >/dev/null 2>&1 \
 		&& gitleaks detect --no-banner --redact --source . \
 		|| echo "security: gitleaks not found (it is a Go binary, not a pip dep); install it to enable the secret scan. CI runs it."
+	@command -v zizmor >/dev/null 2>&1 \
+		&& zizmor --min-severity=high .github/workflows/ \
+		|| echo "security: zizmor not found (pip install zizmor, or see https://woodruffw.github.io/zizmor/); install it to check workflow YAML locally. CI's zizmor job runs it as a merge-blocking gate."
 
 axe: ## Deeper accessibility check: run axe-core against the built web page (needs node)
 	cd web && npm ci && npm run axe

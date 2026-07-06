@@ -44,6 +44,16 @@ class _Audit(HTMLParser):
 
     def handle_starttag(self, tag: str, attrs_list: list[tuple[str, str | None]]) -> None:
         attrs = {k: (v or "") for k, v in attrs_list}
+        if self._handle_landmark_tag(tag, attrs):
+            return
+        self._handle_content_tag(tag, attrs)
+
+    def _handle_landmark_tag(self, tag: str, attrs: dict[str, str]) -> bool:
+        """Handle page-landmark start tags (lang, title, main, h1, skip link).
+
+        Returns True if `tag` was one of these (so the caller can skip the
+        content-tag dispatch below).
+        """
         if tag == "html" and attrs.get("lang", "").strip():
             self.html_lang = True
         elif tag == "title":
@@ -54,7 +64,13 @@ class _Audit(HTMLParser):
             self.has_h1 = True
         elif tag == "a" and attrs.get("href", "") == "#main":
             self.has_skip_link = True
-        elif tag == "table":
+        else:
+            return False
+        return True
+
+    def _handle_content_tag(self, tag: str, attrs: dict[str, str]) -> None:
+        """Handle content start tags: table/caption/th scoping, img alt, button text capture."""
+        if tag == "table":
             self._in_table = True
             self.tables += 1
             self._cur_caption = False

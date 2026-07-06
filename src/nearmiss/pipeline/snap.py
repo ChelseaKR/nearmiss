@@ -67,17 +67,18 @@ class Snapped:
     distance_m: float | None
 
 
-def snap(reports: list[Report], segments: list[Segment], config: Config) -> list[Snapped]:
-    lat0, lon0 = reference_point(
-        (c for s in segments for c in s.coords), config.ref_lat, config.ref_lon
-    )
+def _build_snap_index(
+    segments: list[Segment], config: Config, lat0: float, lon0: float
+) -> tuple[SpatialIndex, dict[str, Segment]]:
+    """Build a spatial index over every (densified) segment coordinate.
 
-    # Build spatial index of ALL segment coordinates (not just centroids).
-    # This ensures we find segments even if their centroids are far away.
-    # Use a cell size smaller than snap_max_m to allow efficient radius queries.
+    Indexes ALL segment coordinates, not just centroids, so a segment is found
+    even when its centroid is far from a report near one of its ends. Cell size
+    is smaller than ``snap_max_m`` to allow efficient radius queries.
+    """
     cell_size = max(config.snap_max_m / 2.0, 10.0)
     index = SpatialIndex(cell_size_m=cell_size)
-    seg_id_map = {}  # Map segment id to segment object for fast lookup
+    seg_id_map: dict[str, Segment] = {}
     for seg in segments:
         seg_id_map[seg.id] = seg
         # Index all coordinates of the segment, densified so a long,
@@ -87,39 +88,50 @@ def snap(reports: list[Report], segments: list[Segment], config: Config) -> list
         for x, y in _densify_segment_xy(xy, _DENSIFY_STEP_M):
             index.add(seg.id, x, y)
     index.finalize()
+    return index, seg_id_map
+
+
+def _nearest_candidate(
+    report: Report,
+    candidate_ids: set[str],
+    seg_id_map: dict[str, Segment],
+    lat0: float,
+    lon0: float,
+) -> tuple[str | None, float]:
+    """Return the (segment id, distance in m) of the closest candidate segment to `report`."""
+    best_id: str | None = None
+    best_d = float("inf")
+    for seg_id in sorted(candidate_ids):  # sort for determinism
+        seg = seg_id_map[seg_id]
+        d = point_to_polyline_m(report.lat, report.lon, seg.coords, lat0, lon0)
+        if d < best_d:
+            best_d, best_id = d, seg.id
+    return best_id, best_d
+
+
+def snap(reports: list[Report], segments: list[Segment], config: Config) -> list[Snapped]:
+    lat0, lon0 = reference_point(
+        (c for s in segments for c in s.coords), config.ref_lat, config.ref_lon
+    )
+    index, seg_id_map = _build_snap_index(segments, config, lat0, lon0)
 
     out: list[Snapped] = []
     for r in reports:
         rx, ry = project(r.lat, r.lon, lat0, lon0)
-        # Use spatial index to find candidate segments.
         # Search radius: derived from config.snap_max_m (not a bare constant), with a
         # 4x margin and a 1 km floor. A fixed 1 km radius decoupled from the
         # configurable threshold would silently under-search for any city config
         # that sets snap_max_m above 1 km — the empty-candidate fallback below
         # still catches a *totally* empty neighborhood, but coupling the radius to
         # snap_max_m keeps the fast path correct without leaning on that fallback.
-        best_id: str | None = None
-        best_d = float("inf")
-
         search_radius = max(1000.0, config.snap_max_m * 4.0)
         candidates_raw = index.neighbors_in_radius(rx, ry, search_radius)
         candidate_ids = {cand_id for cand_id, _, _ in candidates_raw}
-
-        # Evaluate candidates found by spatial index
-        if candidate_ids:
-            for seg_id in sorted(candidate_ids):  # Sort for determinism
-                seg = seg_id_map[seg_id]
-                d = point_to_polyline_m(r.lat, r.lon, seg.coords, lat0, lon0)
-                if d < best_d:
-                    best_d, best_id = d, seg.id
-        else:
+        if not candidate_ids:
             # Fallback: brute force all segments (should not happen with search_radius)
-            for seg_id in sorted(seg_id_map.keys()):
-                seg = seg_id_map[seg_id]
-                d = point_to_polyline_m(r.lat, r.lon, seg.coords, lat0, lon0)
-                if d < best_d:
-                    best_d, best_id = d, seg.id
+            candidate_ids = set(seg_id_map.keys())
 
+        best_id, best_d = _nearest_candidate(r, candidate_ids, seg_id_map, lat0, lon0)
         if best_id is None:
             out.append(Snapped(r, None, None))
         elif best_d <= config.snap_max_m:

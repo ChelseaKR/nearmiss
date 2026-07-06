@@ -45,8 +45,8 @@ dependencies = [
 dev = [
   "pytest>=8.0",
   "pytest-cov>=4.1",
-  "ruff>=0.4",
-  "mypy>=1.10",
+  "ruff>=0.15",
+  "mypy>=1.18",
   "pip-audit>=2.7",
   # i18n message-catalog tooling (INTERNATIONALIZATION-STANDARD §3/§4). Babel
   # provides `pybabel extract` and the CLDR-backed `Locale.parse` used by the
@@ -96,10 +96,13 @@ src = ["src", "tests"]
 extend-exclude = ["notebooks"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "PTH", "RUF"]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "PTH", "RUF", "C90"]
 # This project's user-facing strings intentionally use Unicode typography
 # (en/em dashes, ★, ⚠) — so the "ambiguous character" rules are noise here.
 ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
 # ---------------------------------------------------------------------------
 # Types — mypy strict. A typed, analyzable codebase. Part of `make verify`.
@@ -125,7 +128,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
-addopts = "-ra --strict-markers --strict-config"
+addopts = "-ra --strict-markers --strict-config --import-mode=importlib"
 xfail_strict = true
 
 # ---------------------------------------------------------------------------

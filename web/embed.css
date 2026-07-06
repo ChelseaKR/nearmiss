@@ -96,3 +96,11 @@ button:focus {
   outline: 3px solid #0b5bd3;
   outline-offset: 2px;
 }
+
+/* WCAG 2.3.3 (AAA, targeted) / respect the OS-level motion-reduction preference,
+ * matching the equivalent block in style.css. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

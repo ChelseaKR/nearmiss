@@ -27,7 +27,14 @@ never silently repurposed), MAJOR = a breaking change — including **adding a n
 Breaking changes are announced at least one MINOR release ahead with a deprecation window and a stated
 migration path; published artifacts are immutable and hashed and are never rewritten in place.
 
-Released versions are signed; conventional-commit history backs every entry.
+Releases will be tagged and signed (gitsign) starting with the first actual tagged release; conventional-commit history backs every entry.
+
+> **Note (2026-07-05):** `git tag` is currently empty — **no version has ever been tagged, released, or
+> signed.** The `[0.1.0]` entry below records a versioned, verified *milestone* on `main`, not a
+> published release; see the note under its heading. This corrects a prior version of this file that
+> incorrectly stated the release was signed. A tag-triggered release workflow (build, SBOM, keyless
+> cosign signing, SLSA provenance, GitHub Release) that would make "released and signed" literally true
+> does not exist yet and is the top open item toward a real `v0.1.0`.
 
 ## [Unreleased]
 
@@ -46,18 +53,27 @@ each will move here under its own `### Added` entry as it lands.
 
 - No changes since `1.0.0`.
 
-## [0.1.0] - 2026-06-16
+## [0.1.0] - 2026-06-16 (versioned milestone — not yet tagged or published)
 
-First release: a **working analysis engine** plus its specification and contracts. This release ships
-the architecture, the two data-contract schemas, the full documentation set, governance and
-community-health files, the CI and quality-gate scaffolding, **and** the implemented and verified
-pipeline, statistics, publishing tooling, advocacy brief, read-only server, accessible web data view,
-known-answer test fixtures, and the first published Davis demo dataset. A small set of items remains
-specified-but-pending and is listed under **Planned** below.
+> **Correction (2026-07-05):** despite the heading and the prose below reading like a shipped release,
+> **this version has never been git-tagged, never had a GitHub Release cut, and nothing under it is
+> signed.** `pyproject.toml` carries `version = "0.1.0"` and this section records that the work
+> described below is implemented and verified on `main` as of 2026-06-16 — but "released" in this
+> entry means "specified and verified," not "tagged and published." Treat every "release" below as
+> "milestone" until a real `git tag -s v0.1.0` (or later `v0.1.x`) exists.
+
+A **working analysis engine** plus its specification and contracts, verified on `main` at this date.
+This milestone covers the architecture, the two data-contract schemas, the full documentation set,
+governance and community-health files, the CI and quality-gate scaffolding, **and** the implemented and
+verified pipeline, statistics, publishing tooling, advocacy brief, read-only server, accessible web data
+view, known-answer test fixtures, and the first published Davis demo dataset. A small set of items
+remains specified-but-pending and is listed under **Planned** below.
 
 The project ships as a **dataset and analysis**, not an app; the web view is a read-only window onto
-the published data. The repository is **private during pre-1.0 development**. This release is labeled
-**`0.1.0` / pre-1.0**: the schemas are stable enough to build against under the deprecation policy, but
+the published data. The repository is now **public** (this line previously said "private during
+pre-1.0 development," which stopped being true once the repo was made public; see README's status
+badge). This milestone is labeled **`0.1.0` / pre-1.0**: the schemas are stable enough to build against
+under the deprecation policy, but
 the engine has so far been exercised only against the **Davis demo** (synthetic known-answer fixtures
 plus one published demo corridor set), not calibrated against a breadth of real corridors; rate
 magnitudes, exposure sources, and bias adjustments may still move between `0.1.x` releases.
@@ -282,5 +298,8 @@ and triggers a review of the threat model and data card. Published files are imm
 signed; older artifacts are never rewritten in place, so a consumer can always verify exactly which
 schema version and which build a file conforms to.
 
-[Unreleased]: https://github.com/ChelseaKR/nearmiss/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/ChelseaKR/nearmiss/releases/tag/v0.1.0
+[Unreleased]: https://github.com/ChelseaKR/nearmiss/commits/main
+<!-- No [0.1.0] comparison/release link is published here: v0.1.0 has never been git-tagged and no
+     GitHub Release exists (see the correction note above and under "## [0.1.0]"). The prior link
+     (`.../releases/tag/v0.1.0`) pointed at a release page that does not exist. This link is restored,
+     pointing at a real tag, once `v0.1.0` is actually cut. -->

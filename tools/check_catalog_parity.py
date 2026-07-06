@@ -50,6 +50,71 @@ def _fields(text: str) -> set[str]:
     return set(_FIELD.findall(text))
 
 
+def _check_key_parity(en_ids: set[str], es_ids: set[str]) -> list[str]:
+    """G6: EN/ES key-parity — the symmetric difference of msgid sets must be empty."""
+    errors: list[str] = []
+    only_en = en_ids - es_ids
+    only_es = es_ids - en_ids
+    if only_en:
+        errors.append(f"G6: msgids in en but not es: {sorted(only_en)}")
+    if only_es:
+        errors.append(f"G6: msgids in es but not en: {sorted(only_es)}")
+    return errors
+
+
+def _check_pot_coverage(pot_ids: set[str], en_ids: set[str], es_ids: set[str]) -> list[str]:
+    """Structural completeness: every template msgid must be present in each catalog."""
+    errors: list[str] = []
+    for name, ids in (("en", en_ids), ("es", es_ids)):
+        missing = pot_ids - ids
+        if missing:
+            errors.append(
+                f"G5: {name} is missing msgids present in the template: {sorted(missing)}"
+            )
+    return errors
+
+
+def _check_plural_message(name: str, message: Message, src_fields: set[str]) -> list[str]:
+    """G5 for a plural message: every form non-empty, placeholders match the source."""
+    errors: list[str] = []
+    forms = message.string if isinstance(message.string, (tuple, list)) else ()
+    if not forms or any(not s for s in forms):
+        errors.append(f"G5: {name} has an empty plural form for {_key(message)!r}")
+        return errors
+    for form in forms:
+        if _fields(form) != src_fields:
+            errors.append(
+                f"G5: {name} placeholder mismatch in plural {_key(message)!r}: "
+                f"{_fields(form)} != {src_fields}"
+            )
+    return errors
+
+
+def _check_singular_message(name: str, message: Message, src_fields: set[str]) -> list[str]:
+    """G5 for a singular message: msgstr non-empty, placeholders match the source."""
+    errors: list[str] = []
+    target = message.string
+    if not target:
+        errors.append(f"G5: {name} has an empty msgstr for {message.id!r}")
+        return errors
+    if _fields(target) != src_fields:
+        errors.append(
+            f"G5: {name} placeholder mismatch in {message.id!r}: {_fields(target)} != {src_fields}"
+        )
+    return errors
+
+
+def _check_message(name: str, message: Message) -> list[str]:
+    """G5: every msgstr (each plural form) non-empty, with placeholders preserved."""
+    if not message.id:
+        return []
+    src_fields = _fields(_key(message))
+    if isinstance(message.id, (tuple, list)):
+        src_fields |= _fields(message.id[1])
+        return _check_plural_message(name, message, src_fields)
+    return _check_singular_message(name, message, src_fields)
+
+
 def main() -> int:
     errors: list[str] = []
 
@@ -59,50 +124,11 @@ def main() -> int:
 
     pot_ids, en_ids, es_ids = _ids(pot), _ids(en), _ids(es)
 
-    # G6: EN/ES key-parity (symmetric difference must be empty).
-    only_en = en_ids - es_ids
-    only_es = es_ids - en_ids
-    if only_en:
-        errors.append(f"G6: msgids in en but not es: {sorted(only_en)}")
-    if only_es:
-        errors.append(f"G6: msgids in es but not en: {sorted(only_es)}")
-
-    # Structural completeness: every template msgid present in each catalog.
-    for name, ids in (("en", en_ids), ("es", es_ids)):
-        missing = pot_ids - ids
-        if missing:
-            errors.append(
-                f"G5: {name} is missing msgids present in the template: {sorted(missing)}"
-            )
-
-    # G5: every msgstr (each plural form) non-empty, placeholders preserved.
+    errors.extend(_check_key_parity(en_ids, es_ids))
+    errors.extend(_check_pot_coverage(pot_ids, en_ids, es_ids))
     for name, catalog in (("en", en), ("es", es)):
         for message in catalog:
-            if not message.id:
-                continue
-            src_fields = _fields(_key(message))
-            if isinstance(message.id, (tuple, list)):
-                src_fields |= _fields(message.id[1])
-                forms = message.string if isinstance(message.string, (tuple, list)) else ()
-                if not forms or any(not s for s in forms):
-                    errors.append(f"G5: {name} has an empty plural form for {_key(message)!r}")
-                    continue
-                for form in forms:
-                    if _fields(form) != src_fields:
-                        errors.append(
-                            f"G5: {name} placeholder mismatch in plural {_key(message)!r}: "
-                            f"{_fields(form)} != {src_fields}"
-                        )
-            else:
-                target = message.string
-                if not target:
-                    errors.append(f"G5: {name} has an empty msgstr for {message.id!r}")
-                    continue
-                if _fields(target) != src_fields:
-                    errors.append(
-                        f"G5: {name} placeholder mismatch in {message.id!r}: "
-                        f"{_fields(target)} != {src_fields}"
-                    )
+            errors.extend(_check_message(name, message))
 
     if errors:
         print("catalog parity FAILED:", file=sys.stderr)

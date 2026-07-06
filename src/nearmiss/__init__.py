@@ -13,6 +13,16 @@ independently. Nothing in the public path emits a precise raw report.
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
+
 __all__ = ["__version__"]
 
-__version__ = "0.1.0"
+try:
+    # Single source of truth: derived from the installed distribution metadata
+    # (itself built from `version = "0.1.0"` in pyproject.toml), not a
+    # hand-duplicated literal (REL-02).
+    __version__ = version("nearmiss")
+except PackageNotFoundError:
+    # Not installed (e.g. a source checkout with no editable install yet) —
+    # fall back so `import nearmiss` still works for local tooling and tests.
+    __version__ = "0.1.0"
