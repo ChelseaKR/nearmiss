@@ -495,7 +495,7 @@ from the personas above.)*
 - **E17 — Read-only API / bulk endpoints + webhooks** on new hotspots in a
   geofence. · P21,P11,P13 · L · P2 · HR5
 - **E18 — Vector tiles / PMTiles** for regional-scale rendering. · P14,P08 · L · P2
-- **E19 — Embeddable map widget + share-card image generator.** · P11,P01 · M · P1
+- **E19 — Embeddable map widget + share-card image generator.** · P11,P01 · M · P1 · ✅ shipped 2026-07-02 (embed iframe/JS widget + framework-free client-side canvas share-card generator, `web/share-card.js`, wired into `index.html`/`app.js`)
 - **E20 — Multi-city / regional roll-up portal** with per-jurisdiction breakdowns
   and a community-city gallery + quality badge. · P08,P13,P24 · L · P1
 - **E21 — Opt-in alert areas / notifications** (BikeMaps-style geofenced alerts),

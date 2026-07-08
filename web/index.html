@@ -139,6 +139,12 @@
             >Download this dataset (GeoJSON)</a
           ><span id="download-meta"></span>
         </p>
+        <p class="downloads share-card-controls">
+          <button type="button" id="share-card-btn" data-i18n="share_card" disabled>
+            Download share card (PNG)
+          </button>
+          <span id="share-card-status" class="filter-status" aria-live="polite"></span>
+        </p>
       </section>
 
       <section aria-labelledby="legend-heading">
@@ -209,6 +215,7 @@
     </footer>
 
     <script src="vendor/leaflet/leaflet.js"></script>
+    <script src="share-card.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
