@@ -59,6 +59,14 @@ msgid ""
 "Segments without one are listed as *exposure unknown*, not ranked."
 msgstr ""
 
+#, python-brace-format
+msgid ""
+"**Null calibration (we attacked our own dataset):** on {n} seeded label-"
+"shuffles of this city's own reports, with exposure and geometry held "
+"fixed, the hotspot method's empirical false-positive rate was {pct}% — "
+"see `{file}`."
+msgstr ""
+
 msgid ""
 "**Over-represented vs exposure** (more reports than traffic alone "
 "predicts):"

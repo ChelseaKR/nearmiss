@@ -522,6 +522,39 @@ test fails if an interval method drifts out of tolerance.
 These fixtures, their planted answers, and the assertions are committed; `make reproduce` and the
 CI test gate re-run them, so a regression in any statistical claim breaks the build.
 
+### 9.4 Publish-time null calibration ("we attacked our own dataset")
+
+Section 9.3's null-behavior fixture proves the method behaves on a synthetic network we invented —
+a build-time regression guard, not a claim about any particular published city. A skeptic reading
+one city's dataset is entitled to ask a sharper question: *on this exact street network and this
+exact exposure surface, how often does your method manufacture a hotspot out of nothing?*
+
+`nearmiss analyze --calibrate` (`src/nearmiss/stats/calibration.py`) answers that directly. It takes
+the city's own published per-segment report counts and exposure estimates, then repeatedly
+**relabels which segment each count belongs to** with a seeded pseudo-random permutation — holding
+every segment's exposure estimate and geometry (and so the spatial weights matrix) completely fixed
+— and re-runs the exact rate + Getis-Ord Gi\* + Benjamini-Hochberg pipeline used to publish. A label
+shuffle carries no real spatial signal by construction, so any segment the method calls
+"significant" on a shuffle is a genuine false positive, measured on this city's real geometry rather
+than an invented one.
+
+- **Output:** `<city-slug>.calibration.json` beside the published dataset — `n_shuffles`, the
+  deterministic `seed`, `n_segments_tested`, `fdr_alpha`, `getis_ord_band_m`, the mean and max
+  false positives observed per shuffle, and the resulting `false_positive_rate` (mean false
+  positives divided by segments tested).
+- **Determinism:** the shuffle uses a fixed default seed (`DEFAULT_SEED` in `calibration.py`) unless
+  overridden, so the artifact reproduces byte-for-byte under `make reproduce` for a given seed —
+  the same reproducibility guarantee (Hard Rule 5) as every other published number.
+- **Privacy:** the artifact carries only aggregate summary statistics across shuffles — never a
+  per-shuffle or per-segment breakdown — so it is privacy-safe by construction (an aggregate of
+  aggregates, like every other published artifact).
+- **Distinct from `RR-09`** (permutation inference for the Gi\* statistic itself, a different
+  reference distribution for one z-score) and from Section 9.3's fixture test (one synthetic
+  network, run once at build/CI time, not published per city).
+- **Where it shows up:** the brief includes one sentence naming the empirical false-positive rate
+  when a calibration artifact exists for that city (`brief.py`); it is silently omitted, never
+  fabricated, when `--calibrate` hasn't been run yet for that city.
+
 ---
 
 ## 10. Limitations: what these numbers do NOT support

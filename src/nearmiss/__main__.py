@@ -3,6 +3,7 @@
 nearmiss intake   <reports.json>   --config C   # validate -> private raw store
 nearmiss pipeline  --config C [--dump]          # dedupe/geocode/snap/classify/quality
 nearmiss analyze   --config C                   # rates+CIs, bias, KDE, Getis-Ord, time-of-day
+nearmiss analyze   --config C --calibrate       # + label-shuffle null-calibration artifact
 nearmiss publish   --config C                   # open GeoJSON + aggregated public data
 nearmiss brief     --config C [--out FILE]      # advocacy brief (markdown)
 nearmiss run       --config C                   # intake -> ... -> brief, end to end
@@ -22,7 +23,7 @@ from pathlib import Path
 
 from . import __version__
 from .brief import render_brief
-from .config import load_config
+from .config import Config, load_config
 from .engine import AnalysisBundle, build_analysis
 from .errors import NearmissError
 from .figures import write_figures
@@ -40,6 +41,7 @@ from .moderation import (
 )
 from .publish import _slug, publish
 from .server import serve
+from .stats.calibration import DEFAULT_N_SHUFFLES, DEFAULT_SEED, run_null_calibration
 
 
 def _warn_unmatched(unmatched: list[str]) -> None:
@@ -91,7 +93,35 @@ def _cmd_analyze(args: argparse.Namespace) -> int:
             f"CI=[{s.rate_ci_low}, {s.rate_ci_high}] n={s.n} ({s.confidence_label}){flag}"
         )
     _print_temporal(bundle)
+    if args.calibrate:
+        _run_calibration(args, config, bundle)
     return 0
+
+
+def _run_calibration(args: argparse.Namespace, config: Config, bundle: AnalysisBundle) -> None:
+    """Attack our own dataset: label-shuffle this city's own counts (exposure
+    and geometry held fixed) and publish the empirical false-positive rate
+    beside the dataset (EXP-01, docs/ideation/03-expansions.md)."""
+    result = run_null_calibration(
+        bundle.result.segments,
+        bundle.segments,
+        config,
+        n_shuffles=args.n_shuffles,
+        seed=args.seed,
+    )
+    print(
+        f"calibrate [{config.city}]: {result.n_shuffles} shuffles, "
+        f"mean_false_positives={result.mean_false_positives:.3f}, "
+        f"false_positive_rate={result.false_positive_rate:.2%}"
+    )
+    out_dir = Path(args.out) if args.out else config.out_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"{_slug(config.city)}.calibration.json"
+    out_path.write_text(
+        json.dumps(result.to_metadata(), ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"  calibration: {out_path}")
 
 
 def _print_temporal(bundle: AnalysisBundle) -> None:
@@ -252,6 +282,26 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_an = sub.add_parser("analyze", help="compute exposure-normalized rates, CIs, hotspots")
     add_config(p_an)
+    p_an.add_argument(
+        "--calibrate",
+        action="store_true",
+        help="also run a seeded label-shuffle null calibration and write <slug>.calibration.json",
+    )
+    p_an.add_argument(
+        "--n-shuffles",
+        type=int,
+        default=DEFAULT_N_SHUFFLES,
+        help=f"number of label-shuffles for --calibrate (default {DEFAULT_N_SHUFFLES})",
+    )
+    p_an.add_argument(
+        "--seed",
+        type=int,
+        default=DEFAULT_SEED,
+        help=f"deterministic RNG seed for --calibrate (default {DEFAULT_SEED})",
+    )
+    p_an.add_argument(
+        "--out", help="output directory for --calibrate (defaults to the published dir)"
+    )
     p_an.set_defaults(func=_cmd_analyze)
 
     p_pub = sub.add_parser("publish", help="build the open GeoJSON + aggregated public dataset")

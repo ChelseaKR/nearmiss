@@ -247,6 +247,10 @@ nearmiss pipeline --config config/davis-demo.toml [--dump]  # --dump prints the 
 # Attach exposure denominators and compute exposure-normalized rates with intervals
 nearmiss analyze --config config/davis-demo.toml            # rates + CIs + bias + KDE + Gi* + time-of-day
 
+# "We attacked our own dataset": label-shuffle this city's own counts (exposure and
+# geometry held fixed) and publish the method's empirical false-positive rate
+nearmiss analyze --config config/davis-demo.toml --calibrate   # writes <slug>.calibration.json
+
 # Public crowdsourced submissions: queue one for review, then moderate it in
 nearmiss submit submission.json --config config/davis-demo.toml      # -> PENDING (private)
 nearmiss moderate list --config config/davis-demo.toml               # review the queue + flags
