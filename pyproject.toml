@@ -59,7 +59,7 @@ dev = [
   # (GHSA-6v7p-g79w-8964, fixed in 1.2.1). Keeps the SCA gate deterministically
   # green instead of relying on the resolver to pick the newest msgpack.
   "msgpack>=1.2.1",
-  "pre-commit>=3.7",
+  "pre-commit>=4.6.0",
 ]
 # Advisory mutation testing (backlog #15). Kept in its OWN optional group, NOT in
 # `dev`, so the `make verify` merge gate — and in particular the blocking
