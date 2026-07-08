@@ -6209,7 +6209,11 @@
     "schema_version": "1.0.0",
     "segments_published": 177,
     "segments_withheld_low_count": 3,
-    "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR"
+    "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
+    "window": {
+      "end": "2026-12-31",
+      "start": "2026-01-01"
+    }
   },
   "type": "FeatureCollection"
 }

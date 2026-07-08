@@ -164,6 +164,10 @@ def publish(config: Config) -> PublishResult:
         "city": config.city,
         "license": "Apache-2.0",
         "dataset_note": config.dataset_note,
+        # Analysis window (METHODOLOGY §1): every published number is traceable to a
+        # stated period. Keys are always present (null when unconfigured) so the
+        # schema is stable.
+        "window": {"start": config.window_start, "end": config.window_end},
         "exposure_unit": config.exposure_unit,
         "schema_doc": "schema/dataset.schema.md",
         "data_card": "docs/DATA-CARD.md",
@@ -189,6 +193,8 @@ def publish(config: Config) -> PublishResult:
         "version": "0.1.0",
         "schema_version": "1.0.0",
         "dataset_note": config.dataset_note,
+        # Analysis window bounding every rate in this dataset (null when unset).
+        "window": {"start": config.window_start, "end": config.window_end},
         "license": "Apache-2.0",
         "schema": "schema/dataset.schema.md",
         "data_card": "docs/DATA-CARD.md",
@@ -207,6 +213,7 @@ def publish(config: Config) -> PublishResult:
             "segments_published": len(stats) - withheld,
             "segments_withheld_low_count": withheld,
             "reports_in": bundle.summary["reports_in"],
+            "out_of_window": bundle.summary["out_of_window"],
             "duplicates_removed": bundle.summary["duplicates_removed"],
             "snapped": bundle.summary["snapped"],
             "unsnapped": bundle.summary["unsnapped"],

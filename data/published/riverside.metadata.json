@@ -2,7 +2,7 @@
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "ae036412a20c9de2e3ef2e8880b9f1d90193e55d4ef52a2f7084190ad0c7f732",
+  "geojson_sha256": "4cf21ff09a6a875ca9ca5ac3b96072ded58efb6f98caa7fdd4fe0ca658fa786c",
   "license": "Apache-2.0",
   "methods": {
     "confidence_z": 1.96,
@@ -21,6 +21,7 @@
   "summary": {
     "duplicates_removed": 0,
     "exposure_coverage": 1.0,
+    "out_of_window": 0,
     "reports_in": 20,
     "segments_published": 5,
     "segments_total": 6,
@@ -52,5 +53,9 @@
     "suppressed_low_count": false,
     "total_reports_timed": 20
   },
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "window": {
+    "end": "2026-12-31",
+    "start": "2026-01-01"
+  }
 }

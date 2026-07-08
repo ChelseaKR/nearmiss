@@ -17,6 +17,13 @@ submissions_dir = "../data/pending"  # PRIVATE moderation queue, gitignored (HR4
 ref_lat = 38.5449
 ref_lon = -121.7405
 
+# Analysis window (METHODOLOGY §1): every published rate is bounded to a stated
+# period. This span covers all synthetic fixture timestamps so the demo filters
+# nothing and outputs stay byte-stable; a real config would set its true period.
+[window]
+start = "2026-01-01"
+end = "2026-12-31"
+
 [thresholds]
 snap_max_m = 25
 dedupe_window_s = 600

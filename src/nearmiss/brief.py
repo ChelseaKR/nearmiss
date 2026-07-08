@@ -55,6 +55,20 @@ def _render_intro(
     if config.dataset_note:
         out.append(f"> ⚠️ **{config.dataset_note}**")
         out.append("")
+    # METHODOLOGY §1: a rate with no window attached is not a publishable number.
+    # State the analysis window explicitly; warn in-line when none is configured.
+    if config.window_start or config.window_end:
+        start = config.window_start or "…"
+        end = config.window_end or "…"
+        out.append(_("**Analysis window:** {start} to {end}.").format(start=start, end=end))
+    else:
+        out.append(
+            _(
+                "**Analysis window:** all available data (no window configured — rates below "
+                "are all-time and not bounded to a stated period)."
+            )
+        )
+    out.append("")
     out.append(
         _(
             "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence "

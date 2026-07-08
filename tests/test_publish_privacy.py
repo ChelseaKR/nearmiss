@@ -124,6 +124,36 @@ def test_metadata_carries_no_coordinate_and_passes_gate(
     assert_metadata_clean(meta, load_city(config).reports)
 
 
+def test_metadata_stamps_the_analysis_window(config: Config, tmp_path: object) -> None:
+    import dataclasses
+    from pathlib import Path
+
+    assert isinstance(tmp_path, Path)
+    cfg = dataclasses.replace(
+        config, out_dir=tmp_path, window_start="2026-01-01", window_end="2026-12-31"
+    )
+    result = publish(cfg)
+    meta = json.loads(result.metadata_path.read_text(encoding="utf-8"))
+    assert meta["window"] == {"start": "2026-01-01", "end": "2026-12-31"}
+    # The embedded FeatureCollection metadata carries the same window.
+    gj = json.loads(result.geojson_path.read_text(encoding="utf-8"))
+    assert gj["metadata"]["window"] == {"start": "2026-01-01", "end": "2026-12-31"}
+    # Stamping the window must not breach the privacy gate.
+    assert_metadata_clean(meta, load_city(config).reports)
+
+
+def test_metadata_window_keys_present_when_unconfigured(config: Config, tmp_path: object) -> None:
+    import dataclasses
+    from pathlib import Path
+
+    assert isinstance(tmp_path, Path)
+    cfg = dataclasses.replace(config, out_dir=tmp_path, window_start=None, window_end=None)
+    result = publish(cfg)
+    meta = json.loads(result.metadata_path.read_text(encoding="utf-8"))
+    # Keys are always present (null when unset) so the schema is stable.
+    assert meta["window"] == {"start": None, "end": None}
+
+
 def test_committed_configs_keep_moderation_store_gitignored() -> None:
     """HR4: every committed config's submissions_dir must resolve to a gitignored
     path. Pending submissions are precise private reports; if a config's
