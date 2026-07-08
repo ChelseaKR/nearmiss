@@ -526,6 +526,15 @@ evaluation; a "confidence over time" view; a public methods changelog feed;
 a teaching mode for classrooms. Each tagged to personas above; mostly P2–P3,
 L–XL.)*
 
+> **Update (EXP-12 / E60 — teaching mode: DONE).** The classroom teaching mode
+> shipped as the *"How to lie with heat maps"* module: three bilingual (EN/ES),
+> CI-executed, deterministic notebooks built on the synthetic Davis decoy
+> fixtures plus a 90-minute facilitator guide, for journalism/civic-data
+> workshops. See [`notebooks/teaching/`](../../notebooks/teaching/README.md) and
+> [`docs/teaching/FACILITATOR-GUIDE.md`](../teaching/FACILITATOR-GUIDE.md); run
+> with `make teach` (a dedicated CI job executes them on every push). It is the
+> teaching-mode expression of threat-model **T4** (naive raw-count misreading).
+
 ## Part 4 — Cross-cutting themes
 
 1. **Exposure is the franchise and the bottleneck.** Nearly every government,

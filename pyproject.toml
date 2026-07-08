@@ -71,6 +71,20 @@ dev = [
 mutation = [
   "mutmut>=3.6",
 ]
+# EXP-12 "How to lie with heat maps" teaching module (docs/teaching/). Kept in
+# its OWN optional group, NOT in `dev`, for the same reason as `mutation`: the
+# `make verify` merge gate — and the blocking `pip-audit --strict` scan — audits
+# exactly the dependency surface it does today. The Jupyter execution stack
+# (nbconvert + a kernel) pulls a large transitive tree; isolating it here means a
+# CVE in that tooling can never break the merge gate. The teaching notebooks
+# themselves import ONLY `nearmiss.*` + `IPython.display` (no new analysis
+# dependency — figures are hand-built SVG, exactly like src/nearmiss/figures.py).
+# `make teach` installs this group on demand; a dedicated CI job runs it.
+teaching = [
+  "nbconvert>=7.16",
+  "nbclient>=0.10",
+  "ipykernel>=6.29",
+]
 
 [project.urls]
 Homepage = "https://github.com/ChelseaKR/nearmiss"
