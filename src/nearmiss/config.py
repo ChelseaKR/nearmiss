@@ -65,6 +65,37 @@ def _resolve(base: Path, value: str) -> Path:
     return p if p.is_absolute() else (base / p).resolve()
 
 
+def _parse_window(data: dict[str, object], cfg_path: Path) -> tuple[str | None, str | None]:
+    """Parse and validate the optional ``[window]`` table (ISO dates, ordered).
+
+    Validate parseability up front so a typo fails at load time, not silently
+    mid-pipeline, and reject a reversed range.
+    """
+    win = data.get("window", {})
+    win = win if isinstance(win, dict) else {}
+
+    def win_date(key: str) -> str | None:
+        if key not in win:
+            return None
+        value = str(win[key])
+        try:
+            datetime.date.fromisoformat(value)
+        except ValueError as exc:
+            raise ConfigError(
+                f"config {cfg_path}: [window] {key!r} must be an ISO-8601 date "
+                f"(YYYY-MM-DD), got {value!r}"
+            ) from exc
+        return value
+
+    window_start = win_date("start")
+    window_end = win_date("end")
+    if window_start is not None and window_end is not None and window_start > window_end:
+        raise ConfigError(
+            f"config {cfg_path}: [window] start {window_start!r} is after end {window_end!r}"
+        )
+    return window_start, window_end
+
+
 def load_config(path: str | Path) -> Config:
     """Load a TOML (or JSON) config. Paths resolve relative to the config file."""
     cfg_path = Path(path)
@@ -100,30 +131,8 @@ def load_config(path: str | Path) -> Config:
     ref_lon = num(data["ref_lon"], "ref_lon") if "ref_lon" in data else None
 
     # Optional [window] table: an ISO-8601 (YYYY-MM-DD) start/end bounding the
-    # analysis period. Validate parseability up front so a typo fails at load
-    # time, not silently mid-pipeline, and reject a reversed range.
-    win = data.get("window", {})
-    win = win if isinstance(win, dict) else {}
-
-    def win_date(key: str) -> str | None:
-        if key not in win:
-            return None
-        value = str(win[key])
-        try:
-            datetime.date.fromisoformat(value)
-        except ValueError as exc:
-            raise ConfigError(
-                f"config {cfg_path}: [window] {key!r} must be an ISO-8601 date "
-                f"(YYYY-MM-DD), got {value!r}"
-            ) from exc
-        return value
-
-    window_start = win_date("start")
-    window_end = win_date("end")
-    if window_start is not None and window_end is not None and window_start > window_end:
-        raise ConfigError(
-            f"config {cfg_path}: [window] start {window_start!r} is after end {window_end!r}"
-        )
+    # analysis period (validated in _parse_window).
+    window_start, window_end = _parse_window(data, cfg_path)
 
     return Config(
         city=need("city"),
