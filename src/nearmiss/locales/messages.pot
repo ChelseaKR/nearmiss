@@ -23,6 +23,9 @@ msgstr ""
 msgid "## Reporting bias (named, not hidden)"
 msgstr ""
 
+msgid "## Robustness checks (overdispersion & re-segmentation)"
+msgstr ""
+
 msgid "## Statistically significant hotspots (Getis-Ord Gi\\*)"
 msgstr ""
 
@@ -117,9 +120,41 @@ msgstr ""
 
 #, python-brace-format
 msgid ""
+"- **Overdispersion (clustered reporting).** The report counts are "
+"overdispersed (dispersion ≈ {phi}): by that pooled estimate the Poisson "
+"95% intervals above could be up to {infl}× too narrow. Genuine between-"
+"segment differences inflate this estimate too, so {infl}× is an upper "
+"bound on the needed widening. {clause}"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- **Overdispersion.** Report counts show no material overdispersion "
+"(dispersion ≈ {phi}); the Poisson intervals stand as computed."
+msgstr ""
+
+#, python-brace-format
+msgid ""
 "- **Rate** — reports per {per} {unit}. It adjusts for how many people "
 "travel a street, so a quiet street with a few reports can rank above a "
 "busy one with many."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser"
+" units (from {fine}) leaves **{name}** the highest-rate, still-"
+"significant cluster — the hotspot is not an artifact of where the block "
+"lines were drawn. Top-{k} rank overlap: {overlap}."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser"
+" units (from {fine}), **{name}** stays the highest-rate unit but loses "
+"statistical significance at the coarser scale — read it as scale-"
+"sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank "
+"overlap: {overlap}."
 msgstr ""
 
 #, python-brace-format
@@ -180,6 +215,11 @@ msgstr ""
 msgid "Rate /{per}"
 msgstr ""
 
+msgid ""
+"Read them as a lower bound on the true uncertainty (a quasi-Poisson "
+"widening is available via the `overdispersion_adjust` setting)."
+msgstr ""
+
 msgid "Saturday"
 msgstr ""
 
@@ -215,6 +255,9 @@ msgid ""
 "of-day exposure denominator, so it reflects *when people ride and "
 "report*, not when a street is most dangerous. Read it as a lead for "
 "outreach timing, not a risk ranking."
+msgstr ""
+
+msgid "Those intervals have already been widened accordingly (quasi-Poisson)."
 msgstr ""
 
 msgid "Thursday"

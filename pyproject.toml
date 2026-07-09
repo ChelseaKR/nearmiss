@@ -153,10 +153,12 @@ xfail_strict = true
 # a `<=`/`<` slip in the distance band) would quietly corrupt a hotspot result
 # without failing any coarse test:
 #   * getis_ord.py — the Getis-Ord Gi* local hotspot z-score + the FDR control
-#   * rates.py     — the Poisson (Byar) and Wilson confidence intervals that
-#                    produce the exposure-normalized rate the hotspot runs on
-# (The task brief named a `stats/maup.py`; no such module exists in this repo —
-# the Getis-Ord computation lives in getis_ord.py, which is targeted here.)
+#   * rates.py     — the Poisson (Byar) and Wilson confidence intervals, plus the
+#                    quasi-Poisson dispersion (`pearson_dispersion`) and widening
+#                    (`quasi_poisson_ci`) that produce the exposure-normalized rate
+#   * maup.py      — the MAUP rank-stability re-segmentation (RR-05): a dropped
+#                    sign or a `<`/`<=` slip in the coarse-unit ranking or the
+#                    survives/overlap logic would silently misreport robustness
 #
 # It reuses the existing pytest suite (the stats tests) as the kill oracle, so
 # no separate mutation-only test harness is maintained. Run it with
@@ -168,6 +170,7 @@ source_paths = ["src"]
 only_mutate = [
   "src/nearmiss/stats/getis_ord.py",
   "src/nearmiss/stats/rates.py",
+  "src/nearmiss/stats/maup.py",
 ]
 # Kill oracle: the existing stats tests. test_hotspot.py exercises the Gi*
 # computation end to end via the known-answer fixtures; test_fdr.py and
@@ -178,6 +181,8 @@ pytest_add_cli_args_test_selection = [
   "tests/test_fdr.py",
   "tests/test_rates.py",
   "tests/test_stats_numerics.py",
+  "tests/test_maup.py",
+  "tests/test_overdispersion.py",
 ]
 # The bundle fixture loads config/davis-demo.toml (which points at the fixtures
 # under tests/, already copied). mutmut runs from a mutants/ working copy, so the

@@ -4,8 +4,24 @@
   "dataset_note": "Synthetic demonstration data — not real reports.",
   "geojson_sha256": "4cf21ff09a6a875ca9ca5ac3b96072ded58efb6f98caa7fdd4fe0ca658fa786c",
   "license": "Apache-2.0",
+  "maup_rank_stability": {
+    "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
+    "coarse_units": 3,
+    "fine_units": 6,
+    "k": 5,
+    "top_hotspot_coarse_rank": 1,
+    "top_hotspot_segment": "rs-3",
+    "top_hotspot_still_significant": false,
+    "top_hotspot_survives": false,
+    "topk_overlap": 1.0
+  },
   "methods": {
     "confidence_z": 1.96,
+    "dispersion": {
+      "adjusted": false,
+      "model": "quasi-Poisson (Pearson) on the rate/offset model",
+      "phi": 15.2193
+    },
     "fdr_alpha": 0.05,
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
