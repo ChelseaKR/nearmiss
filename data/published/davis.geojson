@@ -31,6 +31,7 @@
         "rate": 2.6667,
         "rate_ci_high": 6.8273,
         "rate_ci_low": 0.7174,
+        "rates_by_type": {},
         "report_count": 4,
         "segment_id": "seg-01"
       },
@@ -66,6 +67,14 @@
         "rate": 15.0,
         "rate_ci_high": 32.6497,
         "rate_ci_low": 5.4774,
+        "rates_by_type": {
+          "close_pass": {
+            "count": 6.0,
+            "rate": 15.0,
+            "rate_ci_high": 32.6497,
+            "rate_ci_low": 5.4774
+          }
+        },
         "report_count": 6,
         "segment_id": "seg-02"
       },
@@ -103,6 +112,20 @@
         "rate": 2.5,
         "rate_ci_high": 3.8613,
         "rate_ci_low": 1.5264,
+        "rates_by_type": {
+          "close_pass": {
+            "count": 12.0,
+            "rate": 1.5,
+            "rate_ci_high": 2.6204,
+            "rate_ci_low": 0.7742
+          },
+          "surface_hazard": {
+            "count": 5.0,
+            "rate": 0.625,
+            "rate_ci_high": 1.4585,
+            "rate_ci_low": 0.2014
+          }
+        },
         "report_count": 20,
         "segment_id": "seg-03"
       },
@@ -138,6 +161,14 @@
         "rate": 15.0,
         "rate_ci_high": 32.6497,
         "rate_ci_low": 5.4774,
+        "rates_by_type": {
+          "close_pass": {
+            "count": 6.0,
+            "rate": 15.0,
+            "rate_ci_high": 32.6497,
+            "rate_ci_low": 5.4774
+          }
+        },
         "report_count": 6,
         "segment_id": "seg-05"
       },
@@ -175,6 +206,7 @@
         "rate": 20.0,
         "rate_ci_high": 43.533,
         "rate_ci_low": 7.3031,
+        "rates_by_type": {},
         "report_count": 6,
         "segment_id": "seg-06"
       },
@@ -210,6 +242,14 @@
         "rate": 15.0,
         "rate_ci_high": 32.6497,
         "rate_ci_low": 5.4774,
+        "rates_by_type": {
+          "close_pass": {
+            "count": 6.0,
+            "rate": 15.0,
+            "rate_ci_high": 32.6497,
+            "rate_ci_low": 5.4774
+          }
+        },
         "report_count": 6,
         "segment_id": "seg-07"
       },
@@ -243,6 +283,7 @@
         "rate": 0.0,
         "rate_ci_high": 2.4454,
         "rate_ci_low": 0.0,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-09"
       },
@@ -278,6 +319,14 @@
         "rate": 15.0,
         "rate_ci_high": 32.6497,
         "rate_ci_low": 5.4774,
+        "rates_by_type": {
+          "close_pass": {
+            "count": 6.0,
+            "rate": 15.0,
+            "rate_ci_high": 32.6497,
+            "rate_ci_low": 5.4774
+          }
+        },
         "report_count": 6,
         "segment_id": "seg-10"
       },
@@ -313,6 +362,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-100"
       },
@@ -348,6 +398,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-101"
       },
@@ -383,6 +434,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-102"
       },
@@ -418,6 +470,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-103"
       },
@@ -453,6 +506,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-104"
       },
@@ -488,6 +542,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-105"
       },
@@ -523,6 +578,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-106"
       },
@@ -558,6 +614,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-107"
       },
@@ -593,6 +650,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-108"
       },
@@ -628,6 +686,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-109"
       },
@@ -663,6 +722,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-110"
       },
@@ -698,6 +758,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-111"
       },
@@ -733,6 +794,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-112"
       },
@@ -768,6 +830,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-113"
       },
@@ -803,6 +866,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-114"
       },
@@ -838,6 +902,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-115"
       },
@@ -873,6 +938,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-116"
       },
@@ -908,6 +974,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-117"
       },
@@ -943,6 +1010,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-118"
       },
@@ -978,6 +1046,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-119"
       },
@@ -1011,6 +1080,7 @@
         "rate": 0.0,
         "rate_ci_high": 2.4454,
         "rate_ci_low": 0.0,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-12"
       },
@@ -1046,6 +1116,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-120"
       },
@@ -1081,6 +1152,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-121"
       },
@@ -1116,6 +1188,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-122"
       },
@@ -1151,6 +1224,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-123"
       },
@@ -1186,6 +1260,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-124"
       },
@@ -1221,6 +1296,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-125"
       },
@@ -1256,6 +1332,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-126"
       },
@@ -1291,6 +1368,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-127"
       },
@@ -1326,6 +1404,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-128"
       },
@@ -1361,6 +1440,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-129"
       },
@@ -1396,6 +1476,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-13"
       },
@@ -1431,6 +1512,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-130"
       },
@@ -1466,6 +1548,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-131"
       },
@@ -1501,6 +1584,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-132"
       },
@@ -1536,6 +1620,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-133"
       },
@@ -1571,6 +1656,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-134"
       },
@@ -1606,6 +1692,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-135"
       },
@@ -1641,6 +1728,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-136"
       },
@@ -1676,6 +1764,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-137"
       },
@@ -1711,6 +1800,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-138"
       },
@@ -1746,6 +1836,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-139"
       },
@@ -1781,6 +1872,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-14"
       },
@@ -1816,6 +1908,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-140"
       },
@@ -1851,6 +1944,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-141"
       },
@@ -1886,6 +1980,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-142"
       },
@@ -1921,6 +2016,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-143"
       },
@@ -1956,6 +2052,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-144"
       },
@@ -1991,6 +2088,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-145"
       },
@@ -2026,6 +2124,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-146"
       },
@@ -2061,6 +2160,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-147"
       },
@@ -2096,6 +2196,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-148"
       },
@@ -2131,6 +2232,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-149"
       },
@@ -2166,6 +2268,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-15"
       },
@@ -2201,6 +2304,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-150"
       },
@@ -2236,6 +2340,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-151"
       },
@@ -2271,6 +2376,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-152"
       },
@@ -2306,6 +2412,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-153"
       },
@@ -2341,6 +2448,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-154"
       },
@@ -2376,6 +2484,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-155"
       },
@@ -2411,6 +2520,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-156"
       },
@@ -2446,6 +2556,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-157"
       },
@@ -2481,6 +2592,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-158"
       },
@@ -2516,6 +2628,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-159"
       },
@@ -2551,6 +2664,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-16"
       },
@@ -2586,6 +2700,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-160"
       },
@@ -2621,6 +2736,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-161"
       },
@@ -2656,6 +2772,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-162"
       },
@@ -2691,6 +2808,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-163"
       },
@@ -2726,6 +2844,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-164"
       },
@@ -2761,6 +2880,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-165"
       },
@@ -2796,6 +2916,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-166"
       },
@@ -2831,6 +2952,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-167"
       },
@@ -2866,6 +2988,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-168"
       },
@@ -2901,6 +3024,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-169"
       },
@@ -2936,6 +3060,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-17"
       },
@@ -2971,6 +3096,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-170"
       },
@@ -3006,6 +3132,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-171"
       },
@@ -3041,6 +3168,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-172"
       },
@@ -3076,6 +3204,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-173"
       },
@@ -3111,6 +3240,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-174"
       },
@@ -3146,6 +3276,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-175"
       },
@@ -3181,6 +3312,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-176"
       },
@@ -3216,6 +3348,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-177"
       },
@@ -3251,6 +3384,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-178"
       },
@@ -3286,6 +3420,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-179"
       },
@@ -3321,6 +3456,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-18"
       },
@@ -3356,6 +3492,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-180"
       },
@@ -3391,6 +3528,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-19"
       },
@@ -3426,6 +3564,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-20"
       },
@@ -3461,6 +3600,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-21"
       },
@@ -3496,6 +3636,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-22"
       },
@@ -3531,6 +3672,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-23"
       },
@@ -3566,6 +3708,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-24"
       },
@@ -3601,6 +3744,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-25"
       },
@@ -3636,6 +3780,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-26"
       },
@@ -3671,6 +3816,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-27"
       },
@@ -3706,6 +3852,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-28"
       },
@@ -3741,6 +3888,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-29"
       },
@@ -3776,6 +3924,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-30"
       },
@@ -3811,6 +3960,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-31"
       },
@@ -3846,6 +3996,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-32"
       },
@@ -3881,6 +4032,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-33"
       },
@@ -3916,6 +4068,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-34"
       },
@@ -3951,6 +4104,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-35"
       },
@@ -3986,6 +4140,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-36"
       },
@@ -4021,6 +4176,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-37"
       },
@@ -4056,6 +4212,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-38"
       },
@@ -4091,6 +4248,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-39"
       },
@@ -4126,6 +4284,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-40"
       },
@@ -4161,6 +4320,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-41"
       },
@@ -4196,6 +4356,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-42"
       },
@@ -4231,6 +4392,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-43"
       },
@@ -4266,6 +4428,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-44"
       },
@@ -4301,6 +4464,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-45"
       },
@@ -4336,6 +4500,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-46"
       },
@@ -4371,6 +4536,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-47"
       },
@@ -4406,6 +4572,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-48"
       },
@@ -4441,6 +4608,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-49"
       },
@@ -4476,6 +4644,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-50"
       },
@@ -4511,6 +4680,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-51"
       },
@@ -4546,6 +4716,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-52"
       },
@@ -4581,6 +4752,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-53"
       },
@@ -4616,6 +4788,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-54"
       },
@@ -4651,6 +4824,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-55"
       },
@@ -4686,6 +4860,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-56"
       },
@@ -4721,6 +4896,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-57"
       },
@@ -4756,6 +4932,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-58"
       },
@@ -4791,6 +4968,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-59"
       },
@@ -4826,6 +5004,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-60"
       },
@@ -4861,6 +5040,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-61"
       },
@@ -4896,6 +5076,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-62"
       },
@@ -4931,6 +5112,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-63"
       },
@@ -4966,6 +5148,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-64"
       },
@@ -5001,6 +5184,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-65"
       },
@@ -5036,6 +5220,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-66"
       },
@@ -5071,6 +5256,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-67"
       },
@@ -5106,6 +5292,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-68"
       },
@@ -5141,6 +5328,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-69"
       },
@@ -5176,6 +5364,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-70"
       },
@@ -5211,6 +5400,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-71"
       },
@@ -5246,6 +5436,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-72"
       },
@@ -5281,6 +5472,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-73"
       },
@@ -5316,6 +5508,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-74"
       },
@@ -5351,6 +5544,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-75"
       },
@@ -5386,6 +5580,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-76"
       },
@@ -5421,6 +5616,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-77"
       },
@@ -5456,6 +5652,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-78"
       },
@@ -5491,6 +5688,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-79"
       },
@@ -5526,6 +5724,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-80"
       },
@@ -5561,6 +5760,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-81"
       },
@@ -5596,6 +5796,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-82"
       },
@@ -5631,6 +5832,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-83"
       },
@@ -5666,6 +5868,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-84"
       },
@@ -5701,6 +5904,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-85"
       },
@@ -5736,6 +5940,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-86"
       },
@@ -5771,6 +5976,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-87"
       },
@@ -5806,6 +6012,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-88"
       },
@@ -5841,6 +6048,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-89"
       },
@@ -5876,6 +6084,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-90"
       },
@@ -5911,6 +6120,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-91"
       },
@@ -5946,6 +6156,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-92"
       },
@@ -5981,6 +6192,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-93"
       },
@@ -6016,6 +6228,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-94"
       },
@@ -6051,6 +6264,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-95"
       },
@@ -6086,6 +6300,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-96"
       },
@@ -6121,6 +6336,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-97"
       },
@@ -6156,6 +6372,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-98"
       },
@@ -6191,6 +6408,7 @@
         "rate": null,
         "rate_ci_high": null,
         "rate_ci_low": null,
+        "rates_by_type": {},
         "report_count": 0,
         "segment_id": "seg-99"
       },
