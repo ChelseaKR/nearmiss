@@ -39,10 +39,26 @@
   "city": "Davis",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "25c60324739f59cf21f0b1904760ecf5585fc866fce60da8a7ed980def021b8f",
+  "geojson_sha256": "2d2b65a5eda9d9d2b0f47b83b94536d76faef5cd7b6eaa9346db8fc4149c4e06",
   "license": "Apache-2.0",
+  "maup_rank_stability": {
+    "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
+    "coarse_units": 90,
+    "fine_units": 180,
+    "k": 5,
+    "top_hotspot_coarse_rank": 1,
+    "top_hotspot_segment": "seg-06",
+    "top_hotspot_still_significant": true,
+    "top_hotspot_survives": true,
+    "topk_overlap": 0.8
+  },
   "methods": {
     "confidence_z": 1.96,
+    "dispersion": {
+      "adjusted": false,
+      "model": "quasi-Poisson (Pearson) on the rate/offset model",
+      "phi": 11.1761
+    },
     "fdr_alpha": 0.05,
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
@@ -58,6 +74,7 @@
   "summary": {
     "duplicates_removed": 1,
     "exposure_coverage": 0.0667,
+    "out_of_window": 0,
     "reports_in": 59,
     "segments_published": 177,
     "segments_total": 180,
@@ -106,5 +123,9 @@
     "suppressed_low_count": false,
     "total_reports_timed": 58
   },
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "window": {
+    "end": "2026-12-31",
+    "start": "2026-01-01"
+  }
 }
