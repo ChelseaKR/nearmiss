@@ -117,31 +117,20 @@ def _witness_ok(witness: str) -> str | None:
     return None
 
 
-def main() -> int:
+def _find_duplicates(rows: list[dict[str, str]]) -> list[str]:
     errors: list[str] = []
-
-    if not MANIFEST.exists():
-        print(f"claims parity FAILED: manifest missing: {MANIFEST}", file=sys.stderr)
-        return 1
-
-    rows, parse_errors = _parse_manifest(MANIFEST.read_text(encoding="utf-8"))
-    errors.extend(parse_errors)
-
-    if not rows and not parse_errors:
-        errors.append("docs/CLAIMS.md: no claim rows found in the manifest table")
-
-    # Duplicate claim IDs in the manifest.
     seen: set[str] = set()
     for row in rows:
         cid = row["claim"]
         if cid in seen:
             errors.append(f"docs/CLAIMS.md: claim {cid!r} listed more than once")
         seen.add(cid)
-    manifest_ids = seen
+    return errors
 
-    # Which doc files to scan for tags: the defaults plus everything the manifest
-    # points at.
-    doc_rel = sorted({*DEFAULT_DOCS, *(row["doc"] for row in rows)})
+
+def _scan_docs(doc_rel: list[str]) -> tuple[dict[str, set[str]], list[str]]:
+    """Matched claim tags per doc, scanning every doc in ``doc_rel``."""
+    errors: list[str] = []
     doc_tags: dict[str, set[str]] = {}
     for rel in doc_rel:
         path = ROOT / rel
@@ -152,15 +141,23 @@ def main() -> int:
         matched, tag_errors = _tag_pairs(path.read_text(encoding="utf-8"), rel)
         errors.extend(tag_errors)
         doc_tags[rel] = matched
+    return doc_tags, errors
+
+
+def _cross_check(
+    rows: list[dict[str, str]], doc_tags: dict[str, set[str]], manifest_ids: set[str]
+) -> list[str]:
+    """Manifest<->docs<->tree parity errors in both directions."""
+    errors: list[str] = []
 
     # Manifest -> docs: each claim's tag pair must live in its named doc.
+    # Manifest -> tree: witness must be real.
     for row in rows:
         cid, rel = row["claim"], row["doc"]
         if cid not in doc_tags.get(rel, set()):
             errors.append(
                 f"docs/CLAIMS.md: claim {cid!r} is not a matched <!-- claim:{cid} --> pair in {rel}"
             )
-        # Manifest -> tree: witness must be real.
         wit_err = _witness_ok(row["witness"])
         if wit_err:
             errors.append(f"docs/CLAIMS.md: claim {cid!r}: {wit_err}")
@@ -171,6 +168,30 @@ def main() -> int:
             errors.append(
                 f"{rel}: claim {cid!r} is tagged in the doc but missing from docs/CLAIMS.md"
             )
+
+    return errors
+
+
+def main() -> int:
+    if not MANIFEST.exists():
+        print(f"claims parity FAILED: manifest missing: {MANIFEST}", file=sys.stderr)
+        return 1
+
+    rows, errors = _parse_manifest(MANIFEST.read_text(encoding="utf-8"))
+
+    if not rows and not errors:
+        errors.append("docs/CLAIMS.md: no claim rows found in the manifest table")
+
+    errors.extend(_find_duplicates(rows))
+    manifest_ids = {row["claim"] for row in rows}
+
+    # Which doc files to scan for tags: the defaults plus everything the manifest
+    # points at.
+    doc_rel = sorted({*DEFAULT_DOCS, *(row["doc"] for row in rows)})
+    doc_tags, scan_errors = _scan_docs(doc_rel)
+    errors.extend(scan_errors)
+
+    errors.extend(_cross_check(rows, doc_tags, manifest_ids))
 
     if errors:
         print("claims parity FAILED:", file=sys.stderr)
