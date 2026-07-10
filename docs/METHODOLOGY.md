@@ -196,16 +196,22 @@ realization of a count process with mean `theta_s * E_s`. The working assumption
 (`y_s ~ Poisson(theta_s * E_s)`), which is the right default for counts of rare events over an
 exposure base and which gives us principled small-count intervals (Section 5).
 
-**Overdispersion is expected — and an explicit check is PLANNED, not yet implemented.** Real report
+**Overdispersion is expected — and the check is implemented (config-gated).** Real report
 counts are usually *more* variable than Poisson because reporting clusters — one viral post, one
-active local group, one bad week drives a burst of correlated reports. The intended behavior is:
-when the pooled data show overdispersion (variance > mean, formally a dispersion statistic materially
-above 1), widen intervals using a quasi-Poisson / negative-binomial treatment rather than pretending
-the counts are cleanly Poisson. **This dispersion check is not implemented today** — the current code
-computes the Poisson-based interval (Section 5.2) without switching to a quasi-Poisson or
-negative-binomial model. Until the check lands, intervals on clustered report counts may be narrower
-than overdispersion would warrant; this is a known gap, flagged here rather than hidden, and is
-tracked as future work.
+active local group, one bad week drives a burst of correlated reports. The behavior is: the pooled
+quasi-Poisson dispersion statistic `phi` is **always computed** (`stats/rates.py::pearson_dispersion`,
+a Pearson chi-square residual against the pooled rate/offset model) and always reported — in every
+published metadata sidecar under `methods.dispersion.phi` and in the advocacy brief's robustness
+section. When `phi` is materially above 1 (overdispersion, variance > mean), the per-segment Poisson
+intervals understate uncertainty by roughly `sqrt(phi)`; enabling the `overdispersion_adjust` config
+key widens every published interval by `sqrt(phi)` (a quasi-Poisson treatment, `stats/rates.py::quasi_poisson_ci`).
+Widening is **off by default** so that turning it on is a deliberate, versioned methodology change
+rather than a silent rewrite of every published interval; when it is off, `phi` is still published so
+a reader can see the clustering and read the intervals as a lower bound on the true uncertainty. The
+estimate is conservative by construction — taken against one pooled rate, genuine between-segment rate
+heterogeneity inflates `phi` too, so it is an upper bound on nuisance overdispersion and the widening
+errs only toward wider, more cautious intervals. (Negative-binomial estimation of the dispersion
+remains possible future work; the quasi-Poisson path is what ships.)
 
 Rates are compared on the **same exposure unit and window** or not compared at all. A rate built
 on observed counts and a rate built on a fitness-app proxy are different measurements; the
@@ -458,6 +464,18 @@ its exposure source and date, and its significance. The KDE surface, if shown, i
 it strictly as labeled report-intensity context. Significance is conveyed in **text and pattern, not
 color alone** (the accessibility requirement), and the same ranked, flagged set is available in the
 non-visual list/table equivalent.
+
+**Re-segmentation sensitivity (MAUP) — implemented.** Street segments are an arbitrary areal unit, so
+a hotspot drawn at one granularity can dissolve at another (the modifiable areal unit problem; see
+[LIMITATIONS §5](LIMITATIONS.md)). Rather than only caveating this, we answer it with a reproducible
+artifact: `stats/maup.py::rank_stability` deterministically **re-segments the network** into a coarser
+partition (a greedy nearest-neighbour pairing that moves both MAUP axes at once — scale *and* zoning),
+recomputes the exposure-normalized rate ranking and the Gi\* + FDR significance on the coarser units,
+and reports whether the top hotspot **survives** (stays the top-ranked coarse unit and still a
+significant cluster) together with a top-k rank-overlap scalar. This ships in every published metadata
+sidecar under `maup_rank_stability` and is surfaced in the advocacy brief's robustness section, so a
+reader can see whether a headline hotspot is a real cluster or an artifact of where the block lines
+were drawn.
 
 ---
 
