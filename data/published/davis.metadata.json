@@ -2,7 +2,7 @@
   "city": "Davis",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "079e583537629858693925a7097540d78e04c63cdd4c8cbae2665c99b806c984",
+  "geojson_sha256": "edce585b880f585c412f670304091c985a7a8cc4c7d9ead78d6d0013a0e5d81f",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -36,6 +36,7 @@
   "schema_version": "1.0.0",
   "summary": {
     "duplicates_removed": 1,
+    "excluded_low_confidence_fraction": 0.0175,
     "exposure_coverage": 0.0667,
     "out_of_window": 0,
     "reports_in": 59,

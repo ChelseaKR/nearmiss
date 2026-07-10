@@ -17,7 +17,7 @@ from ..exposure import attach_exposure, coverage, is_usable
 from ..geometry import haversine_m, polyline_centroid
 from ..models import CleanRecord, ConfidenceLabel, Exposure, Report, Segment, SegmentStats
 from ..util import round_stable
-from .aggregate import _LOW_CONFIDENCE_RAW, aggregate
+from .aggregate import _LOW_CONFIDENCE_RAW, SegmentAgg, aggregate
 from .bias import BiasReport, characterize_bias
 from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
 from .kde import KdeResult, kde
@@ -63,6 +63,24 @@ def _published_quality_flags(
     return tuple(sorted(set(flags)))
 
 
+def _estimate_dispersion(
+    segments: list[Segment],
+    attached: dict[str, Exposure | None],
+    agg: dict[str, SegmentAgg],
+) -> float:
+    """Quasi-Poisson dispersion of report counts vs exposure over usable segments."""
+    usable_counts: list[int] = []
+    usable_exposures: list[float] = []
+    for s in segments:
+        exp = attached.get(s.id)
+        if is_usable(exp):
+            assert exp is not None
+            a = agg.get(s.id)
+            usable_counts.append(a.count if a else 0)
+            usable_exposures.append(exp.estimate)
+    return pearson_dispersion(usable_counts, usable_exposures)
+
+
 def analyze(
     records: list[CleanRecord],
     report_points: list[Report],
@@ -94,16 +112,7 @@ def analyze(
     # always computed and reported (the brief surfaces it); whether it is applied
     # to the published intervals is an explicit, versioned config choice so the
     # published methodology is never silently changed under a consumer.
-    usable_counts: list[int] = []
-    usable_exposures: list[float] = []
-    for s in segments:
-        exp = attached.get(s.id)
-        if is_usable(exp):
-            assert exp is not None
-            a = agg.get(s.id)
-            usable_counts.append(a.count if a else 0)
-            usable_exposures.append(exp.estimate)
-    dispersion = pearson_dispersion(usable_counts, usable_exposures)
+    dispersion = _estimate_dispersion(segments, attached, agg)
     ci_dispersion = dispersion if config.overdispersion_adjust else 1.0
 
     rate_values: dict[str, float] = {}
