@@ -160,6 +160,7 @@ feature is a GeoJSON `LineString` (the public street centerline) whose `properti
 | `rate_ci_high`           | number \| `null`                                                         | Upper bound of the rate confidence interval. |
 | `getis_ord_z`            | number \| `null`                                                         | Getis-Ord Gi\* z-score on the exposure-normalized rate, where computed. |
 | `getis_ord_significant`  | boolean \| `null`                                                        | Whether the segment is a statistically significant cluster after Benjamini-Hochberg FDR correction. `null` when `getis_ord_z` is `null`. |
+| `rate_sensitivity_delta` | number \| `null`                                                         | Signed difference (all-records rate minus the published primary rate), reported only when excluding low-confidence records (`low_accuracy`/`far_snap`) would move the rate outside its confidence interval; `null` when the exclusion is immaterial. |
 | `confidence_label`       | `certain` \| `uncertain` \| `exposure_unknown`                           | Plain-language reliability label surfaced in the map and table. |
 | `hazard_breakdown`       | object (closed hazard vocabulary → integer)                              | Counts of reports at this feature by hazard type; suppressed (emitted as `{}`) for segments below `small_n`. |
 | `quality_flags`          | array of strings                                                         | Pipeline quality flags from the published vocabulary `low_sample`, `geocode_low_confidence`, `exposure_unknown` (see [Quality flags](#published-quality-flags)). |
@@ -184,8 +185,8 @@ The **metadata sidecar** (`<city-slug>.metadata.json`, e.g. `davis.metadata.json
 content hash (`geojson_sha256`) plus the full `methods` block (`confidence_z`, `fdr_alpha`,
 `getis_ord_band_m`, `kde_bandwidth_m`, `min_publish_n`, `rate_per`, `small_n`, and the
 `significance` string) and a `summary` block (`reports_in`, `duplicates_removed`, `snapped`,
-`unsnapped`, `exposure_coverage`, `segments_total`, `segments_published`,
-`segments_withheld_low_count`), the `report_intensity_peak_segment` (a segment id only, never a
+`unsnapped`, `exposure_coverage`, `excluded_low_confidence_fraction`, `segments_total`,
+`segments_published`, `segments_withheld_low_count`), the `report_intensity_peak_segment` (a segment id only, never a
 coordinate), and a pointer to this data card (`docs/DATA-CARD.md`).
 
 ### Published quality flags
