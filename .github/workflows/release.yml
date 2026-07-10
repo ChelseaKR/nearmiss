@@ -1,0 +1,235 @@
+# SPDX-License-Identifier: Apache-2.0
+# nearmiss — tag-triggered release pipeline (RELEASE-AND-VERSIONING-STANDARD §4, REL-14).
+#
+# Pushing a `vX.Y.Z` tag re-verifies the tagged commit against the SAME merge gate
+# ci.yml enforces on `main` (never trust the PR's earlier green checkmark — main can
+# drift after a PR merges), then builds the sdist/wheel, generates a schema-validated
+# CycloneDX SBOM, attests SLSA build provenance (keyless OIDC, no stored signing key),
+# and publishes everything to a GitHub Release with the matching CHANGELOG section as
+# the release notes.
+#
+# NOT yet done, and intentionally left as a follow-up rather than faked here:
+#   - PyPI Trusted Publishing (RELEASE-AND-VERSIONING-STANDARD §5.1) — needs a PyPI
+#     project + a configured trusted publisher, which is an operator action outside
+#     what this workflow can wire up unattended. `dist/*` + the SBOM are still built,
+#     attested, and attached to the GitHub Release, so the artifact and its provenance
+#     exist even before PyPI publishing lands (see docs/standards/RELEASE-AND-VERSIONING-STANDARD.md §8).
+#   - cosign key-based signing — this workflow's attestation is the keyless OIDC
+#     build-provenance attestation only, matching this portfolio's stated posture for
+#     repos that have not provisioned a long-lived signing key (see
+#     self-osint-monitor/.github/workflows/release.yml for the identical rationale).
+
+name: release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+# Least privilege by default; each job below widens only what it needs.
+permissions:
+  contents: read
+
+# A release publishes artifacts — never let a second run for the same tag race it.
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # RELEASE-AND-VERSIONING-STANDARD §2/§3: tag ⇔ pyproject version must match, the
+  # pushed ref must be a real annotated tag object (not a lightweight ref), and the
+  # version being released must have its own dated CHANGELOG section.
+  version-check:
+    name: version-check (tag ⇔ pyproject, annotated tag, dated CHANGELOG entry)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          fetch-depth: 0  # need the tag object itself, not just the commit it points at
+          persist-credentials: false
+
+      - name: Tag matches pyproject.toml version
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          pkg_version="$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')"
+          echo "tag=$tag_version pyproject=$pkg_version"
+          if [ "$tag_version" != "$pkg_version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match pyproject.toml version $pkg_version"
+            exit 1
+          fi
+
+      - name: "Assert annotated tag (reject lightweight refs)"
+        run: |
+          git fetch --force origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
+          kind="$(git cat-file -t "${GITHUB_REF_NAME}")"
+          if [ "$kind" != "tag" ]; then
+            echo "::error::${GITHUB_REF_NAME} is a lightweight ref (kind=$kind), not an annotated/signed tag object. Use 'git tag -s' or gitsign per docs/standards/RELEASE-AND-VERSIONING-STANDARD.md §3.1."
+            exit 1
+          fi
+
+      - name: Released version has a dated CHANGELOG section
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          if ! grep -qE "^## \[${v}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no dated '## [$v] - YYYY-MM-DD' section. Add one before tagging (RELEASE-AND-VERSIONING-STANDARD §3.2)."
+            exit 1
+          fi
+
+  # Re-run the FULL merge gate at the tagged commit — the same `make verify` a
+  # contributor runs locally and ci.yml enforces on every PR (lint, strict mypy,
+  # pytest under the 90% branch-coverage floor, the structural accessibility gate,
+  # security (pip-audit + gitleaks + zizmor, all real — none silenced), and the
+  # i18n catalog gate). This closes the "main drifted after the PR's CI run" hole:
+  # a release can never ship a commit that doesn't pass its own gate today.
+  verify-at-tag:
+    name: re-verify at tagged commit (make verify)
+    needs: version-check
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          fetch-depth: 0  # gitleaks (inside `make verify`) needs full history
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: "3.12"
+          # Deliberately no `cache: pip` — this job runs at a pushed release tag, and a
+          # cross-run pip cache is exactly the cache-poisoning surface a tag-triggered
+          # pipeline must not have (RELEASE-AND-VERSIONING-STANDARD §4; zizmor flags this).
+
+      # msgfmt (G7 PO-compilation gate, part of `make i18n`) is a system gettext
+      # binary, not a pip dependency — same as ci.yml's i18n job.
+      - name: Install gettext (msgfmt)
+        run: sudo apt-get update && sudo apt-get install -y gettext
+
+      # gitleaks and zizmor are Go/Rust binaries, not pip deps (see Makefile's
+      # `security` target comment). `make verify`'s security step only runs them
+      # for real if the binaries are on PATH — install both here so the release
+      # gate actually exercises them instead of silently no-op'ing.
+      - name: Install gitleaks (pinned, matches .pre-commit-config.yaml)
+        run: |
+          GL=8.30.1
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GL}/gitleaks_${GL}_linux_x64.tar.gz" | tar -xz -C /usr/local/bin gitleaks
+          chmod +x /usr/local/bin/gitleaks
+
+      - name: Install dev dependencies (includes zizmor, ruff, mypy, pytest, babel)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]" zizmor
+
+      - name: make verify — lint + type + test (coverage floor) + accessibility + security + i18n
+        run: make verify
+
+  # Build the sdist/wheel, generate a schema-validated CycloneDX SBOM, and attest
+  # SLSA build provenance. No caching in this job (RELEASE-AND-VERSIONING-STANDARD
+  # §4: a poisoned cache entry must not be able to ride into a signed/attested
+  # release artifact).
+  build:
+    name: build · SBOM · provenance
+    needs: verify-at-tag
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write      # keyless OIDC identity for build-provenance attestation
+      attestations: write  # publish the attestation to the repo's attestation store
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: "3.12"
+          # Deliberately no `cache: pip` here — see the no-caching-in-build-jobs note above.
+
+      - name: Build sdist + wheel
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          python -m twine check dist/*
+
+      # SBOM reflects the package's actual RUNTIME dependency closure (not the dev
+      # extras used to verify it), so install into a clean venv with only the
+      # package's declared runtime dependencies.
+      - name: Install runtime-only closure into an isolated venv (for the SBOM)
+        run: |
+          python -m venv .sbom-venv
+          .sbom-venv/bin/pip install --upgrade pip
+          .sbom-venv/bin/pip install .
+          .sbom-venv/bin/pip install cyclonedx-bom
+
+      - name: Generate CycloneDX SBOM (schema-validated, reproducible)
+        run: |
+          .sbom-venv/bin/cyclonedx-py environment .sbom-venv \
+            --sv 1.7 --of JSON --pyproject pyproject.toml \
+            --output-reproducible --validate -o dist/sbom.cdx.json
+
+      # Keyless build provenance: an OIDC-backed GitHub attestation binding this
+      # workflow run to the built artifacts, verifiable with `gh attestation verify`.
+      # No signing key is stored anywhere.
+      - name: Attest build provenance (SLSA, keyless OIDC)
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373  # v4.1.1
+        with:
+          subject-path: "dist/*.whl,dist/*.tar.gz"
+
+      - name: Upload dist + SBOM
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: dist
+          path: dist/
+
+  # Create the GitHub Release with the matching CHANGELOG section as notes, and
+  # attach the built dist + SBOM. `--verify-tag` requires the pushed tag to carry
+  # a GitHub-verified signature (gitsign/GPG registered with the tagger's GitHub
+  # account) — see the dated note at the top of CHANGELOG.md: signed tags are the
+  # stated intent for "the first actual tagged release," and this flag is how that
+  # intent is actually enforced rather than merely documented.
+  github-release:
+    name: publish GitHub Release
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write  # create the GitHub Release and upload assets
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          persist-credentials: false
+
+      - name: Download dist + SBOM
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: dist
+          path: dist/
+
+      - name: Extract CHANGELOG section for this version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="$version" '
+            index($0, "## [" ver "]") == 1 { flag = 1; next }
+            /^## \[/ { flag = 0 }
+            flag' CHANGELOG.md > /tmp/release-notes.md
+          if [ -s /tmp/release-notes.md ]; then
+            echo "notes extracted for $version:"; cat /tmp/release-notes.md
+          else
+            echo "::error::no CHANGELOG section found for $version even though version-check passed"
+            exit 1
+          fi
+
+      - name: Create GitHub Release (dist + SBOM attached, CHANGELOG section as notes)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "nearmiss $GITHUB_REF_NAME" \
+            --notes-file /tmp/release-notes.md \
+            --verify-tag
