@@ -69,6 +69,21 @@ jobs:
             exit 1
           fi
 
+      # Best-effort only: this runner has no configured trust store (no imported
+      # signer GPG key, no gitsign/Sigstore root, no allowed-signers file), so
+      # `git tag -v` cannot actually validate a signature here yet — it can only
+      # catch the case where the tag isn't even a signed-tag object. Wiring a real
+      # trust store is tracked as the same open item CHANGELOG.md already flags
+      # ("Releases will be tagged and signed (gitsign) starting with the first
+      # actual tagged release"). `continue-on-error` so this is a visible signal
+      # in the run summary, not yet a hard release gate — do not silently treat
+      # this as "tags are verified," and don't confuse it with `gh release
+      # create --verify-tag` below, which only checks the tag exists remotely and
+      # is NOT a signature check.
+      - name: Verify tag signature (best-effort until a trust store is wired)
+        continue-on-error: true
+        run: git tag -v "${GITHUB_REF_NAME}"
+
       - name: Released version has a dated CHANGELOG section
         run: |
           v="${GITHUB_REF_NAME#v}"
@@ -188,11 +203,13 @@ jobs:
           path: dist/
 
   # Create the GitHub Release with the matching CHANGELOG section as notes, and
-  # attach the built dist + SBOM. `--verify-tag` requires the pushed tag to carry
-  # a GitHub-verified signature (gitsign/GPG registered with the tagger's GitHub
-  # account) — see the dated note at the top of CHANGELOG.md: signed tags are the
-  # stated intent for "the first actual tagged release," and this flag is how that
-  # intent is actually enforced rather than merely documented.
+  # attach the built dist + SBOM. `--verify-tag` here is `gh`'s own flag meaning
+  # "abort if this tag doesn't already exist in the remote repo" — NOT a
+  # cryptographic signature check (that's a common misreading of the flag name;
+  # see `gh release create --help`). It's cheap insurance against creating a
+  # release off a ref that isn't actually a pushed tag. The real (best-effort,
+  # not yet fully wired) signature check is the `git tag -v` step in
+  # version-check above.
   github-release:
     name: publish GitHub Release
     needs: build
