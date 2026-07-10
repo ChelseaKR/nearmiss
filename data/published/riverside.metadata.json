@@ -2,10 +2,26 @@
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "86b3c051feefb611ae165575592c6ec1392bc6e2f597337fdf1b4c84bfd5424b",
+  "geojson_sha256": "d79b47fe1e56d0ed812f3a636d51d24d88c0cc531dc8158323d415e9a7148872",
   "license": "Apache-2.0",
+  "maup_rank_stability": {
+    "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
+    "coarse_units": 3,
+    "fine_units": 6,
+    "k": 5,
+    "top_hotspot_coarse_rank": 1,
+    "top_hotspot_segment": "rs-3",
+    "top_hotspot_still_significant": false,
+    "top_hotspot_survives": false,
+    "topk_overlap": 1.0
+  },
   "methods": {
     "confidence_z": 1.96,
+    "dispersion": {
+      "adjusted": false,
+      "model": "quasi-Poisson (Pearson) on the rate/offset model",
+      "phi": 15.2193
+    },
     "fdr_alpha": 0.05,
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
@@ -22,6 +38,7 @@
   "summary": {
     "duplicates_removed": 0,
     "exposure_coverage": 1.0,
+    "out_of_window": 0,
     "reports_in": 20,
     "segments_published": 5,
     "segments_total": 6,
@@ -53,5 +70,9 @@
     "suppressed_low_count": false,
     "total_reports_timed": 20
   },
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "window": {
+    "end": "2026-12-31",
+    "start": "2026-01-01"
+  }
 }
