@@ -156,8 +156,14 @@ def _check_web(pot_ids: set[str], en: Catalog, es: Catalog) -> list[str]:
         if en_fields != es_fields:
             errors.append(f"web: en/es placeholder mismatch in {mid!r}: {en_fields} != {es_fields}")
 
-    # web/locales/<lang>.json keys must exactly equal the web.* inventory, so a
-    # string that bypasses the catalog (added only to the JSON, or dropped) fails.
+    errors.extend(_check_web_json(web_ids))
+    return errors
+
+
+def _check_web_json(web_ids: set[str]) -> list[str]:
+    """web/locales/<lang>.json keys must exactly equal the web.* inventory, so a
+    string that bypasses the catalog (added only to the JSON, or dropped) fails."""
+    errors: list[str] = []
     for lang in sorted(CATALOGS):
         path = WEB_LOCALES / f"{lang}.json"
         if not path.exists():
