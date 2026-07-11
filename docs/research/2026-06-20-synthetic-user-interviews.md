@@ -30,8 +30,9 @@ does not flatter the current build, and explicitly marks the things we should
 > [limitations page](../LIMITATIONS.md), incl. the CI-scope caveat), **R4/R5** (a
 > plain-language "bottom line" callout), **R24** (hazard-type breakdown column),
 > **R23** (council-ready print / save-as-PDF export with caveats baked in),
-> **R31** (a segment-ID join crosswalk in REAL-DATA.md), and **R46** (a
-> methodology TL;DR). The gated big-ticket **R40–R44 / E13–E16** (contributor
+> **R31** (a segment-ID join crosswalk in REAL-DATA.md), **R46** (a
+> methodology TL;DR), and **R48** (the reporting-bias audit surfaced as a visible
+> web panel, driven by a privacy-safe `bias` metadata block). The gated big-ticket **R40–R44 / E13–E16** (contributor
 > intake + abuse defense) is now **scoped** in
 > [INTAKE-AND-ABUSE.md](../INTAKE-AND-ABUSE.md). Still deferred pending live data
 > sources: R36/E10 exposure adapters, E5 official-collision fusion, E2
@@ -446,9 +447,16 @@ Grouped by theme. Each: `R# — what` · personas · effort · priority · notes
   · P05,P07,P15 · S · P1
 - **R46 — Methodology one-pager** (exportable) for staff reports. · P06,P07 · S · P1
 - **R47 — Re-identification model for rare hazard types** documented; k & jitter
-  rationale visible. · P23 · M · P1 · HR4
+  rationale visible. · P23 · M · P1 · HR4 · **DONE** ([`docs/RE-IDENTIFICATION.md`](../RE-IDENTIFICATION.md);
+  documents the rare-`hazard_type` attack, the `min_publish_n=3` / `small_n=5` rationale, and
+  clarifies that the pipeline withholds/snaps rather than jitters)
 - **R48 — Bias-audit panel** from `bias.py` made visible (who's over/under-
-  represented). · P15,P10,P19 · M · P1 · HR3
+  represented). · P15,P10,P19 · M · P1 · HR3 · **✅ Shipped** — `stats/bias.py`
+  gains a privacy-safe `to_metadata()` (publishable segments only, rounded shares,
+  no coordinates/counts/reporter fields); `publish.py` emits a `bias` block in both
+  the sidecar and embedded metadata; the web UI renders a collapsible "Reporting
+  bias" panel (caveat note verbatim + over-/under-represented lists with report-share
+  vs exposure-share), bilingual and degrading gracefully when the block is absent.
 
 *(R49–R70: the long tail — emit GeoPackage; .qml + Mapbox/Leaflet style presets;
 embeddable iframe widget; per-district printable; "report on behalf of a route";

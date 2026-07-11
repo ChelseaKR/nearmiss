@@ -9,10 +9,10 @@ any stage can be piped, checked, or replaced independently.
 | `pipeline/` | `dedupe.py`, `geocode.py`, `snap.py`, `classify.py`, `quality.py` — clean and structure raw reports. `geocode.py` is currently a pass-through adapter seam for coordinate-bearing reports; real address geocoder adapters are still pending. |
 | `exposure.py` | Attach an exposure denominator per segment (counts, demand model, or exposure layer), recording source and date. |
 | `stats/` | `rates.py` (rates + confidence intervals), `bias.py` (reporting-bias characterization), `kde.py`, `getis_ord.py` (Getis-Ord Gi\*). |
-| `publish.py` | Build the open GeoJSON and the aggregated, jittered public dataset; apply privacy fuzzing. |
+| `publish.py` | Build the open GeoJSON and the segment-aggregated public dataset; enforce the k-anonymity withholding and coordinate-leak invariants (no jitter — privacy comes from snap-to-segment aggregation and withholding, see [`docs/RE-IDENTIFICATION.md`](../../docs/RE-IDENTIFICATION.md)). |
 | `brief.py` | Render advocacy briefs (ranked locations, intervals, plain-language prose). |
 | `server.py` | Serve the accessible, read-only map and its equivalent sortable list/table view. |
-| `config.py` | Cities, exposure sources, thresholds, and jitter as versioned, checked-in configuration. |
+| `config.py` | Cities, exposure sources, and privacy/analysis thresholds (snap distance, `min_publish_n`, `small_n`) as versioned, checked-in configuration. |
 
 > Status: **beta.** Every module above is implemented in pure, typed Python (the only runtime dependency
 > is `jsonschema`) and covered by the known-answer test suite. The one pending piece in this package is

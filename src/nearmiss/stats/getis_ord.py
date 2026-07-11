@@ -78,7 +78,17 @@ def getis_ord_star(
 
     xs = [values[s] for s in ids]
     mean = sum(xs) / n
-    variance = sum(x * x for x in xs) / n - mean * mean
+    # Two-pass (population) variance. The one-pass E[x^2] - E[x]^2 form is
+    # algebraically identical but catastrophically cancellation-prone: when the
+    # values share a large common offset (e.g. all near 1e8 with tiny spread),
+    # sum(x*x)/n and mean*mean are two huge, nearly equal numbers whose
+    # difference loses almost all significant digits and can even go negative,
+    # collapsing s to 0.0 and silently zeroing every z-score. Summing the
+    # centered deviations keeps the magnitudes at the scale of the true spread,
+    # so the statistic stays finite and sane. Same semantics (population
+    # variance) as before, so the exact-value tests in test_stats_numerics.py
+    # (z = ±sqrt(3), ±sqrt(2)) are unchanged.
+    variance = sum((x - mean) ** 2 for x in xs) / n
     s = math.sqrt(variance) if variance > 0 else 0.0
     if s == 0.0:
         return dict.fromkeys(ids, 0.0)

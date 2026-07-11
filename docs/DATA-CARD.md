@@ -445,6 +445,10 @@ Contributor privacy is a hard rule, and the published dataset is engineered arou
 - **Residual risk.** Aggregation and withholding reduce but do not erase re-identification
   risk: a repeat contributor reporting across multiple segments could still be linked across
   those segments. This residual risk remains and is not claimed away.
+- **Re-identification model.** The detailed model for the rare-`hazard_type`-on-a-low-traffic-segment
+  attack — the adversary, the join, the `min_publish_n` / `small_n` parameter rationale, and why the
+  pipeline withholds rather than jitters — is documented in
+  [`docs/RE-IDENTIFICATION.md`](RE-IDENTIFICATION.md).
 
 These are publishing-rule and threat-model protections, not license restrictions — the data
 itself is meant to be free, so the privacy lives in *what* is published, not in legal terms.
@@ -567,6 +571,7 @@ this dataset, and a number from here without them is not this dataset's claim.
 - `schema/dataset.schema.md` — published GeoJSON schema (authoritative field reference).
 - `docs/METHODOLOGY.md` — full statistical methodology (rates, intervals, KDE, Getis-Ord Gi\*).
 - `docs/THREAT-MODEL.md` — privacy threat model and the basis for the withheld-precision rules.
+- `docs/RE-IDENTIFICATION.md` — the rare-hazard-type re-identification model and parameter rationale.
 - `data/published/<city-slug>.metadata.json` (e.g. `davis.metadata.json`) — per-release
   machine-readable metadata sidecar (versions, content hash, methods, sources, windows, totals).
 - `data/published/<city-slug>.geojson` (e.g. `davis.geojson`) — the published open GeoJSON, with
