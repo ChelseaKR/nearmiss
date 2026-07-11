@@ -7,7 +7,7 @@ nearmiss publish   --config C                   # open GeoJSON + aggregated publ
 nearmiss brief     --config C [--out FILE]      # advocacy brief (markdown)
 nearmiss run       --config C                   # intake -> ... -> brief, end to end
 nearmiss submit   <submission.json> --config C  # queue a public submission (PENDING)
-nearmiss moderate  list|approve|reject|export --config C   # review the moderation queue
+nearmiss moderate  list|approve|reject|export|stats --config C  # review the moderation queue
 nearmiss serve     [--dir D] [--port P]         # accessible map + data view (read-only)
 nearmiss version
 """
@@ -22,7 +22,7 @@ from pathlib import Path
 
 from . import __version__
 from .brief import render_brief
-from .config import load_config
+from .config import Config, load_config
 from .engine import AnalysisBundle, build_analysis
 from .errors import NearmissError
 from .figures import write_figures
@@ -35,6 +35,7 @@ from .moderation import (
     approve,
     approved_reports,
     list_submissions,
+    moderation_stats,
     reject,
     submit,
 )
@@ -209,6 +210,8 @@ def _cmd_moderate(args: argparse.Namespace) -> int:
         sub = reject(config, args.id, args.reason)
         print(f"moderate: rejected {sub.submission_id} ({sub.reason})")
         return 0
+    if action == "stats":
+        return _moderate_stats(config, args.out)
     if action == "export":
         reports = approved_reports(config)
         out = Path(args.out)
@@ -220,6 +223,94 @@ def _cmd_moderate(args: argparse.Namespace) -> int:
         print(f"moderate: exported {len(reports)} approved report(s) to {out}")
         return 0
     raise NearmissError(f"unknown moderate action {action!r}")  # pragma: no cover
+
+
+def _fmt_cell(value: object) -> str:
+    """Render one count cell for the terminal: a withheld cell shows as such."""
+    return "withheld" if value is None else str(value)
+
+
+def _fmt_counts(counts: dict[str, object]) -> str:
+    return ", ".join(f"{k}={_fmt_cell(v)}" for k, v in counts.items()) or "(none)"
+
+
+def _render_stats_markdown(stats: dict[str, object]) -> str:
+    """A dated, human-readable transparency report. Only categories and floored
+    counts appear — never a submission's free-text reason."""
+    status = stats["status_counts"]
+    reasons = stats["reason_categories"]
+    flags = stats["flag_counts"]
+    latency = stats["review_latency_hours"]
+    assert isinstance(status, dict) and isinstance(reasons, dict) and isinstance(flags, dict)
+    assert isinstance(latency, dict)
+    date = str(stats["generated_at"])[:10]
+    median = latency["median"]
+    median_str = (
+        "withheld (below floor)"
+        if median is None and latency["withheld"]
+        else ("n/a (no decisions yet)" if median is None else f"{median} h")
+    )
+    lines = [
+        f"# Moderation transparency report — {date}",
+        "",
+        "Aggregate, privacy-floored moderation statistics. Rejection reasons are shown only as",
+        f"coarse categories (never free text), and any count below the k-anonymity floor "
+        f"(`min_publish_n = {stats['min_publish_n']}`) is withheld.",
+        "",
+        f"- Total submissions: **{stats['total_submissions']}**",
+        f"- Withheld cells (low count): **{stats['withheld_cells']}**",
+        "",
+        "## Submissions by status",
+        "",
+        f"- {_fmt_counts(status)}",
+        "",
+        "## Rejection-reason categories",
+        "",
+        f"- {_fmt_counts(reasons)}",
+        "",
+        "## Review flags",
+        "",
+        f"- {_fmt_counts(flags)}",
+        "",
+        "## Review latency",
+        "",
+        f"- Median (received -> decided): **{median_str}** across {latency['n_decided']} decided "
+        "submission(s).",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def _moderate_stats(config: Config, out: str | None) -> int:
+    stats = moderation_stats(config)
+    status = stats["status_counts"]
+    reasons = stats["reason_categories"]
+    latency = stats["review_latency_hours"]
+    assert isinstance(status, dict) and isinstance(reasons, dict) and isinstance(latency, dict)
+    print(f"moderate stats [{config.city}]: {stats['total_submissions']} submission(s) total")
+    print(f"  by status: {_fmt_counts(status)}")
+    print(f"  reason categories: {_fmt_counts(reasons)}")
+    median = latency["median"]
+    if median is None and latency["withheld"]:
+        median_str = "withheld (below floor)"
+    elif median is None:
+        median_str = "n/a"
+    else:
+        median_str = f"{median} h"
+    print(f"  median review latency: {median_str} (n_decided={latency['n_decided']})")
+    floor, withheld = stats["min_publish_n"], stats["withheld_cells"]
+    print(f"  withheld cells (k-anonymity floor {floor}): {withheld}")
+    if out:
+        out_path = Path(out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        if out_path.suffix.lower() == ".json":
+            out_path.write_text(
+                json.dumps(stats, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+        else:
+            out_path.write_text(_render_stats_markdown(stats), encoding="utf-8")
+        print(f"  report written to {out_path}")
+    return 0
 
 
 def _cmd_serve(args: argparse.Namespace) -> int:
@@ -293,6 +384,14 @@ def build_parser() -> argparse.ArgumentParser:
     m_reject.add_argument("--reason", required=True, help="why it was rejected")
     m_export = mod_sub.add_parser("export", help="write approved reports as a pipeline-ready file")
     m_export.add_argument("out", help="output reports JSON path")
+    m_stats = mod_sub.add_parser(
+        "stats", help="publish a privacy-floored moderation transparency report"
+    )
+    m_stats.add_argument(
+        "--out",
+        help="also write a dated artifact (.md for Markdown, .json for JSON), "
+        "e.g. docs/audits/YYYY-MM-DD-moderation.md",
+    )
     p_mod.set_defaults(func=_cmd_moderate)
 
     p_serve = sub.add_parser("serve", help="serve the accessible map + data view (read-only)")

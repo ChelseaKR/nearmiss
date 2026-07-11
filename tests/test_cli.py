@@ -220,3 +220,64 @@ def test_submit_then_moderate_lifecycle(
 def test_moderate_list_empty_queue(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["moderate", "--config", str(_config(tmp_path)), "list"]) == 0
     assert "no submissions" in capsys.readouterr().out
+
+
+def test_moderate_stats_summary_and_artifacts(
+    tmp_path: Path, a_valid_report: dict[str, object], capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _config(tmp_path)
+    _submit_one(tmp_path, a_valid_report, "a.json")
+    capsys.readouterr()  # drop submit chatter
+
+    # Human-readable summary to stdout.
+    assert main(["moderate", "--config", str(cfg), "stats"]) == 0
+    out = capsys.readouterr().out
+    assert "by status" in out
+    assert "reason categories" in out
+    assert "median review latency" in out
+    assert "withheld cells" in out
+
+    # A JSON artifact (dated-path style) exposes the machine-readable report.
+    art = tmp_path / "docs" / "audits" / "2026-07-02-moderation.json"
+    assert main(["moderate", "--config", str(cfg), "stats", "--out", str(art)]) == 0
+    data = json.loads(art.read_text(encoding="utf-8"))
+    assert {
+        "status_counts",
+        "reason_categories",
+        "flag_counts",
+        "review_latency_hours",
+        "withheld_cells",
+        "min_publish_n",
+        "total_submissions",
+    } <= set(data)
+
+    # A Markdown artifact for the audit trail.
+    md = tmp_path / "docs" / "audits" / "2026-07-02-moderation.md"
+    assert main(["moderate", "--config", str(cfg), "stats", "--out", str(md)]) == 0
+    assert "# Moderation transparency report" in md.read_text(encoding="utf-8")
+
+
+def test_moderate_stats_never_prints_free_text_reason(
+    tmp_path: Path, a_valid_report: dict[str, object], capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _config(tmp_path)
+    _submit_one(tmp_path, a_valid_report, "a.json")
+    pending = moderation.list_submissions(load_config(cfg), moderation.PENDING)
+    secret = "REJECT-NOTE-jane@example.com-plate-XYZ7788"
+    assert (
+        main(
+            [
+                "moderate",
+                "--config",
+                str(cfg),
+                "reject",
+                pending[0].submission_id,
+                "--reason",
+                f"{secret} spam",
+            ]
+        )
+        == 0
+    )
+    capsys.readouterr()
+    assert main(["moderate", "--config", str(cfg), "stats"]) == 0
+    assert secret not in capsys.readouterr().out
