@@ -504,8 +504,22 @@ from a known true rate, build a 95% interval each time, and confirm the interval
 rate close to 95% of the time. This catches a miscalibrated interval method — an interval that
 claims 95% but covers 80% is a lie this check is designed to expose, and it is exactly the lie the
 banned Wald interval (Section 5.1) tells. We assert coverage stays close to nominal for Byar's
-approximation (the implemented default, Section 5.2) and near nominal for the score method, and the
-test fails if an interval method drifts out of tolerance.
+approximation (the implemented default, Section 5.2) and the test fails if the interval drifts out
+of tolerance.
+
+This is **implemented**, not aspirational. The seeded Monte-Carlo coverage check lives in
+`tests/test_coverage_simulation.py`: for true Poisson means across the small-count range the project
+operates in (lambda in {1, 3, 5, 10, 25}), it draws ~2000 samples each, builds the Byar 95%
+interval with `stats/rates.poisson_ci`, and asserts the empirical coverage lands in an asymmetric
+band around nominal — a strict lower bound (it must not *under*-cover, the Wald failure) and a
+lenient upper bound (conservative over-coverage at small discrete counts is safe, not a defect). It
+is marked `slow` and runs deterministically from a fixed seed. Alongside it,
+`tests/test_stats_properties.py` uses property-based (Hypothesis) and metamorphic tests to pin the
+invariants of the same core — CI bounds ordered, non-negative, containing the point estimate, and
+widening monotonically with the confidence level; Wilson bounds confined to [0, 1]; and the Gi*
+z-scores invariant to value re-scaling and to input ordering. The score (Wilson) method is provided
+for proportions but is not the published rate default, so its coverage is checked structurally
+(bounds within [0, 1]) rather than by a separate rate simulation.
 
 ### 9.3 Bias and null behavior
 
