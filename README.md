@@ -213,11 +213,19 @@ make install                 # pip install -e ".[dev]" + pre-commit install
 # As a tool, isolated (the packaging/release goal once published)
 pipx install nearmiss
 
-# Planned reproducible path: a generated, hashed lock
+# Reproducible path: install from the committed, hashed lock
 python -m pip install --require-hashes -r requirements.lock
-# requirements.lock is produced by `make lock` (pip-compile --generate-hashes); it is a generated
-# artifact and is not committed yet — `pip install -e ".[dev]"` is the install that works today.
+# requirements.lock is committed at the repo root and carries pinned, hashed versions (produced by
+# `make lock`, pip-compile --generate-hashes); it covers the runtime dependency tree. CI does not
+# yet install with --require-hashes (that hardening is planned), so `pip install -e ".[dev]"`
+# remains the install the gates use today.
 ```
+
+<!-- claim:lockfile-committed-hashed -->
+The hashed `requirements.lock` is committed at the repo root (pinned, `--hash=sha256` for every
+runtime dependency). Installing from it with `--require-hashes` in CI is a planned hardening; the
+gates today install with `pip install -e ".[dev]"`.
+<!-- /claim:lockfile-committed-hashed -->
 
 A container image and a one-command serverless intake deploy are described in
 [`infra/`](infra/). Configuration — cities, exposure sources, thresholds, and the minimum-occupancy
