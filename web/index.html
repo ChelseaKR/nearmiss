@@ -163,6 +163,22 @@
         </ul>
       </section>
 
+      <!-- R48 — the reporting-bias audit (bias.py) surfaced in the UI, not only in
+           data artifacts: who the dataset over-/under-reports vs exposure, with the
+           caveat that over-representation is not confirmed danger. Populated from the
+           dataset's own embedded metadata (meta.bias); hidden when that is absent. -->
+      <section id="bias-panel" aria-labelledby="bias-heading" hidden>
+        <h2 id="bias-heading" data-i18n="bias_h">Reporting bias</h2>
+        <details class="bias-audit">
+          <summary data-i18n="bias_summary">Who the data over- and under-reports</summary>
+          <p id="bias-note" class="bias-note"></p>
+          <h3 id="bias-over-h" data-i18n="bias_over_h">Over-represented in reports</h3>
+          <ul id="bias-over" class="bias-list"></ul>
+          <h3 id="bias-under-h" data-i18n="bias_under_h">Under-represented</h3>
+          <ul id="bias-under" class="bias-list"></ul>
+        </details>
+      </section>
+
       <section aria-labelledby="faq-heading">
         <h2 id="faq-heading" data-i18n="faq_h">Questions people ask</h2>
         <details class="faq">

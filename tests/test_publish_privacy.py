@@ -154,6 +154,55 @@ def test_metadata_window_keys_present_when_unconfigured(config: Config, tmp_path
     assert meta["window"] == {"start": None, "end": None}
 
 
+def test_metadata_carries_bias_audit_publishable_ids_only(
+    bundle: AnalysisBundle, config: Config, tmp_path: object
+) -> None:
+    """R48: the reporting-bias audit is surfaced in the published metadata (so the web
+    UI can show it), it names only segments that clear the k-anonymity floor, and it
+    leaks no forbidden key or raw coordinate."""
+    import dataclasses
+    from pathlib import Path
+
+    assert isinstance(tmp_path, Path)
+    cfg = dataclasses.replace(config, out_dir=tmp_path)
+    result = publish(cfg)
+
+    published_ids = {_props(f)["segment_id"] for f in _features(_geojson(bundle))}
+    for path_key in ("metadata", "embedded"):
+        if path_key == "metadata":
+            doc = json.loads(result.metadata_path.read_text(encoding="utf-8"))
+            bias = doc["bias"]
+        else:
+            gj = json.loads(result.geojson_path.read_text(encoding="utf-8"))
+            bias = gj["metadata"]["bias"]
+        assert isinstance(bias, dict)
+        # The caveat note is present (it is what keeps the panel honest). It is keyed
+        # "caveat", never "note" — "note" is a forbidden per-report field name.
+        assert "note" not in bias
+        assert isinstance(bias["caveat"], str) and bias["caveat"]
+        over = bias["over_represented"]
+        under = bias["under_represented"]
+        assert isinstance(over, list) and isinstance(under, list)
+        # Only segments that were actually published may be named (same filter the
+        # brief applies) — never a withheld low-count segment.
+        for entry in [*over, *under]:
+            assert set(entry) == {"segment_id", "report_share", "exposure_share"}
+            assert entry["segment_id"] in published_ids
+            assert entry["segment_id"] not in {"seg-04", "seg-08", "seg-11"}
+            # Shares are rounded fractions in [0, 1], never a coordinate or raw count.
+            for share_key in ("report_share", "exposure_share"):
+                share = entry[share_key]
+                assert isinstance(share, float)
+                assert 0.0 <= share <= 1.0
+                assert round(share, 4) == share
+
+    # The whole metadata still passes its own privacy gate with the bias block present.
+    assert_metadata_clean(
+        json.loads(result.metadata_path.read_text(encoding="utf-8")),
+        load_city(config).reports,
+    )
+
+
 def test_committed_configs_keep_moderation_store_gitignored() -> None:
     """HR4: every committed config's submissions_dir must resolve to a gitignored
     path. Pending submissions are precise private reports; if a config's

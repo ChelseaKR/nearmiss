@@ -1,8 +1,40 @@
 {
+  "bias": {
+    "caveat": "Shares compare where reports land against where exposure is. They cannot, on their own, separate 'more dangerous' from 'more reported': reporter pools skew by route choice, demographics, app access, and language. Treat over-represented segments as candidates for attention and scrutiny, not as confirmed rankings.",
+    "over_represented": [
+      {
+        "exposure_share": 0.0394,
+        "report_share": 0.4,
+        "segment_id": "rs-3"
+      },
+      {
+        "exposure_share": 0.126,
+        "report_share": 0.2,
+        "segment_id": "rs-2"
+      },
+      {
+        "exposure_share": 0.126,
+        "report_share": 0.2,
+        "segment_id": "rs-6"
+      }
+    ],
+    "under_represented": [
+      {
+        "exposure_share": 0.2362,
+        "report_share": 0.0,
+        "segment_id": "rs-5"
+      },
+      {
+        "exposure_share": 0.2362,
+        "report_share": 0.15,
+        "segment_id": "rs-1"
+      }
+    ]
+  },
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "4cf21ff09a6a875ca9ca5ac3b96072ded58efb6f98caa7fdd4fe0ca658fa786c",
+  "geojson_sha256": "bc8f398df9732851120453bff19a1f3bd5fe95ccb85165b67aeabe4ec4b2301d",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",

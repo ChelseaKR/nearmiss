@@ -194,6 +194,11 @@
       flag_exposure_unknown: "exposure unknown",
       fail:
         "Could not load published data ({msg}). Run `make publish`, then `nearmiss serve` and open /web/index.html.",
+      bias_h: "Reporting bias",
+      bias_summary: "Who the data over- and under-reports",
+      bias_over_h: "Over-represented in reports",
+      bias_under_h: "Under-represented",
+      bias_shares: "{rshare} of reports vs {eshare} of exposure",
       none: "—",
     },
     es: {
@@ -355,6 +360,11 @@
       flag_exposure_unknown: "exposición desconocida",
       fail:
         "No se pudieron cargar los datos publicados ({msg}). Ejecute `make publish`, luego `nearmiss serve` y abra /web/index.html.",
+      bias_h: "Sesgo de reporte",
+      bias_summary: "Quién está sobre- y sub-reportado en los datos",
+      bias_over_h: "Sobre-representado en los reportes",
+      bias_under_h: "Sub-representado",
+      bias_shares: "{rshare} de reportes vs {eshare} de exposición",
       none: "—",
     },
   };
@@ -804,6 +814,68 @@
     el.textContent = tpl(t("blSummary"), { hot: hot.length, n: dataRows.length, list: top });
   }
 
+  // R48 — surface the reporting-bias audit (bias.py) in the UI, not only in the
+  // brief and data artifacts: the caveat note verbatim, then who the dataset
+  // over- and under-reports relative to exposure. Driven entirely by the dataset's
+  // own embedded metadata (meta.bias); the whole panel stays hidden when that is
+  // absent, so an older dataset degrades gracefully.
+  function applyBias() {
+    var section = document.getElementById("bias-panel");
+    if (!section) return;
+    var bias = meta && meta.bias;
+    var over = (bias && bias.over_represented) || [];
+    var under = (bias && bias.under_represented) || [];
+    if (!bias || (!over.length && !under.length)) {
+      section.hidden = true;
+      return;
+    }
+    var nameById = {};
+    rows.forEach(function (p) {
+      nameById[p.segment_id] = p.name || p.segment_id;
+    });
+    var noteEl = document.getElementById("bias-note");
+    if (noteEl) noteEl.textContent = bias.caveat || "";
+    fillBiasList("bias-over", "bias-over-h", over, nameById);
+    fillBiasList("bias-under", "bias-under-h", under, nameById);
+    section.hidden = false;
+  }
+
+  // Render one bias list (over- or under-represented) and hide its heading+list
+  // when that side is empty. Each segment links to its row in the authoritative
+  // table (R20), and shares are shown as percentages — no coordinate or raw count.
+  function fillBiasList(listId, headingId, items, nameById) {
+    var ul = document.getElementById(listId);
+    var heading = document.getElementById(headingId);
+    if (!ul) return;
+    ul.textContent = "";
+    var empty = !items || !items.length;
+    if (heading) heading.hidden = empty;
+    ul.hidden = empty;
+    if (empty) return;
+    items.forEach(function (it) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = "#seg-" + it.segment_id;
+      a.textContent = nameById[it.segment_id] || it.segment_id;
+      li.appendChild(a);
+      li.appendChild(
+        document.createTextNode(
+          " — " +
+            tpl(t("bias_shares"), {
+              rshare: pct(it.report_share),
+              eshare: pct(it.exposure_share),
+            })
+        )
+      );
+      ul.appendChild(li);
+    });
+  }
+
+  function pct(share) {
+    if (share === null || share === undefined) return t("none");
+    return (Number(share) * 100).toFixed(1) + "%";
+  }
+
   // R22 — point the download link at whatever dataset is actually loaded, and
   // name it (city, version, segment count) so people know what they're getting.
   function applyDownload() {
@@ -894,6 +966,7 @@
         applyProvenance();
         applyHotspotSummary();
         applyBottomLine();
+        applyBias();
         applyDownload();
         if (rows.length) {
           renderTable();
@@ -939,6 +1012,7 @@
       renderMaps();
       applyHotspotSummary();
       applyBottomLine();
+      applyBias();
       applyDownload();
       var shareBtn = document.getElementById("share-card-btn");
       if (shareBtn && window.NearmissShareCard) shareBtn.disabled = false;
