@@ -97,6 +97,13 @@
       mv_both: "Both maps",
       mv_reports: "Reports only",
       mv_rate: "Rate only",
+      print_btn: "🖨 Print / save as PDF",
+      print_generated_label: "Generated:",
+      print_caveat:
+        "Rates are shown with 95% confidence intervals. Segments without a trustworthy " +
+        "exposure denominator are shown as uncertain and are never ranked as if certain.",
+      print_footer:
+        "nearmiss — near-miss rates, normalized by exposure · https://nearmiss.report",
       filter_label: "Filter segments by name",
       filterStatus: "Showing {shown} of {n} segments",
       captionFiltered:
@@ -260,6 +267,14 @@
       mv_both: "Ambos mapas",
       mv_reports: "Solo reportes",
       mv_rate: "Solo tasa",
+      print_btn: "🖨 Imprimir / guardar como PDF",
+      print_generated_label: "Generado:",
+      print_caveat:
+        "Las tasas se muestran con intervalos de confianza del 95%. Los segmentos sin un " +
+        "denominador de exposición confiable se muestran como inciertos y nunca se clasifican " +
+        "como si fueran ciertos.",
+      print_footer:
+        "nearmiss — tasas de cuasi-accidentes, normalizadas por exposición · https://nearmiss.report",
       filter_label: "Filtrar segmentos por nombre",
       filterStatus: "Mostrando {shown} de {n} segmentos",
       captionFiltered:
@@ -958,6 +973,100 @@
     });
   }
 
+  // R23: stamp the "generated on" date (and city, when known) into the print-only
+  // header and footer, in the active language. Called on load, on language switch,
+  // and again just before printing.
+  function stampPrintMeta() {
+    var now = new Date();
+    var dateStr;
+    try {
+      dateStr = now.toLocaleDateString(lang === "es" ? "es" : "en", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (e) {
+      dateStr = now.toISOString().slice(0, 10);
+    }
+    var city = meta && meta.city ? meta.city : "";
+    var text = city ? city + " · " + dateStr : dateStr;
+    ["print-generated", "print-generated-footer"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = text;
+    });
+  }
+
+  // R23: council-ready print / save-as-PDF. No external PDF library — the print
+  // stylesheet does the layout. Here we (1) force the map view to "both" and clear
+  // the table filter so the printout is the complete equivalent of the data, (2)
+  // invalidate both Leaflet map sizes so tiles re-render at the print dimensions,
+  // then restore the prior view/filter after printing.
+  function wirePrint() {
+    var btn = document.getElementById("print-btn");
+    if (!btn) return;
+    var saved = null;
+
+    function beforePrint() {
+      if (saved) return; // guard against beforeprint + matchMedia both firing
+      var split = document.querySelector(".map-split");
+      var filterInput = document.getElementById("table-filter");
+      saved = {
+        view: split ? split.getAttribute("data-view") : null,
+        filter: filterText,
+        filterValue: filterInput ? filterInput.value : "",
+      };
+      if (split) split.setAttribute("data-view", "both");
+      if (filterText) {
+        filterText = "";
+        if (filterInput) filterInput.value = "";
+        renderTable();
+      }
+      stampPrintMeta();
+      if (maps.reports) {
+        maps.reports.invalidateSize();
+        maps.rate.invalidateSize();
+      }
+    }
+
+    function afterPrint() {
+      if (!saved) return;
+      var split = document.querySelector(".map-split");
+      var filterInput = document.getElementById("table-filter");
+      if (split && saved.view) split.setAttribute("data-view", saved.view);
+      if (saved.filter) {
+        filterText = saved.filter;
+        if (filterInput) filterInput.value = saved.filterValue;
+        renderTable();
+      }
+      if (maps.reports) {
+        setTimeout(function () {
+          maps.reports.invalidateSize();
+          maps.rate.invalidateSize();
+        }, 0);
+      }
+      saved = null;
+    }
+
+    // The print lifecycle (button, Ctrl/Cmd+P, browser menu) is observed via both
+    // beforeprint/afterprint and matchMedia('print'); engines vary in which fire,
+    // and the `saved` guard makes a double-fire idempotent.
+    window.addEventListener("beforeprint", beforePrint);
+    window.addEventListener("afterprint", afterPrint);
+    if (window.matchMedia) {
+      var mql = window.matchMedia("print");
+      var onChange = function (m) {
+        if (m.matches) beforePrint();
+        else afterPrint();
+      };
+      if (mql.addEventListener) mql.addEventListener("change", onChange);
+      else if (mql.addListener) mql.addListener(onChange);
+    }
+
+    btn.addEventListener("click", function () {
+      window.print();
+    });
+  }
+
   function wireLangSwitch() {
     document.querySelectorAll(".lang-switch button").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -968,6 +1077,7 @@
         applyBottomLine();
         applyBias();
         applyDownload();
+        stampPrintMeta();
         if (rows.length) {
           renderTable();
           renderMaps();
@@ -994,8 +1104,10 @@
   wireSorting();
   wireFilter();
   wireMapToggle();
+  wirePrint();
   wireLangSwitch();
   wireShareCard();
+  stampPrintMeta();
 
   fetch(DATA_URL)
     .then(function (r) {
@@ -1016,6 +1128,7 @@
       applyDownload();
       var shareBtn = document.getElementById("share-card-btn");
       if (shareBtn && window.NearmissShareCard) shareBtn.disabled = false;
+      stampPrintMeta();
     })
     .catch(function (e) {
       fail(e.message);
