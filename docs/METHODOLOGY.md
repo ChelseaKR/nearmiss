@@ -536,20 +536,31 @@ elevated rate). The pipeline and statistics must:
 - **not flag the busy-but-safe decoys** — the explicit test of Section 7. A build where the busy
   decoy lights up as a hotspot is a failing build, because it means we re-told the heat-map lie.
 
-### 9.2 Interval checks (Monte-Carlo coverage simulations PLANNED)
+### 9.2 Interval-coverage checks
 
-<!-- claim:coverage-sims-planned -->
-For the confidence intervals (Section 5) the committed suite (`tests/test_rates.py`) tests the
-interval **properties** directly: that Byar's Poisson interval contains the point estimate and widens
-relatively for small `n`, that count 0 yields a `0` lower bound with a finite upper bound, that the
-rate scales correctly by exposure, and that Wilson bounds stay inside `[0, 1]` and reject
-`successes > trials`. **Monte-Carlo coverage simulations — simulate many datasets from a known true
-rate, build a 95% interval each time, and confirm ~95% contain the truth — are PLANNED, not yet
-implemented.** They are the check that would catch a method that claims 95% but covers 80% (exactly
-the lie the banned Wald interval of Section 5.1 tells); until they land, the property tests above,
-not a coverage simulation, are what guards the interval code. This gap is flagged here rather than
-implied away.
-<!-- /claim:coverage-sims-planned -->
+<!-- claim:coverage-sims-implemented -->
+For the confidence intervals (Section 5) we run **coverage simulations**: simulate many datasets
+from a known true rate, build a 95% interval each time, and confirm the intervals contain the true
+rate close to 95% of the time. This catches a miscalibrated interval method — an interval that
+claims 95% but covers 80% is a lie this check is designed to expose, and it is exactly the lie the
+banned Wald interval (Section 5.1) tells. We assert coverage stays close to nominal for Byar's
+approximation (the implemented default, Section 5.2) and the test fails if the interval drifts out
+of tolerance.
+
+This is **implemented**, not aspirational. The seeded Monte-Carlo coverage check lives in
+`tests/test_coverage_simulation.py`: for true Poisson means across the small-count range the project
+operates in (lambda in {1, 3, 5, 10, 25}), it draws ~2000 samples each, builds the Byar 95%
+interval with `stats/rates.poisson_ci`, and asserts the empirical coverage lands in an asymmetric
+band around nominal — a strict lower bound (it must not *under*-cover, the Wald failure) and a
+lenient upper bound (conservative over-coverage at small discrete counts is safe, not a defect). It
+is marked `slow` and runs deterministically from a fixed seed. Alongside it,
+`tests/test_stats_properties.py` uses property-based (Hypothesis) and metamorphic tests to pin the
+invariants of the same core — CI bounds ordered, non-negative, containing the point estimate, and
+widening monotonically with the confidence level; Wilson bounds confined to [0, 1]; and the Gi*
+z-scores invariant to value re-scaling and to input ordering. The score (Wilson) method is provided
+for proportions but is not the published rate default, so its coverage is checked structurally
+(bounds within [0, 1]) rather than by a separate rate simulation.
+<!-- /claim:coverage-sims-implemented -->
 
 ### 9.3 Bias and null behavior
 

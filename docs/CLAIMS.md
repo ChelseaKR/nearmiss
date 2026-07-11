@@ -29,4 +29,4 @@ it, so the gap stays visible instead of drifting back into a promise.
 | `bh-fdr` | `docs/METHODOLOGY.md` — § 5.5 Multiplicity | `tests/test_fdr.py::test_significant_field_is_fdr_corrected_in_analysis` |
 | `gi-on-rate-not-count` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_hotspot.py::test_getis_ord_flags_the_planted_corridor_cluster` |
 | `gi-weights-straightline` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `src/nearmiss/stats/getis_ord.py` |
-| `coverage-sims-planned` | `docs/METHODOLOGY.md` — § 9.2 Interval checks | `tests/test_rates.py::test_poisson_ci_zero_count` |
+| `coverage-sims-implemented` | `docs/METHODOLOGY.md` — § 9.2 Interval-coverage checks | `tests/test_coverage_simulation.py::test_byar_poisson_interval_coverage` |
