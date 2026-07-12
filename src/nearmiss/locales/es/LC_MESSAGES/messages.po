@@ -19,6 +19,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+msgid "## Dominant hazard type by segment (with its own rate)"
+msgstr "## Tipo de peligro dominante por segmento (con su propia tasa)"
+
 msgid "## Highest-rate segments (exposure-normalized)"
 msgstr "## Segmentos de mayor tasa (normalizada por exposición)"
 
@@ -186,6 +189,14 @@ msgid "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
 msgstr "- **{name}** — Gi* z = {z}, tasa {rate}/{per} (IC {lo}-{hi}, n={n})"
 
 #, python-brace-format
+msgid ""
+"- **{name}** — most common: **{hazard}** ({count} reports), rate "
+"{rate}/{per} (CI {lo}-{hi})"
+msgstr ""
+"- **{name}** — más común: **{hazard}** ({count} reportes), tasa "
+"{rate}/{per} (IC {lo}-{hi})"
+
+#, python-brace-format
 msgid "- **{part}**: {n} report ({pct}%)"
 msgid_plural "- **{part}**: {n} reports ({pct}%)"
 msgstr[0] "- **{part}**: {n} reporte ({pct}%)"
@@ -272,6 +283,17 @@ msgid "Sunday"
 msgstr "domingo"
 
 msgid ""
+"The headline rate is pooled across every hazard type (a union). This "
+"names the single most common conflict type at each ranked segment and "
+"gives *its* exposure-normalized rate; types with too few reports to share"
+" are omitted."
+msgstr ""
+"La tasa principal agrupa todos los tipos de peligro (una unión). Aquí se "
+"nombra el tipo de conflicto más común en cada segmento clasificado y se da "
+"*su* tasa normalizada por exposición; se omiten los tipos con muy pocos "
+"reportes para compartir."
+
+msgid ""
 "These segments are hot *beyond* what exposure and spatial structure "
 "explain — candidates for hot because dangerous, not hot because busy:"
 msgstr ""
@@ -316,8 +338,20 @@ msgstr "miércoles"
 msgid "Where the danger actually is — {city}"
 msgstr "Dónde está realmente el peligro — {city}"
 
+msgid "blocked sightline"
+msgstr "línea de visión obstruida"
+
 msgid "certain"
 msgstr "cierto"
+
+msgid "close pass"
+msgstr "adelantamiento cercano"
+
+msgid "debris"
+msgstr "escombros"
+
+msgid "dooring"
+msgstr "apertura de puerta"
 
 msgid "evening (20–24)"
 msgstr "noche (20–24)"
@@ -337,8 +371,17 @@ msgstr "hora pico matutina (06–10)"
 msgid "n"
 msgstr "n"
 
+msgid "other"
+msgstr "otro"
+
 msgid "overnight (00–06)"
 msgstr "madrugada (00–06)"
+
+msgid "signal conflict"
+msgstr "conflicto de señal"
+
+msgid "surface hazard"
+msgstr "peligro en la superficie"
 
 msgid "uncertain"
 msgstr "incierto"

@@ -63,6 +63,46 @@ def _published_quality_flags(
     return tuple(sorted(set(flags)))
 
 
+def _rates_by_type(
+    usable: bool,
+    count: int,
+    hazard_breakdown: dict[str, int],
+    exposure_estimate: float | None,
+    config: Config,
+) -> dict[str, dict[str, float]]:
+    """Per-hazard-type rate layers: for a usable, aggregated segment, each
+    hazard type whose own count clears the small-sample threshold gets its
+    own exposure-normalized rate + CI (against the same segment exposure).
+    Types below the threshold are suppressed entirely (no entry). The
+    top-level ``rate`` remains the pooled rate across all types (an
+    explicit union). Aggregate-only: only counts and rates are stored.
+    """
+    rates_by_type: dict[str, dict[str, float]] = {}
+    if not (usable and count >= config.small_n):
+        return rates_by_type
+    assert exposure_estimate is not None
+    for hazard_type, type_count in hazard_breakdown.items():
+        if type_count < config.small_n:
+            continue
+        t_rate, t_lo, t_hi = rate_with_ci(
+            type_count, exposure_estimate, config.rate_per, config.confidence_z
+        )
+        r4, lo4, hi4 = (
+            round_stable(t_rate, 4),
+            round_stable(t_lo, 4),
+            round_stable(t_hi, 4),
+        )
+        # rate_with_ci returns real floats, so the rounded values are never None.
+        assert r4 is not None and lo4 is not None and hi4 is not None
+        rates_by_type[hazard_type] = {
+            "count": float(type_count),
+            "rate": r4,
+            "rate_ci_low": lo4,
+            "rate_ci_high": hi4,
+        }
+    return rates_by_type
+
+
 def analyze(
     records: list[CleanRecord],
     report_points: list[Report],
@@ -119,6 +159,13 @@ def analyze(
             conf = "exposure_unknown"
         # Hazard breakdown is suppressed below the small-sample threshold.
         breakdown = dict(a.hazard_breakdown) if (a and count >= config.small_n) else {}
+        rates_by_type = _rates_by_type(
+            usable,
+            count,
+            a.hazard_breakdown if a else {},
+            exp.estimate if exp else None,
+            config,
+        )
         raw_flags = set(a.quality_flags) if a else set()
         stats.append(
             SegmentStats(
@@ -137,6 +184,7 @@ def analyze(
                 # k-anonymity: withhold segments with a non-zero count below the floor.
                 publishable=not (0 < count < config.min_publish_n),
                 hazard_breakdown=breakdown,
+                rates_by_type=rates_by_type,
                 quality_flags=_published_quality_flags(usable, count, config.small_n, raw_flags),
             )
         )

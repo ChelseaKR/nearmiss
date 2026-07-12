@@ -34,7 +34,7 @@
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "bc8f398df9732851120453bff19a1f3bd5fe95ccb85165b67aeabe4ec4b2301d",
+  "geojson_sha256": "06682c8723949d01f3cc9b13cc0e62f8714d5b5403424c7ba7e1f8b1620f4640",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -58,6 +58,7 @@
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
     "min_publish_n": 3,
+    "rate_definition": "pooled across all hazard types (union); per-type rates in rates_by_type where count >= small_n",
     "rate_per": 1000.0,
     "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
     "small_n": 5

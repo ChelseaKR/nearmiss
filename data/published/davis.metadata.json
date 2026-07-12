@@ -39,7 +39,7 @@
   "city": "Davis",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "2d2b65a5eda9d9d2b0f47b83b94536d76faef5cd7b6eaa9346db8fc4149c4e06",
+  "geojson_sha256": "d82607df1429b5c1e9506cfc4ed4cad9958f590de68f46bdefe9042fa356716f",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -63,6 +63,7 @@
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
     "min_publish_n": 3,
+    "rate_definition": "pooled across all hazard types (union); per-type rates in rates_by_type where count >= small_n",
     "rate_per": 1000.0,
     "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
     "small_n": 5

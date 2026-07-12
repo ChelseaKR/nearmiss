@@ -19,6 +19,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+msgid "## Dominant hazard type by segment (with its own rate)"
+msgstr "## Dominant hazard type by segment (with its own rate)"
+
 msgid "## Highest-rate segments (exposure-normalized)"
 msgstr "## Highest-rate segments (exposure-normalized)"
 
@@ -177,6 +180,14 @@ msgid "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
 msgstr "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
 
 #, python-brace-format
+msgid ""
+"- **{name}** — most common: **{hazard}** ({count} reports), rate "
+"{rate}/{per} (CI {lo}-{hi})"
+msgstr ""
+"- **{name}** — most common: **{hazard}** ({count} reports), rate "
+"{rate}/{per} (CI {lo}-{hi})"
+
+#, python-brace-format
 msgid "- **{part}**: {n} report ({pct}%)"
 msgid_plural "- **{part}**: {n} reports ({pct}%)"
 msgstr[0] "- **{part}**: {n} report ({pct}%)"
@@ -261,6 +272,17 @@ msgid "Sunday"
 msgstr "Sunday"
 
 msgid ""
+"The headline rate is pooled across every hazard type (a union). This "
+"names the single most common conflict type at each ranked segment and "
+"gives *its* exposure-normalized rate; types with too few reports to share"
+" are omitted."
+msgstr ""
+"The headline rate is pooled across every hazard type (a union). This "
+"names the single most common conflict type at each ranked segment and "
+"gives *its* exposure-normalized rate; types with too few reports to share"
+" are omitted."
+
+msgid ""
 "These segments are hot *beyond* what exposure and spatial structure "
 "explain — candidates for hot because dangerous, not hot because busy:"
 msgstr ""
@@ -304,8 +326,20 @@ msgstr "Wednesday"
 msgid "Where the danger actually is — {city}"
 msgstr "Where the danger actually is — {city}"
 
+msgid "blocked sightline"
+msgstr "blocked sightline"
+
 msgid "certain"
 msgstr "certain"
+
+msgid "close pass"
+msgstr "close pass"
+
+msgid "debris"
+msgstr "debris"
+
+msgid "dooring"
+msgstr "dooring"
 
 msgid "evening (20–24)"
 msgstr "evening (20–24)"
@@ -325,8 +359,17 @@ msgstr "morning commute (06–10)"
 msgid "n"
 msgstr "n"
 
+msgid "other"
+msgstr "other"
+
 msgid "overnight (00–06)"
 msgstr "overnight (00–06)"
+
+msgid "signal conflict"
+msgstr "signal conflict"
+
+msgid "surface hazard"
+msgstr "surface hazard"
 
 msgid "uncertain"
 msgstr "uncertain"
