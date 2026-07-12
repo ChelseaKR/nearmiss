@@ -38,6 +38,7 @@ _TOP_KEYS = frozenset(
         "geocoder_user_agent",
         "exposure_unit",
         "dataset_note",
+        "source_registry",
         "thresholds",
         # FIX-05: optional [window] table (ISO start/end, validated in _parse_window).
         "window",
@@ -124,6 +125,7 @@ class Config:
     # Optional provenance note carried into the brief and the published metadata
     # (e.g. to mark a dataset as synthetic demonstration data).
     dataset_note: str | None = None
+    source_registry_path: Path | None = None
     # EXP-05 prototype (see stats/dp_temporal.py + docs/privacy/exp-05-dp-segment-time-bands.md):
     # an epsilon-DP alternative to k-anonymity suppression for segment x part-of-day counts.
     # Disabled by default. Even when enabled, dp_segment_time_sme_signoff_ref MUST be set to a
@@ -349,6 +351,9 @@ def load_config(path: str | Path) -> Config:
         exposure_floor=exposure_floor,
         exposure_stale_days=exposure_stale_days,
         dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),
+        source_registry_path=(
+            _resolve(base, str(data["source_registry"])) if "source_registry" in data else None
+        ),
         dp_segment_time_enabled=bool(dp.get("enabled", False)),
         dp_segment_time_epsilon=(
             num(dp["epsilon"], "dp_segment_time.epsilon") if "epsilon" in dp else 1.0

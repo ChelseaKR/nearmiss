@@ -12,6 +12,7 @@ nearmiss moderate  list|approve|reject|export|stats --config C  # review the mod
 nearmiss contributor export|delete|purge-expired --config C  # data-rights (token = auth)
 nearmiss preregister --config C [--out DIR]     # EXP-16: freeze flagged corridors (hash+timestamp)
 nearmiss score-preregistration --registration F --config C [--out DIR]  # EXP-16: score vs held-out
+nearmiss coverage  --config C [--registry R]  # evidence tier + source/capability gaps
 nearmiss serve     [--dir D] [--port P]         # accessible map + data view (read-only)
 nearmiss version
 """
@@ -20,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import datetime as dt
 import json
 import sys
 from pathlib import Path
@@ -28,6 +30,7 @@ from . import __version__, obs
 from .brief import render_brief
 from .config import Config, load_config
 from .contributor import delete_reports, export_reports, purge_expired
+from .coverage import assess_coverage, load_source_registry
 from .engine import AnalysisBundle, build_analysis
 from .errors import NearmissError
 from .figures import write_figures
@@ -471,6 +474,24 @@ def _cmd_version(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_coverage(args: argparse.Namespace) -> int:
+    """Print the machine-readable evidence tier and source/capability gaps."""
+    config = load_config(args.config)
+    registry_path = Path(args.registry) if args.registry else config.source_registry_path
+    if registry_path is None:
+        raise NearmissError("coverage requires --registry or source_registry in the city config")
+    registry = load_source_registry(registry_path)
+    as_of = None
+    if args.as_of:
+        try:
+            as_of = dt.date.fromisoformat(args.as_of)
+        except ValueError as exc:
+            raise NearmissError("--as-of must be an ISO-8601 date (YYYY-MM-DD)") from exc
+    assessment = assess_coverage(config, registry, as_of=as_of)
+    print(json.dumps(assessment.as_dict(), ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="nearmiss", description=__doc__)
     parser.add_argument("--version", action="version", version=f"nearmiss {__version__}")
@@ -631,6 +652,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="tombstone-delete raw records older than config's retention_days window",
     )
     p_con.set_defaults(func=_cmd_contributor)
+
+    p_coverage = sub.add_parser(
+        "coverage",
+        help="assess a city's evidence tier and source/capability gaps",
+    )
+    add_config(p_coverage)
+    p_coverage.add_argument(
+        "--registry",
+        help="source-registry TOML (defaults to source_registry in the city config)",
+    )
+    p_coverage.add_argument(
+        "--as-of",
+        help="freshness reference date, YYYY-MM-DD (default: analysis window/report/source date)",
+    )
+    p_coverage.set_defaults(func=_cmd_coverage)
 
     p_serve = sub.add_parser("serve", help="serve the accessible map + data view (read-only)")
     p_serve.add_argument("--dir", default=".", help="directory to serve (repo root)")

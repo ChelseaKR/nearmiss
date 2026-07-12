@@ -257,6 +257,9 @@ nearmiss analyze --config config/davis-demo.toml            # rates + CIs + bias
 # geometry held fixed) and publish the method's empirical false-positive rate
 nearmiss analyze --config config/davis-demo.toml --calibrate   # writes <slug>.calibration.json
 
+# Audit what this city's declared + loaded sources can honestly support
+nearmiss coverage --config config/davis-demo.toml  # evidence tier, freshness, capabilities, gaps
+
 # Public crowdsourced submissions: queue one for review, then moderate it in
 nearmiss submit submission.json --config config/davis-demo.toml      # -> PENDING (private)
 nearmiss moderate list --config config/davis-demo.toml               # review the queue + flags
@@ -608,7 +611,7 @@ If you believe a published artifact leaks identifying precision, treat it as a s
 | [`web/`](web/) | framework-free WCAG 2.2 AA map UI with list/table equivalent; public submission form (`submit.html`); embeddable hotspot widget (`embed.html` + `nearmiss-embed.js`) |
 | [`data/`](data/) | `raw/` (private, gitignored) and `published/` (open GeoJSON + data card) |
 | [`tests/`](tests/) | pytest suites and planted-hotspot fixtures with known answers |
-| [`docs/`](docs/) | [METHODOLOGY](docs/METHODOLOGY.md), [DATA-CARD](docs/DATA-CARD.md), [ADAPTING](docs/ADAPTING.md), [THREAT-MODEL](docs/THREAT-MODEL.md), [SUBMISSIONS](docs/SUBMISSIONS.md), [INTAKE-AND-ABUSE](docs/INTAKE-AND-ABUSE.md), [ACCESSIBILITY](docs/ACCESSIBILITY.md), [ADRs](docs/adr/), [audits](docs/audits/), [accessibility ACR](docs/accessibility/ACR.md) |
+| [`docs/`](docs/) | [METHODOLOGY](docs/METHODOLOGY.md), [DATA-CARD](docs/DATA-CARD.md), [COVERAGE-TIERS](docs/COVERAGE-TIERS.md), [ADAPTING](docs/ADAPTING.md), [THREAT-MODEL](docs/THREAT-MODEL.md), [SUBMISSIONS](docs/SUBMISSIONS.md), [INTAKE-AND-ABUSE](docs/INTAKE-AND-ABUSE.md), [ACCESSIBILITY](docs/ACCESSIBILITY.md), [ADRs](docs/adr/), [audits](docs/audits/), [accessibility ACR](docs/accessibility/ACR.md) |
 | [`infra/`](infra/) | optional serverless intake + scheduled rebuild; scale-to-zero |
 | [`.github/`](.github/) | [CI](.github/workflows/ci.yml), Dependabot, CodeQL, issue/PR templates, CODEOWNERS |
 

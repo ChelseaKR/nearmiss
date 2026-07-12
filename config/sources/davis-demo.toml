@@ -1,0 +1,33 @@
+version = 1
+city = "Davis"
+measured_min_coverage = 0.8
+
+# This registry is intentionally synthetic. Even though its fixture exposure
+# rows are tagged "observed" for method tests, the coverage assessment must
+# never promote the demo to a real measured-city tier.
+[[sources]]
+id = "davis-demo-streets"
+kind = "streets"
+name = "Davis synthetic street fixture"
+license = "Apache-2.0"
+updated_at = "2026-05-01"
+geography = "Davis synthetic test extent"
+synthetic = true
+
+[[sources]]
+id = "davis-demo-incidents"
+kind = "incidents"
+name = "Davis planted near-miss fixture"
+license = "Apache-2.0"
+updated_at = "2026-05-01"
+geography = "Davis synthetic test extent"
+synthetic = true
+
+[[sources]]
+id = "davis-demo-exposure"
+kind = "exposure"
+name = "Davis planted exposure fixture"
+license = "Apache-2.0"
+updated_at = "2026-05-01"
+geography = "Davis synthetic test extent"
+synthetic = true
