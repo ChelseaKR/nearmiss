@@ -96,6 +96,19 @@ These distinct controls prevent a valid-looking truncated or stale file from sil
 national last-known-good artifact. When an override is used, that policy choice is stored in the
 normalized artifact.
 
+After the city registry explicitly declares `id = "fars"` with
+`kind = "official_outcomes"`, an operator can verify the private lineage without publishing it:
+
+```bash
+nearmiss coverage --config config/city.toml \
+  --fars-root "$HOME/.local/share/nearmiss/ingestion"
+```
+
+The verifier replays normalization from the preserved raw bytes and returns only safe aggregate
+lineage metadata. A declaration without verified bytes and verified bytes without the matching
+declaration both grant no capability. The matched state grants only `verified_official_outcomes`, not
+mode involvement, segment/time comparison, or triangulation.
+
 This is still crash-table context, not outcome triangulation. A later slice must join `person.csv` for
 road-user modes, link outcomes to street segments and time windows, and make coverage trust only the
 artifact/receipt/raw hash chain before any comparative capability appears.

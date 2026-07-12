@@ -18,6 +18,7 @@ from typing import Literal, cast
 from .config import Config
 from .engine import load_city
 from .errors import ConfigError
+from .verified_outcomes import VerifiedOutcomeEvidence
 
 SourceKind = Literal[
     "streets", "incidents", "exposure", "official_outcomes", "context", "interventions"
@@ -26,6 +27,7 @@ SourceAccess = Literal["open", "partner", "licensed", "private"]
 EvidenceTier = Literal[
     "demonstration", "national_baseline", "modeled_city", "measured_city", "partner_city"
 ]
+OutcomeVerificationStatus = Literal["not_requested", "verified"]
 
 _SOURCE_KINDS = {
     "streets",
@@ -64,6 +66,15 @@ class SourceRegistry:
 
 
 @dataclass(frozen=True)
+class OfficialOutcomeCoverage:
+    """Declaration and verified-lineage state without analytical overclaim."""
+
+    declared_source_ids: tuple[str, ...]
+    verification_status: OutcomeVerificationStatus
+    verified: VerifiedOutcomeEvidence | None
+
+
+@dataclass(frozen=True)
 class CoverageAssessment:
     city: str
     evidence_tier: EvidenceTier
@@ -79,6 +90,7 @@ class CoverageAssessment:
     stale_source_ids: tuple[str, ...]
     capabilities: tuple[str, ...]
     unlocks: tuple[str, ...]
+    official_outcomes: OfficialOutcomeCoverage
     partner_organization: str | None
     partner_review_ref: str | None
     as_of: str
@@ -268,23 +280,30 @@ def _capabilities_and_unlocks(
     usable_count: int,
     observed_coverage: float,
     stale: tuple[str, ...],
+    official_outcomes: OfficialOutcomeCoverage,
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:
     capabilities = ["source_coverage_screening"]
-    if "context" in kinds:
-        capabilities.append("contextual_screening")
     if usable_count and "exposure" in kinds:
         capabilities.append("exposure_normalized_segment_rates")
-    if "official_outcomes" in kinds:
-        capabilities.append("official_outcome_triangulation")
-    if "interventions" in kinds:
-        capabilities.append("before_after_evaluation_inputs")
+    verified = official_outcomes.verified
+    verified_and_declared = (
+        verified is not None and verified.source_id in official_outcomes.declared_source_ids
+    )
+    if verified_and_declared:
+        capabilities.append("verified_official_outcomes")
 
     unlocks = []
     if observed_coverage < registry.measured_min_coverage:
         unlocks.append("raise observed exposure coverage")
-    if "official_outcomes" not in kinds:
-        unlocks.append("add an official-outcomes source")
-    if "interventions" not in kinds:
+    if verified_and_declared:
+        unlocks.append("join verified outcomes to modes, segments, and time windows")
+    elif "fars" in official_outcomes.declared_source_ids:
+        unlocks.append("verify the active FARS receipt/artifact chain with --fars-root")
+    else:
+        unlocks.append("declare source 'fars' with kind official_outcomes")
+    if "interventions" in kinds:
+        unlocks.append("connect and validate declared intervention-history records")
+    else:
         unlocks.append("add an intervention-history source")
     if not (registry.partner_organization and registry.partner_review_ref):
         unlocks.append("record a partner organization and review reference")
@@ -294,7 +313,11 @@ def _capabilities_and_unlocks(
 
 
 def assess_coverage(
-    config: Config, registry: SourceRegistry, *, as_of: dt.date | None = None
+    config: Config,
+    registry: SourceRegistry,
+    *,
+    as_of: dt.date | None = None,
+    verified_outcomes: VerifiedOutcomeEvidence | None = None,
 ) -> CoverageAssessment:
     """Assess what a city's actual inputs support, without manufacturing certainty."""
     if registry.city.casefold() != config.city.casefold():
@@ -317,6 +340,13 @@ def assess_coverage(
     missing = tuple(sorted(_CORE_KINDS - kinds))
     assessment_date = as_of or _assessment_date(config, registry)
     stale = _stale_sources(registry, assessment_date)
+    official_outcomes = OfficialOutcomeCoverage(
+        declared_source_ids=tuple(
+            sorted(source.id for source in registry.sources if source.kind == "official_outcomes")
+        ),
+        verification_status="verified" if verified_outcomes is not None else "not_requested",
+        verified=verified_outcomes,
+    )
     tier = _evidence_tier(
         registry,
         missing=missing,
@@ -330,6 +360,7 @@ def assess_coverage(
         usable_count=len(usable_ids),
         observed_coverage=observed_coverage,
         stale=stale,
+        official_outcomes=official_outcomes,
     )
 
     return CoverageAssessment(
@@ -347,6 +378,7 @@ def assess_coverage(
         stale_source_ids=stale,
         capabilities=capabilities,
         unlocks=unlocks,
+        official_outcomes=official_outcomes,
         partner_organization=registry.partner_organization,
         partner_review_ref=registry.partner_review_ref,
         as_of=assessment_date.isoformat(),

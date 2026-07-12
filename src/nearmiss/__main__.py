@@ -12,7 +12,7 @@ nearmiss moderate  list|approve|reject|export|stats --config C  # review the mod
 nearmiss contributor export|delete|purge-expired --config C  # data-rights (token = auth)
 nearmiss preregister --config C [--out DIR]     # EXP-16: freeze flagged corridors (hash+timestamp)
 nearmiss score-preregistration --registration F --config C [--out DIR]  # EXP-16: score vs held-out
-nearmiss coverage  --config C [--registry R]  # evidence tier + source/capability gaps
+nearmiss coverage  --config C [--registry R] [--fars-root R]  # evidence + verified gaps
 nearmiss ingest-fars EXPORT --root R --year Y # preserve + validate a private FARS artifact
 nearmiss serve     [--dir D] [--port P]         # accessible map + data view (read-only)
 nearmiss version
@@ -489,7 +489,20 @@ def _cmd_coverage(args: argparse.Namespace) -> int:
             as_of = dt.date.fromisoformat(args.as_of)
         except ValueError as exc:
             raise NearmissError("--as-of must be an ISO-8601 date (YYYY-MM-DD)") from exc
-    assessment = assess_coverage(config, registry, as_of=as_of)
+    verified_outcomes = None
+    if args.fars_root is not None:
+        from .verified_outcomes import VerificationError, verify_active_fars
+
+        try:
+            verified_outcomes = verify_active_fars(Path(args.fars_root).expanduser())
+        except (OSError, RuntimeError, VerificationError):
+            raise NearmissError("active FARS verification failed") from None
+    assessment = assess_coverage(
+        config,
+        registry,
+        as_of=as_of,
+        verified_outcomes=verified_outcomes,
+    )
     print(json.dumps(assessment.as_dict(), ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 
@@ -879,6 +892,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_coverage.add_argument(
         "--as-of",
         help="freshness reference date, YYYY-MM-DD (default: analysis window/report/source date)",
+    )
+    p_coverage.add_argument(
+        "--fars-root",
+        help="private ingestion root whose active FARS chain must verify or fail closed",
     )
     p_coverage.set_defaults(func=_cmd_coverage)
 

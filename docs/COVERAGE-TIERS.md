@@ -7,6 +7,7 @@ supportable. It never produces a composite safety score or compares cities.
 ```bash
 nearmiss coverage --config config/davis-demo.toml
 nearmiss coverage --config config/city.toml --registry path/to/city.sources.toml
+nearmiss coverage --config config/city.toml --fars-root "$HOME/.local/share/nearmiss/ingestion"
 ```
 
 The JSON result is intended for onboarding checks, city galleries, CI, and future APIs. Its tiers
@@ -25,12 +26,39 @@ the exact source declaration that produced it.
 | `partner_city` | The measured-city bar is met and a partner organization and review reference are recorded. |
 
 Promotion does not imply that a city is safe, that its reports are representative, or that official
-outcomes agree. Those are separate findings. Official crash/outcome and intervention-history sources
-unlock separate capabilities and remain visible as gaps when absent.
+outcomes agree. Those are separate findings. An official-outcome registry row is a declaration, not
+proof that any bytes exist. It never grants triangulation by itself.
 
-Capabilities require both usable loaded data and the matching registry declaration. A stale street,
+Capabilities require both usable loaded data and the matching registry declaration. For FARS, the
+optional `--fars-root` additionally verifies the owner-only active receipt, immutable history, raw and
+normalized hashes, artifact contract, and deterministic raw-to-normalized replay. A stale street,
 incident, or exposure source blocks promotion to `measured_city`; a large report count never overrides
 freshness or observed-exposure coverage.
+
+Context and intervention-history rows likewise remain declarations until source-specific records are
+loaded and validated; they do not mint `contextual_screening` or `before_after_evaluation_inputs` from
+TOML alone.
+
+## Official-outcome trust states
+
+| Registry `id = "fars"`, `kind = "official_outcomes"` | Verified active FARS chain | Result |
+| --- | --- | --- |
+| No | No | Declare the source; no outcome capability. |
+| Yes | No | Verify with `--fars-root`; no outcome capability. |
+| No | Yes | Verification metadata is visible, but no capability without the matching declaration. |
+| Yes | Yes | Grants only `verified_official_outcomes`. |
+
+`verified_official_outcomes` means the local crash-level artifact is internally consistent with its
+preserved raw bytes. It does **not** authenticate an NHTSA signature, identify road-user modes, link
+crashes to street segments/time windows, publish precise outcomes, or grant
+`official_outcome_triangulation`. Those require separately reviewed person-table, linkage,
+methodology, and privacy work. Verified FARS never changes the evidence tier, incident count, segment
+count, or exposure coverage.
+
+The JSON result records declared official-outcome IDs and either `not_requested` or a safe verified
+summary (year, mapping/release metadata, aggregate counts, hashes, and attempt ID). It never contains
+the private root, internal paths, rows, outcome IDs, or coordinates. Supplying an invalid
+`--fars-root` fails the command without emitting a downgraded assessment.
 
 ## Registry contract
 

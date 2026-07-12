@@ -106,3 +106,10 @@ local NHTSA FARS CSV/ZIP, validates a deterministic private outcome artifact, an
 See [REAL-DATA.md](REAL-DATA.md#official-outcomes--national-context-not-an-intake-source) for the
 operator command and source-specific limits. It does not perform network acquisition, scheduling,
 publication, mode inference, or segment comparison.
+
+`nearmiss coverage --fars-root ROOT` is a separate, read-only consumer. It fails closed unless the
+active marker matches immutable history, every content hash and artifact contract holds, and replaying
+the preserved raw export produces the exact stored normalized bytes. A matching source-registry row
+with `id = "fars"` and `kind = "official_outcomes"` is also required before coverage reports
+`verified_official_outcomes`. Verification performs no repair or permission change and never grants
+triangulation, tier promotion, or publication.
