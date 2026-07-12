@@ -18,17 +18,28 @@ import json
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
+
+import jsonschema
 
 from . import __version__
 from .config import Config
 from .engine import build_analysis, load_city
-from .errors import PrivacyError
+from .errors import PrivacyError, ValidationError
 from .manifest import build_manifest, canonical_json
 from .models import Report, Segment, SegmentStats
 from .stats.bias import to_metadata as bias_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
+
+# Repo-relative path (from the repo root) to the machine-checkable dataset schema,
+# and the absolute path resolved from this module's location. The published GeoJSON
+# is validated against it before it is written (contract gate, HR5) and the same
+# path is advertised in the metadata so a consumer can fetch the validator.
+SCHEMA_DOC_PATH = "schema/dataset.schema.md"
+SCHEMA_JSON_PATH = "schema/dataset.schema.json"
+_SCHEMA_JSON_FILE = Path(__file__).resolve().parents[2] / SCHEMA_JSON_PATH
 
 # Property/field keys that must NEVER appear in any published artifact.
 _FORBIDDEN_KEYS = frozenset(
@@ -136,6 +147,29 @@ def assert_published_clean(
                 raise PrivacyError("published vertex coincides with a raw report location")
 
 
+@lru_cache(maxsize=1)
+def _dataset_validator() -> jsonschema.protocols.Validator:
+    """Load and cache the draft 2020-12 validator for the published dataset schema."""
+    schema = json.loads(_SCHEMA_JSON_FILE.read_text(encoding="utf-8"))
+    cls = jsonschema.validators.validator_for(schema)
+    cls.check_schema(schema)
+    return cls(schema)
+
+
+def assert_conforms_to_schema(geojson: dict[str, object]) -> None:
+    """Validate the assembled GeoJSON against schema/dataset.schema.json before it
+    is written (contract gate, HR5). Raise rather than emit a file that violates the
+    machine-checkable published-dataset contract."""
+    errors = sorted(_dataset_validator().iter_errors(geojson), key=lambda e: list(e.path))
+    if errors:
+        problems = [f"{'/'.join(str(p) for p in e.path) or '<root>'}: {e.message}" for e in errors]
+        raise ValidationError(
+            f"published geojson violates {SCHEMA_JSON_PATH}: {problems[0]} "
+            f"({len(problems)} schema error(s) total)",
+            problems=problems,
+        )
+
+
 def assert_metadata_clean(metadata: dict[str, object], reports: list[Report]) -> None:
     """The sidecar metadata must contain no forbidden key and no raw coordinate."""
     text = json.dumps(metadata)
@@ -192,7 +226,8 @@ def publish(config: Config) -> PublishResult:
         # schema is stable.
         "window": {"start": config.window_start, "end": config.window_end},
         "exposure_unit": config.exposure_unit,
-        "schema_doc": "schema/dataset.schema.md",
+        "schema_doc": SCHEMA_DOC_PATH,
+        "schema_json": SCHEMA_JSON_PATH,
         "data_card": "docs/DATA-CARD.md",
         "segments_published": len(stats) - withheld,
         "segments_withheld_low_count": withheld,
@@ -211,6 +246,9 @@ def publish(config: Config) -> PublishResult:
 
     # Enforce the privacy invariants against the raw reports before writing anything.
     assert_published_clean(geojson, reports, config.min_publish_n)
+    # And enforce the machine-checkable published-dataset contract (HR5): a file that
+    # does not conform to schema/dataset.schema.json is never written.
+    assert_conforms_to_schema(geojson)
 
     payload = _canonical_json(geojson)
     sha = hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -223,7 +261,8 @@ def publish(config: Config) -> PublishResult:
         # Analysis window bounding every rate in this dataset (null when unset).
         "window": {"start": config.window_start, "end": config.window_end},
         "license": "Apache-2.0",
-        "schema": "schema/dataset.schema.md",
+        "schema": SCHEMA_DOC_PATH,
+        "schema_json": SCHEMA_JSON_PATH,
         "data_card": "docs/DATA-CARD.md",
         "methods": {
             "rate_per": config.rate_per,

@@ -34,7 +34,7 @@
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "8140df17e49120819dd11565c6eceb4d56c5e0edc00816a3298dcf6e7ac275ff",
+  "geojson_sha256": "6ecf0c4a9b6575b90771a3579aa0a6f6f3a826c52a6093ae56fcd702103eda41",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -66,6 +66,7 @@
   "privacy": "Aggregated to public street segments; segments with a non-zero report count below min_publish_n are withheld (k-anonymity). No per-report coordinate, time, reporter token, note, mode, or severity is published. Small-n hazard breakdowns are suppressed.",
   "report_intensity_peak_segment": "rs-3",
   "schema": "schema/dataset.schema.md",
+  "schema_json": "schema/dataset.schema.json",
   "schema_version": "1.0.0",
   "summary": {
     "duplicates_removed": 0,
