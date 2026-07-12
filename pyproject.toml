@@ -110,7 +110,10 @@ Methodology = "https://github.com/ChelseaKR/nearmiss/blob/main/docs/METHODOLOGY.
 nearmiss = "nearmiss.__main__:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/nearmiss"]
+# "src/honest_rates" (roadmap item EXP-08) is the standalone, dependency-free
+# statistics core — no nearmiss import anywhere in it — that nearmiss itself
+# consumes; see src/honest_rates/README.md.
+packages = ["src/nearmiss", "src/honest_rates"]
 
 # ---------------------------------------------------------------------------
 # Lint — ruff (style + a broad rule set). Part of `make verify`.
@@ -171,17 +174,24 @@ markers = [
 # a silent numerical bug (an off-by-one in neighbor weighting, a dropped sign,
 # a `<=`/`<` slip in the distance band) would quietly corrupt a hotspot result
 # without failing any coarse test:
-#   * getis_ord.py — the Getis-Ord Gi* local hotspot z-score + the FDR control
-#   * rates.py     — the Poisson (Byar) and Wilson confidence intervals, plus the
-#                    quasi-Poisson dispersion (`pearson_dispersion`) and widening
-#                    (`quasi_poisson_ci`) that produce the exposure-normalized rate
-#   * maup.py      — the MAUP rank-stability re-segmentation (RR-05): a dropped
-#                    sign or a `<`/`<=` slip in the coarse-unit ranking or the
-#                    survives/overlap logic would silently misreport robustness
-#   * network.py   — the street-network adjacency graph + bounded Dijkstra that
-#                    decide Gi*'s neighbor map (FIX-02); an off-by-one in the
-#                    node-snap tolerance or the band cutoff silently redraws
-#                    which segments count as neighbors.
+#   * honest_rates/hotspot.py — the Getis-Ord Gi* local hotspot z-score + FDR
+#   * honest_rates/rates.py   — the Poisson (Byar) and Wilson confidence
+#                                intervals, plus the quasi-Poisson dispersion
+#                                (`pearson_dispersion`) and widening
+#                                (`quasi_poisson_ci`) the exposure-normalized
+#                                rate runs on
+#   * nearmiss/stats/maup.py  — the MAUP rank-stability re-segmentation (RR-05): a
+#                                dropped sign or a `<`/`<=` slip in the coarse-unit
+#                                ranking or the survives/overlap logic would
+#                                silently misreport robustness
+#   * nearmiss/network.py     — the street-network adjacency graph + bounded
+#                                Dijkstra that decide Gi*'s neighbor map (FIX-02)
+#
+# As of roadmap item EXP-08, the numerical rate/hotspot logic was extracted to
+# the standalone src/honest_rates/ library; nearmiss's own stats/getis_ord.py
+# and stats/rates.py are thin re-export shims with nothing left to mutate, so
+# those mutated paths point at the extracted library. The MAUP and network
+# modules remain nearmiss-domain code and are mutated in place.
 #
 # It reuses the existing pytest suite (the stats tests) as the kill oracle, so
 # no separate mutation-only test harness is maintained. Run it with
@@ -191,8 +201,8 @@ markers = [
 # Copy the whole package so imports resolve, but mutate ONLY the files below.
 source_paths = ["src"]
 only_mutate = [
-  "src/nearmiss/stats/getis_ord.py",
-  "src/nearmiss/stats/rates.py",
+  "src/honest_rates/hotspot.py",
+  "src/honest_rates/rates.py",
   "src/nearmiss/stats/maup.py",
   "src/nearmiss/network.py",
 ]

@@ -92,7 +92,7 @@ type: ## Type-check with mypy --strict (config in pyproject.toml)
 
 test: ## Run pytest (synthetic fixtures, KNOWN answers) under a branch-coverage floor
 	$(PYTHON) -m pytest -q \
-		--cov=src/nearmiss --cov-branch \
+		--cov=src/nearmiss --cov=src/honest_rates --cov-branch \
 		--cov-report=term-missing --cov-fail-under=90
 
 qgis-plugin-test: ## Test the QGIS plugin's honest-symbology rules (EXP-11, no QGIS install needed)

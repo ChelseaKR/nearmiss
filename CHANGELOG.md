@@ -109,6 +109,15 @@ each will move here under its own `### Added` entry as it lands.
   its reports; see `docs/REAL-DATA.md#source-adapters` and
   `docs/DATA-CARD.md#known-reporting-biases-who-is-over--and-under-represented`. Adapter conformance
   is covered by `tests/test_adapters_conformance.py`. (EXP-04)
+- **`src/honest_rates/`** (roadmap item EXP-08): the exposure-normalized rate
+  (Byar/Wilson confidence intervals), Getis-Ord Gi* hotspot z-score with Benjamini-Hochberg FDR
+  control, reporting-bias share comparison, and a planted-truth fixture harness are extracted into a
+  standalone, dependency-free package with zero import of `nearmiss` anywhere in it — usable on any
+  point-event dataset, not just this one. `nearmiss/stats/rates.py`, `nearmiss/stats/getis_ord.py`,
+  `nearmiss/stats/bias.py`, `nearmiss/spatial_index.py`, and the shared parts of `nearmiss/geometry.py`
+  now re-export it; nearmiss is its first consumer. See `src/honest_rates/README.md` and
+  `src/honest_rates/examples/potholes_demo.py` for a non-traffic worked example. This makes the
+  long-standing README "reusable on any point dataset" claim literally true rather than aspirational.
 
 ### Intake report schema (`schema/report.schema.json`)
 
