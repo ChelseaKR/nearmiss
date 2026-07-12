@@ -289,11 +289,12 @@ normalized bytes are stored under immutable SHA-256 names; `normalized/current.j
 success receipt whose atomic replacement commits the active version. Historical success/failure
 receipts record the source attempt without copying callback messages, URLs, or payload fragments.
 
-This foundation does **not** change the composition or schema of the published dataset by itself. No
-FARS outcome, BikeMaps refresh, exposure layer, or other imported artifact becomes published until a
-source-specific adapter validates it and the ordinary aggregation/privacy publication path explicitly
-consumes it. The private root must remain outside every served directory and is never part of the
-allowlisted Pages artifact. See [`INGESTION.md`](INGESTION.md) for the operator contract and limits.
+This foundation does **not** change the composition or schema of the published dataset by itself. The
+first integration, `nearmiss ingest-fars`, can now validate and preserve a private crash-level FARS
+artifact, but no FARS outcome, BikeMaps refresh, exposure layer, or other imported artifact becomes
+published until a reviewed aggregation/privacy publication path explicitly consumes it. The private
+root must remain outside every served directory and is never part of the allowlisted Pages artifact.
+See [`INGESTION.md`](INGESTION.md) for the operator contract and limits.
 
 ### Pipeline transforms (recorded, inspectable)
 
@@ -587,6 +588,10 @@ ways this kind of data is misused.
   private transaction tree was reviewed against this data card and `THREAT-MODEL.md`. It changes
   operational lineage and private retention, not the current published GeoJSON composition or privacy
   contract. A future source integration must review this card again before publishing new aggregates.
+- **FARS-artifact schema review impact (2026-07-12).** The `1.0.0` official-outcome artifact and local
+  CLI add private national fatal-crash lineage, not a new published feature or rate. Exact outcome
+  coordinates remain in the owner-only ingestion tree; stdout is aggregate-only. Publication remains
+  unchanged until mode joining, segment/time linkage, privacy review and comparative methodology land.
 - **Errata and corrections.** Data and threshold fixes are made as recorded, re-run edits;
   corrections ship in a new versioned release rather than mutating a published one.
 - **Deprecation.** Superseded dataset versions remain identifiable by version and hash; consumers

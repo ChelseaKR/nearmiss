@@ -205,6 +205,11 @@ clean. This is the harder attack to spot precisely because **HR1** makes exposur
   content-addressed. An atomically replaced success receipt is the active commit marker, and preflight
   rehashes both artifacts before permitting another refresh. Ambiguous state and failed rollback retain
   a source lock for operator inspection rather than silently accepting a partial refresh.
+- **FARS candidate gates.** The first source integration accepts local files only, constrains the
+  asserted distribution to the static NHTSA FARS path, rejects non-finite coordinates/identity drift,
+  bounds invalid rows, and compares accepted counts with the active artifact so a valid-looking
+  truncation cannot silently become national context. The URL/release label remain operator assertions,
+  not cryptographic source authentication.
 
 **Stops at:** a corrupted *upstream* exposure provider that ships plausible-but-wrong data the project
 has no independent way to check. See **Residual risk**.
@@ -372,7 +377,7 @@ named explicitly rather than left implicit, per the same honesty standard as the
 | RR-6 | Out-of-band secret / maintainer-account compromise (T6) | Low | High — could reach the private raw store or tamper with the pipeline | **Medium** | Maintainer | Accepted. No second reviewer / separation of duties exists (solo maintainer) — this is a structural limitation of a personal OSS project, not a solved problem, and is named as such rather than hidden. |
 | RR-7 | Targeted, well-resourced adversary (nation-state, large-scale correlation with external datasets, physical device access) | Low for a community advocacy dataset | High if it occurred | **Low** (low likelihood keeps this from being higher despite high impact) | Maintainer | Explicitly out of scope. No mitigation is claimed; stated here so it is not silently assumed away. |
 | RR-8 | Single-host availability (canonical site + intake run on one account) | Medium — any single-account outage or takedown affects the canonical URL | Low–Medium — the artifact itself is portable and mirrorable; only *canonical* availability is at risk | **Low** | Maintainer | Accepted. Mitigation: the published GeoJSON is a single file anyone can mirror or fork; no SLA or multi-region hosting is planned for a zero-cost personal project. |
-| RR-9 | Private-ingestion filesystem boundary | Low–Medium — requires same-user filesystem access, unsafe root placement, or manual recovery error | High — precise imported data could be exposed or an incorrect source version activated | **Medium** | Maintainer | Accepted for the local foundation. Mitigation: POSIX owner/mode checks, symlink rejection, content hashes, atomic active receipt, fail-closed lock. Next actions: source-specific bounded acquisition, verified recovery CLI, reviewed garbage collection, and directory-descriptor hardening. |
+| RR-9 | Private-ingestion filesystem boundary | Low–Medium — requires same-user filesystem access, unsafe root placement, operator provenance error, or manual recovery error | High — precise imported data could be exposed or an incorrect source version activated | **Medium** | Maintainer | Accepted for the local foundation. Mitigation: POSIX owner/mode checks, symlink rejection, content hashes, atomic active receipt, fail-closed lock, and FARS semantic/regression gates. Next actions: authenticated acquisition/digest manifest, verified recovery CLI, reviewed garbage collection, and directory-descriptor hardening. |
 
 None of the above are claimed as "solved" — a register entry with a mitigation still names its residual
 severity, because the point of this table (like the rest of the threat model) is to make the gaps

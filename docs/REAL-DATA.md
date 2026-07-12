@@ -71,11 +71,34 @@ the operator-supplied release label, source years, accepted count, and every rej
 analysis can prove exactly what it used. Programmatic row iterables have no source-byte digest and are
 intended for controlled transformations and tests.
 
-This adapter remains local/offline only. The generic
-[fail-closed ingestion foundation](INGESTION.md) now supplies immutable snapshots, normalized
-artifacts, active commit markers, and receipts. A later source-specific slice still needs to connect
-FARS to that transaction, enforce an expected digest/year, and add the operator CLI needed for
-scheduled use.
+`nearmiss ingest-fars` connects a local official export to the
+[fail-closed ingestion foundation](INGESTION.md). It does not download the file; acquisition remains a
+separate operator step so the exact bytes can be reviewed and pinned before normalization.
+
+```bash
+nearmiss ingest-fars /private/downloads/FARS2024NationalCSV.zip \
+  --root "$HOME/.local/share/nearmiss/ingestion" \
+  --year 2024 \
+  --release-status final \
+  --distribution-url \
+    https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip \
+  --max-invalid-fraction 0.01 \
+  --max-raw-bytes 67108864 \
+  --max-normalized-bytes 67108864
+```
+
+The command writes owner-only, content-addressed raw and normalized files plus an active receipt and
+immutable history. Its stdout summary contains hashes, counts and root-relative paths, never outcome
+coordinates. The distribution URL is a constrained operator assertion about the local bytes, not a
+download authentication or an NHTSA signature. A suspicious record-count regression or rollback to an
+older dataset year fails closed unless the operator explicitly acknowledges the specific condition.
+These distinct controls prevent a valid-looking truncated or stale file from silently replacing the
+national last-known-good artifact. When an override is used, that policy choice is stored in the
+normalized artifact.
+
+This is still crash-table context, not outcome triangulation. A later slice must join `person.csv` for
+road-user modes, link outcomes to street segments and time windows, and make coverage trust only the
+artifact/receipt/raw hash chain before any comparative capability appears.
 
 ## 1. Incidents — real, and available today (BikeMaps.org)
 

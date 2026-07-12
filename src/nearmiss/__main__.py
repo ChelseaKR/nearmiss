@@ -13,6 +13,7 @@ nearmiss contributor export|delete|purge-expired --config C  # data-rights (toke
 nearmiss preregister --config C [--out DIR]     # EXP-16: freeze flagged corridors (hash+timestamp)
 nearmiss score-preregistration --registration F --config C [--out DIR]  # EXP-16: score vs held-out
 nearmiss coverage  --config C [--registry R]  # evidence tier + source/capability gaps
+nearmiss ingest-fars EXPORT --root R --year Y # preserve + validate a private FARS artifact
 nearmiss serve     [--dir D] [--port P]         # accessible map + data view (read-only)
 nearmiss version
 """
@@ -23,6 +24,7 @@ import argparse
 import dataclasses
 import datetime as dt
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -492,6 +494,218 @@ def _cmd_coverage(args: argparse.Namespace) -> int:
     return 0
 
 
+def _positive_int(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be a positive integer") from exc
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
+
+
+def _fars_year(value: str) -> int:
+    if len(value) != 4 or not value.isascii() or not value.isdecimal():
+        raise argparse.ArgumentTypeError("must be a four-digit year")
+    year = int(value)
+    if not 1975 <= year <= dt.datetime.now(tz=dt.UTC).year:
+        raise argparse.ArgumentTypeError("must be a FARS year from 1975 through the current year")
+    return year
+
+
+def _invalid_fraction(value: str) -> float:
+    try:
+        fraction = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be a number from 0 through 1") from exc
+    if not math.isfinite(fraction) or not 0 <= fraction <= 1:
+        raise argparse.ArgumentTypeError("must be a number from 0 through 1")
+    return fraction
+
+
+def _release_status(value: str) -> str:
+    status = value.strip()
+    if (
+        not status
+        or len(status) > 64
+        or any(ord(character) < 32 or ord(character) == 127 for character in status)
+    ):
+        raise argparse.ArgumentTypeError("must be a nonempty status of at most 64 characters")
+    return status
+
+
+def _fars_distribution_url(value: str) -> str:
+    from .adapters.fars import validate_fars_distribution_url
+
+    try:
+        return validate_fars_distribution_url(value)
+    except (TypeError, ValueError) as exc:
+        raise argparse.ArgumentTypeError(
+            "must be an exact static.nhtsa.gov FARS HTTPS distribution URL"
+        ) from exc
+
+
+def _reject_json_constant(value: str) -> object:
+    raise ValueError(f"non-standard JSON constant {value!r} is forbidden")
+
+
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key {key!r} is forbidden")
+        result[key] = value
+    return result
+
+
+def _decode_outcome_artifact(payload: bytes) -> dict[str, object]:
+    decoded = json.loads(
+        payload,
+        parse_constant=_reject_json_constant,
+        object_pairs_hook=_unique_json_object,
+    )
+    if not isinstance(decoded, dict):
+        raise ValueError("normalized FARS artifact must be an object")
+    return decoded
+
+
+def _accepted_count(artifact: dict[str, object]) -> int:
+    provenance = artifact.get("provenance")
+    if not isinstance(provenance, dict):  # validated artifacts always have this shape
+        raise ValueError("normalized FARS artifact has invalid provenance")
+    accepted = provenance.get("records_accepted")
+    if not isinstance(accepted, int) or isinstance(accepted, bool):
+        raise ValueError("normalized FARS artifact has invalid accepted-record accounting")
+    return accepted
+
+
+def _expected_artifact_year(artifact: dict[str, object]) -> int:
+    normalization = artifact.get("normalization")
+    if not isinstance(normalization, dict):  # validated artifacts always have this shape
+        raise ValueError("normalized FARS artifact has invalid normalization")
+    year = normalization.get("expected_year")
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise ValueError("normalized FARS artifact has invalid expected year")
+    return year
+
+
+def _validate_fars_normalized_candidate(
+    candidate: bytes,
+    previous: bytes | None,
+    *,
+    allow_record_regression: bool,
+    allow_year_regression: bool,
+) -> None:
+    from .outcome_artifacts import validate_outcome_artifact
+
+    decoded = _decode_outcome_artifact(candidate)
+    validate_outcome_artifact(decoded, expected_source_id="fars")
+    if previous is None:
+        return
+    prior = _decode_outcome_artifact(previous)
+    validate_outcome_artifact(prior, expected_source_id="fars")
+    if not allow_year_regression and _expected_artifact_year(decoded) < _expected_artifact_year(
+        prior
+    ):
+        raise ValueError(
+            "FARS dataset year regressed; use --allow-year-regression only after operator review"
+        )
+    if not allow_record_regression and _accepted_count(decoded) < _accepted_count(prior):
+        raise ValueError(
+            "FARS accepted-record count regressed; use --allow-record-regression "
+            "only after operator review"
+        )
+
+
+def _cmd_ingest_fars(args: argparse.Namespace) -> int:
+    """Preserve a local FARS export and activate its validated outcome artifact."""
+    from .adapters import fars
+    from .ingestion import IngestionError, run_ingestion
+    from .outcome_artifacts import (
+        build_outcome_artifact,
+        canonical_outcome_artifact_bytes,
+    )
+
+    export_path = Path(args.export).expanduser()
+    root = Path(args.root).expanduser()
+    artifact: dict[str, object] | None = None
+
+    def fetch() -> bytes:
+        return fars.load_export_bytes(export_path, limit=args.max_raw_bytes)
+
+    def normalize(raw: bytes) -> bytes:
+        nonlocal artifact
+        batch = fars.read_export_bytes(raw)
+        outcomes, provenance = fars.FarsAdapter().parse(
+            batch,
+            release_status=args.release_status,
+        )
+        artifact = build_outcome_artifact(
+            outcomes,
+            provenance,
+            expected_year=args.year,
+            distribution_url=args.distribution_url,
+            max_invalid_fraction=args.max_invalid_fraction,
+            allow_record_regression=args.allow_record_regression,
+            allow_year_regression=args.allow_year_regression,
+        )
+        return canonical_outcome_artifact_bytes(artifact)
+
+    def validate(candidate: bytes, previous: bytes | None) -> None:
+        _validate_fars_normalized_candidate(
+            candidate,
+            previous,
+            allow_record_regression=args.allow_record_regression,
+            allow_year_regression=args.allow_year_regression,
+        )
+
+    try:
+        result = run_ingestion(
+            root=root,
+            source_id="fars",
+            fetch=fetch,
+            normalize=normalize,
+            validate_normalized=validate,
+            max_raw_bytes=args.max_raw_bytes,
+            max_normalized_bytes=args.max_normalized_bytes,
+        )
+    except (IngestionError, OSError):
+        raise NearmissError(
+            "FARS ingestion failed; inspect the private receipt store for the redacted failure"
+        ) from None
+
+    if artifact is None:  # pragma: no cover - run_ingestion cannot succeed without normalize
+        raise NearmissError("FARS ingestion completed without a normalized artifact")
+    provenance = artifact.get("provenance")
+    if not isinstance(provenance, dict):  # pragma: no cover - validated above
+        raise NearmissError("FARS ingestion produced an invalid normalized artifact")
+    reasons = provenance.get("rejection_reasons")
+    if not isinstance(reasons, dict):  # pragma: no cover - validated above
+        raise NearmissError("FARS ingestion produced invalid rejection accounting")
+    records_read = provenance.get("records_read")
+    records_accepted = provenance.get("records_accepted")
+    if not isinstance(records_read, int) or not isinstance(records_accepted, int):
+        raise NearmissError("FARS ingestion produced invalid record accounting")
+    output = {
+        "source_id": result.source_id,
+        "raw_sha256": result.raw_sha256,
+        "normalized_sha256": result.normalized_sha256,
+        "artifact_path": str(result.normalized_path.relative_to(root)),
+        "current_path": str(result.current_path.relative_to(root)),
+        "receipt_path": str(result.receipt_path.relative_to(root)),
+        "counts": {
+            "records_read": records_read,
+            "records_accepted": records_accepted,
+            "records_rejected": records_read - records_accepted,
+            "rejection_reasons": reasons,
+        },
+        "years": provenance.get("dataset_years"),
+        "release_status": provenance.get("release_status"),
+    }
+    print(json.dumps(output, ensure_ascii=False, sort_keys=True))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="nearmiss", description=__doc__)
     parser.add_argument("--version", action="version", version=f"nearmiss {__version__}")
@@ -667,6 +881,58 @@ def build_parser() -> argparse.ArgumentParser:
         help="freshness reference date, YYYY-MM-DD (default: analysis window/report/source date)",
     )
     p_coverage.set_defaults(func=_cmd_coverage)
+
+    p_fars = sub.add_parser(
+        "ingest-fars",
+        help="preserve a local FARS export and activate a validated private artifact",
+    )
+    p_fars.add_argument("export", help="local NHTSA accident.csv or CSV ZIP export")
+    p_fars.add_argument("--root", required=True, help="private ingestion artifact root")
+    p_fars.add_argument(
+        "--year",
+        required=True,
+        type=_fars_year,
+        help="four-digit dataset year expected in every source row",
+    )
+    p_fars.add_argument(
+        "--release-status",
+        required=True,
+        type=_release_status,
+        help="operator-supplied NHTSA release status, such as preliminary or final",
+    )
+    p_fars.add_argument(
+        "--distribution-url",
+        required=True,
+        type=_fars_distribution_url,
+        help="exact static.nhtsa.gov FARS HTTPS distribution URL represented by EXPORT",
+    )
+    p_fars.add_argument(
+        "--max-invalid-fraction",
+        type=_invalid_fraction,
+        default=0.05,
+        help="maximum rejected-row fraction permitted before activation (default: 0.05)",
+    )
+    p_fars.add_argument(
+        "--max-raw-bytes",
+        type=_positive_int,
+        help="optional maximum raw export size in bytes",
+    )
+    p_fars.add_argument(
+        "--max-normalized-bytes",
+        type=_positive_int,
+        help="optional post-materialization cap before normalized-artifact activation",
+    )
+    p_fars.add_argument(
+        "--allow-record-regression",
+        action="store_true",
+        help="activate fewer accepted records than current only after operator review",
+    )
+    p_fars.add_argument(
+        "--allow-year-regression",
+        action="store_true",
+        help="activate an older dataset year than current only after operator review",
+    )
+    p_fars.set_defaults(func=_cmd_ingest_fars)
 
     p_serve = sub.add_parser("serve", help="serve the accessible map + data view (read-only)")
     p_serve.add_argument("--dir", default=".", help="directory to serve (repo root)")
