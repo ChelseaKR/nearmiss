@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nearmiss.dev/schema/ingestion-receipt.schema.json",
+  "title": "NearMiss ingestion receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "attempt_id",
+    "source_id",
+    "status",
+    "started_at",
+    "completed_at",
+    "raw_sha256",
+    "raw_snapshot",
+    "normalized_sha256",
+    "normalized_path",
+    "previous_normalized_sha256",
+    "activated",
+    "error"
+  ],
+  "$defs": {
+    "safe_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "utc_datetime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "message"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]{0,127}$"
+        },
+        "message": {
+          "type": "string",
+          "enum": [
+            "fetch failed",
+            "raw snapshot preservation failed",
+            "normalization failed",
+            "normalized artifact validation failed",
+            "normalized artifact preservation failed",
+            "active marker commit failed",
+            "active marker commit failed; rollback also failed",
+            "success receipt finalization failed",
+            "success receipt finalization failed; rollback also failed"
+          ]
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "attempt_id": {"$ref": "#/$defs/safe_id"},
+    "source_id": {"$ref": "#/$defs/safe_id"},
+    "status": {"enum": ["success", "failure"]},
+    "started_at": {"$ref": "#/$defs/utc_datetime"},
+    "completed_at": {
+      "oneOf": [
+        {"$ref": "#/$defs/utc_datetime"},
+        {"type": "null"}
+      ]
+    },
+    "raw_sha256": {
+      "oneOf": [
+        {"$ref": "#/$defs/sha256"},
+        {"type": "null"}
+      ]
+    },
+    "raw_snapshot": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^raw/sha256/[a-f0-9]{64}\\.bin$"
+        },
+        {"type": "null"}
+      ]
+    },
+    "normalized_sha256": {
+      "oneOf": [
+        {"$ref": "#/$defs/sha256"},
+        {"type": "null"}
+      ]
+    },
+    "normalized_path": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^normalized/sha256/[a-f0-9]{64}\\.bin$"
+        },
+        {"type": "null"}
+      ]
+    },
+    "previous_normalized_sha256": {
+      "oneOf": [
+        {"$ref": "#/$defs/sha256"},
+        {"type": "null"}
+      ]
+    },
+    "activated": {"type": "boolean"},
+    "error": {
+      "oneOf": [
+        {"$ref": "#/$defs/error"},
+        {"type": "null"}
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"status": {"const": "success"}}
+      },
+      "then": {
+        "properties": {
+          "raw_sha256": {"$ref": "#/$defs/sha256"},
+          "raw_snapshot": {
+            "type": "string",
+            "pattern": "^raw/sha256/[a-f0-9]{64}\\.bin$"
+          },
+          "normalized_sha256": {"$ref": "#/$defs/sha256"},
+          "normalized_path": {
+            "type": "string",
+            "pattern": "^normalized/sha256/[a-f0-9]{64}\\.bin$"
+          },
+          "activated": {"const": true},
+          "completed_at": {"$ref": "#/$defs/utc_datetime"},
+          "error": {"type": "null"}
+        }
+      },
+      "else": {
+        "properties": {"error": {"$ref": "#/$defs/error"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {"const": "failure"},
+          "activated": {"const": true}
+        },
+        "required": ["status", "activated"]
+      },
+      "then": {
+        "properties": {
+          "raw_sha256": {"$ref": "#/$defs/sha256"},
+          "raw_snapshot": {
+            "type": "string",
+            "pattern": "^raw/sha256/[a-f0-9]{64}\\.bin$"
+          },
+          "normalized_sha256": {"$ref": "#/$defs/sha256"},
+          "normalized_path": {
+            "type": "string",
+            "pattern": "^normalized/sha256/[a-f0-9]{64}\\.bin$"
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "type": {"const": "RollbackError"},
+              "message": {
+                "enum": [
+                  "active marker commit failed; rollback also failed",
+                  "success receipt finalization failed; rollback also failed"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {"const": "failure"},
+          "activated": {"const": false}
+        },
+        "required": ["status", "activated"]
+      },
+      "then": {
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "type": {"not": {"const": "RollbackError"}},
+              "message": {
+                "not": {
+                  "enum": [
+                    "active marker commit failed; rollback also failed",
+                    "success receipt finalization failed; rollback also failed"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"raw_snapshot": {"type": "string"}},
+        "required": ["raw_snapshot"]
+      },
+      "then": {
+        "properties": {"raw_sha256": {"$ref": "#/$defs/sha256"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"normalized_sha256": {"type": "string"}},
+        "required": ["normalized_sha256"]
+      },
+      "then": {
+        "properties": {
+          "raw_sha256": {"$ref": "#/$defs/sha256"},
+          "raw_snapshot": {
+            "type": "string",
+            "pattern": "^raw/sha256/[a-f0-9]{64}\\.bin$"
+          },
+          "normalized_path": {
+            "type": "string",
+            "pattern": "^normalized/sha256/[a-f0-9]{64}\\.bin$"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Scope and conventions
 
 This file tracks the **software** version of the `nearmiss` repository (the version in
-`pyproject.toml` and the git release tag). The three data contracts the project ships are versioned
+`pyproject.toml` and the git release tag). The four data contracts the project ships are versioned
 **independently** of the software and of each other, and each has a dedicated subsection under every
 release so a schema change is never buried in a code change:
 
@@ -27,8 +27,11 @@ release so a schema change is never buried in a code change:
 - **Official outcome schema** — `schema/official-outcome.schema.json`, currently `1.0.0`. A sibling
   contract for traceable government crash/injury outcomes that must not acquire contributor-report
   fields or self-assessed semantics merely to fit the intake schema.
+- **Ingestion receipt schema** — `schema/ingestion-receipt.schema.json`, currently `1.0.0`. The
+  operational audit contract binding each source refresh to immutable raw and normalized hashes, its
+  active commit state, controlled failure class, and prior active hash.
 
-All three schemas follow the **versioning and deprecation policy** in
+All four schemas follow the **versioning and deprecation policy** in
 [`schema/dataset.schema.md`](schema/dataset.schema.md#7-versioning-and-deprecation-policy), summarized
 under [Schema-versioning policy](#schema-versioning-policy) at the foot of this file. In short: PATCH =
 clarifications, MINOR = backward-compatible additive changes (flag and hazard vocabularies are additive,
@@ -51,6 +54,11 @@ every entry.
 
 ### Added
 
+- A fail-closed, source-agnostic ingestion transaction foundation with owner-only storage,
+  content-addressed raw and normalized artifacts, an atomically replaced active receipt/commit marker,
+  immutable historical receipts, last-known-good validation, controlled error redaction, and explicit
+  lock retention when commit state cannot be proven. Fetch and normalization functions remain injected;
+  this slice does not add live downloads, scheduling, or source-specific CLI orchestration.
 - A strict, offline-testable NHTSA FARS crash-level adapter and `official-outcome` schema. The adapter
   accepts extracted CSV or official nested ZIP exports, produces deterministic IDs and complete
   provenance/rejection accounting, bounds archive expansion, and keeps official fatal-crash outcomes
@@ -74,6 +82,13 @@ every entry.
   severity and fatality accounting, and constrains fatal severity to a positive fatality count. The
   separate contract prevents downstream adapters from inventing reporter or hazard fields that an
   official source does not contain.
+
+### Ingestion receipt schema (`schema/ingestion-receipt.schema.json`)
+
+- **`1.0.0` (2026-07-12)** — initial immutable ingestion audit contract. It records source and attempt
+  identity, UTC attempt bounds, raw and normalized content hashes/paths, the previous active hash,
+  activation state, and a controlled failure object. A successful receipt is also the active
+  `normalized/current.json` commit marker, so activation and its evidence change atomically.
 
 ## [0.2.0] - 2026-07-12
 
@@ -465,7 +480,7 @@ each will move to `[Unreleased]` (and then to a release) as it actually lands.
 
 ## Schema-versioning policy
 
-The three schemas are versioned independently of the software and of each other; the canonical statement
+The four schemas are versioned independently of the software and of each other; the canonical statement
 lives in [`schema/dataset.schema.md`](schema/dataset.schema.md#7-versioning-and-deprecation-policy).
 Summary:
 
