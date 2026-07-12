@@ -8,6 +8,11 @@ an unknown tag falls back to English text, and ``negotiate_lang`` implements the
 
 from __future__ import annotations
 
+import json
+import subprocess
+import sys
+from pathlib import Path
+
 import pytest
 
 from nearmiss.i18n import (
@@ -107,3 +112,61 @@ def test_negotiate_lang(header: str | None, expected: str) -> None:
 
 def test_default_language_is_supported() -> None:
     assert DEFAULT_LANGUAGE in SUPPORTED_LANGUAGES
+
+
+# --- Web domain: single-sourced web/locales/*.json from the PO catalogs -------
+#
+# The static web UI can't call gettext at runtime, so tools/po2json.py compiles
+# the ``web.*`` msgids into committed JSON catalogs. These guard that the JSON
+# stays in lockstep with the catalogs (FIX-13): a web string added to the UI but
+# not the catalog, or a stale/untranslated JSON, must fail the suite.
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+POT_PATH = REPO_ROOT / "src" / "nearmiss" / "locales" / "messages.pot"
+WEB_LOCALES = REPO_ROOT / "web" / "locales"
+WEB_LANGS = ("en", "es")
+
+
+def _pot_web_ids() -> set[str]:
+    """The ``web.*`` msgid inventory as recorded in the extraction template."""
+    ids: set[str] = set()
+    for line in POT_PATH.read_text(encoding="utf-8").splitlines():
+        if line.startswith('msgid "web.') and line.endswith('"'):
+            ids.add(line[len('msgid "') : -1])
+    return ids
+
+
+def _web_catalog(lang: str) -> dict[str, str]:
+    data: dict[str, str] = json.loads((WEB_LOCALES / f"{lang}.json").read_text(encoding="utf-8"))
+    return data
+
+
+@pytest.mark.parametrize("lang", WEB_LANGS)
+def test_web_json_catalog_exists_and_is_complete(lang: str) -> None:
+    path = WEB_LOCALES / f"{lang}.json"
+    assert path.is_file(), f"missing committed web catalog {path}"
+    data = _web_catalog(lang)
+    assert data, "web catalog is empty"
+    assert all(key.startswith("web.") for key in data), "non-web key in web catalog"
+    assert all(value for value in data.values()), "web catalog has an empty translation"
+
+
+@pytest.mark.parametrize("lang", WEB_LANGS)
+def test_web_json_keys_match_pot_inventory(lang: str) -> None:
+    web_ids = _pot_web_ids()
+    assert web_ids, "no web.* msgids found in messages.pot"
+    assert set(_web_catalog(lang)) == web_ids
+
+
+def test_web_json_en_es_key_parity() -> None:
+    assert set(_web_catalog("en")) == set(_web_catalog("es"))
+
+
+def test_po2json_check_passes() -> None:
+    result = subprocess.run(
+        [sys.executable, "tools/po2json.py", "--check"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr

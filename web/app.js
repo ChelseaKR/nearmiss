@@ -33,359 +33,23 @@
   }
 
   var DATA_URL = resolveDataUrl();
-  var lang = "en";
+  // Initial UI language: ?lang=xx if present (deep-linkable), else English. The
+  // language buttons switch it at runtime.
+  var lang = window.NearmissI18n.langFromQuery("en");
   var rows = [];
   var filterText = ""; // R21 table name filter (lowercased)
   var meta = {}; // embedded dataset metadata (city, dataset_note, exposure_unit, …)
   var maps = {}; // { reports: L.Map, rate: L.Map }
   var dataLayers = { reports: [], rate: [] };
 
-  var I18N = {
-    en: {
-      title: "nearmiss — where the danger actually is (Davis)",
-      skip: "Skip to the data",
-      h1: "nearmiss — where the danger actually is",
-      lede:
-        'Road-hazard and near-miss <strong>rates, normalized by exposure</strong>, each with a ' +
-        '95% confidence interval and an <em>n</em>. Raw counts are report volume, not danger. ' +
-        'The two maps below show the difference; the <a href="#data-table">data table</a> ' +
-        "carries every finding and is the authoritative, non-visual equivalent of the maps.",
-      demo:
-        "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not " +
-        "real reports. The method is the point: swap in real reports with no code change.",
-      titleCity: "nearmiss — where the danger actually is ({city})",
-      report_cta: "Report a near-miss →",
-      demo_synth:
-        "⚠️ Showing the <strong>{city} synthetic demo</strong> dataset — generated test data, not real reports.",
-      demo_real:
-        "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {source}",
-      source_label: "Source:",
-      hsLoading: "Summarizing hotspots…",
-      hsSummary:
-        "{n} statistically significant hotspot(s) — hotter than exposure and chance explain: {list}.",
-      hsSummaryNone:
-        "No statistically significant hotspots in this dataset (no street is hotter than exposure and chance explain).",
-      hsEmpty: "No analyzed segments to summarize.",
-      download: "Download this dataset (GeoJSON)",
-      downloadMeta: " — {city}, dataset v{ver} ({n} segments)",
-      share_card: "Download share card (PNG)",
-      shareCardDone: "Share card downloaded (1200×630 PNG).",
-      faq_h: "Questions people ask",
-      faq_q1: "Why isn’t my busy street the most dangerous one?",
-      faq_a1:
-        "Because volume is not danger. A busy street collects the most reports simply because the " +
-        "most people use it. We divide reports by exposure (how much cycling each street carries), " +
-        "so the map shows the rate per rider, not the raw count. A high-traffic street can have many " +
-        "reports and still be safer per trip than a quiet one with a few.",
-      faq_q2: "Is a near-miss the same as a crash?",
-      faq_a2:
-        "No. These are self-reported near-misses and hazards, which by definition usually leave no " +
-        "police report. They are an early-warning signal, not verified injuries or collision " +
-        "statistics, and we never present them as such.",
-      faq_q3: "What does “exposure unknown” mean?",
-      faq_a3:
-        "It means we have no trustworthy count of how many people cycle that street, so we will not " +
-        "invent a denominator. Those segments are shown as uncertain and are never ranked as if we " +
-        "were sure. A rate without a denominator is not published.",
-      faq_q4: "How do I know which streets are really hotspots?",
-      faq_a4:
-        "A street is marked “★ Significant” only when a statistical test (Getis-Ord Gi*, with a " +
-        "false-discovery-rate correction) says it is hotter than exposure and chance alone would " +
-        "explain. Everything else carries a confidence interval so you can see how sure — or unsure " +
-        "— the number is.",
-      mv_label: "Show:",
-      mv_both: "Both maps",
-      mv_reports: "Reports only",
-      mv_rate: "Rate only",
-      print_btn: "🖨 Print / save as PDF",
-      print_generated_label: "Generated:",
-      print_caveat:
-        "Rates are shown with 95% confidence intervals. Segments without a trustworthy " +
-        "exposure denominator are shown as uncertain and are never ranked as if certain.",
-      print_footer:
-        "nearmiss — near-miss rates, normalized by exposure · https://nearmiss.report",
-      filter_label: "Filter segments by name",
-      filterStatus: "Showing {shown} of {n} segments",
-      captionFiltered:
-        "Exposure-normalized hazard rates — showing {shown} of {n} analyzed segments (filtered).",
-      flag_modeled_exposure: "modeled exposure (not measured)",
-      tt_rate: "Reports per 1000 units of exposure — risk per rider, not a raw count.",
-      tt_ci: "95% confidence interval: the plausible range. Wide means uncertain.",
-      tt_n: "Number of reports on this segment (the sample size).",
-      tt_conf: "“uncertain” = small sample; “exposure unknown” = no denominator.",
-      tt_hot: "Getis-Ord Gi* z-score; ★ Significant is a real cluster (z > 1.96, FDR-corrected).",
-      tt_flags: "Data-quality caveats for this segment.",
-      th_hazards: "Hazards",
-      tt_hazards: "What kinds of hazard were reported here (suppressed for very small samples).",
-      hz_close_pass: "close pass",
-      hz_dooring: "dooring",
-      hz_surface_hazard: "surface hazard",
-      hz_sightline: "sightline",
-      hz_signal: "signal",
-      hz_debris: "debris",
-      hz_other: "other",
-      blLoading: "Summarizing…",
-      blSummary:
-        "Bottom line: {hot} of {n} analyzed blocks are statistically significant hotspots — hotter " +
-        "than traffic (exposure) explains. Highest rate per rider: {list}. Raw volume is not danger.",
-      blNone:
-        "Bottom line: none of the {n} analyzed blocks is a statistically significant hotspot — no " +
-        "street is hotter than exposure and chance explain. Raw volume is not danger.",
-      blEmpty: "Bottom line: no analyzed segments in this dataset yet.",
-      map_h: "Two maps, the same reports",
-      map_desc:
-        "The same near-miss reports, mapped two ways on a real street map. On the left, the " +
-        "<strong>raw report count</strong> — what most safety maps show: the busiest street looks " +
-        "the most dangerous. On the right, the <strong>rate per 1000 units of exposure</strong> — " +
-        "which is what actually reflects danger. Watch the busiest street recede and the real " +
-        "hotspot emerge. Nothing is conveyed by color alone: line thickness scales with the value, " +
-        "and significant hotspots are dashed and labeled. Everything here is in the " +
-        '<a href="#data-table">data table</a>, which the maps supplement.',
-      map_reports_t: "① Raw report count — what most maps show",
-      map_rate_t: "② Exposure-normalized rate — where the danger actually is",
-      data_h: "Ranked segments",
-      sort_help:
-        "Sort the table with the column buttons. <strong>Significance</strong> and " +
-        "<strong>confidence</strong> are stated in words, not by color.",
-      legend_h: "How to read this",
-      legend:
-        "<li><strong>Rate /1000</strong> — reports per 1000 units of exposure, not a raw count.</li>" +
-        "<li><strong>95% CI</strong> — the plausible range. A wide range means uncertainty.</li>" +
-        "<li><strong>Confidence</strong> — “uncertain” marks small samples; “exposure unknown” " +
-        "marks segments with no denominator (never ranked as if certain).</li>" +
-        "<li><strong>Hotspot (Gi*)</strong> — “★ Significant” marks a statistically significant " +
-        "cluster (Getis-Ord Gi*, z &gt; 1.96): hot beyond what exposure and chance explain.</li>",
-      footer:
-        'Open data, Apache-2.0. <a href="https://github.com/ChelseaKR/nearmiss">Source on GitHub</a> · ' +
-        '<a href="https://chelseakr.com">chelseakr.com</a>. Maps © ' +
-        '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Methods: ' +
-        "<code>docs/METHODOLOGY.md</code>; what it can't tell you: <code>docs/LIMITATIONS.md</code>; " +
-        "limits and biases: <code>docs/DATA-CARD.md</code>. " +
-        "Every figure regenerates with <code>make reproduce</code>.",
-      th_segment: "Segment",
-      th_rate: "Rate /1000",
-      th_ci: "95% CI",
-      th_n: "Reports (n)",
-      th_conf: "Confidence",
-      th_hot: "Hotspot (Gi*)",
-      th_flags: "Quality flags",
-      loading: "Loading published data…",
-      loading_map: "Loading map…",
-      caption: "Exposure-normalized hazard rates for the {n} analyzed segments (streets with reports).",
-      capReports:
-        "{n} street segments. Thicker, darker lines have more reports. The most-reported street " +
-        "({peak}) dominates — but volume is exposure, not danger.",
-      capRate:
-        "The same segments by exposure-normalized rate. {hot} significant hotspot(s) — dashed and " +
-        "labeled — emerge, while the most-reported street recedes to a thin line.",
-      capRateNone:
-        "The same segments by exposure-normalized rate. No segment is a statistically significant " +
-        "hotspot; the most-reported street recedes.",
-      mapEmpty: "No mappable segments.",
-      mapNoLeaflet:
-        "The interactive maps need JavaScript and the map library. The data table below carries every finding.",
-      tipReports: "{name}: {count} reports",
-      tipRate: "{name}: rate {rate}/1000",
-      lblBusiest: "{name} — {count} reports (most-reported)",
-      lblHotspot: "{name} — ★ rate {rate}",
-      sortStatus: "Table sorted by {col}, {dir}.",
-      asc: "ascending",
-      desc: "descending",
-      sig: "★ Significant",
-      sigShort: " — ★ significant hotspot",
-      conf_certain: "certain",
-      conf_uncertain: "uncertain",
-      conf_exposure_unknown: "exposure unknown",
-      flag_low_sample: "low sample",
-      flag_geocode_low_confidence: "low location confidence",
-      flag_exposure_unknown: "exposure unknown",
-      fail:
-        "Could not load published data ({msg}). Run `make publish`, then `nearmiss serve` and open /web/index.html.",
-      bias_h: "Reporting bias",
-      bias_summary: "Who the data over- and under-reports",
-      bias_over_h: "Over-represented in reports",
-      bias_under_h: "Under-represented",
-      bias_shares: "{rshare} of reports vs {eshare} of exposure",
-      none: "—",
-    },
-    es: {
-      title: "nearmiss — dónde está realmente el peligro (Davis)",
-      skip: "Saltar a los datos",
-      h1: "nearmiss — dónde está realmente el peligro",
-      lede:
-        'Tasas de peligros viales y cuasi-accidentes, <strong>normalizadas por exposición</strong>, ' +
-        "cada una con un intervalo de confianza del 95% y una <em>n</em>. Los conteos crudos son " +
-        'volumen de reportes, no peligro. Los dos mapas de abajo muestran la diferencia; la ' +
-        '<a href="#data-table">tabla de datos</a> lleva cada hallazgo y es el equivalente no visual de los mapas.',
-      demo:
-        "⚠️ Mostrando el conjunto de <strong>demostración sintética de Davis</strong> — datos de prueba, no " +
-        "reportes reales. El método es lo importante: se cambian por reportes reales sin tocar el código.",
-      titleCity: "nearmiss — dónde está realmente el peligro ({city})",
-      report_cta: "Reportar un cuasi-accidente →",
-      demo_synth:
-        "⚠️ Mostrando la <strong>demostración sintética de {city}</strong> — datos de prueba, no reportes reales.",
-      demo_real:
-        "✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. {source}",
-      source_label: "Fuente:",
-      hsLoading: "Resumiendo puntos calientes…",
-      hsSummary:
-        "{n} punto(s) caliente(s) estadísticamente significativo(s) — más peligrosos de lo que " +
-        "explican exposición y azar: {list}.",
-      hsSummaryNone:
-        "No hay puntos calientes estadísticamente significativos en este conjunto (ninguna calle es " +
-        "más peligrosa de lo que explican exposición y azar).",
-      hsEmpty: "No hay segmentos analizados para resumir.",
-      download: "Descargar este conjunto de datos (GeoJSON)",
-      downloadMeta: " — {city}, datos v{ver} ({n} segmentos)",
-      share_card: "Descargar tarjeta para compartir (PNG)",
-      shareCardDone: "Tarjeta descargada (PNG de 1200×630).",
-      faq_h: "Preguntas frecuentes",
-      faq_q1: "¿Por qué mi calle más transitada no es la más peligrosa?",
-      faq_a1:
-        "Porque el volumen no es peligro. Una calle transitada acumula más reportes simplemente " +
-        "porque la usa más gente. Dividimos los reportes por la exposición (cuánta bicicleta lleva " +
-        "cada calle), así que el mapa muestra la tasa por persona, no el conteo crudo. Una calle muy " +
-        "transitada puede tener muchos reportes y aun así ser más segura por viaje que una tranquila " +
-        "con pocos.",
-      faq_q2: "¿Un cuasi-accidente es lo mismo que un choque?",
-      faq_a2:
-        "No. Son cuasi-accidentes y peligros autoinformados que, por definición, normalmente no " +
-        "dejan un reporte policial. Son una señal de alerta temprana, no lesiones verificadas ni " +
-        "estadísticas de colisiones, y nunca los presentamos como tales.",
-      faq_q3: "¿Qué significa “exposición desconocida”?",
-      faq_a3:
-        "Significa que no tenemos un conteo confiable de cuánta gente circula en bicicleta por esa " +
-        "calle, así que no inventaremos un denominador. Esos segmentos se muestran como inciertos y " +
-        "nunca se clasifican como si estuviéramos seguros. Una tasa sin denominador no se publica.",
-      faq_q4: "¿Cómo sé qué calles son realmente puntos calientes?",
-      faq_a4:
-        "Una calle se marca “★ Significativo” solo cuando una prueba estadística (Getis-Ord Gi*, con " +
-        "corrección de tasa de falso descubrimiento) indica que es más peligrosa de lo que explican " +
-        "exposición y azar por sí solos. Todo lo demás lleva un intervalo de confianza para que vea " +
-        "qué tan seguro — o inseguro — es el número.",
-      mv_label: "Mostrar:",
-      mv_both: "Ambos mapas",
-      mv_reports: "Solo reportes",
-      mv_rate: "Solo tasa",
-      print_btn: "🖨 Imprimir / guardar como PDF",
-      print_generated_label: "Generado:",
-      print_caveat:
-        "Las tasas se muestran con intervalos de confianza del 95%. Los segmentos sin un " +
-        "denominador de exposición confiable se muestran como inciertos y nunca se clasifican " +
-        "como si fueran ciertos.",
-      print_footer:
-        "nearmiss — tasas de cuasi-accidentes, normalizadas por exposición · https://nearmiss.report",
-      filter_label: "Filtrar segmentos por nombre",
-      filterStatus: "Mostrando {shown} de {n} segmentos",
-      captionFiltered:
-        "Tasas normalizadas por exposición — mostrando {shown} de {n} segmentos analizados (filtrado).",
-      flag_modeled_exposure: "exposición modelada (no medida)",
-      tt_rate: "Reportes por 1000 unidades de exposición — riesgo por persona, no un conteo crudo.",
-      tt_ci: "Intervalo de confianza del 95%: el rango plausible. Amplio significa incierto.",
-      tt_n: "Número de reportes en este segmento (el tamaño de muestra).",
-      tt_conf: "“incierto” = muestra pequeña; “exposición desconocida” = sin denominador.",
-      tt_hot: "Puntuación z de Getis-Ord Gi*; ★ Significativo es un grupo real (z > 1.96, con corrección FDR).",
-      tt_flags: "Advertencias de calidad de datos para este segmento.",
-      th_hazards: "Peligros",
-      tt_hazards: "Qué tipos de peligro se reportaron aquí (suprimido en muestras muy pequeñas).",
-      hz_close_pass: "paso cercano",
-      hz_dooring: "apertura de puerta",
-      hz_surface_hazard: "peligro en el pavimento",
-      hz_sightline: "visibilidad",
-      hz_signal: "señal",
-      hz_debris: "escombros",
-      hz_other: "otro",
-      blLoading: "Resumiendo…",
-      blSummary:
-        "En resumen: {hot} de {n} cuadras analizadas son puntos calientes estadísticamente " +
-        "significativos — más peligrosos de lo que explica el tráfico (exposición). Mayor tasa por " +
-        "persona: {list}. El volumen crudo no es peligro.",
-      blNone:
-        "En resumen: ninguna de las {n} cuadras analizadas es un punto caliente estadísticamente " +
-        "significativo — ninguna calle es más peligrosa de lo que explican exposición y azar. El " +
-        "volumen crudo no es peligro.",
-      blEmpty: "En resumen: aún no hay segmentos analizados en este conjunto.",
-      map_h: "Dos mapas, los mismos reportes",
-      map_desc:
-        "Los mismos reportes de cuasi-accidentes, mapeados de dos formas sobre un mapa de calles real. " +
-        "A la izquierda, el <strong>conteo crudo de reportes</strong> — lo que muestran casi todos los " +
-        "mapas: la calle más transitada parece la más peligrosa. A la derecha, la <strong>tasa por 1000 " +
-        "unidades de exposición</strong> — que es lo que de verdad refleja el peligro. Observe cómo la " +
-        "calle más transitada se desvanece y el punto caliente real aparece. Nada se transmite solo por " +
-        "color: el grosor de la línea escala con el valor y los puntos calientes significativos van " +
-        'discontinuos y etiquetados. Todo está en la <a href="#data-table">tabla de datos</a>, que los mapas complementan.',
-      map_reports_t: "① Conteo crudo de reportes — lo que muestran casi todos los mapas",
-      map_rate_t: "② Tasa normalizada por exposición — dónde está realmente el peligro",
-      data_h: "Segmentos clasificados",
-      sort_help:
-        "Ordene la tabla con los botones de columna. La <strong>significancia</strong> y la " +
-        "<strong>confianza</strong> se expresan en palabras, no por color.",
-      legend_h: "Cómo leer esto",
-      legend:
-        "<li><strong>Tasa /1000</strong> — reportes por 1000 unidades de exposición, no un conteo crudo.</li>" +
-        "<li><strong>IC 95%</strong> — el rango plausible. Un rango amplio significa incertidumbre.</li>" +
-        "<li><strong>Confianza</strong> — “incierto” marca muestras pequeñas; “exposición desconocida” " +
-        "marca segmentos sin denominador (nunca clasificados como ciertos).</li>" +
-        "<li><strong>Punto caliente (Gi*)</strong> — “★ Significativo” marca un grupo estadísticamente " +
-        "significativo (Getis-Ord Gi*, z &gt; 1.96): peligroso más allá de lo que explican exposición y azar.</li>",
-      footer:
-        'Datos abiertos, Apache-2.0. <a href="https://github.com/ChelseaKR/nearmiss">Código en GitHub</a> · ' +
-        '<a href="https://chelseakr.com">chelseakr.com</a>. Mapas © ' +
-        '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contribuyentes. Métodos: ' +
-        "<code>docs/METHODOLOGY.md</code>; lo que no puede decirle: <code>docs/LIMITATIONS.md</code>; " +
-        "límites y sesgos: <code>docs/DATA-CARD.md</code>. " +
-        "Cada cifra se regenera con <code>make reproduce</code>.",
-      th_segment: "Segmento",
-      th_rate: "Tasa /1000",
-      th_ci: "IC 95%",
-      th_n: "Reportes (n)",
-      th_conf: "Confianza",
-      th_hot: "Punto caliente (Gi*)",
-      th_flags: "Indicadores de calidad",
-      loading: "Cargando datos publicados…",
-      loading_map: "Cargando mapa…",
-      caption: "Tasas normalizadas por exposición de los {n} segmentos analizados (calles con reportes).",
-      capReports:
-        "{n} segmentos de calle. Las líneas más gruesas y oscuras tienen más reportes. La calle más " +
-        "reportada ({peak}) domina — pero el volumen es exposición, no peligro.",
-      capRate:
-        "Los mismos segmentos por tasa normalizada por exposición. {hot} punto(s) caliente(s) " +
-        "significativo(s) — discontinuos y etiquetados — aparecen, mientras la calle más reportada se " +
-        "reduce a una línea delgada.",
-      capRateNone:
-        "Los mismos segmentos por tasa normalizada por exposición. Ningún segmento es un punto caliente " +
-        "estadísticamente significativo; la calle más reportada se desvanece.",
-      mapEmpty: "No hay segmentos mapeables.",
-      mapNoLeaflet:
-        "Los mapas interactivos necesitan JavaScript y la biblioteca de mapas. La tabla de datos de abajo lleva cada hallazgo.",
-      tipReports: "{name}: {count} reportes",
-      tipRate: "{name}: tasa {rate}/1000",
-      lblBusiest: "{name} — {count} reportes (más reportada)",
-      lblHotspot: "{name} — ★ tasa {rate}",
-      sortStatus: "Tabla ordenada por {col}, {dir}.",
-      asc: "ascendente",
-      desc: "descendente",
-      sig: "★ Significativo",
-      sigShort: " — ★ punto caliente significativo",
-      conf_certain: "cierto",
-      conf_uncertain: "incierto",
-      conf_exposure_unknown: "exposición desconocida",
-      flag_low_sample: "muestra pequeña",
-      flag_geocode_low_confidence: "ubicación poco confiable",
-      flag_exposure_unknown: "exposición desconocida",
-      fail:
-        "No se pudieron cargar los datos publicados ({msg}). Ejecute `make publish`, luego `nearmiss serve` y abra /web/index.html.",
-      bias_h: "Sesgo de reporte",
-      bias_summary: "Quién está sobre- y sub-reportado en los datos",
-      bias_over_h: "Sobre-representado en los reportes",
-      bias_under_h: "Sub-representado",
-      bias_shares: "{rshare} de reportes vs {eshare} de exposición",
-      none: "—",
-    },
-  };
+  // Web UI translations are single-sourced from the gettext PO catalogs and
+  // compiled to web/locales/<lang>.json by tools/po2json.py; the shared loader
+  // in web/i18n.js fetches them. app.js keeps using short keys — t("title") —
+  // via the "web.app." namespace, with English always loaded as the fallback.
+  var i18n = window.NearmissI18n.create("web.app.");
 
   function t(key) {
-    return (I18N[lang] && I18N[lang][key]) || I18N.en[key];
+    return i18n.t(key);
   }
   function tpl(s, obj) {
     return s.replace(/\{(\w+)\}/g, function (_, k) {
@@ -720,6 +384,7 @@
   }
 
   function applyI18n() {
+    i18n.setLang(lang);
     document.documentElement.lang = lang;
     document.title = t("title");
     document.querySelectorAll("[data-i18n]").forEach(function (el) {
@@ -929,20 +594,6 @@
     });
   }
 
-  // E19 — a shareable PNG "card" of the honest headline (how many significant
-  // hotspots, plus the top few) drawn client-side from the data already loaded,
-  // via share-card.js. No new fetch, no map tiles, no external service.
-  function wireShareCard() {
-    var btn = document.getElementById("share-card-btn");
-    if (!btn || !window.NearmissShareCard) return;
-    btn.addEventListener("click", function () {
-      if (!rows.length) return;
-      NearmissShareCard.download(NearmissShareCard.buildData(rows, meta));
-      var status = document.getElementById("share-card-status");
-      if (status) status.textContent = t("shareCardDone");
-    });
-  }
-
   function wireFilter() {
     var input = document.getElementById("table-filter");
     if (!input) return;
@@ -1070,18 +721,23 @@
   function wireLangSwitch() {
     document.querySelectorAll(".lang-switch button").forEach(function (b) {
       b.addEventListener("click", function () {
-        lang = b.getAttribute("data-lang");
-        applyI18n();
-        applyProvenance();
-        applyHotspotSummary();
-        applyBottomLine();
-        applyBias();
-        applyDownload();
-        stampPrintMeta();
-        if (rows.length) {
-          renderTable();
-          renderMaps();
-        }
+        var next = b.getAttribute("data-lang");
+        // Fetch the locale catalog on demand (cached after first load), then
+        // re-render everything in the new language.
+        i18n.load(next).then(function () {
+          lang = next;
+          applyI18n();
+          applyProvenance();
+          applyHotspotSummary();
+          applyBottomLine();
+          applyBias();
+          applyDownload();
+          stampPrintMeta();
+          if (rows.length) {
+            renderTable();
+            renderMaps();
+          }
+        });
       });
     });
   }
@@ -1100,7 +756,23 @@
     document.getElementById("cap-rate").textContent = tpl(t("fail"), { msg: message });
   }
 
-  applyI18n();
+  // Load the English fallback catalog and (if different) the requested locale
+  // before the first render, so the page never flashes raw keys. Wiring is set
+  // up first so the controls respond even while the data request is in flight.
+  // E19 — a shareable PNG "card" of the honest headline (how many significant
+  // hotspots, plus the top few) drawn client-side from the data already loaded,
+  // via share-card.js. No new fetch, no map tiles, no external service.
+  function wireShareCard() {
+    var btn = document.getElementById("share-card-btn");
+    if (!btn || !window.NearmissShareCard) return;
+    btn.addEventListener("click", function () {
+      if (!rows.length) return;
+      NearmissShareCard.download(NearmissShareCard.buildData(rows, meta));
+      var status = document.getElementById("share-card-status");
+      if (status) status.textContent = t("shareCardDone");
+    });
+  }
+
   wireSorting();
   wireFilter();
   wireMapToggle();
@@ -1109,7 +781,15 @@
   wireShareCard();
   stampPrintMeta();
 
-  fetch(DATA_URL)
+  i18n
+    .load("en")
+    .then(function () {
+      return lang === "en" ? null : i18n.load(lang);
+    })
+    .then(function () {
+      applyI18n();
+      return fetch(DATA_URL);
+    })
     .then(function (r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
