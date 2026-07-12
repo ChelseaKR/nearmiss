@@ -36,3 +36,12 @@ fdr_alpha = 0.05        # Benjamini-Hochberg false-discovery-rate level
 gi_band_m = 300
 kde_bandwidth_m = 150
 kde_grid = 20
+
+# EXP-05 prototype (docs/privacy/exp-05-dp-segment-time-bands.md): epsilon-DP segment x
+# part-of-day release. Left commented out and disabled: enabling this on real (non-demo)
+# data requires a recorded privacy-SME sign-off first (dp_segment_time_release() raises
+# without it -- see stats/dp_temporal.py).
+# [dp_segment_time]
+# enabled = true
+# epsilon = 1.0
+# sme_signoff_ref = "reviewed by <name>, <date>, see <link to review notes>"

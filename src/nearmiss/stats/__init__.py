@@ -21,6 +21,7 @@ from ..util import round_stable
 from .aggregate import _LOW_CONFIDENCE_RAW, SegmentAgg, aggregate
 from .bias import BiasReport, characterize_bias
 from .corridors import CorridorStats, build_corridors
+from .dp_temporal import DPSegmentTimeRelease, dp_segment_time_release
 from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
 from .kde import KdeResult, kde
 from .maup import RankStability, rank_stability
@@ -42,6 +43,9 @@ class AnalysisResult:
     # significant and already-publishable segments merged for advocacy asks.
     # Published ALONGSIDE `segments`, never instead of it.
     corridors: list[CorridorStats]
+    # EXP-05 prototype: epsilon-DP segment x time-band release (disabled unless
+    # configured AND SME-signed-off; see stats/dp_temporal.py).
+    dp_segment_time: DPSegmentTimeRelease
     # Quasi-Poisson dispersion of the report counts (RR-02); ~1 is clean Poisson,
     # materially above 1 is overdispersion (clustered reporting), in which case the
     # per-segment Poisson intervals understate uncertainty by ~sqrt(dispersion).
@@ -288,6 +292,8 @@ def analyze(
             ).segment_id
 
     temporal = temporal_breakdown(records, config, weather, weather_source)
+    # EXP-05 prototype: strict no-op unless dp_segment_time.enabled is set in config.
+    dp_release = dp_segment_time_release(records, config)
 
     corridors = build_corridors(
         stats, segments, config.rate_per, config.confidence_z, config.small_n
@@ -311,6 +317,7 @@ def analyze(
         kde_peak_segment=peak_segment,
         temporal=temporal,
         corridors=corridors,
+        dp_segment_time=dp_release,
         dispersion=round(dispersion, 4),
         overdispersion_adjusted=config.overdispersion_adjust,
         rank_stability=stability,

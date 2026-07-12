@@ -31,6 +31,7 @@ from .manifest import build_manifest, canonical_json
 from .models import Report, Segment, SegmentStats
 from .stats.bias import to_metadata as bias_to_metadata
 from .stats.corridors import CorridorStats
+from .stats.dp_temporal import to_metadata as dp_segment_time_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
 from .versions import DATASET_SCHEMA_VERSION, DATASET_VERSION
@@ -70,6 +71,7 @@ _FORBIDDEN_KEYS = frozenset(
         "accuracy_m",
         "mode",
         "severity",
+        "true_count",  # EXP-05 DP prototype: the pre-noise count must never be published
     )
 )
 
@@ -428,6 +430,10 @@ def publish(config: Config) -> PublishResult:
             if bundle.result.rank_stability is not None
             else None
         ),
+        # EXP-05 prototype: segment x part-of-day counts under epsilon-DP noise, instead of
+        # k-anonymity suppression. {"enabled": false} unless dp_segment_time.enabled AND a
+        # recorded SME sign-off are both set in config -- see stats/dp_temporal.py.
+        "segment_time_bands_dp": dp_segment_time_to_metadata(bundle.result.dp_segment_time),
         # Reporting-bias audit: over-/under-represented segments vs exposure, plus the
         # caveat that over-representation is not confirmed danger. Publishable ids only.
         "bias": bias_meta,
