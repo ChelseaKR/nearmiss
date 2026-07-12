@@ -382,13 +382,19 @@ jobs:
       # fails the build (no `|| true`), per SECURITY-AND-SUPPLY-CHAIN §3. The
       # retry absorbs a transient advisory-database fetch failure (CI runners are
       # not guaranteed egress) without silencing a real finding.
+      # Audit the hashed dev lock rather than the live environment: the local
+      # editable nearmiss install is not a PyPI release, so an environment
+      # audit errors on it ("not found") — and at version 0.1.0 it silently
+      # audited a same-named stranger's PyPI package. -r requirements-dev.lock
+      # scans the exact pinned+hashed dependency set the gates install
+      # (`make security` runs the identical command).
       - name: pip-audit (known-vulnerable dependencies)
         run: |
           for attempt in 1 2 3; do
-            python -m pip_audit --strict && exit 0
+            python -m pip_audit --strict --require-hashes --disable-pip -r requirements-dev.lock && exit 0
             echo "pip-audit attempt $attempt failed; retrying in 10s..." && sleep 10
           done
-          python -m pip_audit --strict
+          python -m pip_audit --strict --require-hashes --disable-pip -r requirements-dev.lock
 
       - name: gitleaks (committed secrets)
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0

@@ -105,7 +105,10 @@ accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
 	@echo "      review — see docs/accessibility/ACR.md (this gate is the floor, not the ceiling)."
 
 security: ## Scan deps (pip-audit), history for secrets (gitleaks), and workflow YAML (zizmor)
-	$(PYTHON) -m pip_audit --strict
+	# Audit dependencies only: the local editable nearmiss install is not a PyPI
+	# release (pip-audit would error on it, and --strict treats a skip as an
+	# error), so audit from the hashed dev lock instead of the live environment.
+	$(PYTHON) -m pip_audit --strict --require-hashes --disable-pip -r requirements-dev.lock
 	@command -v gitleaks >/dev/null 2>&1 \
 		&& gitleaks detect --no-banner --redact --source . \
 		|| echo "security: gitleaks not found (it is a Go binary, not a pip dep); install it to enable the secret scan. CI runs it."
