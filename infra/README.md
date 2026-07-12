@@ -12,7 +12,8 @@ What lives here (optional — the analysis runs entirely offline without any of 
   escapes, and excludes private/raw and repository-internal files. The artifact exposes
   `/deployment.json` and `/site-manifest.json`; the manifest hashes every payload file (the manifest
   envelope itself is the sole exception), and the workflow verifies the deployed commit and critical
-  data/UI paths before reporting success.
+  data/UI paths before reporting success. The least-privilege job boundary is recorded in
+  [ADR 0005](../docs/adr/0005-build-pages-artifact-before-deployment.md).
 
 - A serverless **intake** deploy (validate against the report schema, rate-limit to resist spam and
   poisoning, write to the private raw store).
