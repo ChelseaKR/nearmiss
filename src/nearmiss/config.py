@@ -16,8 +16,11 @@ import json
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import cast
 
 from .errors import ConfigError
+
+_MAX_PARSED_NESTING = 256
 
 # Every key the loader understands. Anything else is a typo (e.g. "fdr_aplha")
 # that would otherwise silently fall back to a default — so we reject it loudly.
@@ -157,16 +160,49 @@ def _coerce_flag(raw_val: object) -> bool:
     return bool(raw_val)
 
 
+def _require_unicode_scalars(value: object, cfg_path: Path) -> None:
+    pending: list[tuple[object, int]] = [(value, 0)]
+    while pending:
+        current, depth = pending.pop()
+        if depth > _MAX_PARSED_NESTING:
+            raise ConfigError(f"invalid config {cfg_path}: nesting exceeds safety limit")
+        if isinstance(current, str):
+            try:
+                current.encode("utf-8")
+            except UnicodeEncodeError:
+                raise ConfigError(
+                    f"invalid config {cfg_path}: invalid Unicode scalar value"
+                ) from None
+        elif isinstance(current, dict):
+            pending.extend((child, depth + 1) for pair in current.items() for child in pair)
+        elif isinstance(current, list):
+            pending.extend((child, depth + 1) for child in current)
+
+
+def _decode_data(cfg_path: Path, payload: bytes) -> dict[str, object]:
+    """Parse one exact config payload, with a clear load error."""
+    try:
+        text = payload.decode("utf-8")
+        if cfg_path.suffix == ".json":
+            data: object = json.loads(text)
+        else:
+            data = tomllib.loads(text)
+    except (
+        UnicodeDecodeError,
+        tomllib.TOMLDecodeError,
+        json.JSONDecodeError,
+        RecursionError,
+    ) as exc:
+        raise ConfigError(f"invalid config {cfg_path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ConfigError(f"invalid config {cfg_path}: expected a top-level object")
+    _require_unicode_scalars(data, cfg_path)
+    return cast(dict[str, object], data)
+
+
 def _load_data(cfg_path: Path) -> dict[str, object]:
     """Read and parse the TOML (or JSON) config file, with a clear load error."""
-    try:
-        if cfg_path.suffix == ".json":
-            data: dict[str, object] = json.loads(cfg_path.read_text(encoding="utf-8"))
-        else:
-            data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
-    except (tomllib.TOMLDecodeError, json.JSONDecodeError) as exc:
-        raise ConfigError(f"invalid config {cfg_path}: {exc}") from exc
-    return data
+    return _decode_data(cfg_path, cfg_path.read_bytes())
 
 
 def _reject_unknown(cfg_path: Path, keys: set[str], allowed: frozenset[str], where: str) -> None:
@@ -221,13 +257,8 @@ def _parse_window(data: dict[str, object], cfg_path: Path) -> tuple[str | None, 
     return window_start, window_end
 
 
-def load_config(path: str | Path) -> Config:
-    """Load a TOML (or JSON) config. Paths resolve relative to the config file."""
-    cfg_path = Path(path)
-    if not cfg_path.is_file():
-        raise ConfigError(f"config file not found: {cfg_path}")
+def _config_from_data(cfg_path: Path, data: dict[str, object]) -> Config:
     base = cfg_path.parent
-    data = _load_data(cfg_path)
 
     def need(key: str) -> str:
         if key not in data:
@@ -363,3 +394,23 @@ def load_config(path: str | Path) -> Config:
         window_end=window_end,
         raw=data,
     )
+
+
+def load_config(path: str | Path) -> Config:
+    """Load a TOML (or JSON) config. Paths resolve relative to the config file."""
+    cfg_path = Path(path)
+    if not cfg_path.is_file():
+        raise ConfigError(f"config file not found: {cfg_path}")
+    return _config_from_data(cfg_path, _load_data(cfg_path))
+
+
+def load_config_bytes(path: str | Path, payload: bytes) -> Config:
+    """Parse already-read config bytes while preserving path-relative resolution.
+
+    Security-sensitive derivations use this entry point so the bytes they hash
+    are exactly the bytes they parse; the function performs no filesystem read.
+    """
+    if not isinstance(payload, bytes):
+        raise TypeError("config payload must be bytes")
+    cfg_path = Path(path)
+    return _config_from_data(cfg_path, _decode_data(cfg_path, payload))
