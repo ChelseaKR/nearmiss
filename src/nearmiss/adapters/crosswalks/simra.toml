@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: Apache-2.0
+# Declarative field crosswalk: SimRa (TU Berlin, simra-project/dataset) -> nearmiss intake enums.
+#
+# SimRa's incident codes are Close pass, pulling in/out, near left hook, near
+# right hook, head-on, tailgating, near-dooring, dodging an obstacle, other
+# (documented as an ordinal 1-9 in the dataset export). Where our closed
+# hazard_type vocabulary cannot represent the distinction, the mapping falls
+# back to "other" rather than overstate the conflict — the same
+# "honesty over precision we don't have" rule as the BikeMaps crosswalk (see
+# docs/REAL-DATA.md). This manifest is validated at load time (see
+# src/nearmiss/adapters/base.py:load_crosswalk) against the enums in
+# schema/report.schema.json.
+
+[source]
+id = "simra"
+name = "SimRa (TU Berlin)"
+url = "https://github.com/simra-project/dataset"
+license = "SimRa dataset; CC BY 4.0 (see the simra-project/dataset repository for current terms)."
+bias_label = "app-recruited cyclists in a handful of instrumented regions, near-miss-only"
+bias_notes = [
+    "Reporters are cyclists who installed the SimRa smartphone app (often via a local university or advocacy-group recruitment drive), which skews toward tech-comfortable, already-engaged riders rather than a representative cross-section of who bikes.",
+    "Coverage exists only where a SimRa research partner ran a data-collection campaign (Berlin, and a handful of other regions); a segment with zero SimRa reports may simply be outside any campaign's area, not actually safe.",
+    "SimRa records near-misses only (an app-detected sudden deceleration/swerve, confirmed by the rider) — it has no collision or injury severity data, so every report from this source is intake severity near_miss and this source alone cannot speak to collision outcomes.",
+    "The app's automatic detection favors abrupt, sensor-visible near-misses (hard braking, swerving); a close pass a confident rider absorbs smoothly without a sudden motion may go undetected and unreported.",
+]
+
+# --- hazard_type -------------------------------------------------------------
+# SimRa's numeric incident code -> our closed hazard_type enum
+# {close_pass, dooring, surface_hazard, sightline, signal, debris, other}.
+[hazard_type]
+default = "other"
+
+[[hazard_type.rules]]
+when = "1"
+value = "close_pass"
+rationale = "SimRa code 1 (Close pass) is exactly our close_pass definition."
+
+[[hazard_type.rules]]
+when = "7"
+value = "dooring"
+rationale = "SimRa code 7 (near-dooring) is the door-zone conflict."
+
+[[hazard_type.rules]]
+when = "8"
+value = "surface_hazard"
+rationale = "SimRa code 8 (dodging an obstacle) is closest to a surface/path hazard the rider swerved around."
+
+# Codes 2-6 and 9 (pulling in/out, near left/right hook, head-on, tailgating,
+# other) are real conflicts but not specifically a close pass, dooring, or
+# surface hazard; we do not have a generic "vehicle conflict" type, so they
+# stay honestly "other" via the default.
+
+# --- severity ------------------------------------------------------------
+# SimRa records near-crashes only — there is no injury/outcome field at all, so
+# every mapped report is unconditionally "near_miss" (no rules needed; the
+# adapter never calls severity_from for this source, but the default documents
+# the contract for anyone reading the manifest).
+[severity]
+default = "near_miss"

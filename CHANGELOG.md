@@ -100,6 +100,14 @@ each will move here under its own `### Added` entry as it lands.
 
 - This changes every published `getis_ord_z` / `getis_ord_significant` value (a dataset content
   change, not a schema change) — see the per-city `dataset_version` bump below.
+- Pluggable `SourceAdapter` framework (`src/nearmiss/adapters/`) with declarative TOML field
+  crosswalks (`src/nearmiss/adapters/crosswalks/`), validated at load time against the intake
+  schema's closed enums. `tools/fetch_bikemaps.py` is migrated onto it, and the previously-orphaned
+  SimRa (TU Berlin) adapter lands as its second implementation (`tools/fetch_simra.py`, `make simra`).
+  Every adapter returns a per-source `Provenance` block (license, bias label, bias notes) alongside
+  its reports; see `docs/REAL-DATA.md#source-adapters` and
+  `docs/DATA-CARD.md#known-reporting-biases-who-is-over--and-under-represented`. Adapter conformance
+  is covered by `tests/test_adapters_conformance.py`. (EXP-04)
 
 ### Intake report schema (`schema/report.schema.json`)
 

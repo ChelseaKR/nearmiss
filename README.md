@@ -621,7 +621,10 @@ If you believe a published artifact leaks identifying precision, treat it as a s
   notebooks; advocacy briefs; the accessible map with list/table equivalent, deployed behind a real URL.
 - **Phase 4 — generalize.** A config so any city's reports and exposure layers can be added; an "adapt
   this to your city" guide (committed at [`docs/ADAPTING.md`](docs/ADAPTING.md)); optional import paths
-  for existing community report sets.
+  for existing community report sets, now a pluggable `SourceAdapter` framework
+  (`src/nearmiss/adapters/`) with declarative TOML crosswalks — BikeMaps.org and SimRa (TU Berlin) are
+  the two adapters today, each with its own named reporting-bias profile (see
+  [`docs/REAL-DATA.md`](docs/REAL-DATA.md#source-adapters)).
 
 Releases follow [semver](https://semver.org/) and are recorded in [`CHANGELOG.md`](CHANGELOG.md).
 

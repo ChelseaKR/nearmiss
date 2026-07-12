@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: Apache-2.0
+# Declarative field crosswalk: BikeMaps.org -> nearmiss intake enums.
+#
+# Derived from SPARLab/BikeMaps mapApp/models/incident.py (INCIDENT_WITH_CHOICES,
+# INJURY_CHOICES). Where BikeMaps draws a distinction our closed hazard_type
+# vocabulary cannot represent, the mapping falls back to "other" rather than
+# overstate the conflict — honesty over precision we don't have (see
+# docs/REAL-DATA.md). This manifest is validated at load time (see
+# src/nearmiss/adapters/base.py:load_crosswalk) against the enums in
+# schema/report.schema.json, so a typo here fails fast rather than surfacing as
+# a rejected report deep in a pipeline run.
+
+[source]
+id = "bikemaps"
+name = "BikeMaps.org"
+url = "https://bikemaps.org"
+license = "BikeMaps.org public data; see https://bikemaps.org/terms for reuse terms."
+bias_label = "self-selected app-user cyclists, skewed toward confident/regular riders"
+bias_notes = [
+    "Reporters are cyclists who know BikeMaps.org exists and choose to file a report; this under-represents casual, new, or fearful riders and anyone who avoided a street entirely rather than experiencing a near miss on it (the routes people avoid produce zero reports).",
+    "Coverage is uneven by city: reports concentrate where BikeMaps has been promoted (its home city, Victoria BC, is densest), not where risk is highest.",
+    "Pedestrians, wheelchair users, and scooter riders are essentially absent — BikeMaps is a cycling-specific tool, so this source alone cannot speak to non-cyclist road-user risk.",
+]
+
+# --- hazard_type -------------------------------------------------------------
+# BikeMaps' `incident_with` free choice -> our closed hazard_type enum
+# {close_pass, dooring, surface_hazard, sightline, signal, debris, other}.
+[hazard_type]
+default = "other"
+
+[[hazard_type.rules]]
+when = "Vehicle, passing"
+value = "close_pass"
+rationale = "A motor vehicle passing too closely is exactly our close_pass definition."
+
+[[hazard_type.rules]]
+when = "Vehicle, open door"
+value = "dooring"
+rationale = "Direct match: the door-zone conflict with an opening vehicle door."
+
+[[hazard_type.rules]]
+when = "Pothole"
+value = "surface_hazard"
+rationale = "Pavement defect."
+
+[[hazard_type.rules]]
+when = "Curb"
+value = "surface_hazard"
+rationale = "Physical surface obstruction in the path, same bucket as a pothole."
+
+[[hazard_type.rules]]
+when = "Train Tracks"
+value = "surface_hazard"
+rationale = "A rideable-surface hazard (wheel-catching tracks), not a sightline or signal problem."
+
+[[hazard_type.rules]]
+when = "Lane divider"
+value = "surface_hazard"
+rationale = "Physical infrastructure obstruction in the path."
+
+[[hazard_type.rules]]
+when = "Roadway"
+value = "surface_hazard"
+rationale = "Generic road-surface defect category."
+
+[[hazard_type.rules]]
+when = "Sign/Post"
+value = "sightline"
+rationale = "A fixed obstruction most often implicated as a visibility/sightline problem, not a surface defect underfoot."
+
+# Any other motor-vehicle conflict (head on, side, angle, rear end, turning) is a
+# real car conflict but not specifically a close pass or dooring; we do not have a
+# generic "vehicle collision" type, so it stays honestly "other" via the default.
+
+# --- severity ------------------------------------------------------------
+# BikeMaps' `injury` text (collisions endpoint only) -> our closed severity enum
+# {near_miss, minor, serious}. Matches are case-insensitive substrings against
+# the injury field; nearmiss/hazard endpoints never reach this rule set because
+# the adapter assigns their severity directly (see adapters/bikemaps.py).
+[severity]
+default = "minor"  # a collision (this rule set only applies to the collisions endpoint) always involved contact, so the floor is "minor"
+
+[[severity.rules]]
+contains = "hospital"
+value = "serious"
+rationale = "Hospitalization is the closest BikeMaps signal to a serious-injury outcome."
