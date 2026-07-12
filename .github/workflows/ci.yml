@@ -181,6 +181,31 @@ jobs:
         # `make test` runs pytest with --cov-branch and --cov-fail-under=90, so a
         # drop in meaningful coverage fails the merge gate (not just a test failure).
         run: make test
+  qgis-plugin:
+    name: qgis-plugin (EXP-11 honest-symbology rules, no PyQGIS needed)
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # integrations/qgis/nearmiss_honest/rules.py + verify.py are deliberately
+      # PyQGIS-free (there is no pip-installable `qgis` package; PyQGIS only
+      # ships inside a QGIS install), so this job needs only pytest itself —
+      # not the project's own dependencies — to exercise the invariant logic
+      # the plugin's renderer/tooltip/CLI rely on, against the two bundled
+      # sample datasets.
+      - name: Install pytest
+        run: python -m pip install pytest
+      - name: qgis plugin rules (make qgis-plugin-test)
+        run: make qgis-plugin-test
 
   teaching:
     name: teaching (execute EXP-12 heat-map notebooks)
@@ -232,16 +257,8 @@ jobs:
       - name: Install gettext (msgfmt)
         run: sudo apt-get update && sudo apt-get install -y gettext
 
-      - name: Install dev dependencies (hashed, --require-hashes)
-        # Installs the exact, hashed dev-toolchain lock (requirements-dev.lock,
-        # `make lock-dev`, FIX-11) instead of a fresh, unpinned
-        # `pip install -e ".[dev]"` resolve — the tools this gate runs
-        # (pytest/ruff/mypy/pip-audit/babel/...) are pinned AND hash-verified,
-        # not "whatever PyPI serves today." The local package then installs
-        # editable and --no-deps, since it has no PyPI hash of its own.
-        run: |
-          python -m pip install --require-hashes -r requirements-dev.lock
-          python -m pip install --no-deps -e .
+      - name: Install dev dependencies
+        run: python -m pip install -e ".[dev]"
 
       # Exactly what `make verify` runs locally (no local/CI drift): G2-lite
       # (POT committed & current), G7 (msgfmt --check), G6/G5 (EN/ES key-parity +

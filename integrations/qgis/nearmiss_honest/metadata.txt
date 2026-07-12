@@ -1,0 +1,18 @@
+[general]
+name=nearmiss (honest symbology)
+qgisMinimumVersion=3.28
+description=Loads a conforming nearmiss GeoJSON with rate-not-count symbology, CI-labeled tooltips, and significance-as-pattern pre-wired, so an analyst cannot innocently rebuild the report-count heat-map lie in QGIS.
+about=Reads the metadata foreign member and the HR1/HR2 fields (rate, rate_ci_low, rate_ci_high, n, confidence_label, getis_ord_significant, quality_flags) documented in schema/dataset.schema.md at https://github.com/ChelseaKR/nearmiss. Colors are driven by the exposure-normalized rate (never report_count); a null rate (exposure unknown) is always its own visible, gray, distinctly-patterned class rather than silently reading as zero or the coolest color. Spatial significance (Getis-Ord Gi*) is encoded as a line/marker pattern plus explicit tooltip text, never by color alone. Ships both of the project's demo datasets (Davis, Riverside) as sample data, and runs a lightweight schema-invariant check on load, logging any violation instead of silently mis-rendering a malformed file.
+version=0.1.0
+author=Chelsea Kelly-Reif (ChelseaKR)
+email=3114598+ChelseaKR@users.noreply.github.com
+homepage=https://github.com/ChelseaKR/nearmiss/tree/main/integrations/qgis
+tracker=https://github.com/ChelseaKR/nearmiss/issues
+repository=https://github.com/ChelseaKR/nearmiss
+tags=near miss,road safety,honest visualization,rate,confidence interval,significance,bicycle,pedestrian,vision zero
+category=Vector
+icon=icon.png
+experimental=True
+deprecated=False
+server=False
+hasProcessingProvider=no

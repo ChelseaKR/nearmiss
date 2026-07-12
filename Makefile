@@ -32,7 +32,7 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lock-dev lint type test accessibility axe rtl security verify \
-        conformance i18n i18n-compile i18n-pseudo claims \
+        conformance i18n i18n-compile i18n-pseudo claims qgis-plugin-test \
         reproduce sensitivity demo teach publish serve bench bikemaps simra osm-streets real clean mutation release-build
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
@@ -93,6 +93,9 @@ test: ## Run pytest (synthetic fixtures, KNOWN answers) under a branch-coverage 
 	$(PYTHON) -m pytest -q \
 		--cov=src/nearmiss --cov-branch \
 		--cov-report=term-missing --cov-fail-under=90
+
+qgis-plugin-test: ## Test the QGIS plugin's honest-symbology rules (EXP-11, no QGIS install needed)
+	cd integrations/qgis && $(PYTHON) -m pytest tests/ -q
 
 accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
 	$(PYTHON) tools/a11y_check.py web/index.html web/submit.html web/embed.html
