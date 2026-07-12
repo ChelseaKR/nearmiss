@@ -17,7 +17,7 @@ from ..exposure import attach_exposure, coverage, is_usable
 from ..geometry import haversine_m, polyline_centroid
 from ..models import CleanRecord, ConfidenceLabel, Exposure, Report, Segment, SegmentStats
 from ..util import round_stable
-from .aggregate import aggregate
+from .aggregate import _LOW_CONFIDENCE_RAW, SegmentAgg, aggregate
 from .bias import BiasReport, characterize_bias
 from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
 from .kde import KdeResult, kde
@@ -26,9 +26,6 @@ from .rates import pearson_dispersion, rate_with_ci
 from .temporal import TemporalBreakdown, WeatherDay, temporal_breakdown
 
 __all__ = ["AnalysisResult", "analyze"]
-
-# Raw pipeline quality flags that map to the published "geocode_low_confidence" flag.
-_LOW_CONFIDENCE_RAW = frozenset(("low_accuracy", "far_snap"))
 
 
 @dataclass
@@ -47,6 +44,9 @@ class AnalysisResult:
     overdispersion_adjusted: bool = False
     # MAUP rank-stability under re-segmentation (RR-05).
     rank_stability: RankStability | None = None
+    # Fraction of snapped records excluded from the primary rate because they carry a
+    # low-confidence flag (low_accuracy / far_snap): low_confidence_snapped / snapped.
+    excluded_low_confidence_fraction: float = 0.0
 
 
 def _published_quality_flags(
@@ -63,6 +63,64 @@ def _published_quality_flags(
     return tuple(sorted(set(flags)))
 
 
+def _estimate_dispersion(
+    segments: list[Segment],
+    attached: dict[str, Exposure | None],
+    agg: dict[str, SegmentAgg],
+) -> float:
+    """Quasi-Poisson dispersion of report counts vs exposure over usable segments."""
+    usable_counts: list[int] = []
+    usable_exposures: list[float] = []
+    for s in segments:
+        exp = attached.get(s.id)
+        if is_usable(exp):
+            assert exp is not None
+            a = agg.get(s.id)
+            usable_counts.append(a.count if a else 0)
+            usable_exposures.append(exp.estimate)
+    return pearson_dispersion(usable_counts, usable_exposures)
+
+
+def _rates_by_type(
+    usable: bool,
+    count: int,
+    hazard_breakdown: dict[str, int],
+    exposure_estimate: float | None,
+    config: Config,
+) -> dict[str, dict[str, float]]:
+    """Per-hazard-type rate layers: for a usable, aggregated segment, each
+    hazard type whose own count clears the small-sample threshold gets its
+    own exposure-normalized rate + CI (against the same segment exposure).
+    Types below the threshold are suppressed entirely (no entry). The
+    top-level ``rate`` remains the pooled rate across all types (an
+    explicit union). Aggregate-only: only counts and rates are stored.
+    """
+    rates_by_type: dict[str, dict[str, float]] = {}
+    if not (usable and count >= config.small_n):
+        return rates_by_type
+    assert exposure_estimate is not None
+    for hazard_type, type_count in hazard_breakdown.items():
+        if type_count < config.small_n:
+            continue
+        t_rate, t_lo, t_hi = rate_with_ci(
+            type_count, exposure_estimate, config.rate_per, config.confidence_z
+        )
+        r4, lo4, hi4 = (
+            round_stable(t_rate, 4),
+            round_stable(t_lo, 4),
+            round_stable(t_hi, 4),
+        )
+        # rate_with_ci returns real floats, so the rounded values are never None.
+        assert r4 is not None and lo4 is not None and hi4 is not None
+        rates_by_type[hazard_type] = {
+            "count": float(type_count),
+            "rate": r4,
+            "rate_ci_low": lo4,
+            "rate_ci_high": hi4,
+        }
+    return rates_by_type
+
+
 def analyze(
     records: list[CleanRecord],
     report_points: list[Report],
@@ -72,6 +130,16 @@ def analyze(
     weather: dict[str, WeatherDay] | None = None,
     weather_source: str | None = None,
 ) -> AnalysisResult:
+    """Turn clean records + exposure into per-segment published statistics.
+
+    ``report_count``/``n`` on each :class:`~nearmiss.models.SegmentStats` stay the
+    total observed (all-records) count. The *published* ``rate``/CI is the PRIMARY
+    rate: it excludes low-confidence records (``low_accuracy`` / ``far_snap``) and is
+    also what feeds Getis-Ord hotspot detection. Each segment carries a
+    ``rate_sensitivity_delta`` when the all-records rate falls outside the primary CI,
+    and :class:`AnalysisResult` carries the overall
+    ``excluded_low_confidence_fraction``.
+    """
     agg = aggregate(records)
     seg_ids = [s.id for s in segments]
     attached = attach_exposure(seg_ids, exposure_map)
@@ -84,16 +152,7 @@ def analyze(
     # always computed and reported (the brief surfaces it); whether it is applied
     # to the published intervals is an explicit, versioned config choice so the
     # published methodology is never silently changed under a consumer.
-    usable_counts: list[int] = []
-    usable_exposures: list[float] = []
-    for s in segments:
-        exp = attached.get(s.id)
-        if is_usable(exp):
-            assert exp is not None
-            a = agg.get(s.id)
-            usable_counts.append(a.count if a else 0)
-            usable_exposures.append(exp.estimate)
-    dispersion = pearson_dispersion(usable_counts, usable_exposures)
+    dispersion = _estimate_dispersion(segments, attached, agg)
     ci_dispersion = dispersion if config.overdispersion_adjust else 1.0
 
     rate_values: dict[str, float] = {}
@@ -101,24 +160,44 @@ def analyze(
     for s in segments:
         a = agg.get(s.id)
         count = a.count if a else 0
+        count_primary = a.count_primary if a else 0
         exp = attached.get(s.id)
         usable = is_usable(exp)
         rate: float | None
         lo: float | None
         hi: float | None
+        sensitivity_delta: float | None = None
         conf: ConfidenceLabel
         if usable:
             assert exp is not None
+            # The PRIMARY published rate excludes low-confidence records; it is what
+            # SegmentStats.rate/CI reports and what feeds Getis-Ord hotspot detection.
             rate, lo, hi = rate_with_ci(
-                count, exp.estimate, config.rate_per, config.confidence_z, ci_dispersion
+                count_primary, exp.estimate, config.rate_per, config.confidence_z, ci_dispersion
             )
             rate_values[s.id] = rate
+            # Sensitivity: the all-records rate (including low-confidence reports).
+            # Report a delta only when it falls OUTSIDE the primary CI — i.e. when
+            # including the excluded reports would materially move the published rate.
+            if count != count_primary:
+                rate_all, _, _ = rate_with_ci(
+                    count, exp.estimate, config.rate_per, config.confidence_z, ci_dispersion
+                )
+                if rate_all < lo or rate_all > hi:
+                    sensitivity_delta = round_stable(rate_all - rate, 4)
             conf = "uncertain" if count < config.small_n else "certain"
         else:
             rate = lo = hi = None
             conf = "exposure_unknown"
         # Hazard breakdown is suppressed below the small-sample threshold.
         breakdown = dict(a.hazard_breakdown) if (a and count >= config.small_n) else {}
+        rates_by_type = _rates_by_type(
+            usable,
+            count,
+            a.hazard_breakdown if a else {},
+            exp.estimate if exp else None,
+            config,
+        )
         raw_flags = set(a.quality_flags) if a else set()
         stats.append(
             SegmentStats(
@@ -137,7 +216,9 @@ def analyze(
                 # k-anonymity: withhold segments with a non-zero count below the floor.
                 publishable=not (0 < count < config.min_publish_n),
                 hazard_breakdown=breakdown,
+                rates_by_type=rates_by_type,
                 quality_flags=_published_quality_flags(usable, count, config.small_n, raw_flags),
+                rate_sensitivity_delta=sensitivity_delta,
             )
         )
 
@@ -173,6 +254,13 @@ def analyze(
     # RR-05: re-segment the network and report whether the top hotspots survive.
     stability = rank_stability(stats, segments, exposure_map, config)
 
+    # Overall excluded fraction: low-confidence snapped records / all snapped records.
+    snapped_total = sum(a.count for a in agg.values())
+    snapped_primary = sum(a.count_primary for a in agg.values())
+    excluded_fraction = (
+        round((snapped_total - snapped_primary) / snapped_total, 4) if snapped_total else 0.0
+    )
+
     return AnalysisResult(
         segments=stats,
         bias=bias,
@@ -183,4 +271,5 @@ def analyze(
         dispersion=round(dispersion, 4),
         overdispersion_adjusted=config.overdispersion_adjust,
         rank_stability=stability,
+        excluded_low_confidence_fraction=excluded_fraction,
     )

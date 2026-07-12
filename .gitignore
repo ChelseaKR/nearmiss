@@ -88,6 +88,12 @@ notebooks/_build/
 *.tmp.geojson
 /tmp/
 
+# Per-run provenance manifests (publish writes <slug>.run.json next to the open
+# GeoJSON). Regenerated every run and carries an unhashed wall-time sidecar, so it
+# is NOT byte-stable and must never be committed; the hashed provenance section is
+# the reproduce tripwire, asserted in tests, not by a committed file.
+*.run.json
+
 # OS / editor noise
 .DS_Store
 Thumbs.db

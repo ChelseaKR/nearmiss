@@ -1,8 +1,40 @@
 {
+  "bias": {
+    "caveat": "Shares compare where reports land against where exposure is. They cannot, on their own, separate 'more dangerous' from 'more reported': reporter pools skew by route choice, demographics, app access, and language. Treat over-represented segments as candidates for attention and scrutiny, not as confirmed rankings.",
+    "over_represented": [
+      {
+        "exposure_share": 0.0394,
+        "report_share": 0.4,
+        "segment_id": "rs-3"
+      },
+      {
+        "exposure_share": 0.126,
+        "report_share": 0.2,
+        "segment_id": "rs-2"
+      },
+      {
+        "exposure_share": 0.126,
+        "report_share": 0.2,
+        "segment_id": "rs-6"
+      }
+    ],
+    "under_represented": [
+      {
+        "exposure_share": 0.2362,
+        "report_share": 0.0,
+        "segment_id": "rs-5"
+      },
+      {
+        "exposure_share": 0.2362,
+        "report_share": 0.15,
+        "segment_id": "rs-1"
+      }
+    ]
+  },
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "d79b47fe1e56d0ed812f3a636d51d24d88c0cc531dc8158323d415e9a7148872",
+  "geojson_sha256": "6ecf0c4a9b6575b90771a3579aa0a6f6f3a826c52a6093ae56fcd702103eda41",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -26,6 +58,7 @@
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
     "min_publish_n": 3,
+    "rate_definition": "pooled across all hazard types (union); per-type rates in rates_by_type where count >= small_n",
     "rate_per": 1000.0,
     "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
     "small_n": 5
@@ -37,6 +70,7 @@
   "schema_version": "1.0.0",
   "summary": {
     "duplicates_removed": 0,
+    "excluded_low_confidence_fraction": 0.0,
     "exposure_coverage": 1.0,
     "out_of_window": 0,
     "reports_in": 20,

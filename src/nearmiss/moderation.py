@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 import re
+import statistics
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass, field
@@ -63,12 +64,14 @@ class Submission:
     report: dict[str, object]
     flags: list[str] = field(default_factory=list)
     reason: str | None = None  # set on reject (or an approver note)
+    decided_at: str | None = None  # ISO-8601 UTC, set when a human approves/rejects
 
     def to_dict(self) -> dict[str, object]:
         return {
             "submission_id": self.submission_id,
             "status": self.status,
             "received_at": self.received_at,
+            "decided_at": self.decided_at,
             "flags": list(self.flags),
             "reason": self.reason,
             "report": self.report,
@@ -79,6 +82,7 @@ class Submission:
         report = d.get("report")
         raw_flags = d.get("flags")
         flags = [str(f) for f in raw_flags] if isinstance(raw_flags, list) else []
+        # ``decided_at`` is a later addition; legacy queue.json rows omit it.
         return Submission(
             submission_id=str(d["submission_id"]),
             status=str(d.get("status", PENDING)),
@@ -86,6 +90,7 @@ class Submission:
             report=dict(report) if isinstance(report, dict) else {},
             flags=flags,
             reason=(str(d["reason"]) if d.get("reason") is not None else None),
+            decided_at=(str(d["decided_at"]) if d.get("decided_at") is not None else None),
         )
 
 
@@ -204,6 +209,7 @@ def approve(config: Config, submission_id: str, note: str | None = None) -> Subm
         )
     sub.status = APPROVED
     sub.reason = note
+    sub.decided_at = datetime.now(UTC).isoformat()
     _save_queue(config, queue)
     _append_approved(config, sub.report)
     return sub
@@ -216,6 +222,7 @@ def reject(config: Config, submission_id: str, reason: str) -> Submission:
     sub = _find(queue, submission_id)
     sub.status = REJECTED
     sub.reason = reason
+    sub.decided_at = datetime.now(UTC).isoformat()
     _save_queue(config, queue)
     return sub
 
@@ -253,3 +260,156 @@ def approved_reports(config: Config) -> list[dict[str, object]]:
         raise NearmissError(f"could not read approved store {path}: {exc}") from exc
     rows = data.get("reports", []) if isinstance(data, dict) else data
     return [dict(r) for r in rows] if isinstance(rows, list) else []
+
+
+# --------------------------------------------------------------------------- #
+# Transparency reporting (EXP-07)
+#
+# A moderator's rejection ``reason`` is free text and MAY contain identifying or
+# sensitive detail, so it is NEVER emitted verbatim in the public transparency
+# report. Instead we bucket it into a tiny fixed taxonomy and only ever publish
+# the coarse category and a count — and even the count is withheld when the cell
+# is smaller than the k-anonymity floor (``config.min_publish_n``), matching the
+# low-count withholding that ``publish.py`` applies to the map data.
+# --------------------------------------------------------------------------- #
+
+# Ordered so the FIRST matching bucket wins; keywords are matched case-folded.
+_REASON_TAXONOMY: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("duplicate", ("duplicate", "dupe", "already reported", "already submitted", "repost")),
+    ("spam", ("spam", "advert", "advertis", "junk", "bot", "gibberish", "test submission")),
+    (
+        "identifier-leak",
+        ("identif", "personal", "pii", "email", "phone", "plate", "license", "name of", "doxx"),
+    ),
+    (
+        "invalid-location",
+        ("location", "geocode", "coordinate", "off the map", "out of area", "outside", "address"),
+    ),
+    (
+        "off-topic",
+        ("off-topic", "off topic", "unrelated", "not a hazard", "not relevant", "irrelevant"),
+    ),
+)
+
+# The public set of reason buckets (the taxonomy plus the catch-all).
+REASON_CATEGORIES: tuple[str, ...] = (*(name for name, _ in _REASON_TAXONOMY), "other")
+
+# Sentinel for a count cell suppressed by the k-anonymity floor.
+WITHHELD: None = None
+
+
+def categorize_reason(reason: str) -> str:
+    """Bucket a free-text rejection reason into a small fixed taxonomy.
+
+    Returns one of :data:`REASON_CATEGORIES`. The raw text is only inspected to
+    pick a bucket; it is never returned, so a stats report built on this can
+    never leak a moderator's free-text note. Empty/unknown text is ``"other"``.
+    """
+    text = (reason or "").casefold()
+    if not text.strip():
+        return "other"
+    for name, keywords in _REASON_TAXONOMY:
+        if any(kw in text for kw in keywords):
+            return name
+    return "other"
+
+
+def _apply_floor(counts: dict[str, int], min_publish_n: int) -> tuple[dict[str, int | None], int]:
+    """Withhold small cells: any count ``0 < n < min_publish_n`` becomes ``None``.
+
+    Returns the floored mapping plus how many cells were withheld, so a report
+    can state exactly how many breakdowns were suppressed for privacy.
+    """
+    floored: dict[str, int | None] = {}
+    withheld = 0
+    for key, n in counts.items():
+        if 0 < n < min_publish_n:
+            floored[key] = WITHHELD
+            withheld += 1
+        else:
+            floored[key] = n
+    return floored, withheld
+
+
+def _parse_iso(value: str) -> datetime | None:
+    """Parse an ISO-8601 timestamp, tolerating a trailing ``Z``. ``None`` on junk."""
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _latency_hours(sub: Submission) -> float | None:
+    """Review latency (received -> decided) in hours, or ``None`` if not decided
+    or either timestamp is missing/unparseable (legacy rows have no ``decided_at``)."""
+    if sub.decided_at is None:
+        return None
+    received = _parse_iso(sub.received_at)
+    decided = _parse_iso(sub.decided_at)
+    if received is None or decided is None:
+        return None
+    return (decided - received).total_seconds() / 3600.0
+
+
+def moderation_stats(config: Config) -> dict[str, object]:
+    """Build the moderation transparency report for the current queue.
+
+    Reports totals by status, review-flag frequencies, rejection-reason
+    *category* counts (never the free text), and the median review latency in
+    hours. Every per-cell count is passed through the k-anonymity floor
+    (``config.min_publish_n``): a non-zero count below the floor is reported as
+    ``null`` and tallied under ``withheld_cells`` so "how many did not make it"
+    stays explicit without exposing a group too small to be anonymous.
+    """
+    min_n = config.min_publish_n
+    queue = _load_queue(config)
+
+    status_counts = {PENDING: 0, APPROVED: 0, REJECTED: 0}
+    flag_counts: dict[str, int] = {}
+    reason_counts: dict[str, int] = dict.fromkeys(REASON_CATEGORIES, 0)
+    latencies: list[float] = []
+
+    for sub in queue:
+        status_counts[sub.status] = status_counts.get(sub.status, 0) + 1
+        for flag in sub.flags:
+            flag_counts[flag] = flag_counts.get(flag, 0) + 1
+        if sub.status == REJECTED:
+            reason_counts[categorize_reason(sub.reason or "")] += 1
+        latency = _latency_hours(sub)
+        if latency is not None:
+            latencies.append(latency)
+
+    total = len(queue)
+    decided = len(latencies)
+    floored_status, w_status = _apply_floor(status_counts, min_n)
+    floored_flags, w_flags = _apply_floor(flag_counts, min_n)
+    floored_reasons, w_reasons = _apply_floor(reason_counts, min_n)
+
+    # The median only reveals a data point when the decided cohort itself clears
+    # the floor; a median over 1-2 reviews would leak an individual latency.
+    if 0 < decided < min_n:
+        median_latency: float | None = WITHHELD
+        latency_withheld = True
+    elif decided == 0:
+        median_latency = None
+        latency_withheld = False
+    else:
+        median_latency = round(statistics.median(latencies), 2)
+        latency_withheld = False
+
+    return {
+        "generated_at": datetime.now(UTC).isoformat(),
+        "min_publish_n": min_n,
+        "total_submissions": total,
+        "status_counts": floored_status,
+        "flag_counts": floored_flags,
+        "reason_categories": floored_reasons,
+        "review_latency_hours": {
+            "median": median_latency,
+            "n_decided": decided,
+            "withheld": latency_withheld,
+        },
+        "withheld_cells": w_status + w_flags + w_reasons + (1 if latency_withheld else 0),
+    }

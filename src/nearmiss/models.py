@@ -139,4 +139,17 @@ class SegmentStats:
     # False when withheld from publication for k-anonymity (0 < report_count < min_publish_n).
     publishable: bool = True
     hazard_breakdown: dict[str, int] = field(default_factory=dict)
+    # Per-hazard-type exposure-normalized rate layers. The top-level ``rate`` is
+    # the pooled rate across ALL hazard types (an explicit union); this maps each
+    # hazard type with a count at or above the small-sample threshold to its own
+    # aggregate rate + confidence interval. Types below the threshold are
+    # suppressed (no entry at all) for the same small-n reason breakdowns are.
+    # Aggregate-only invariant holds: values are {"count", "rate", "rate_ci_low",
+    # "rate_ci_high"} — never any per-report datum.
+    rates_by_type: dict[str, dict[str, float]] = field(default_factory=dict)
     quality_flags: tuple[str, ...] = ()
+    # Signed difference (all-records rate minus primary rate, in rate units) reported
+    # only when the all-records rate falls outside the primary rate's confidence
+    # interval — i.e. when excluding low-confidence reports materially moves the rate.
+    # None when the two agree within the interval (the common case).
+    rate_sensitivity_delta: float | None = None
