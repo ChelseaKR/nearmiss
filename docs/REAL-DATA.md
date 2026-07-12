@@ -300,3 +300,8 @@ nearmiss serve   # open web/index.html — the two maps now show real reports
 Steps 1 and 2 are solved today. **Step 3 (exposure) is the remaining real work** — and it is the
 input that distinguishes this project from a dot-map, so it is worth doing properly rather than
 faking.
+
+Last verified: 2026-07-12
+
+Recheck cadence: Quarterly, and before changing any external source URL, field mapping, or access
+claim.

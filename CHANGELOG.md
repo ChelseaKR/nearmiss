@@ -67,6 +67,14 @@ every entry.
   are permanently labeled `demonstration`; `partner_city` requires both measured coverage and an
   explicit partner organization plus review reference, never report volume alone.
 
+### Official outcome schema (`schema/official-outcome.schema.json`)
+
+- **`1.0.0` (2026-07-12)** — initial official road-safety outcome contract. It separates government
+  crash/injury outcomes from contributor intake semantics, requires source identity, date, location,
+  severity and fatality accounting, and constrains fatal severity to a positive fatality count. The
+  separate contract prevents downstream adapters from inventing reporter or hazard fields that an
+  official source does not contain.
+
 ## [0.2.0] - 2026-07-12
 
 Nineteen roadmap items (the whole open PR queue, #29–#61) landed together in this release,
@@ -457,7 +465,7 @@ each will move to `[Unreleased]` (and then to a release) as it actually lands.
 
 ## Schema-versioning policy
 
-The two schemas are versioned independently of the software and of each other; the canonical statement
+The three schemas are versioned independently of the software and of each other; the canonical statement
 lives in [`schema/dataset.schema.md`](schema/dataset.schema.md#7-versioning-and-deprecation-policy).
 Summary:
 
