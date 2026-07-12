@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from .config import Config
+from .contributor import load_tombstones, tombstone_key
 from .errors import ValidationError
 from .loaders import load_reports
 from .validation import validate_report
@@ -21,9 +22,14 @@ def run_intake(config: Config, source: Path | None = None) -> list[dict[str, obj
 
     Returns the validated rows. Raises :class:`ValidationError` listing every
     rejected report rather than silently dropping or accepting bad data.
+
+    Reports whose id has been tombstoned (deleted by a contributor or purged by
+    retention) are skipped, so re-importing an upstream source never resurrects a
+    deleted report (contributor data-rights).
     """
     src = source or config.reports_path
     rows = load_reports(src)
+    tombstoned = load_tombstones(config)
 
     accepted: list[dict[str, object]] = []
     rejections: list[str] = []
@@ -33,6 +39,8 @@ def run_intake(config: Config, source: Path | None = None) -> list[dict[str, obj
             rid = row.get("id", "<no id>")
             rejections.append(f"{rid}: {problems[0]}")
             continue
+        if tombstone_key(row.get("id")) in tombstoned:
+            continue  # deleted/purged: never resurrect it
         accepted.append(row)
 
     if rejections:

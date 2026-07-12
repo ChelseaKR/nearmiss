@@ -169,6 +169,16 @@ def submit(config: Config, report: dict[str, object]) -> Submission:
         raise ValidationError(
             f"submission failed validation ({len(problems)} problem(s))", problems
         )
+    # Refuse to resurrect a report a contributor deleted (or retention purged):
+    # a tombstoned id must not re-enter the queue. Lazy import avoids a cycle
+    # (contributor imports this module).
+    from .contributor import is_tombstoned
+
+    if is_tombstoned(config, report.get("id")):
+        raise NearmissError(
+            f"report {report.get('id')!r} was deleted by its contributor "
+            "(tombstoned); it cannot be re-submitted"
+        )
     queue = _load_queue(config)
     flags = _detect_flags(report, queue)
     submission = Submission(

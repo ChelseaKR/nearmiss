@@ -88,6 +88,50 @@ serverless endpoint itself live at the deployment edge, not in this library.
 They are designed in [`INTAKE-AND-ABUSE.md`](INTAKE-AND-ABUSE.md) §B2–B3, B6 and
 remain the maintainer's open decisions (hosting, identity, moderation SLA).
 
+## Contributor data-rights (export / delete-my-reports / retention)
+
+The consent posture is executable, not just prose. A contributor who kept the
+pseudonymous `reporter_token` they submitted with (see the
+[report schema](../schema/report.schema.json)) can operate on their own data with
+[`nearmiss contributor`](../src/nearmiss/contributor.py):
+
+```
+nearmiss contributor export <reporter_token> --config C [--out FILE]
+nearmiss contributor delete <reporter_token> --config C
+nearmiss contributor purge-expired            --config C   # retention_days window
+```
+
+- **export** scans the private raw store (`data/raw/`), the pending moderation
+  queue, and the approved store, and returns one JSON bundle of every report
+  carrying that token. Read-only.
+- **delete** removes those reports from all three stores (the append-only
+  approved store is *compacted* — rewritten without the deleted rows) and writes
+  **tombstones** to `data/raw/tombstones.json`, keyed by the **SHA-256 of the
+  report id**. Intake and `submit` consult the tombstones, so re-importing the
+  same upstream source (or re-submitting the same id) cannot resurrect a deleted
+  report. The tombstone file holds only hashes — no raw id, no token, no linkage.
+- **purge-expired** enforces a **retention window**: the `retention_days` config
+  field (default `0` = keep forever) tombstone-deletes raw records whose event
+  time is older than the window. Records with an unparseable time are kept
+  (fail-safe — never silently dropped).
+
+> **Auth model — be honest about it: token possession is the *only*
+> authorization.** There is no account, password, or identity check; anyone
+> holding a contributor's `reporter_token` can export or delete that
+> contributor's reports. This is a deliberate trade-off for an account-less,
+> self-service tool. A hosted deployment that needs stronger assurance must add
+> its own authentication in front of this library.
+
+### `make reproduce` after a deletion
+
+`make reproduce` rebuilds the published dataset, figures, and brief from the raw
+inputs and fails if the committed output changed (HR5). **After a contributor
+deletion (or a retention purge) the published artifacts legitimately change** —
+the deleted reports no longer feed aggregation, so segment counts and any
+withholding boundary can shift. That is correct behaviour, not drift: re-run the
+pipeline and commit the new artifacts as the honest, post-deletion published
+state. The CLI prints this reminder after every `delete`.
+
 ## Tests
 
 [`tests/test_moderation.py`](../tests/test_moderation.py) covers the invariant
@@ -95,3 +139,10 @@ remain the maintainer's open decisions (hosting, identity, moderation SLA).
 schema rejection, the flagging heuristics, persistence to the private store, and
 an end-to-end check that an approved submission still passes through k-anonymity
 withholding at publish.
+
+[`tests/test_contributor.py`](../tests/test_contributor.py) covers the
+data-rights tooling: the excellence-bar round trip (submit → approve →
+publish → delete → republish) asserting the published count decrements and that
+the token and ids leave no residue in the queue, approved store, or raw store;
+a tombstone-blocks-reimport (and re-submission) check; and the retention-window
+purge (including the fail-safe for unparseable timestamps).

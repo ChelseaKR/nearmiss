@@ -9,6 +9,7 @@ nearmiss brief     --config C [--out FILE]      # advocacy brief (markdown)
 nearmiss run       --config C                   # intake -> ... -> brief, end to end
 nearmiss submit   <submission.json> --config C  # queue a public submission (PENDING)
 nearmiss moderate  list|approve|reject|export|stats --config C  # review the moderation queue
+nearmiss contributor export|delete|purge-expired --config C  # data-rights (token = auth)
 nearmiss serve     [--dir D] [--port P]         # accessible map + data view (read-only)
 nearmiss version
 """
@@ -24,6 +25,7 @@ from pathlib import Path
 from . import __version__, obs
 from .brief import render_brief
 from .config import Config, load_config
+from .contributor import delete_reports, export_reports, purge_expired
 from .engine import AnalysisBundle, build_analysis
 from .errors import NearmissError
 from .figures import write_figures
@@ -269,6 +271,50 @@ def _cmd_moderate(args: argparse.Namespace) -> int:
     raise NearmissError(f"unknown moderate action {action!r}")  # pragma: no cover
 
 
+def _cmd_contributor(args: argparse.Namespace) -> int:
+    """Contributor data-rights: export / delete "my reports", or purge by retention.
+
+    Authorization is token possession ONLY — there is no account or identity check.
+    """
+    config = load_config(args.config)
+    action = args.action
+    if action == "export":
+        bundle = export_reports(config, args.token)
+        payload = json.dumps(bundle.to_dict(), ensure_ascii=False, indent=2) + "\n"
+        if args.out:
+            out = Path(args.out)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(payload, encoding="utf-8")
+            print(f"contributor: exported {bundle.count} report(s) for this token to {out}")
+        else:
+            print(payload, end="")
+        return 0
+    if action == "delete":
+        d = delete_reports(config, args.token)
+        print(
+            f"contributor: deleted {d.total_removed} report(s) "
+            f"(raw={d.raw_removed} pending={d.pending_removed} approved={d.approved_removed}); "
+            f"wrote {d.tombstones_added} tombstone(s)."
+        )
+        print(
+            "  note: published artifacts legitimately change after deletion; "
+            "re-run `make reproduce` (or `nearmiss run`) to rebuild from the surviving raw records."
+        )
+        return 0
+    if action == "purge-expired":
+        purge = purge_expired(config)
+        if purge.retention_days <= 0:
+            print("contributor: retention disabled (retention_days <= 0); nothing purged.")
+            return 0
+        print(
+            f"contributor: purged {purge.raw_removed} raw record(s) older than "
+            f"{purge.retention_days} day(s) (cutoff {purge.cutoff}); "
+            f"wrote {purge.tombstones_added} tombstone(s)."
+        )
+        return 0
+    raise NearmissError(f"unknown contributor action {action!r}")  # pragma: no cover
+
+
 def _fmt_cell(value: object) -> str:
     """Render one count cell for the terminal: a withheld cell shows as such."""
     return "withheld" if value is None else str(value)
@@ -457,6 +503,47 @@ def build_parser() -> argparse.ArgumentParser:
         "e.g. docs/audits/YYYY-MM-DD-moderation.md",
     )
     p_mod.set_defaults(func=_cmd_moderate)
+
+    p_con = sub.add_parser(
+        "contributor",
+        help="contributor data-rights: export/delete my reports, purge by retention",
+        description=(
+            "Token-based contributor data-rights tooling. AUTH MODEL: token "
+            "possession is the ONLY authorization -- there is no account, password, "
+            "or identity check, so anyone holding a reporter_token can export or "
+            "delete that contributor's reports. Deletion removes the reports from "
+            "the private raw store, the moderation queue, and the approved store, and "
+            "writes tombstones (keyed by SHA-256 of the report id) so a re-import "
+            "cannot resurrect them. Because deletion changes the raw inputs, the "
+            "published artifacts legitimately change: `make reproduce` rebuilds from "
+            "the surviving raw records and its committed outputs are EXPECTED to move "
+            "after a deletion (that is correct behaviour, not drift)."
+        ),
+    )
+    add_config(p_con)
+    con_sub = p_con.add_subparsers(dest="action", required=True)
+    c_export = con_sub.add_parser(
+        "export", help="export every stored report for a reporter_token (token = auth)"
+    )
+    c_export.add_argument("token", help="the contributor's pseudonymous reporter_token")
+    c_export.add_argument("--out", help="write the JSON bundle to a file instead of stdout")
+    c_delete = con_sub.add_parser(
+        "delete",
+        help="delete every stored report for a reporter_token and tombstone their ids",
+        description=(
+            "Delete all reports carrying this reporter_token from the raw store, the "
+            "moderation queue, and the approved store, and tombstone their ids so a "
+            "re-import cannot resurrect them. Token possession is the only auth. "
+            "Published artifacts legitimately change afterward -- re-run `make "
+            "reproduce` to rebuild from the surviving raw records."
+        ),
+    )
+    c_delete.add_argument("token", help="the contributor's pseudonymous reporter_token")
+    con_sub.add_parser(
+        "purge-expired",
+        help="tombstone-delete raw records older than config's retention_days window",
+    )
+    p_con.set_defaults(func=_cmd_contributor)
 
     p_serve = sub.add_parser("serve", help="serve the accessible map + data view (read-only)")
     p_serve.add_argument("--dir", default=".", help="directory to serve (repo root)")

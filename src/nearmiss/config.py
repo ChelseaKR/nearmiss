@@ -58,6 +58,7 @@ _THRESHOLD_KEYS = frozenset(
         "gi_band_m",
         "kde_bandwidth_m",
         "kde_grid",
+        "retention_days",
         "overdispersion_adjust",
     }
 )
@@ -96,6 +97,10 @@ class Config:
     gi_band_m: float = 300.0
     kde_bandwidth_m: float = 150.0
     kde_grid: int = 24
+    # Contributor data-rights: retention window (days) for the PRIVATE raw store.
+    # `nearmiss contributor purge-expired` tombstone-deletes raw records whose
+    # event time is older than this window. 0 disables retention (keep forever).
+    retention_days: int = 0
     # Optional provenance note carried into the brief and the published metadata
     # (e.g. to mark a dataset as synthetic demonstration data).
     dataset_note: str | None = None
@@ -236,12 +241,16 @@ def load_config(path: str | Path) -> Config:
     gi_band_m = thr("gi_band_m", 300.0)
     kde_bandwidth_m = thr("kde_bandwidth_m", 150.0)
     kde_grid = int(thr("kde_grid", 24))
+    retention_days = int(thr("retention_days", 0))
 
     _check_range(cfg_path, 0 < fdr_alpha < 1, "fdr_alpha", fdr_alpha, "0 < fdr_alpha < 1")
     _check_range(cfg_path, min_publish_n >= 2, "min_publish_n", min_publish_n, "min_publish_n >= 2")
     _check_range(cfg_path, small_n >= 1, "small_n", small_n, "small_n >= 1")
     _check_range(cfg_path, confidence_z > 0, "confidence_z", confidence_z, "confidence_z > 0")
     _check_range(cfg_path, kde_grid >= 2, "kde_grid", kde_grid, "kde_grid >= 2")
+    _check_range(
+        cfg_path, retention_days >= 0, "retention_days", retention_days, "retention_days >= 0"
+    )
     _check_range(cfg_path, snap_max_m > 0, "snap_max_m", snap_max_m, "snap_max_m > 0")
     _check_range(
         cfg_path, dedupe_window_s >= 0, "dedupe_window_s", dedupe_window_s, "dedupe_window_s >= 0"
@@ -287,6 +296,7 @@ def load_config(path: str | Path) -> Config:
         gi_band_m=gi_band_m,
         kde_bandwidth_m=kde_bandwidth_m,
         kde_grid=kde_grid,
+        retention_days=retention_days,
         overdispersion_adjust=flag("overdispersion_adjust", False),
         dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),
         window_start=window_start,
