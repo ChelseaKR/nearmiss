@@ -13,6 +13,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
 ---
 
 ### FIX-01 — Land the orphaned research branch onto diverged main
+- **Status:** ✅ Done — the research branch landed on main (RESEARCH-ROADMAP/USER-RESEARCH docs, RR-02 overdispersion, RR-05 MAUP rank-stability are all on `main`).
 - **Pitch:** Reconcile `research-panel-and-roadmap` (commit `6dfabb0`) — RR-02
   overdispersion, RR-05 MAUP module, RESEARCH-ROADMAP.md, USER-RESEARCH.md — with the
   8 commits `main` has gained since, and finish the wiring.
@@ -39,6 +40,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   claims it hasn't.
 
 ### FIX-02 — Network-topology spatial weights for Gi\*
+- **Status:** ✅ Done (PR #50, 2026-07-12) — `network.py` SegmentGraph street-network Gi\* weights; per-city `dataset_version` 0.1.0 -> 0.1.1.
 - **Pitch:** Replace the straight-line centroid distance band in
   `stats/getis_ord.py` with street-network adjacency/network-distance weights built
   from the `streets.geojson` the pipeline already loads.
@@ -66,6 +68,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   to `network.py`.
 
 ### FIX-03 — Claims-parity audit: make every documented method claim CI-checkable
+- **Status:** ✅ Done (PR #35) — docs/CLAIMS.md manifest + `tools/check_claims.py` CI drift gate.
 - **Pitch:** Sweep the doc-over-code drift found on 2026-07-01 (see
   `01-deep-dive.md` item 2), fix each side to match, and add a lightweight
   claims-manifest gate so drift cannot silently recur.
@@ -90,6 +93,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   new drift.
 
 ### FIX-04 — Exposure trust tiers, corroboration, and temporal alignment in the data model
+- **Status:** ✅ Done (PR #53, 2026-07-12) — exposure trust tiers, corroboration/disagreement, `exposure_floor`, `exposure_stale` flag; dataset schema 1.1.0.
 - **Pitch:** Grow `models.Exposure` from `(estimate, source, date)` to the model
   METHODOLOGY §3 actually specifies: trust tier (observed/modeled/proxy), optional
   multiple sources per segment with a corroboration/disagreement finding, an exposure
@@ -142,6 +146,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   running the same config with two windows produces two cleanly-labeled datasets.
 
 ### FIX-06 — Per-hazard-type rate layers (stop the silent union)
+- **Status:** ✅ Done (PR #37, 2026-07-12) — per-hazard-type `rates_by_type` layers with small-n suppression; the pooled top-level rate is labeled a union.
 - **Pitch:** Compute and publish type-specific rates + CIs where n permits, and label
   the current pooled rate explicitly as "all hazard types (union)".
 - **Why it matters:** METHODOLOGY §1 promises "a rate is always computed within a
@@ -163,6 +168,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   union label appears in every artifact that shows the pooled rate.
 
 ### FIX-07 — Quality-tier sensitivity split for the primary rate
+- **Status:** ✅ Done (PR #38, 2026-07-12) — primary rate excludes low-confidence records; `rate_sensitivity_delta` + `excluded_low_confidence_fraction` published.
 - **Pitch:** Exclude `low_accuracy`/`far_snap` records from the primary published
   rate, publish the excluded fraction, and report a sensitivity delta
   (rate-with vs. rate-without flagged records).
@@ -185,6 +191,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   `tests/test_publish_privacy.py`).
 
 ### FIX-08 — Strict config validation
+- **Status:** ✅ Done — strict config validation (`_reject_unknown` on top-level and `[thresholds]` keys, range checks, did-you-mean hints).
 - **Pitch:** Reject unknown config keys and out-of-range thresholds instead of
   silently ignoring them.
 - **Why it matters:** `load_config` (`src/nearmiss/config.py`) drops unknown keys and
@@ -237,6 +244,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   input.
 
 ### FIX-10 — Machine-readable published-dataset schema + contract gate
+- **Status:** ✅ Done (PR #41, 2026-07-12) — `schema/dataset.schema.json` + publish-time validation + `web/contract_check.mjs` consumer-contract CI gate.
 - **Pitch:** Ship the `dataset.schema.json` that `CHANGELOG.md` already claims exists,
   validate both committed GeoJSONs against it in CI, and treat `web/app.js` +
   `web/embed.js` as contract consumers with a fixture-driven test.
@@ -260,6 +268,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   consumer) before it can ship.
 
 ### FIX-11 — Supply-chain completion: hashed CI installs, release automation, signed artifacts
+- **Status:** ✅ Done (PR #51, 2026-07-12) — hashed `--require-hashes` CI installs from `requirements-dev.lock`, single-sourced versions (`versions.py`), tag-triggered release pipeline with SBOM/Sigstore/SLSA/Trusted Publishing.
 - **Pitch:** Make CI install from the committed hashed lock, extend locking to the
   dev toolchain, and automate tag-triggered releases with signing/attestation —
   turning README's "signed releases" and the vendored
@@ -288,6 +297,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   string exists in more than one place.
 
 ### FIX-12 — Spatial indexing for the quadratic cores (keep pure Python)
+- **Status:** ✅ Done — `spatial_index.py` grid index consumed by KDE/Gi\* band queries (now in `honest_rates.spatial_index`).
 - **Pitch:** Grid-bucket spatial index shared by `snap`, `dedupe`, KDE, and Gi\*
   neighbor search, lifting the practical ceiling from ~10³ to ~10⁴–10⁵ segments
   without breaking ADR-0003's no-native-deps rule.
@@ -311,6 +321,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   updated with the new honest ceiling.
 
 ### FIX-13 — Single-source web i18n from the gettext catalogs
+- **Status:** ✅ Done (PR #42, 2026-07-12) — web UI strings single-sourced from the gettext catalogs via `web_i18n.py` + `tools/po2json.py` -> `web/locales/*.json`.
 - **Pitch:** Generate the web UI's translations from the same PO catalogs the brief
   uses, and put the web strings under the `make i18n` parity gate.
 - **Why it matters:** `web/app.js` and `web/submit.js` carry hand-maintained `I18N`
@@ -332,6 +343,7 @@ S ≈ afternoon · M ≈ 1–3 days · L ≈ 1–2 weeks · XL ≈ multi-week.
   catalog.
 
 ### FIX-14 — Numerical hardening + property/metamorphic test harness for the stats core
+- **Status:** ✅ Done — numerical hardening (two-pass Gi\* variance) + hypothesis property/metamorphic suite (`tests/test_stats_properties.py`, `tests/test_stats_numerics.py`).
 - **Pitch:** Replace cancellation-prone formulas, then pin the statistical invariants
   with property-based (Hypothesis) and metamorphic tests — including the
   interval-coverage simulations METHODOLOGY §9.2 currently claims but the suite lacks.

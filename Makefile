@@ -105,7 +105,10 @@ accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
 	@echo "      review — see docs/accessibility/ACR.md (this gate is the floor, not the ceiling)."
 
 security: ## Scan deps (pip-audit), history for secrets (gitleaks), and workflow YAML (zizmor)
-	$(PYTHON) -m pip_audit --strict
+	# Audit dependencies only: the local editable nearmiss install is not a PyPI
+	# release (pip-audit would error on it, and --strict treats a skip as an
+	# error), so audit from the hashed dev lock instead of the live environment.
+	$(PYTHON) -m pip_audit --strict --require-hashes --disable-pip -r requirements-dev.lock
 	@command -v gitleaks >/dev/null 2>&1 \
 		&& gitleaks detect --no-banner --redact --source . \
 		|| echo "security: gitleaks not found (it is a Go binary, not a pip dep); install it to enable the secret scan. CI runs it."
@@ -125,7 +128,7 @@ i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + B
 	# merge-blocker). The normalizer freezes volatile header/flag noise so this is
 	# a meaningful diff, not a flaky timestamp check. Local == CI.
 	$(PYTHON) -m babel.messages.frontend extract -F babel.cfg --no-location \
-		--sort-output --project=$(PACKAGE) --version=0.1.0 \
+		--sort-output --project=$(PACKAGE) --version=0.2.0 \
 		-o src/$(PACKAGE)/locales/messages.pot src/
 	$(PYTHON) tools/i18n_normalize_pot.py src/$(PACKAGE)/locales/messages.pot
 	git diff --exit-code -- src/$(PACKAGE)/locales/messages.pot
