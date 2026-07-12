@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "axe": "node axe_check.mjs index.html && node axe_check.mjs submit.html && node axe_check.mjs embed.html",
+    "rtl": "node rtl_check.mjs index.html && node rtl_check.mjs submit.html && node rtl_check.mjs embed.html",
     "contract": "node contract_check.mjs"
   },
   "devDependencies": {

@@ -31,8 +31,8 @@ PUBLISHED_DIR := data/published
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install lock lint type test accessibility axe security verify \
-        conformance i18n i18n-compile claims \
+.PHONY: help install lock lint type test accessibility axe rtl security verify \
+        conformance i18n i18n-compile i18n-pseudo claims \
         reproduce sensitivity demo teach publish serve bench bikemaps osm-streets real clean mutation
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
@@ -98,6 +98,9 @@ security: ## Scan deps (pip-audit), history for secrets (gitleaks), and workflow
 axe: ## Deeper accessibility check: run axe-core against the built web page (needs node)
 	cd web && npm ci && npm run axe
 
+rtl: ## G10 RTL smoke: load the web pages under dir="rtl" and reject direction-unsafe inline styles (needs node)
+	cd web && npm ci && npm run rtl
+
 i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + BCP-47
 	# G2-lite — regenerate the extraction template and fail if it drifts from the
 	# committed one (so a new/changed user-facing string without a re-extract is a
@@ -119,7 +122,17 @@ i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + B
 	$(PYTHON) tools/po2json.py --check
 	# G3 — BCP 47 / RFC 5646 validity of every authored locale tag.
 	$(PYTHON) tools/check_bcp47.py
-	@echo "i18n: POT current; EN/ES key-parity + completeness; PO + web JSON compile; BCP-47 valid."
+	# G9 — pseudo-locale gate: no gettext bypass / hardcoded string, placeholders survive.
+	$(MAKE) i18n-pseudo PYTHON=$(PYTHON)
+	@echo "i18n: POT current; EN/ES key-parity + completeness; PO + web JSON compile; BCP-47 valid; pseudo-locale gate green."
+
+i18n-pseudo: ## G9 pseudo-locale gate: build the build-only xx catalog and assert no gettext bypass
+	# Generates a machine-pseudo `xx` catalog under build/ (NEVER under
+	# src/nearmiss/locales — it must not ship) and renders the brief through it: any
+	# user-facing string that renders as raw English bypassed gettext. See docs/I18N.md.
+	$(PYTHON) tools/make_pseudolocale.py
+	$(PYTHON) -m pytest -q tests/test_pseudolocale.py
+	@echo "i18n-pseudo: pseudo-locale built (build-only) and the no-bypass gate passed."
 
 i18n-compile: ## Compile the committed PO catalogs to MO (run after editing a .po)
 	msgfmt -o src/$(PACKAGE)/locales/en/LC_MESSAGES/messages.mo \
