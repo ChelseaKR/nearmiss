@@ -133,6 +133,10 @@ segments and withholding low-count segments reduce but do not eliminate the risk
 many reports concentrated near one location whose segments could be linked across the dataset, or from
 an adversary who already knows a candidate address and is only confirming.
 
+For the worked-through re-identification analysis behind this threat — the rare-`hazard_type`-on-a-
+low-traffic-segment attack, the `min_publish_n` and `small_n` parameter rationale, and why the pipeline
+withholds rather than jitters — see [`RE-IDENTIFICATION.md`](RE-IDENTIFICATION.md).
+
 ### T2 — Report spam / poisoning to manipulate hotspots
 
 **Asset:** dataset integrity and the credibility of findings. **Actor:** manipulator / astroturfer.

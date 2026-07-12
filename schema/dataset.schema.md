@@ -23,6 +23,14 @@ top-level [`metadata`](#2-top-level-structure) foreign member. The sidecar
 and the full methods and summary; it is the integrity manifest for the GeoJSON. The plain-language
 [data card](../docs/DATA-CARD.md) lives at `docs/DATA-CARD.md`.
 
+A third, optional file, `<city-slug>.calibration.json`, is written by `nearmiss analyze --calibrate`
+(`src/nearmiss/stats/calibration.py`; see `docs/METHODOLOGY.md` §9.4). It is a per-dataset
+null-calibration artifact: the empirical false-positive rate of the hotspot method, measured by
+label-shuffling this city's own report counts with exposure and geometry held fixed. It carries only
+aggregate statistics (shuffle count, seed, segments tested, mean/max false positives, the resulting
+rate) — never a per-shuffle or per-segment listing — and is absent for a city until `--calibrate` has
+been run for it.
+
 It is written to the same standard as the rest of the project: it should hold up when a skeptical
 traffic engineer pushes back. Every property that carries a risk claim is defined so that the
 [five hard rules](../README.md#hard-rules-enforced-not-aspirational) (referenced below as
@@ -129,7 +137,9 @@ Anything that affects how a rate should be read is mirrored, in full, in the dat
 > GeoJSON does not hash to the recorded `geojson_sha256` is evidence of tampering or drift (**HR5**). The
 > sidecar's top-level fields are `city`, `version`, `schema_version`, `dataset_note`, `license`, `schema`,
 > `data_card`, `methods` (the rate denominator, confidence level, small-n and min-publish-n thresholds,
-> the FDR level, the Getis-Ord band and KDE bandwidth, and the significance statement), `summary`
+> the FDR level, the Getis-Ord band and KDE bandwidth, the significance statement, and a `rate_definition`
+labeling the top-level `rate` as the pooled union across all hazard types with per-type rates in
+`rates_by_type`), `summary`
 > (segment and report counts, `exposure_coverage`, and `excluded_low_confidence_fraction` — the share of
 > snapped reports excluded from the primary rate for low confidence), `report_intensity_peak_segment` (the KDE peak as a
 > **segment id only**, never a coordinate), `geojson_sha256`, and a `privacy` note. The sidecar is held to
@@ -197,7 +207,7 @@ as `exposure_unknown` rather than dropped. The realized join fraction is recorde
 
 | Property | Type | Nullable | Description |
 |---|---|---|---|
-| `rate` | number ≥ 0 | yes | The exposure-normalized risk estimate: reports per unit of exposure, computed by `rates.py` (`report_count` normalized by `exposure_estimate`, using a count model appropriate to the data). Units are documented in the data card and implied by `exposure_source`. **This — not `report_count` — is the danger estimate.** `null` when `exposure_estimate` is `null`. |
+| `rate` | number ≥ 0 | yes | The exposure-normalized risk estimate: reports per unit of exposure, computed by `rates.py` (`report_count` normalized by `exposure_estimate`, using a count model appropriate to the data). Units are documented in the data card and implied by `exposure_source`. **This — not `report_count` — is the danger estimate.** This is the **pooled rate across every hazard type — an explicit union** (all `report_count` reports over the exposure); per-hazard-type rates are published separately in [`rates_by_type`](#45-hazard-type-breakdown). `null` when `exposure_estimate` is `null`. |
 | `rate_ci_low` | number ≥ 0 | yes | Lower bound of the confidence interval on `rate`. |
 | `rate_ci_high` | number ≥ 0 | yes | Upper bound of the confidence interval on `rate`. |
 | `n` | integer ≥ 0 | no | The sample size the interval is computed from (effective number of independent reports after dedupe). `n` is published alongside the interval so a consumer can judge how thin the estimate is; a small `n` with a wide interval is the honest signal that a feature must not be ranked as certain. |
@@ -231,12 +241,16 @@ flag (**HR3**).
 | Property | Type | Nullable | Description |
 |---|---|---|---|
 | `hazard_breakdown` | object | no | Counts of reports at this feature by hazard type, keyed by the closed vocabulary from the intake schema: `close_pass`, `dooring`, `surface_hazard`, `sightline`, `signal`, `debris`, `other`. Values are integers ≥ 0 and sum to `report_count`. Keys with a zero count may be present or omitted; a consumer should treat an absent key as `0`. This describes the *mix of conflict* at a place (a corridor of close passes reads differently from one of surface defects), supporting targeted advocacy without exposing any individual report. |
+| `rates_by_type` | object | no | Per-hazard-type **rate layers**: keyed by the same closed hazard vocabulary as `hazard_breakdown`, each value is an object `{ "count", "rate", "rate_ci_low", "rate_ci_high" }` giving that hazard type's own exposure-normalized rate and 95% confidence interval, computed against the **same** `exposure_estimate` denominator by the same method as the top-level [`rate`](#43-rate-and-uncertainty-hr2). The top-level `rate` is the **pooled union** across all types; these are its per-type decomposition, so a consumer can ask "what is the *close-pass* rate here?" without re-deriving it. `count` is the (integer-valued) number of reports of that type and matches the corresponding `hazard_breakdown` entry. Only hazard types whose own `count` is **at or above** the small-sample threshold (`small_n`) appear; a type below the threshold is **suppressed entirely** (no key), for the same small-n uncertainty and re-identification reasons breakdowns are suppressed. Absent for a feature whose total count is below `small_n` (published as `{}`) or whose `exposure_estimate` is `null`. |
 
-Only **aggregated counts** appear here. Per-report fields — the free-text note, exact time, severity,
-mode at the individual level, heading, reporter token — are **not** present in the published dataset.
-Where a feature's count is below the small-sample threshold (`small_n`), the `hazard_breakdown` is
-**suppressed** and published as an empty object (`{}`), because a mix built from very few reports is both
-uncertain and a re-identification risk; the `low_sample` quality flag (below) also marks such features.
+Only **aggregated counts** appear here and in `rates_by_type`. Per-report fields — the free-text note,
+exact time, severity, mode at the individual level, heading, reporter token — are **not** present in the
+published dataset. Where a feature's count is below the small-sample threshold (`small_n`), the
+`hazard_breakdown` and `rates_by_type` are **suppressed** and published as an empty object (`{}`),
+because a mix built from very few reports is both uncertain and a re-identification risk; the
+`low_sample` quality flag (below) also marks such features. Within a feature that clears the threshold,
+each individual hazard type in `rates_by_type` must *also* clear `small_n` on its own count, so a
+place-plus-type combination is never published from a handful of reports.
 
 ### 4.6 Quality flags
 
@@ -336,6 +350,14 @@ and withholding reduce that risk; they do not erase it. That limitation is named
       "dooring": 3,
       "surface_hazard": 2
     },
+    "rates_by_type": {
+      "close_pass": {
+        "count": 7,
+        "rate": 3.8e-05,
+        "rate_ci_low": 1.52e-05,
+        "rate_ci_high": 7.84e-05
+      }
+    },
     "quality_flags": []
   }
 }
@@ -347,7 +369,10 @@ flag (`getis_ord_significant: true`) marks a statistically significant cluster �
 bias account still applies, so the cluster should be read with the caveat that this corridor may be
 over-represented by commuter reporters, exactly as the brief and data card state it. An empty
 `quality_flags` array means no per-feature caveat was raised, **not** that the feature is unconditionally
-trustworthy.
+trustworthy. The top-level `rate` is the **pooled union** of all 12 reports; `rates_by_type` decomposes
+it, here publishing only `close_pass` (7 reports) because `dooring` (3) and `surface_hazard` (2) each
+fall below `small_n` and are suppressed — so a place-plus-type rate is never built from a handful of
+reports.
 
 A feature with no usable denominator looks different and says so:
 
@@ -370,6 +395,7 @@ A feature with no usable denominator looks different and says so:
     "getis_ord_significant": null,
     "confidence_label": "exposure_unknown",
     "hazard_breakdown": {},
+    "rates_by_type": {},
     "quality_flags": ["exposure_unknown", "low_sample"]
   }
 }

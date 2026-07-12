@@ -24,6 +24,7 @@ from .config import Config
 from .engine import build_analysis, load_city
 from .errors import PrivacyError
 from .models import Report, Segment, SegmentStats
+from .stats.bias import to_metadata as bias_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
 
@@ -68,6 +69,14 @@ def _feature(stat: SegmentStats, segment: Segment) -> dict[str, object]:
             "rate_sensitivity_delta": stat.rate_sensitivity_delta,
             "confidence_label": stat.confidence_label,
             "hazard_breakdown": dict(sorted(stat.hazard_breakdown.items())),
+            # Per-hazard-type rate layers. The ``rate`` above is the pooled rate
+            # across all hazard types (an explicit union); these are the
+            # type-specific exposure-normalized rates, present only for types
+            # whose count clears the small-sample threshold (others suppressed).
+            "rates_by_type": {
+                t: dict(rates_by_type_entry)
+                for t, rates_by_type_entry in sorted(stat.rates_by_type.items())
+            },
             "quality_flags": list(stat.quality_flags),
         },
     }
@@ -156,6 +165,12 @@ def publish(config: Config) -> PublishResult:
     reports = load_city(config).reports
     withheld = sum(1 for s in stats if not s.publishable)
 
+    # Reporting-bias audit (who the dataset over-/under-reports), filtered to the
+    # segments that clear the k-anonymity floor — the same filter the brief applies
+    # — so the web UI can surface it alongside the brief, not only in the artifacts.
+    publishable = {s.segment_id for s in stats if s.publishable}
+    bias_meta = bias_to_metadata(bundle.result.bias, publishable)
+
     # Embed a self-describing metadata member on the FeatureCollection (a GeoJSON
     # foreign member) so the open file carries its own version, license, and
     # privacy/method provenance without a separate fetch. No content hash here
@@ -176,6 +191,10 @@ def publish(config: Config) -> PublishResult:
         "segments_published": len(stats) - withheld,
         "segments_withheld_low_count": withheld,
         "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
+        # Reporting-bias audit (over-/under-represented segments + caveat note), so the
+        # open file — and the web UI that reads this embedded member — carries the "who
+        # is over/under-reported" finding, not only the segment aggregates.
+        "bias": bias_meta,
         "privacy": (
             "Aggregated to public street segments; low-count segments withheld (k-anonymity); "
             "no per-report coordinate, time, reporter, mode, or severity is published."
@@ -220,6 +239,10 @@ def publish(config: Config) -> PublishResult:
                 "model": "quasi-Poisson (Pearson) on the rate/offset model",
                 "adjusted": bundle.result.overdispersion_adjusted,
             },
+            "rate_definition": (
+                "pooled across all hazard types (union); per-type rates in "
+                "rates_by_type where count >= small_n"
+            ),
         },
         "summary": {
             "segments_total": len(bundle.segments),
@@ -249,6 +272,9 @@ def publish(config: Config) -> PublishResult:
             if bundle.result.rank_stability is not None
             else None
         ),
+        # Reporting-bias audit: over-/under-represented segments vs exposure, plus the
+        # caveat that over-representation is not confirmed danger. Publishable ids only.
+        "bias": bias_meta,
         "geojson_sha256": sha,
         "privacy": (
             "Aggregated to public street segments; segments with a non-zero report count below "

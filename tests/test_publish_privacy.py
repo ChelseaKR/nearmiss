@@ -92,6 +92,74 @@ def test_small_n_hazard_breakdown_is_suppressed(bundle: AnalysisBundle) -> None:
     assert props["seg-06"]["hazard_breakdown"] != {}
 
 
+def test_rates_by_type_publishes_type_specific_rate_matching_breakdown(
+    bundle: AnalysisBundle,
+    config: Config,
+) -> None:
+    """A hazard type whose own count clears small_n gets a type-specific rate whose
+    count matches the hazard_breakdown entry (FIX-06 per-hazard-type rate layers)."""
+    props = {_props(f)["segment_id"]: _props(f) for f in _features(_geojson(bundle))}
+    seg = props["seg-03"]  # close_pass=12, surface_hazard=5 (both >= small_n)
+    breakdown = seg["hazard_breakdown"]
+    rbt = seg["rates_by_type"]
+    assert isinstance(breakdown, dict) and isinstance(rbt, dict)
+    # close_pass clears small_n and appears with a real rate + interval.
+    assert "close_pass" in rbt
+    layer = rbt["close_pass"]
+    assert isinstance(layer, dict)
+    # The per-type count equals the corresponding hazard_breakdown count.
+    assert layer["count"] == breakdown["close_pass"]
+    assert layer["rate"] is not None
+    assert layer["rate_ci_low"] <= layer["rate"] <= layer["rate_ci_high"]
+    # Every published per-type count is at or above the small-sample threshold.
+    for entry in rbt.values():
+        assert isinstance(entry, dict)
+        assert entry["count"] >= config.small_n
+
+
+def test_rates_by_type_suppresses_types_below_small_n(
+    bundle: AnalysisBundle,
+    config: Config,
+) -> None:
+    """No hazard type with a count below small_n appears in rates_by_type, even when
+    the segment as a whole is publishable (FIX-06 small-n suppression)."""
+    props = {_props(f)["segment_id"]: _props(f) for f in _features(_geojson(bundle))}
+    seg = props["seg-03"]
+    breakdown = seg["hazard_breakdown"]
+    rbt = seg["rates_by_type"]
+    assert isinstance(breakdown, dict) and isinstance(rbt, dict)
+    # debris=3 is below small_n=5: present in the breakdown, absent from rates_by_type.
+    assert breakdown["debris"] < config.small_n
+    assert "debris" not in rbt
+    # No published type is below the threshold anywhere in the dataset.
+    for p in (_props(f) for f in _features(_geojson(bundle))):
+        rates = p["rates_by_type"]
+        assert isinstance(rates, dict)
+        for t, entry in rates.items():
+            assert isinstance(entry, dict)
+            assert entry["count"] >= config.small_n, f"{t} below small_n leaked"
+
+
+def test_metadata_methods_labels_rate_as_pooled_union(
+    config: Config,
+    tmp_path: object,
+) -> None:
+    """The metadata methods block labels the top-level rate as a pooled union across
+    hazard types, pointing at rates_by_type (FIX-06 explicit union labeling)."""
+    import dataclasses
+    from pathlib import Path
+
+    assert isinstance(tmp_path, Path)
+    result = publish(dataclasses.replace(config, out_dir=tmp_path))
+    meta = json.loads(result.metadata_path.read_text(encoding="utf-8"))
+    methods = meta["methods"]
+    assert isinstance(methods, dict)
+    definition = methods["rate_definition"]
+    assert isinstance(definition, str)
+    assert "union" in definition
+    assert "rates_by_type" in definition
+
+
 def test_published_geojson_is_self_describing(config: Config, tmp_path: object) -> None:
     import dataclasses
     from pathlib import Path
@@ -152,6 +220,55 @@ def test_metadata_window_keys_present_when_unconfigured(config: Config, tmp_path
     meta = json.loads(result.metadata_path.read_text(encoding="utf-8"))
     # Keys are always present (null when unset) so the schema is stable.
     assert meta["window"] == {"start": None, "end": None}
+
+
+def test_metadata_carries_bias_audit_publishable_ids_only(
+    bundle: AnalysisBundle, config: Config, tmp_path: object
+) -> None:
+    """R48: the reporting-bias audit is surfaced in the published metadata (so the web
+    UI can show it), it names only segments that clear the k-anonymity floor, and it
+    leaks no forbidden key or raw coordinate."""
+    import dataclasses
+    from pathlib import Path
+
+    assert isinstance(tmp_path, Path)
+    cfg = dataclasses.replace(config, out_dir=tmp_path)
+    result = publish(cfg)
+
+    published_ids = {_props(f)["segment_id"] for f in _features(_geojson(bundle))}
+    for path_key in ("metadata", "embedded"):
+        if path_key == "metadata":
+            doc = json.loads(result.metadata_path.read_text(encoding="utf-8"))
+            bias = doc["bias"]
+        else:
+            gj = json.loads(result.geojson_path.read_text(encoding="utf-8"))
+            bias = gj["metadata"]["bias"]
+        assert isinstance(bias, dict)
+        # The caveat note is present (it is what keeps the panel honest). It is keyed
+        # "caveat", never "note" — "note" is a forbidden per-report field name.
+        assert "note" not in bias
+        assert isinstance(bias["caveat"], str) and bias["caveat"]
+        over = bias["over_represented"]
+        under = bias["under_represented"]
+        assert isinstance(over, list) and isinstance(under, list)
+        # Only segments that were actually published may be named (same filter the
+        # brief applies) — never a withheld low-count segment.
+        for entry in [*over, *under]:
+            assert set(entry) == {"segment_id", "report_share", "exposure_share"}
+            assert entry["segment_id"] in published_ids
+            assert entry["segment_id"] not in {"seg-04", "seg-08", "seg-11"}
+            # Shares are rounded fractions in [0, 1], never a coordinate or raw count.
+            for share_key in ("report_share", "exposure_share"):
+                share = entry[share_key]
+                assert isinstance(share, float)
+                assert 0.0 <= share <= 1.0
+                assert round(share, 4) == share
+
+    # The whole metadata still passes its own privacy gate with the bias block present.
+    assert_metadata_clean(
+        json.loads(result.metadata_path.read_text(encoding="utf-8")),
+        load_city(config).reports,
+    )
 
 
 def test_committed_configs_keep_moderation_store_gitignored() -> None:
