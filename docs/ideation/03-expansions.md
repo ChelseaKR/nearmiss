@@ -11,6 +11,7 @@ cited and exceeded, and everything respects the panel's anti-features list
 ## H1 — Deepen the core
 
 ### EXP-01 — Publish-time null-calibration panel ("we attacked our own dataset")
+- **Status:** ✅ Done (PR #52, 2026-07-12) — publish-time null-calibration panel (`stats/calibration.py`): seeded label-shuffle false-positive rate published with every dataset.
 - **Pitch:** For every published city, run the full hotspot method against label-
   shuffled and rate-homogenized versions of that city's own data and publish the
   false-positive behavior as a calibration artifact beside the dataset.
@@ -58,6 +59,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   misattributing a ranking shift.
 
 ### EXP-03 — Corridor-level aggregation for advocacy asks
+- **Status:** ✅ Done (PR #55, 2026-07-12) — corridor aggregation published alongside blocks (`<slug>.corridors.geojson`, brief corridor view, `corridor_id` join key).
 - **Pitch:** Merge contiguous significant segments (via FIX-02's street graph) into
   named corridors with corridor-level rates, CIs, and n — the unit council motions
   are actually written in.
@@ -77,6 +79,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   and zero corridors that chain across barriers.
 
 ### EXP-04 — Pluggable source-adapter framework with declarative crosswalks
+- **Status:** ✅ Done (PR #54, 2026-07-12) — SourceAdapter framework + declarative TOML crosswalks; BikeMaps migrated, SimRa adapter landed (`make simra`).
 - **Pitch:** Promote the BikeMaps fetcher pattern into a first-class adapter
   framework — declarative field-crosswalk manifests, per-source provenance and bias
   labels — and land the orphaned SimRa adapter as the second adapter.
@@ -100,6 +103,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   dataset's data card lists per-source report counts and the source's bias label.
 
 ### EXP-05 — Privacy-budgeted segment×time-band release (differential privacy)
+- **Status:** ✅ Done as a gated prototype (PR #56, 2026-07-12) — epsilon-DP segment×time-band mechanism, disabled by default and hard-gated on a recorded privacy-SME sign-off; no real-data release enabled.
 - **Pitch:** Unlock the "dangerous at the 3pm school bell" question that
   `docs/LIMITATIONS.md` currently rules out, by releasing coarse segment ×
   part-of-day counts under a formal ε-DP noise mechanism instead of the current
@@ -121,6 +125,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   signs off on, and published bands whose noise is stated beside every number.
 
 ### EXP-06 — Contributor data-rights tooling
+- **Status:** ✅ Done (PR #29, 2026-07-12) — `nearmiss contributor export|delete|purge-expired` (token-possession auth) + `retention_days` window.
 - **Pitch:** Token-based self-service for contributors: export "my reports," request
   deletion, and an automated retention policy for the private raw store.
 - **Impact:** The consent posture is currently prose (`RR-15` is a *statement*;
@@ -139,6 +144,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   republish shows the count decrement and no residue in any store.
 
 ### EXP-07 — Moderation transparency report
+- **Status:** ✅ Done (PR #65) — `nearmiss moderate stats` privacy-floored transparency report.
 - **Pitch:** Publish per-release counts of submissions received/approved/rejected,
   rejection-reason categories, flag frequencies, and median review latency.
 - **Impact:** The moderation queue (`src/nearmiss/moderation.py`) is a human
@@ -159,6 +165,7 @@ cited and exceeded, and everything respects the panel's anti-features list
 ## H2 — Adjacent capabilities, audiences, integrations
 
 ### EXP-08 — Extract the stats core as a standalone "honest rates" library
+- **Status:** ✅ Done (PR #58, 2026-07-12) — standalone `src/honest_rates/` library (rates, quasi-Poisson dispersion, Gi\*+FDR over a neighbor map, bias shares, fixtures); nearmiss re-exports it.
 - **Pitch:** Package `stats/` (exposure-normalized rates, small-count CIs,
   Gi\*+FDR, bias shares, planted-fixture harness) as an independent, documented
   library for *any* point-event dataset — crime, code-enforcement, wildlife strikes,
@@ -180,6 +187,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   only the extracted library.
 
 ### EXP-09 — Open planted-truth benchmark suite for hotspot methods
+- **Status:** ✅ Done (PR #59, 2026-07-12) — `benchmarks/` planted-truth suite (six frozen regimes) + scorer + nearmiss's own committed scorecards (re-scored under FIX-02 network weights; the reporting-bias trap honestly worsened and SCORECARD.md says so).
 - **Pitch:** Publish a suite of synthetic cities with known ground truth across
   controlled regimes — reporting bias strength, overdispersion φ, MAUP
   sensitivity, exposure error — as a public benchmark any hotspot tool can run.
@@ -224,6 +232,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   five rules; the two committed datasets pass it in CI.
 
 ### EXP-11 — QGIS plugin with honest symbology
+- **Status:** ✅ Done (PR #57, 2026-07-12) — `integrations/qgis/nearmiss_honest` plugin with honest-symbology rules; PyQGIS-free rules/verify modules CI-tested.
 - **Pitch:** A small QGIS plugin that loads any conforming nearmiss GeoJSON with the
   correct visual grammar pre-wired: rate-not-count symbology, CI-labeled tooltips,
   significance as pattern+text, `exposure_unknown` rendered as "unknown," never as
@@ -240,6 +249,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   presentation-ready map that a skeptical traffic engineer cannot fault on labeling.
 
 ### EXP-12 — "How to lie with heat maps" teaching module
+- **Status:** ✅ Done — bilingual "lie with heat maps" teaching notebooks (`notebooks/teaching/`), executed in CI (`make teach`).
 - **Pitch:** A self-contained curriculum built on the decoy fixtures: the same
   reports rendered naively vs. honestly, with exercises (find the decoy; break the
   CI; re-segment and watch a hotspot dissolve) — for journalism programs, civic-data
@@ -258,6 +268,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   busiest street lit up on the left map and not the right one.
 
 ### EXP-13 — Locale scaling kit (pseudo-locale gate, RTL smoke, onboarding path)
+- **Status:** ✅ Done (PR #33, 2026-07-12) — G9 pseudo-locale no-bypass gate, G10 RTL smoke, community-translation runbook.
 - **Pitch:** The machinery to go from 2 locales to N: a pseudo-locale CI check
   (catches concatenation/truncation/hardcoded strings), an RTL smoke test for the web
   view, and a documented community-translation workflow.
@@ -278,6 +289,7 @@ cited and exceeded, and everything respects the panel's anti-features list
 ## H3 — Transformative bets
 
 ### EXP-14 — A governed open near-miss data standard with conformance suite
+- **Status:** ⛔ Open — gated: a governed standard needs real external partners, legal review of data-sharing terms, and an SDO-style process no solo repo can fake (see 04-impact-and-sequencing.md gates).
 - **Pitch:** Promote `schema/dataset.schema.md` + `schema/report.schema.json` into a
   versioned, multi-stakeholder public specification — with the EXP-10 verifier as its
   conformance suite and documented crosswalks to BikeMaps, SimRa, and MMUCC/KABCO
@@ -299,6 +311,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   conformance suite without bilateral coordination.
 
 ### EXP-15 — Federated multi-instance commons (signed, conformant, aggregate-only)
+- **Status:** ⛔ Open — gated on EXP-14 and on real second instances; the signing/conformance building blocks (FIX-11, EXP-10) are now on main.
 - **Pitch:** A static federation index where independent nearmiss instances publish
   signed dataset metadata; a national/regional view is composed *only* from instances
   that pass EXP-10 conformance, showing per-city methods and coverage — never pooled
@@ -319,6 +332,7 @@ cited and exceeded, and everything respects the panel's anti-features list
   number that pools across exposure units.
 
 ### EXP-16 — Pre-registered prospective evaluation of the method itself
+- **Status:** ✅ Done as tooling (PR #60, 2026-07-12) — `nearmiss preregister` / `score-preregistration` freeze-and-score workflow; the prospective evaluation itself is an elapsed-time exercise that now has its mechanism.
 - **Pitch:** The strongest possible honesty move: publicly pre-register, with
   timestamps, which FDR-significant corridors the current dataset flags, then score
   those predictions against the *next* period's independent data (new reports held

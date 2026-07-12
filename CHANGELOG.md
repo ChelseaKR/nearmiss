@@ -33,23 +33,30 @@ never silently repurposed), MAJOR = a breaking change — including **adding a n
 Breaking changes are announced at least one MINOR release ahead with a deprecation window and a stated
 migration path; published artifacts are immutable and hashed and are never rewritten in place.
 
-Releases will be tagged and signed (gitsign) starting with the first actual tagged release; conventional-commit history backs every entry.
+Releases are tagged and Sigstore-signed via the tag-triggered pipeline in
+`.github/workflows/release.yml` (FIX-11), starting with `v0.2.0`; conventional-commit history backs
+every entry.
 
-> **Note (2026-07-05):** `git tag` is currently empty — **no version has ever been tagged, released, or
-> signed.** The `[0.1.0]` entry below records a versioned, verified *milestone* on `main`, not a
-> published release; see the note under its heading. This corrects a prior version of this file that
-> incorrectly stated the release was signed. A tag-triggered release workflow (build, SBOM, keyless
-> cosign signing, SLSA provenance, GitHub Release) that would make "released and signed" literally true
-> does not exist yet and is the top open item toward a real `v0.1.0`.
+> **Note (2026-07-05, updated 2026-07-12):** the 2026-07-05 revision of this note recorded that no
+> version had ever been tagged, released, or signed and that no release workflow existed. FIX-11
+> (#51) landed that workflow — version/tag/CHANGELOG consistency gates, a full `make verify` re-run
+> at the tag, CycloneDX SBOM, keyless Sigstore signing, SLSA provenance, a GitHub Release, and PyPI
+> Trusted Publishing — and `v0.2.0` is the first tag to exercise it. The `[0.1.0]` entry below
+> remains a versioned, verified *milestone* on `main`, never separately tagged or published.
 
 ## [Unreleased]
 
-Changes land here first. The pipeline, statistics, publishing, briefs, accessible web view, and the
-first published dataset specified for `0.1.0` are now **implemented and verified** and have been moved
-into the `[0.1.0]` release below. The items that remain genuinely **not yet implemented** are tracked
-under **Planned** within `0.1.0` (real geocoder adapters, more cities, the deeper axe + manual
-NVDA/VoiceOver audit, reproducible notebooks, a committed hashed `requirements.lock`, and benchmarking);
-each will move here under its own `### Added` entry as it lands.
+Nothing yet — `0.2.0` below drained the entire open roadmap-PR queue on 2026-07-12.
+
+## [0.2.0] - 2026-07-12
+
+Nineteen roadmap items (the whole open PR queue, #29–#61) landed together in this release,
+alongside the moderation transparency report (#65). Statistics: network-true hotspot
+neighborhoods, a primary rate that names its exclusions, per-hazard-type layers, corridor
+aggregation, and a publish-time null calibration. Contracts and supply chain: a
+machine-readable dataset schema with a browser-consumer contract gate, hashed CI installs,
+and this — the first tag-triggered, signed release. See `docs/ideation/README.md` § Status
+ledger for the item-by-item map.
 
 ### Added
 
@@ -72,7 +79,6 @@ each will move here under its own `### Added` entry as it lands.
   [`docs/DATA-CARD.md`](docs/DATA-CARD.md). **Not yet exercised**: no tag has been pushed and PyPI
   Trusted Publishing has not yet been registered for this repository — see the NOTE at the top of
   `release.yml`.
-
 - **Moderation transparency report** (`nearmiss moderate stats`). Publishes an aggregate, privacy-floored
   view of the moderation queue: submission totals by status (pending/approved/rejected), review-flag
   frequencies, rejection-reason **category** counts, and the median review latency in hours
@@ -84,7 +90,6 @@ each will move here under its own `### Added` entry as it lands.
   be anonymous. `--out PATH` writes a dated Markdown (`docs/audits/YYYY-MM-DD-moderation.md` style) or
   JSON artifact. Submissions now carry a `decided_at` timestamp (set on approve/reject; legacy queue
   entries without it load fine and are excluded from latency).
-
 - **FIX-02: network-topology spatial weights for Getis-Ord Gi\*.** `stats/getis_ord.py` previously
   decided Gi\* neighbors with a straight-line (haversine) centroid distance band, contradicting
   METHODOLOGY §8.2's claim that neighbors are "defined on the street network ... not naive
@@ -96,11 +101,64 @@ each will move here under its own `### Added` entry as it lands.
   fixture (two parallel, unconnected streets close in straight-line terms) asserting the network and
   Euclidean answers disagree and the network answer is what is published. See
   `docs/ideation/02-large-scale-fixes.md` FIX-02.
+- **EXP-01: publish-time null-calibration panel** (`stats/calibration.py`, #52). Every publish
+  re-attacks the city's own dataset with seeded label-shuffles (exposure and geometry held fixed) and
+  publishes the hotspot method's empirical false-positive rate alongside the map.
+- **FIX-04: exposure trust tiers, corroboration, floor, and staleness** (#53). Features carry
+  `exposure_tier` (observed/modeled/proxy/unknown) and `exposure_disagreement`; `exposure_floor`
+  keeps a near-zero denominator honest and `exposure_stale` flags an old exposure vintage. Dataset
+  schema `1.1.0` (below).
+- **FIX-06: per-hazard-type rate layers** (#37). `rates_by_type` gives each hazard type clearing the
+  small-n threshold its own exposure-normalized rate + CI; the pooled top-level rate is labeled an
+  explicit union (`methods.rate_definition`).
+- **FIX-07: quality-tier sensitivity split** (#38). The published PRIMARY rate excludes
+  low-confidence (`low_accuracy`/`far_snap`) records; `rate_sensitivity_delta` reports when including
+  them would move the rate outside its interval, and `summary.excluded_low_confidence_fraction`
+  publishes the excluded share.
+- **FIX-09: run manifest + pipeline-stage telemetry** (#40). `publish` drops a gitignored
+  `<slug>.run.json` provenance manifest (input content hashes, stage timings, digest) next to every
+  dataset; `nearmiss.obs` gains stage telemetry.
+- **FIX-10: machine-readable dataset schema + contract gate** (#41). `schema/dataset.schema.json`
+  mirrors the prose contract, `publish` validates every GeoJSON against it before writing, and
+  `web/contract_check.mjs` proves the browser consumer breaks when a required property is dropped.
+- **FIX-13: single-sourced web i18n** (#42). The web UI's strings come from the same gettext
+  catalogs as the brief (`web_i18n.py` registry, `tools/po2json.py` -> `web/locales/<lang>.json`);
+  `app.js`'s hand-maintained translation table is gone.
+- **EXP-03: corridor-level aggregation** (#55). Contiguous, same-street, independently significant
+  blocks merge into named corridors (`<slug>.corridors.geojson` + a brief corridor view), published
+  alongside the block-level dataset with a MAUP transparency note; block features carry a nullable
+  `corridor_id`.
+- **EXP-05: epsilon-DP segment×time-band prototype** (#56), disabled by default and hard-gated on a
+  recorded privacy-SME sign-off (`dp_segment_time` config table; `{"enabled": false}` metadata for
+  every existing config).
+- **EXP-06: contributor data-rights tooling** (#29). `nearmiss contributor export|delete|purge-expired`
+  (authorization = token possession, stated honestly) and a `retention_days` window for the private
+  raw store.
+- **EXP-09: open planted-truth benchmark suite** (#59). `benchmarks/` ships six frozen synthetic
+  regimes with known planted hotspots/decoys/bias traps, a scorer any hotspot tool can run, and
+  nearmiss's own committed scorecards (`benchmarks/SCORECARD.md` — including where it is not perfect).
+- **EXP-10: HR1–HR5 conformance verifier** (#31). `tools/verify_dataset.py` audits any published
+  dataset against the five hard rules; `make conformance` gates every merge on it.
+- **EXP-11: QGIS plugin with honest symbology** (#57). `integrations/qgis/nearmiss_honest` renders
+  the published dataset with rate-not-count symbology, CI + n in tooltips, and exposure-unknown never
+  ranked; its PyQGIS-free rules are CI-tested.
+- **EXP-13: locale scaling kit** (#33). A build-only pseudo-locale gate (G9, no gettext bypass), an
+  RTL layout smoke test (G10), and a translate-only community runbook in `docs/I18N.md`.
+- **EXP-16: pre-registered prospective evaluation tooling** (#60). `nearmiss preregister` freezes
+  flagged corridors to a hashed, timestamped registration with a pre-agreed scoring rule;
+  `nearmiss score-preregistration` scores it against later, held-out data (unevaluable ≠ miss).
+- **R29/R34: per-city threshold-sensitivity + statistical-power notes** (#45).
+  `tools/sensitivity_note.py` publishes `<city>-sensitivity.md` (snapping/dedupe threshold grid and
+  "how many reports until rankable" power notes) with every dataset.
+- Documentation audit and project-scope statement (`docs/DOCUMENTATION-AUDIT.md`,
+  `docs/PROJECT-SCOPE.md`, #61).
 
 ### Changed
 
-- This changes every published `getis_ord_z` / `getis_ord_significant` value (a dataset content
-  change, not a schema change) — see the per-city `dataset_version` bump below.
+- FIX-02 changes every published `getis_ord_z` / `getis_ord_significant` value (a dataset content
+  change, not a schema change) — see the per-city `dataset_version` bump below. The EXP-09 benchmark
+  scorecards are re-scored under the network weights; the reporting-bias regime honestly worsens
+  (67% trap rate, 50% precision) and `benchmarks/SCORECARD.md` documents why.
 - Pluggable `SourceAdapter` framework (`src/nearmiss/adapters/`) with declarative TOML field
   crosswalks (`src/nearmiss/adapters/crosswalks/`), validated at load time against the intake
   schema's closed enums. `tools/fetch_bikemaps.py` is migrated onto it, and the previously-orphaned
@@ -156,6 +214,7 @@ each will move here under its own `### Added` entry as it lands.
 - `davis` and `riverside`: `0.1.0` -> `0.1.1`. Regenerated with FIX-02's network-topology Gi* weights
   (above); every feature's `getis_ord_z` / `getis_ord_significant` may have changed relative to the
   prior `0.1.0` release, though the known-answer fixtures still recover the same planted hotspots.
+
 
 ## [0.1.0] - 2026-06-16 (versioned milestone — not yet tagged or published)
 

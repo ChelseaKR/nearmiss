@@ -125,7 +125,7 @@ i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + B
 	# merge-blocker). The normalizer freezes volatile header/flag noise so this is
 	# a meaningful diff, not a flaky timestamp check. Local == CI.
 	$(PYTHON) -m babel.messages.frontend extract -F babel.cfg --no-location \
-		--sort-output --project=$(PACKAGE) --version=0.1.0 \
+		--sort-output --project=$(PACKAGE) --version=0.2.0 \
 		-o src/$(PACKAGE)/locales/messages.pot src/
 	$(PYTHON) tools/i18n_normalize_pot.py src/$(PACKAGE)/locales/messages.pot
 	git diff --exit-code -- src/$(PACKAGE)/locales/messages.pot
