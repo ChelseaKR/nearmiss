@@ -213,11 +213,19 @@ make install                 # pip install -e ".[dev]" + pre-commit install
 # As a tool, isolated (the packaging/release goal once published)
 pipx install nearmiss
 
-# Planned reproducible path: a generated, hashed lock
+# Reproducible path: install from the committed, hashed lock
 python -m pip install --require-hashes -r requirements.lock
-# requirements.lock is produced by `make lock` (pip-compile --generate-hashes); it is a generated
-# artifact and is not committed yet — `pip install -e ".[dev]"` is the install that works today.
+# requirements.lock is committed at the repo root and carries pinned, hashed versions (produced by
+# `make lock`, pip-compile --generate-hashes); it covers the runtime dependency tree. CI does not
+# yet install with --require-hashes (that hardening is planned), so `pip install -e ".[dev]"`
+# remains the install the gates use today.
 ```
+
+<!-- claim:lockfile-committed-hashed -->
+The hashed `requirements.lock` is committed at the repo root (pinned, `--hash=sha256` for every
+runtime dependency). Installing from it with `--require-hashes` in CI is a planned hardening; the
+gates today install with `pip install -e ".[dev]"`.
+<!-- /claim:lockfile-committed-hashed -->
 
 A container image and a one-command serverless intake deploy are described in
 [`infra/`](infra/). Configuration — cities, exposure sources, thresholds, and the minimum-occupancy
@@ -246,6 +254,10 @@ nearmiss pipeline --config config/davis-demo.toml [--dump]  # --dump prints the 
 
 # Attach exposure denominators and compute exposure-normalized rates with intervals
 nearmiss analyze --config config/davis-demo.toml            # rates + CIs + bias + KDE + Gi* + time-of-day
+
+# "We attacked our own dataset": label-shuffle this city's own counts (exposure and
+# geometry held fixed) and publish the method's empirical false-positive rate
+nearmiss analyze --config config/davis-demo.toml --calibrate   # writes <slug>.calibration.json
 
 # Public crowdsourced submissions: queue one for review, then moderate it in
 nearmiss submit submission.json --config config/davis-demo.toml      # -> PENDING (private)
@@ -541,9 +553,13 @@ optional, local, read-only server; the live public site is static hosting. Tiers
 distributed tracing, metrics/SLO dashboards, burn-rate alerting) are **out of scope at this tier** — there
 is no always-on distributed service to trace or alert on. What Tier C requires, and what's shipped:
 
-- **Structured logs.** `src/nearmiss/obs.py` emits structured JSON lines (timestamp, level, message,
-  service, `request_id`, latency) on intake and every pipeline stage; rebuilds report coverage and
+- **Structured logs.**
+  <!-- claim:obs-intake-only -->
+  `src/nearmiss/obs.py` emits structured JSON lines (timestamp, level, message, service, `request_id`,
+  latency) for the read-only server's request intake ([`src/nearmiss/server.py`](src/nearmiss/server.py));
+  per-pipeline-stage instrumentation is planned, not yet wired. Rebuilds report coverage and
   quality-flag counts.
+  <!-- /claim:obs-intake-only -->
 - **No secrets or PII in logs.** The read-only server ([`src/nearmiss/server.py`](src/nearmiss/server.py))
   emits one JSON line per request (method, status, latency, `request_id`, and a **redacted** path — a
   protected `data/raw/` or dotfile target collapses to `<blocked>`) — hard rule #4 (contributor privacy)

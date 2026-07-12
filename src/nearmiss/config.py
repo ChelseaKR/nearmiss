@@ -11,12 +11,56 @@ new city is a new config plus an exposure layer — no code change
 from __future__ import annotations
 
 import datetime
+import difflib
 import json
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .errors import ConfigError
+
+# Every key the loader understands. Anything else is a typo (e.g. "fdr_aplha")
+# that would otherwise silently fall back to a default — so we reject it loudly.
+_TOP_KEYS = frozenset(
+    {
+        "city",
+        "streets",
+        "reports",
+        "exposure",
+        "raw_dir",
+        "out_dir",
+        "submissions_dir",
+        "ref_lat",
+        "ref_lon",
+        "gazetteer",
+        "weather",
+        "geocoder",
+        "geocoder_user_agent",
+        "exposure_unit",
+        "dataset_note",
+        "thresholds",
+        # FIX-05: optional [window] table (ISO start/end, validated in _parse_window).
+        "window",
+        # RR-02: overdispersion adjustment flag may live top-level or in [thresholds].
+        "overdispersion_adjust",
+    }
+)
+_THRESHOLD_KEYS = frozenset(
+    {
+        "snap_max_m",
+        "dedupe_window_s",
+        "dedupe_distance_m",
+        "small_n",
+        "min_publish_n",
+        "rate_per",
+        "confidence_z",
+        "fdr_alpha",
+        "gi_band_m",
+        "kde_bandwidth_m",
+        "kde_grid",
+        "overdispersion_adjust",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -79,6 +123,39 @@ def _coerce_flag(raw_val: object) -> bool:
     return bool(raw_val)
 
 
+def _load_data(cfg_path: Path) -> dict[str, object]:
+    """Read and parse the TOML (or JSON) config file, with a clear load error."""
+    try:
+        if cfg_path.suffix == ".json":
+            data: dict[str, object] = json.loads(cfg_path.read_text(encoding="utf-8"))
+        else:
+            data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    except (tomllib.TOMLDecodeError, json.JSONDecodeError) as exc:
+        raise ConfigError(f"invalid config {cfg_path}: {exc}") from exc
+    return data
+
+
+def _reject_unknown(cfg_path: Path, keys: set[str], allowed: frozenset[str], where: str) -> None:
+    """FIX-08: fail loudly on unknown keys, with a did-you-mean hint."""
+    unknown = keys - allowed
+    if not unknown:
+        return
+    parts = []
+    for key in sorted(unknown):
+        close = difflib.get_close_matches(key, allowed, n=1)
+        hint = f" (did you mean {close[0]!r}?)" if close else ""
+        parts.append(f"unknown {where} key {key!r}{hint}")
+    raise ConfigError(f"config {cfg_path}: " + "; ".join(parts))
+
+
+def _check_range(cfg_path: Path, ok: bool, key: str, value: object, requirement: str) -> None:
+    """FIX-08: fail loudly on an out-of-range threshold."""
+    if not ok:
+        raise ConfigError(
+            f"config {cfg_path}: threshold {key!r} = {value!r} out of range ({requirement})"
+        )
+
+
 def _parse_window(data: dict[str, object], cfg_path: Path) -> tuple[str | None, str | None]:
     """Parse and validate the optional ``[window]`` table (ISO dates, ordered).
 
@@ -116,13 +193,7 @@ def load_config(path: str | Path) -> Config:
     if not cfg_path.is_file():
         raise ConfigError(f"config file not found: {cfg_path}")
     base = cfg_path.parent
-    try:
-        if cfg_path.suffix == ".json":
-            data: dict[str, object] = json.loads(cfg_path.read_text(encoding="utf-8"))
-        else:
-            data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
-    except (tomllib.TOMLDecodeError, json.JSONDecodeError) as exc:
-        raise ConfigError(f"invalid config {cfg_path}: {exc}") from exc
+    data = _load_data(cfg_path)
 
     def need(key: str) -> str:
         if key not in data:
@@ -131,6 +202,9 @@ def load_config(path: str | Path) -> Config:
 
     th = data.get("thresholds", {})
     th = th if isinstance(th, dict) else {}
+
+    _reject_unknown(cfg_path, set(data), _TOP_KEYS, "[top-level]")
+    _reject_unknown(cfg_path, set(th), _THRESHOLD_KEYS, "[thresholds]")
 
     def num(value: object, key: str) -> float:
         try:
@@ -151,6 +225,40 @@ def load_config(path: str | Path) -> Config:
     # analysis period (validated in _parse_window).
     window_start, window_end = _parse_window(data, cfg_path)
 
+    snap_max_m = thr("snap_max_m", 25.0)
+    dedupe_window_s = int(thr("dedupe_window_s", 600))
+    dedupe_distance_m = thr("dedupe_distance_m", 15.0)
+    small_n = int(thr("small_n", 5))
+    min_publish_n = int(thr("min_publish_n", 3))
+    rate_per = thr("rate_per", 1000.0)
+    confidence_z = thr("confidence_z", 1.96)
+    fdr_alpha = thr("fdr_alpha", 0.05)
+    gi_band_m = thr("gi_band_m", 300.0)
+    kde_bandwidth_m = thr("kde_bandwidth_m", 150.0)
+    kde_grid = int(thr("kde_grid", 24))
+
+    _check_range(cfg_path, 0 < fdr_alpha < 1, "fdr_alpha", fdr_alpha, "0 < fdr_alpha < 1")
+    _check_range(cfg_path, min_publish_n >= 2, "min_publish_n", min_publish_n, "min_publish_n >= 2")
+    _check_range(cfg_path, small_n >= 1, "small_n", small_n, "small_n >= 1")
+    _check_range(cfg_path, confidence_z > 0, "confidence_z", confidence_z, "confidence_z > 0")
+    _check_range(cfg_path, kde_grid >= 2, "kde_grid", kde_grid, "kde_grid >= 2")
+    _check_range(cfg_path, snap_max_m > 0, "snap_max_m", snap_max_m, "snap_max_m > 0")
+    _check_range(
+        cfg_path, dedupe_window_s >= 0, "dedupe_window_s", dedupe_window_s, "dedupe_window_s >= 0"
+    )
+    _check_range(
+        cfg_path,
+        dedupe_distance_m >= 0,
+        "dedupe_distance_m",
+        dedupe_distance_m,
+        "dedupe_distance_m >= 0",
+    )
+    _check_range(cfg_path, rate_per > 0, "rate_per", rate_per, "rate_per > 0")
+    _check_range(cfg_path, gi_band_m > 0, "gi_band_m", gi_band_m, "gi_band_m > 0")
+    _check_range(
+        cfg_path, kde_bandwidth_m > 0, "kde_bandwidth_m", kde_bandwidth_m, "kde_bandwidth_m > 0"
+    )
+
     return Config(
         city=need("city"),
         streets_path=_resolve(base, need("streets")),
@@ -168,18 +276,18 @@ def load_config(path: str | Path) -> Config:
             data.get("geocoder_user_agent", "nearmiss/0.1 (+https://github.com/ChelseaKR/nearmiss)")
         ),
         exposure_unit=str(data.get("exposure_unit", "exposure units")),
-        snap_max_m=thr("snap_max_m", 25.0),
-        dedupe_window_s=int(thr("dedupe_window_s", 600)),
-        dedupe_distance_m=thr("dedupe_distance_m", 15.0),
-        small_n=int(thr("small_n", 5)),
-        min_publish_n=int(thr("min_publish_n", 3)),
-        rate_per=thr("rate_per", 1000.0),
-        confidence_z=thr("confidence_z", 1.96),
+        snap_max_m=snap_max_m,
+        dedupe_window_s=dedupe_window_s,
+        dedupe_distance_m=dedupe_distance_m,
+        small_n=small_n,
+        min_publish_n=min_publish_n,
+        rate_per=rate_per,
+        confidence_z=confidence_z,
+        fdr_alpha=fdr_alpha,
+        gi_band_m=gi_band_m,
+        kde_bandwidth_m=kde_bandwidth_m,
+        kde_grid=kde_grid,
         overdispersion_adjust=flag("overdispersion_adjust", False),
-        fdr_alpha=thr("fdr_alpha", 0.05),
-        gi_band_m=thr("gi_band_m", 300.0),
-        kde_bandwidth_m=thr("kde_bandwidth_m", 150.0),
-        kde_grid=int(thr("kde_grid", 24)),
         dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),
         window_start=window_start,
         window_end=window_end,

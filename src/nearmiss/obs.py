@@ -1,13 +1,22 @@
-"""Structured JSON logging for the nearmiss read-only server.
+"""Structured JSON logging for the nearmiss read-only server AND the pipeline CLI.
 
-The server emits one JSON object per line to a stream (stdout by default):
+Two callers share this one logger. The read-only server emits one JSON object per
+request:
 
     {"ts":"2026-06-30T18:00:00+00:00","level":"info","msg":"request",
      "service":"nearmiss","request_id":"...","method":"GET",
      "path":"/web/index.html","status":200,"latency_ms":1.2}
 
-This is the small, opt-in JSON logger the Observability Standard asks of a
-Tier-C library/CLI. It is deliberately dependency-free (standard library only),
+and the ``nearmiss run`` pipeline command emits one line per pipeline stage:
+
+    {"ts":"...","level":"info","msg":"stage","service":"nearmiss",
+     "stage":"pipeline","counts":{"reports_in":42,...},"ms":3.1}
+
+so intake-through-publish telemetry lands on the same structured stream (the
+counts mirror the deterministic provenance section of the run manifest; ``ms`` is
+the wall-time sidecar). This is the small, opt-in JSON logger the Observability
+Standard asks of a Tier-C library/CLI. It is deliberately dependency-free
+(standard library only),
 matching this project's minimal-runtime-dependency posture (see ``pyproject``:
 the only runtime dependency is ``jsonschema``); OTel tracing/metrics are
 out-of-scope for a local-only CLI with no long-lived network surface.

@@ -58,3 +58,22 @@ def test_small_n_segments_are_marked_uncertain(bundle: AnalysisBundle) -> None:
     # seg-01 has n=2 (< small_n=5) -> uncertain; seg-06 has n=6 -> certain.
     assert by_id["seg-01"].confidence_label == "uncertain"
     assert by_id["seg-06"].confidence_label == "certain"
+
+
+def test_getis_ord_runs_on_pooled_rate_not_per_type_layers(bundle: AnalysisBundle) -> None:
+    """FIX-06: adding per-hazard-type rate layers must not change the Gi* hotspot
+    statistic, which is still computed on the pooled (union) exposure-normalized
+    rate. The planted hotspot seg-06 stays the flagged cluster with the max z, and
+    it carries NO per-type layer (each of its types is below small_n) — proof the
+    two surfaces are independent."""
+    by_id = {s.segment_id: s for s in bundle.result.segments}
+    hot = by_id["seg-06"]
+    # Gi* verdict unchanged: seg-06 is significant with the maximum z-score.
+    assert hot.significant
+    zed = {s.segment_id: (s.getis_ord_z or 0.0) for s in bundle.result.segments}
+    assert zed["seg-06"] >= max(zed.values())
+    assert zed["seg-06"] > 1.96
+    # The hotspot's top-level rate is the pooled union over ALL its reports, and it
+    # publishes no per-type layer (its per-type counts are each below small_n).
+    assert hot.rate is not None
+    assert hot.rates_by_type == {}

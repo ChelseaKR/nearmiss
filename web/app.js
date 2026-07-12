@@ -494,6 +494,68 @@
     el.textContent = tpl(t("blSummary"), { hot: hot.length, n: dataRows.length, list: top });
   }
 
+  // R48 — surface the reporting-bias audit (bias.py) in the UI, not only in the
+  // brief and data artifacts: the caveat note verbatim, then who the dataset
+  // over- and under-reports relative to exposure. Driven entirely by the dataset's
+  // own embedded metadata (meta.bias); the whole panel stays hidden when that is
+  // absent, so an older dataset degrades gracefully.
+  function applyBias() {
+    var section = document.getElementById("bias-panel");
+    if (!section) return;
+    var bias = meta && meta.bias;
+    var over = (bias && bias.over_represented) || [];
+    var under = (bias && bias.under_represented) || [];
+    if (!bias || (!over.length && !under.length)) {
+      section.hidden = true;
+      return;
+    }
+    var nameById = {};
+    rows.forEach(function (p) {
+      nameById[p.segment_id] = p.name || p.segment_id;
+    });
+    var noteEl = document.getElementById("bias-note");
+    if (noteEl) noteEl.textContent = bias.caveat || "";
+    fillBiasList("bias-over", "bias-over-h", over, nameById);
+    fillBiasList("bias-under", "bias-under-h", under, nameById);
+    section.hidden = false;
+  }
+
+  // Render one bias list (over- or under-represented) and hide its heading+list
+  // when that side is empty. Each segment links to its row in the authoritative
+  // table (R20), and shares are shown as percentages — no coordinate or raw count.
+  function fillBiasList(listId, headingId, items, nameById) {
+    var ul = document.getElementById(listId);
+    var heading = document.getElementById(headingId);
+    if (!ul) return;
+    ul.textContent = "";
+    var empty = !items || !items.length;
+    if (heading) heading.hidden = empty;
+    ul.hidden = empty;
+    if (empty) return;
+    items.forEach(function (it) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = "#seg-" + it.segment_id;
+      a.textContent = nameById[it.segment_id] || it.segment_id;
+      li.appendChild(a);
+      li.appendChild(
+        document.createTextNode(
+          " — " +
+            tpl(t("bias_shares"), {
+              rshare: pct(it.report_share),
+              eshare: pct(it.exposure_share),
+            })
+        )
+      );
+      ul.appendChild(li);
+    });
+  }
+
+  function pct(share) {
+    if (share === null || share === undefined) return t("none");
+    return (Number(share) * 100).toFixed(1) + "%";
+  }
+
   // R22 — point the download link at whatever dataset is actually loaded, and
   // name it (city, version, segment count) so people know what they're getting.
   function applyDownload() {
@@ -562,6 +624,100 @@
     });
   }
 
+  // R23: stamp the "generated on" date (and city, when known) into the print-only
+  // header and footer, in the active language. Called on load, on language switch,
+  // and again just before printing.
+  function stampPrintMeta() {
+    var now = new Date();
+    var dateStr;
+    try {
+      dateStr = now.toLocaleDateString(lang === "es" ? "es" : "en", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (e) {
+      dateStr = now.toISOString().slice(0, 10);
+    }
+    var city = meta && meta.city ? meta.city : "";
+    var text = city ? city + " · " + dateStr : dateStr;
+    ["print-generated", "print-generated-footer"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = text;
+    });
+  }
+
+  // R23: council-ready print / save-as-PDF. No external PDF library — the print
+  // stylesheet does the layout. Here we (1) force the map view to "both" and clear
+  // the table filter so the printout is the complete equivalent of the data, (2)
+  // invalidate both Leaflet map sizes so tiles re-render at the print dimensions,
+  // then restore the prior view/filter after printing.
+  function wirePrint() {
+    var btn = document.getElementById("print-btn");
+    if (!btn) return;
+    var saved = null;
+
+    function beforePrint() {
+      if (saved) return; // guard against beforeprint + matchMedia both firing
+      var split = document.querySelector(".map-split");
+      var filterInput = document.getElementById("table-filter");
+      saved = {
+        view: split ? split.getAttribute("data-view") : null,
+        filter: filterText,
+        filterValue: filterInput ? filterInput.value : "",
+      };
+      if (split) split.setAttribute("data-view", "both");
+      if (filterText) {
+        filterText = "";
+        if (filterInput) filterInput.value = "";
+        renderTable();
+      }
+      stampPrintMeta();
+      if (maps.reports) {
+        maps.reports.invalidateSize();
+        maps.rate.invalidateSize();
+      }
+    }
+
+    function afterPrint() {
+      if (!saved) return;
+      var split = document.querySelector(".map-split");
+      var filterInput = document.getElementById("table-filter");
+      if (split && saved.view) split.setAttribute("data-view", saved.view);
+      if (saved.filter) {
+        filterText = saved.filter;
+        if (filterInput) filterInput.value = saved.filterValue;
+        renderTable();
+      }
+      if (maps.reports) {
+        setTimeout(function () {
+          maps.reports.invalidateSize();
+          maps.rate.invalidateSize();
+        }, 0);
+      }
+      saved = null;
+    }
+
+    // The print lifecycle (button, Ctrl/Cmd+P, browser menu) is observed via both
+    // beforeprint/afterprint and matchMedia('print'); engines vary in which fire,
+    // and the `saved` guard makes a double-fire idempotent.
+    window.addEventListener("beforeprint", beforePrint);
+    window.addEventListener("afterprint", afterPrint);
+    if (window.matchMedia) {
+      var mql = window.matchMedia("print");
+      var onChange = function (m) {
+        if (m.matches) beforePrint();
+        else afterPrint();
+      };
+      if (mql.addEventListener) mql.addEventListener("change", onChange);
+      else if (mql.addListener) mql.addListener(onChange);
+    }
+
+    btn.addEventListener("click", function () {
+      window.print();
+    });
+  }
+
   function wireLangSwitch() {
     document.querySelectorAll(".lang-switch button").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -574,7 +730,9 @@
           applyProvenance();
           applyHotspotSummary();
           applyBottomLine();
+          applyBias();
           applyDownload();
+          stampPrintMeta();
           if (rows.length) {
             renderTable();
             renderMaps();
@@ -618,8 +776,10 @@
   wireSorting();
   wireFilter();
   wireMapToggle();
+  wirePrint();
   wireLangSwitch();
   wireShareCard();
+  stampPrintMeta();
 
   i18n
     .load("en")
@@ -644,9 +804,11 @@
       renderMaps();
       applyHotspotSummary();
       applyBottomLine();
+      applyBias();
       applyDownload();
       var shareBtn = document.getElementById("share-card-btn");
       if (shareBtn && window.NearmissShareCard) shareBtn.disabled = false;
+      stampPrintMeta();
     })
     .catch(function (e) {
       fail(e.message);

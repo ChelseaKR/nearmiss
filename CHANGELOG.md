@@ -14,10 +14,15 @@ release so a schema change is never buried in a code change:
 
 - **Intake report schema** — `schema/report.schema.json`, currently `1.0.0`. The intake contract for
   precise, pre-aggregation reports. Carried per payload in the `schema_version` field.
-- **Published dataset schema** — `schema/dataset.schema.md` (and its mirroring JSON Schema validated
-  in CI), currently `1.0.0`. The contract for the open per-city
-  `data/published/<city-slug>.geojson` artifact (e.g. `davis.geojson`).
-  Carried per file in `metadata.schema_version`.
+<!-- claim:dataset-schema-prose -->
+- **Published dataset schema** — `schema/dataset.schema.md`, currently `1.0.0`. The contract for the
+  open per-city `data/published/<city-slug>.geojson` artifact (e.g. `davis.geojson`).
+  Carried per file in `metadata.schema_version`. This contract is **prose only**
+  (`schema/dataset.schema.md`); a machine-readable JSON Schema mirror validated in CI is **planned,
+  not yet committed** (only `schema/report.schema.json`, the intake contract, is a JSON Schema today).
+  [Correction: an earlier revision of this entry claimed a "mirroring JSON Schema validated in CI"
+  for the dataset — that JSON Schema does not exist yet; the dataset contract is the prose file.]
+<!-- /claim:dataset-schema-prose -->
 
 Both schemas follow the **versioning and deprecation policy** in
 [`schema/dataset.schema.md`](schema/dataset.schema.md#7-versioning-and-deprecation-policy), summarized
@@ -44,6 +49,20 @@ into the `[0.1.0]` release below. The items that remain genuinely **not yet impl
 under **Planned** within `0.1.0` (real geocoder adapters, more cities, the deeper axe + manual
 NVDA/VoiceOver audit, reproducible notebooks, a committed hashed `requirements.lock`, and benchmarking);
 each will move here under its own `### Added` entry as it lands.
+
+### Added
+
+- **Moderation transparency report** (`nearmiss moderate stats`). Publishes an aggregate, privacy-floored
+  view of the moderation queue: submission totals by status (pending/approved/rejected), review-flag
+  frequencies, rejection-reason **category** counts, and the median review latency in hours
+  (`received_at` → `decided_at`). Rejection free text is never emitted — a small fixed taxonomy
+  (`duplicate`, `spam`, `identifier-leak`, `invalid-location`, `off-topic`, `other`) buckets it first.
+  Every per-cell count passes through the same k-anonymity floor as the published map data
+  (`min_publish_n`, default 3): a non-zero cell below the floor is withheld (`null`) and tallied under
+  `withheld_cells`, so "how many did not make it" stays explicit without exposing a group too small to
+  be anonymous. `--out PATH` writes a dated Markdown (`docs/audits/YYYY-MM-DD-moderation.md` style) or
+  JSON artifact. Submissions now carry a `decided_at` timestamp (set on approve/reject; legacy queue
+  entries without it load fine and are excluded from latency).
 
 ### Intake report schema (`schema/report.schema.json`)
 

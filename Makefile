@@ -32,7 +32,7 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lint type test accessibility axe security verify \
-        i18n i18n-compile \
+        i18n i18n-compile claims \
         reproduce demo teach publish serve bench bikemaps osm-streets real clean mutation
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
@@ -130,8 +130,15 @@ i18n-compile: ## Compile the committed PO catalogs to MO (run after editing a .p
 	$(PYTHON) tools/po2json.py
 	@echo "i18n-compile: refreshed messages.mo (en, es) and web/locales/*.json."
 
-verify: lint type test accessibility security i18n ## Full merge gate: lint + type + test + accessibility + security + i18n
-	@echo "verify: all merge gates green (lint, type, test, accessibility, security, i18n)."
+claims: ## Claims-parity gate: docs/CLAIMS.md manifest <-> doc claim tags <-> witnesses
+	# Every load-bearing accuracy claim in the prose docs is a matched
+	# <!-- claim:ID --> pair listed in docs/CLAIMS.md with a witness file/test;
+	# this fails on drift in either direction (tagged-but-unlisted, or a listed
+	# claim whose tag/witness went missing). Local == CI.
+	$(PYTHON) tools/check_claims.py
+
+verify: lint type test accessibility security i18n claims ## Full merge gate: lint + type + test + accessibility + security + i18n + claims
+	@echo "verify: all merge gates green (lint, type, test, accessibility, security, i18n, claims)."
 
 mutation: ## ADVISORY (never a merge gate): mutation-test the spatial-stats core with mutmut
 	@echo "mutation: ADVISORY ONLY — this is NOT part of 'make verify' and never gates a PR"
