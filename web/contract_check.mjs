@@ -25,6 +25,8 @@ const here = dirname(fileURLToPath(import.meta.url)); // web/
 const repoRoot = join(here, "..");
 const INDEX = join(here, "index.html");
 const APP_JS = join(here, "app.js");
+const I18N_JS = join(here, "i18n.js");
+const LOCALES_DIR = join(here, "locales");
 const FIXTURE = join(repoRoot, "data", "published", "davis.geojson");
 const SCHEMA = join(repoRoot, "schema", "dataset.schema.json");
 
@@ -95,6 +97,7 @@ function without(geojson, prop) {
 async function render(geojson) {
   const html = readFileSync(INDEX, "utf-8");
   const appSource = readFileSync(APP_JS, "utf-8");
+  const i18nSource = readFileSync(I18N_JS, "utf-8");
   const dom = new JSDOM(html, {
     runScripts: "outside-only",
     pretendToBeVisual: true,
@@ -102,8 +105,20 @@ async function render(geojson) {
     virtualConsole: new VirtualConsole(),
   });
   const { window } = dom;
-  window.fetch = () =>
-    Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(clone(geojson)) });
+  // app.js fetches both the dataset and the web locale catalogs (FIX-13's
+  // single-sourced translations); serve the committed catalogs for locales/*
+  // and the fixture under test for everything else.
+  window.fetch = (url) => {
+    const target = String(url);
+    const locale = target.match(/locales\/([a-z]{2,3})\.json$/);
+    if (locale) {
+      const raw = JSON.parse(readFileSync(join(LOCALES_DIR, `${locale[1]}.json`), "utf-8"));
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(raw) });
+    }
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(clone(geojson)) });
+  };
+  // i18n.js loads first in index.html and app.js depends on window.NearmissI18n.
+  window.eval(i18nSource);
   window.eval(appSource);
   // Flush the fetch().then().then() microtask chain.
   await new Promise((r) => setTimeout(r, 0));
