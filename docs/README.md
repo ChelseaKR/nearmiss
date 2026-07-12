@@ -1,0 +1,30 @@
+# NearMiss Docs
+
+This index is the handoff point for the documentation sweep last reviewed on 2026-07-08. It keeps the project map, audit record, and main operating docs in one place.
+
+## Documentation Audit
+
+- [Project scope](PROJECT-SCOPE.md) names the product, users, code and data surfaces, safety boundaries, and out-of-scope items.
+- [Documentation audit](DOCUMENTATION-AUDIT.md) records the inventory, link check, findings, and remediations from this sweep.
+
+## Primary Docs
+
+- [Readme](../README.md)
+- [Project Scope](PROJECT-SCOPE.md)
+- [Documentation Audit](DOCUMENTATION-AUDIT.md)
+- [Responsible Tech Audits](RESPONSIBLE-TECH-AUDITS.md)
+- [Security](../SECURITY.md)
+- [Contributing](../CONTRIBUTING.md)
+- [I18N](I18N.md)
+- [Accessibility](ACCESSIBILITY.md)
+- [Accessibility](accessibility.md)
+- [Adapting](ADAPTING.md)
+- [Data Card](DATA-CARD.md)
+- [Dpia](DPIA.md)
+- [Intake And Abuse](INTAKE-AND-ABUSE.md)
+- [Limitations](LIMITATIONS.md)
+- [Methodology](METHODOLOGY.md)
+- [Mutation Testing](MUTATION-TESTING.md)
+- [Performance](PERFORMANCE.md)
+- [Real Data](REAL-DATA.md)
+- [Submissions](SUBMISSIONS.md)
