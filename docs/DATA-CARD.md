@@ -162,9 +162,11 @@ feature is a GeoJSON `LineString` (the public street centerline) whose `properti
 | `name`                   | string                                                                   | Human-readable street-block name for the segment (real Davis block names such as `5th St (C–D)`, not a `seg-NN` placeholder). |
 | `report_count`           | integer ≥ 0                                                              | Number of reports aggregated into this feature after dedupe. This is report volume, not danger. |
 | `n`                      | integer ≥ 0                                                              | Sample size behind the estimate (the contributing report count the interval is computed from). |
-| `exposure_estimate`      | number \| `null`                                                         | Exposure denominator (estimated bike/ped volume) for the segment, in the unit named by `exposure_source` / the dataset's `exposure_unit`. `null` means exposure unknown. |
+| `exposure_estimate`      | number \| `null`                                                         | Exposure denominator (estimated bike/ped volume) for the segment, in the unit named by `exposure_source` / the dataset's `exposure_unit`. `null` means exposure unknown, including a raw estimate at or below the configured exposure floor. |
 | `exposure_source`        | string \| `null`                                                         | Provenance of the denominator (count program, demand model, or named exposure layer). `null` only when `exposure_estimate` is `null`. |
 | `exposure_date`          | date (ISO 8601) \| `null`                                               | The date/vintage of the exposure source. `null` only when `exposure_estimate` is `null`. |
+| `exposure_tier`          | `observed` \| `modeled` \| `proxy` \| `unknown`                         | How much to trust `exposure_estimate`: a direct count station (`observed`) beats a calibrated demand model (`modeled`) beats a third-party activity proxy (`proxy`); `unknown` is the honest default for exposure rows written before this field existed. A rate on an `observed` denominator and a rate on a `proxy` denominator are different measurements. |
+| `exposure_disagreement`  | number in [0, 1] \| `null`                                              | Published only when a second exposure source corroborates the segment: `1 - min/max` across all readings. `0` is perfect agreement; values near `1` flag a real cross-source disagreement, surfaced rather than averaged away. `null` when the segment has only one exposure reading. |
 | `rate`                   | number \| `null`                                                         | `report_count` normalized by `exposure_estimate`, per the dataset's `rate_per` and `exposure_unit`. `null` when exposure is unknown. |
 | `rate_ci_low`            | number \| `null`                                                         | Lower bound of the rate confidence interval. |
 | `rate_ci_high`           | number \| `null`                                                         | Upper bound of the rate confidence interval. |
@@ -173,7 +175,7 @@ feature is a GeoJSON `LineString` (the public street centerline) whose `properti
 | `rate_sensitivity_delta` | number \| `null`                                                         | Signed difference (all-records rate minus the published primary rate), reported only when excluding low-confidence records (`low_accuracy`/`far_snap`) would move the rate outside its confidence interval; `null` when the exclusion is immaterial. |
 | `confidence_label`       | `certain` \| `uncertain` \| `exposure_unknown`                           | Plain-language reliability label surfaced in the map and table. |
 | `hazard_breakdown`       | object (closed hazard vocabulary → integer)                              | Counts of reports at this feature by hazard type; suppressed (emitted as `{}`) for segments below `small_n`. |
-| `quality_flags`          | array of strings                                                         | Pipeline quality flags from the published vocabulary `low_sample`, `geocode_low_confidence`, `exposure_unknown` (see [Quality flags](#published-quality-flags)). |
+| `quality_flags`          | array of strings                                                         | Pipeline quality flags from the published vocabulary `low_sample`, `geocode_low_confidence`, `exposure_unknown`, `exposure_stale` (see [Quality flags](#published-quality-flags)). |
 
 The intake (private) report schema — what a contributor actually submits — is separately
 documented in `schema/report.schema.json` and includes the optional free-text note, the
@@ -186,15 +188,15 @@ pseudonymous contributor token, the optional BCP-47 `language` tag, and the prec
 The published GeoJSON `FeatureCollection` carries a top-level `metadata` member (a foreign
 member permitted by RFC 7946) so a consumer reading only the file still gets the version, the
 provenance, and the privacy parameters that govern interpretation. It includes:
-`dataset_version` (`0.1.0`), `schema_version` (`1.0.0`), `license` (`Apache-2.0`), `city`,
+`dataset_version` (`0.1.0`), `schema_version` (`1.1.0`), `license` (`Apache-2.0`), `city`,
 `exposure_unit`, `segments_published`, `segments_withheld_low_count`, `dataset_note` (a
 synthetic-demo / provenance label), a plain-language `privacy` note, and a `significance` note
 (the Getis-Ord Gi\* / FDR method).
 
 The **metadata sidecar** (`<city-slug>.metadata.json`, e.g. `davis.metadata.json`) carries the
 content hash (`geojson_sha256`) plus the full `methods` block (`confidence_z`, `fdr_alpha`,
-`getis_ord_band_m`, `kde_bandwidth_m`, `min_publish_n`, `rate_per`, `small_n`, and the
-`significance` string) and a `summary` block (`reports_in`, `duplicates_removed`, `snapped`,
+`getis_ord_band_m`, `kde_bandwidth_m`, `min_publish_n`, `rate_per`, `small_n`, `exposure_floor`,
+`exposure_stale_days`, and the `significance` string) and a `summary` block (`reports_in`, `duplicates_removed`, `snapped`,
 `unsnapped`, `exposure_coverage`, `excluded_low_confidence_fraction`, `segments_total`,
 `segments_published`, `segments_withheld_low_count`), the `report_intensity_peak_segment` (a segment id only, never a
 coordinate), and a pointer to this data card (`docs/DATA-CARD.md`).
@@ -209,7 +211,8 @@ dataset are:
 |---|---|
 | `low_sample` | The contributing report count (`n`) is below the small-sample threshold (`small_n`); the rate and any ranking are uncertain — read it with the wide interval, and note the `hazard_breakdown` is suppressed (`{}`). |
 | `geocode_low_confidence` | This segment aggregates one or more low-positional-accuracy or geocoded-from-address locations; placement is less certain. |
-| `exposure_unknown` | No exposure denominator was available; `exposure_estimate`, `rate`, and the CI bounds are `null`, and the feature is labeled exposure-unknown rather than rated. |
+| `exposure_unknown` | No exposure denominator was available (including a denominator at or below the configured exposure floor); `exposure_estimate`, `rate`, and the CI bounds are `null`, and the feature is labeled exposure-unknown rather than rated. |
+| `exposure_stale` | The exposure vintage (`exposure_date`) is more than the configured `exposure_stale_days` from the reports the rate is built from — a temporal-alignment caveat: exposure measured in a different period than the reports is a different measurement, not the same one revisited. |
 
 These names replace any earlier flag spellings (e.g. `low_geocode_confidence`,
 `outside_study_area`, `small_n`). The authoritative, versioned flag vocabulary — including
@@ -357,18 +360,28 @@ and a partial mismatch warns, so a miswired denominator is never silently read a
 
 - **What exposure can be.** Depending on the deployment, `exposure_estimate` comes from one of:
   observed bike/pedestrian counts where a count program exists; a demand model; or an imported
-  exposure layer (e.g. a Strava/StreetLight-style volume surface). The specific source and its
-  vintage are recorded per feature in `exposure_source` and `exposure_date`, and
-  summarized in the metadata sidecar. **Sources are interchangeable behind one interface**, so
-  a given city's denominators may come from a different source than another's.
+  exposure layer (e.g. a Strava/StreetLight-style volume surface). The specific source, its
+  vintage, and its **trust tier** are recorded per feature in `exposure_source`, `exposure_date`,
+  and `exposure_tier` (`observed` > `modeled` > `proxy`, most to least trusted; `unknown` when no
+  tier was recorded), and summarized in the metadata sidecar. **Sources are interchangeable
+  behind one interface**, so a given city's denominators may come from a different source — and a
+  different trust tier — than another's, and even from segment to segment within one city.
+- **Corroboration, not false consensus.** When a segment's exposure is backed by more than one
+  source (e.g. a count station and a demand model both covering the same block), the primary
+  reading is still what `rate` is computed against, but `exposure_disagreement` publishes how well
+  the sources agree (`0` = perfect agreement, near `1` = a large disagreement). A large
+  disagreement between a count and a proxy layer is treated as **a finding in its own right**, not
+  averaged away — it means the denominator itself is contested, and the rate should be read with
+  that in mind alongside the confidence interval.
 - **Assumptions baked into the denominator.** The rate is only as good as the exposure
   estimate. Known assumptions and their failure modes:
   - *Spatial coverage gaps.* Count programs cover a fraction of segments; the rest rely on
     modeled or imported exposure, which is smoother and less locally accurate. Segments with no
-    usable exposure get `exposure_unknown` and no rate.
+    usable exposure — including an estimate at or below the configured exposure floor, which
+    exists because rates blow up as exposure approaches zero — get `exposure_unknown` and no rate.
   - *Temporal mismatch.* The exposure source's vintage rarely matches the reporting window
-    exactly; `exposure_date` exposes this gap. Big ridership changes between the two
-    dates bias the rate.
+    exactly; `exposure_date` exposes this gap, and the `exposure_stale` flag marks a feature
+    whose exposure vintage is more than the configured threshold from its reports.
   - *Mode and time-of-day aggregation.* Exposure is typically a coarse volume, not matched to
     the specific mode, hour, or direction of each report; rates are averages over that
     coarseness.

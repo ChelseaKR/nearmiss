@@ -130,6 +130,63 @@ def test_load_exposure_rejects_row_missing_required_key(tmp_path: Path) -> None:
         load_exposure(_write(tmp_path / "exp.json", payload))
 
 
+def test_load_exposure_defaults_tier_to_unknown_for_old_rows(tmp_path: Path) -> None:
+    # FIX-04: a row written before "tier" existed must load honestly as "unknown",
+    # never silently promoted to "observed".
+    payload = {
+        "segments": [
+            {"segment_id": "s1", "estimate": 100.0, "source": "counts", "date": "2026-01-01"}
+        ]
+    }
+    out = load_exposure(_write(tmp_path / "exp.json", payload))
+    assert out["s1"].tier == "unknown"
+    assert out["s1"].sources == ()
+
+
+def test_load_exposure_accepts_tier_and_corroborating_sources(tmp_path: Path) -> None:
+    payload = {
+        "segments": [
+            {
+                "segment_id": "s1",
+                "estimate": 100.0,
+                "source": "count-station-12",
+                "date": "2026-01-01",
+                "tier": "observed",
+                "sources": [
+                    {
+                        "estimate": 140.0,
+                        "source": "demand-model-v2",
+                        "date": "2026-02-01",
+                        "tier": "modeled",
+                    }
+                ],
+            }
+        ]
+    }
+    out = load_exposure(_write(tmp_path / "exp.json", payload))
+    exp = out["s1"]
+    assert exp.tier == "observed"
+    assert len(exp.sources) == 1
+    assert exp.sources[0].estimate == 140.0
+    assert exp.sources[0].tier == "modeled"
+
+
+def test_load_exposure_rejects_unknown_tier(tmp_path: Path) -> None:
+    payload = {
+        "segments": [
+            {
+                "segment_id": "s1",
+                "estimate": 1.0,
+                "source": "x",
+                "date": "2026-01-01",
+                "tier": "guessed",
+            }
+        ]
+    }
+    with pytest.raises(NearmissError, match="unknown exposure tier"):
+        load_exposure(_write(tmp_path / "exp.json", payload))
+
+
 # --------------------------------------------------------------------------- #
 # load_reports  (raw dicts, NOT yet schema-validated)
 # --------------------------------------------------------------------------- #

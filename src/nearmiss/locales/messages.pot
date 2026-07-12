@@ -207,6 +207,9 @@ msgid ""
 "`docs/DATA-CARD.md`."
 msgstr ""
 
+msgid "Exposure tier"
+msgstr ""
+
 msgid "Friday"
 msgstr ""
 
@@ -324,16 +327,25 @@ msgstr ""
 msgid "midday (10–16)"
 msgstr ""
 
+msgid "modeled"
+msgstr ""
+
 msgid "morning commute (06–10)"
 msgstr ""
 
 msgid "n"
 msgstr ""
 
+msgid "observed"
+msgstr ""
+
 msgid "other"
 msgstr ""
 
 msgid "overnight (00–06)"
+msgstr ""
+
+msgid "proxy"
 msgstr ""
 
 msgid "signal conflict"
@@ -343,6 +355,9 @@ msgid "surface hazard"
 msgstr ""
 
 msgid "uncertain"
+msgstr ""
+
+msgid "unknown"
 msgstr ""
 
 msgid "web.app.asc"
@@ -454,6 +469,9 @@ msgid "web.app.filterStatus"
 msgstr ""
 
 msgid "web.app.filter_label"
+msgstr ""
+
+msgid "web.app.flag_exposure_stale"
 msgstr ""
 
 msgid "web.app.flag_exposure_unknown"
@@ -624,6 +642,21 @@ msgstr ""
 msgid "web.app.th_segment"
 msgstr ""
 
+msgid "web.app.th_tier"
+msgstr ""
+
+msgid "web.app.tier_modeled"
+msgstr ""
+
+msgid "web.app.tier_observed"
+msgstr ""
+
+msgid "web.app.tier_proxy"
+msgstr ""
+
+msgid "web.app.tier_unknown"
+msgstr ""
+
 msgid "web.app.tipRate"
 msgstr ""
 
@@ -655,6 +688,9 @@ msgid "web.app.tt_n"
 msgstr ""
 
 msgid "web.app.tt_rate"
+msgstr ""
+
+msgid "web.app.tt_tier"
 msgstr ""
 
 msgid "web.submit.geo_denied"

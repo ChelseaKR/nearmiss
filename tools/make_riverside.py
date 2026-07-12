@@ -73,17 +73,30 @@ def main() -> None:
             for n in range(1, 7)
         ],
     }
-    exposure = {
-        "segments": [
-            {
-                "segment_id": sid,
-                "estimate": PLAN[sid][0],
-                "source": "synthetic_count",
-                "date": "2026-05-01",
-            }
-            for sid in sorted(PLAN)
-        ]
-    }
+    exposure_rows = [
+        {
+            "segment_id": sid,
+            "estimate": PLAN[sid][0],
+            "source": "synthetic_count",
+            "date": "2026-05-01",
+            "tier": "observed",
+        }
+        for sid in sorted(PLAN)
+    ]
+    # FIX-04: rs-1 also gets a corroborating modeled reading, lower than the
+    # observed count, so the published dataset carries one real multi-source
+    # disagreement example (METHODOLOGY §3.1) without moving rs-1's own rate.
+    for row in exposure_rows:
+        if row["segment_id"] == "rs-1":
+            row["sources"] = [
+                {
+                    "estimate": 1200.0,
+                    "source": "synthetic_demand_model",
+                    "date": "2026-04-15",
+                    "tier": "modeled",
+                }
+            ]
+    exposure = {"segments": exposure_rows}
     t0 = datetime(2026, 6, 1, 8, 0, 0, tzinfo=timezone(timedelta(hours=-7)))
     reports: list[dict[str, object]] = []
     i = 0

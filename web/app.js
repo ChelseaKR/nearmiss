@@ -130,12 +130,18 @@
       }
       tr.appendChild(hot);
 
+      // FIX-04: the exposure trust tier (observed/modeled/proxy/unknown) travels
+      // with the rate so a reader never silently compares a count station against
+      // a proxy layer. Missing on datasets published before FIX-04 -> "unknown".
+      var tierKey = p.exposure_tier || "unknown";
+      tr.appendChild(cell("td", t("tier_" + tierKey) || tierKey));
+
       var flags = (p.quality_flags || []).map(function (fl) {
         return t("flag_" + fl) || fl;
       });
-      // R6: a modeled (not measured) exposure denominator is surfaced as a flag,
-      // never silently treated as a real count.
-      if (p.exposure_source && /modeled/i.test(p.exposure_source)) {
+      // R6: a modeled (not measured) exposure denominator is surfaced as a flag too,
+      // for datasets published before the real exposure_tier field existed.
+      if (p.exposure_tier === undefined && p.exposure_source && /modeled/i.test(p.exposure_source)) {
         flags.push(t("flag_modeled_exposure"));
       }
       tr.appendChild(cell("td", flags.length ? flags.join(", ") : t("none")));

@@ -33,6 +33,11 @@ from .stats.bias import to_metadata as bias_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
 
+# Published-dataset schema version (schema/dataset.schema.md). FIX-04 bumped this
+# MINOR: exposure_tier / exposure_disagreement properties and the exposure_stale
+# quality flag are backward-compatible additions, per the versioning policy
+# (schema/dataset.schema.md §7) — no existing field changed name, type, or meaning.
+SCHEMA_VERSION = "1.1.0"
 # Repo-relative path (from the repo root) to the machine-checkable dataset schema,
 # and the absolute path resolved from this module's location. The published GeoJSON
 # is validated against it before it is written (contract gate, HR5) and the same
@@ -74,6 +79,8 @@ def _feature(stat: SegmentStats, segment: Segment) -> dict[str, object]:
             "exposure_estimate": stat.exposure_estimate,
             "exposure_source": stat.exposure_source,
             "exposure_date": stat.exposure_date,
+            "exposure_tier": stat.exposure_tier,
+            "exposure_disagreement": stat.exposure_disagreement,
             "rate": stat.rate,
             "rate_ci_low": stat.rate_ci_low,
             "rate_ci_high": stat.rate_ci_high,
@@ -216,7 +223,7 @@ def publish(config: Config) -> PublishResult:
     # privacy/method provenance without a separate fetch. No content hash here
     # (that would be self-referential); the sidecar carries the hash.
     embedded: dict[str, object] = {
-        "schema_version": "1.0.0",
+        "schema_version": SCHEMA_VERSION,
         "dataset_version": "0.1.0",
         "city": config.city,
         "license": "Apache-2.0",
@@ -256,7 +263,7 @@ def publish(config: Config) -> PublishResult:
     metadata: dict[str, object] = {
         "city": config.city,
         "version": "0.1.0",
-        "schema_version": "1.0.0",
+        "schema_version": SCHEMA_VERSION,
         "dataset_note": config.dataset_note,
         # Analysis window bounding every rate in this dataset (null when unset).
         "window": {"start": config.window_start, "end": config.window_end},
@@ -272,6 +279,8 @@ def publish(config: Config) -> PublishResult:
             "fdr_alpha": config.fdr_alpha,
             "getis_ord_band_m": config.gi_band_m,
             "kde_bandwidth_m": config.kde_bandwidth_m,
+            "exposure_floor": config.exposure_floor,
+            "exposure_stale_days": config.exposure_stale_days,
             "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
             # RR-02: quasi-Poisson dispersion of the report counts. phi ~1 is a clean
             # Poisson process; phi materially above 1 is overdispersion (clustered

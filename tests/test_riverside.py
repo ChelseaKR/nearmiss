@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from nearmiss.config import load_config
 from nearmiss.engine import build_analysis
 from nearmiss.publish import build_geojson
@@ -59,3 +61,16 @@ def test_riverside_geojson_is_valid_geojson() -> None:
     gj = json.loads((ROOT / "data/published/riverside.geojson").read_text(encoding="utf-8"))
     assert gj["type"] == "FeatureCollection"
     assert gj["metadata"]["city"] == "Riverside"
+
+
+def test_riverside_publishes_exposure_tier_and_multi_source_disagreement() -> None:
+    # FIX-04: rs-1 carries a corroborating modeled reading (1200) below its
+    # observed primary (1500) -> disagreement = 1 - min/max = 1 - 0.8 = 0.2. Every
+    # other segment has a single source, so its disagreement is unpublished (None).
+    bundle = build_analysis(load_config(CONFIG))
+    geojson = build_geojson(bundle.result.segments, bundle.segments)
+    props = {p["segment_id"]: p for p in _props(geojson)}
+    assert props["rs-1"]["exposure_tier"] == "observed"
+    assert props["rs-1"]["exposure_disagreement"] == pytest.approx(0.2)
+    assert props["rs-3"]["exposure_tier"] == "observed"
+    assert props["rs-3"]["exposure_disagreement"] is None

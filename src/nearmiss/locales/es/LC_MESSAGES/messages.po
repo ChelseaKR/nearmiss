@@ -145,6 +145,9 @@ msgstr "Confianza"
 msgid "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
 msgstr "Cada cifra de arriba se regenera desde los datos crudos con `make reproduce`. Los datos y métodos son abiertos (Apache-2.0); vea `docs/METHODOLOGY.md` y `docs/DATA-CARD.md`."
 
+msgid "Exposure tier"
+msgstr "Nivel de confianza de la exposición"
+
 msgid "Friday"
 msgstr "viernes"
 
@@ -238,17 +241,26 @@ msgstr "exposición desconocida"
 msgid "midday (10–16)"
 msgstr "mediodía (10–16)"
 
+msgid "modeled"
+msgstr "modelado"
+
 msgid "morning commute (06–10)"
 msgstr "hora pico matutina (06–10)"
 
 msgid "n"
 msgstr "n"
 
+msgid "observed"
+msgstr "observado"
+
 msgid "other"
 msgstr "otro"
 
 msgid "overnight (00–06)"
 msgstr "madrugada (00–06)"
+
+msgid "proxy"
+msgstr "indicador indirecto"
 
 msgid "signal conflict"
 msgstr "conflicto de señal"
@@ -258,6 +270,9 @@ msgstr "peligro en la superficie"
 
 msgid "uncertain"
 msgstr "incierto"
+
+msgid "unknown"
+msgstr "desconocido"
 
 msgid "web.app.asc"
 msgstr "ascendente"
@@ -369,6 +384,9 @@ msgstr "Mostrando {shown} de {n} segmentos"
 
 msgid "web.app.filter_label"
 msgstr "Filtrar segmentos por nombre"
+
+msgid "web.app.flag_exposure_stale"
+msgstr "la vigencia de la exposición podría estar desactualizada"
 
 msgid "web.app.flag_exposure_unknown"
 msgstr "exposición desconocida"
@@ -538,6 +556,21 @@ msgstr "Tasa /1000"
 msgid "web.app.th_segment"
 msgstr "Segmento"
 
+msgid "web.app.th_tier"
+msgstr "Nivel de confianza de la exposición"
+
+msgid "web.app.tier_modeled"
+msgstr "modelado"
+
+msgid "web.app.tier_observed"
+msgstr "observado"
+
+msgid "web.app.tier_proxy"
+msgstr "indicador indirecto"
+
+msgid "web.app.tier_unknown"
+msgstr "desconocido"
+
 msgid "web.app.tipRate"
 msgstr "{name}: tasa {rate}/1000"
 
@@ -570,6 +603,9 @@ msgstr "Número de reportes en este segmento (el tamaño de muestra)."
 
 msgid "web.app.tt_rate"
 msgstr "Reportes por 1000 unidades de exposición — riesgo por persona, no un conteo crudo."
+
+msgid "web.app.tt_tier"
+msgstr "Cuánto confiar en el denominador de exposición de este segmento: observado (conteo directo), modelado (modelo de demanda), indicador indirecto (capa de actividad de terceros), o desconocido."
 
 msgid "web.submit.geo_denied"
 msgstr "No se pudo obtener su ubicación — escriba un lugar."

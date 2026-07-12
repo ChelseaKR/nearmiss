@@ -4,73 +4,85 @@
       "segment_id": "seg-01",
       "estimate": 1500.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-02",
       "estimate": 400.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-03",
       "estimate": 8000.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-04",
       "estimate": 1500.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-05",
       "estimate": 400.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-06",
       "estimate": 300.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-07",
       "estimate": 400.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-08",
       "estimate": 1500.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-09",
       "estimate": 1500.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-10",
       "estimate": 400.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-11",
       "estimate": 1500.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     },
     {
       "segment_id": "seg-12",
       "estimate": 1500.0,
       "source": "synthetic_bike_count",
-      "date": "2026-05-01"
+      "date": "2026-05-01",
+      "tier": "observed"
     }
   ]
 }
