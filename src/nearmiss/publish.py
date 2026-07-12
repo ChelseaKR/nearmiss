@@ -32,12 +32,8 @@ from .models import Report, Segment, SegmentStats
 from .stats.bias import to_metadata as bias_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
+from .versions import DATASET_SCHEMA_VERSION, DATASET_VERSION
 
-# Published-dataset schema version (schema/dataset.schema.md). FIX-04 bumped this
-# MINOR: exposure_tier / exposure_disagreement properties and the exposure_stale
-# quality flag are backward-compatible additions, per the versioning policy
-# (schema/dataset.schema.md §7) — no existing field changed name, type, or meaning.
-SCHEMA_VERSION = "1.1.0"
 # Repo-relative path (from the repo root) to the machine-checkable dataset schema,
 # and the absolute path resolved from this module's location. The published GeoJSON
 # is validated against it before it is written (contract gate, HR5) and the same
@@ -223,11 +219,12 @@ def publish(config: Config) -> PublishResult:
     # privacy/method provenance without a separate fetch. No content hash here
     # (that would be self-referential); the sidecar carries the hash.
     embedded: dict[str, object] = {
-        "schema_version": SCHEMA_VERSION,
-        # FIX-02 (network-topology Gi* weights) changed every published
-        # getis_ord_z / getis_ord_significant value — a dataset content
-        # change, not a schema change, so only the DATA version moves.
-        "dataset_version": "0.1.1",
+        # Single-sourced (FIX-11 / REL-02): schema_version and the per-city DATA
+        # version from versions.py — never a hand-copied literal. FIX-02 moved
+        # dataset_version to 0.1.1 (network Gi* changed every getis_ord_z — a
+        # data content change, not a schema change).
+        "schema_version": DATASET_SCHEMA_VERSION,
+        "dataset_version": DATASET_VERSION,
         "city": config.city,
         "license": "Apache-2.0",
         "dataset_note": config.dataset_note,
@@ -265,8 +262,8 @@ def publish(config: Config) -> PublishResult:
 
     metadata: dict[str, object] = {
         "city": config.city,
-        "version": "0.1.1",
-        "schema_version": SCHEMA_VERSION,
+        "version": DATASET_VERSION,
+        "schema_version": DATASET_SCHEMA_VERSION,
         "dataset_note": config.dataset_note,
         # Analysis window bounding every rate in this dataset (null when unset).
         "window": {"start": config.window_start, "end": config.window_end},

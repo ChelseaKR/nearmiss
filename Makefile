@@ -31,9 +31,9 @@ PUBLISHED_DIR := data/published
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install lock lint type test accessibility axe rtl security verify \
+.PHONY: help install lock lock-dev lint type test accessibility axe rtl security verify \
         conformance i18n i18n-compile i18n-pseudo claims \
-        reproduce sensitivity demo teach publish serve bench bikemaps osm-streets real clean mutation
+        reproduce sensitivity demo teach publish serve bench bikemaps osm-streets real clean mutation release-build
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
 # Override CITY and the output paths as needed.
@@ -64,9 +64,19 @@ install: ## Install the package (editable) with dev extras and pre-commit hooks
 	$(PIP) install -e ".[dev]"
 	-pre-commit install --install-hooks
 
-lock: ## Generate the hashed reproducible-install lockfile (requirements.lock)
+lock: ## Generate the hashed reproducible RUNTIME lockfile (requirements.lock)
 	$(PYTHON) -m piptools compile --generate-hashes -o requirements.lock pyproject.toml
 	@echo "lock: wrote requirements.lock (generated; do not edit by hand)."
+
+lock-dev: ## Generate the hashed reproducible DEV-TOOLCHAIN lockfile (requirements-dev.lock)
+	# Covers runtime + the "dev" extra (pytest, ruff, mypy, pip-audit, babel, ...) — the
+	# actual gate toolchain CI installs. `make lock` above covers runtime only. CI installs
+	# from THIS file with `--require-hashes` (FIX-11) instead of a fresh, unpinned
+	# `pip install -e ".[dev]"` resolve, so the toolchain a merge gate runs is reproducible
+	# and tamper-evident, not "whatever PyPI serves today." Dependabot (`.github/dependabot.yml`)
+	# and Renovate both regenerate this file's pins/hashes on a dependency bump.
+	$(PYTHON) -m piptools compile --extra=dev --generate-hashes -o requirements-dev.lock pyproject.toml
+	@echo "lock-dev: wrote requirements-dev.lock (generated; do not edit by hand)."
 
 lint: ## Lint with ruff (style + import order + bugbear) and check formatting
 	$(PYTHON) -m ruff check .
@@ -247,6 +257,11 @@ else
 	@echo "      Provide COUNTS=path to a bike-count file to normalize. See docs/REAL-DATA.md."
 endif
 	@echo "real: inputs assembled in $(REAL_DIR)/. Now: nearmiss run --config config/$(CITY).toml"
+
+release-build: ## Build the reproducible sdist + wheel into dist/ (used by .github/workflows/release.yml)
+	rm -rf dist/
+	$(PYTHON) -m build --sdist --wheel
+	@echo "release-build: wrote dist/ (sdist + wheel)."
 
 clean: ## Remove build/test/cache artifacts — NEVER data/raw/ (HR4)
 	rm -rf build/ dist/ web/node_modules \

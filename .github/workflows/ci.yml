@@ -44,12 +44,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # CI installs the editable package with its dev extras (`pip install -e
-  # ".[dev]"`, the same as `make install`). `requirements.lock` (hashed,
-  # `make lock`) is committed at the repo root; installing CI itself with
-  # `--require-hashes` from it (or migrating CI to `uv sync --frozen` against
-  # `uv.lock`) is a planned hardening, tracked in
-  # audit-2026-07-05/nearmiss-REMEDIATION.md P1-4 — not yet done.
+  # CI installs from the hashed dev-toolchain lock (`requirements-dev.lock`,
+  # `make lock-dev`) with `--require-hashes`, then the local package editable
+  # and `--no-deps` (FIX-11 — closes audit-2026-07-05/nearmiss-REMEDIATION.md
+  # P1-4). `requirements.lock` (`make lock`) remains the separate, smaller
+  # RUNTIME-only lock for consumers who just `pip install nearmiss`.
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   PIP_NO_PYTHON_VERSION_WARNING: "1"
   PYTHONHASHSEED: "0"
@@ -105,8 +104,16 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dev dependencies
-        run: python -m pip install -e ".[dev]"
+      - name: Install dev dependencies (hashed, --require-hashes)
+        # Installs the exact, hashed dev-toolchain lock (requirements-dev.lock,
+        # `make lock-dev`, FIX-11) instead of a fresh, unpinned
+        # `pip install -e ".[dev]"` resolve — the tools this gate runs
+        # (pytest/ruff/mypy/pip-audit/babel/...) are pinned AND hash-verified,
+        # not "whatever PyPI serves today." The local package then installs
+        # editable and --no-deps, since it has no PyPI hash of its own.
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
 
       - name: ruff (check + format --check)
         run: make lint
@@ -126,8 +133,16 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dev dependencies
-        run: python -m pip install -e ".[dev]"
+      - name: Install dev dependencies (hashed, --require-hashes)
+        # Installs the exact, hashed dev-toolchain lock (requirements-dev.lock,
+        # `make lock-dev`, FIX-11) instead of a fresh, unpinned
+        # `pip install -e ".[dev]"` resolve — the tools this gate runs
+        # (pytest/ruff/mypy/pip-audit/babel/...) are pinned AND hash-verified,
+        # not "whatever PyPI serves today." The local package then installs
+        # editable and --no-deps, since it has no PyPI hash of its own.
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
 
       - name: mypy --strict
         run: make type
@@ -151,8 +166,16 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
-      - name: Install dev dependencies
-        run: python -m pip install -e ".[dev]"
+      - name: Install dev dependencies (hashed, --require-hashes)
+        # Installs the exact, hashed dev-toolchain lock (requirements-dev.lock,
+        # `make lock-dev`, FIX-11) instead of a fresh, unpinned
+        # `pip install -e ".[dev]"` resolve — the tools this gate runs
+        # (pytest/ruff/mypy/pip-audit/babel/...) are pinned AND hash-verified,
+        # not "whatever PyPI serves today." The local package then installs
+        # editable and --no-deps, since it has no PyPI hash of its own.
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
 
       - name: pytest (planted hotspot seg-06 recovered, branch-coverage floor enforced)
         # `make test` runs pytest with --cov-branch and --cov-fail-under=90, so a
@@ -209,8 +232,16 @@ jobs:
       - name: Install gettext (msgfmt)
         run: sudo apt-get update && sudo apt-get install -y gettext
 
-      - name: Install dev dependencies
-        run: python -m pip install -e ".[dev]"
+      - name: Install dev dependencies (hashed, --require-hashes)
+        # Installs the exact, hashed dev-toolchain lock (requirements-dev.lock,
+        # `make lock-dev`, FIX-11) instead of a fresh, unpinned
+        # `pip install -e ".[dev]"` resolve — the tools this gate runs
+        # (pytest/ruff/mypy/pip-audit/babel/...) are pinned AND hash-verified,
+        # not "whatever PyPI serves today." The local package then installs
+        # editable and --no-deps, since it has no PyPI hash of its own.
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
 
       # Exactly what `make verify` runs locally (no local/CI drift): G2-lite
       # (POT committed & current), G7 (msgfmt --check), G6/G5 (EN/ES key-parity +
@@ -257,8 +288,16 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dev dependencies
-        run: python -m pip install -e ".[dev]"
+      - name: Install dev dependencies (hashed, --require-hashes)
+        # Installs the exact, hashed dev-toolchain lock (requirements-dev.lock,
+        # `make lock-dev`, FIX-11) instead of a fresh, unpinned
+        # `pip install -e ".[dev]"` resolve — the tools this gate runs
+        # (pytest/ruff/mypy/pip-audit/babel/...) are pinned AND hash-verified,
+        # not "whatever PyPI serves today." The local package then installs
+        # editable and --no-deps, since it has no PyPI hash of its own.
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
 
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
@@ -311,8 +350,16 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dev dependencies
-        run: python -m pip install -e ".[dev]"
+      - name: Install dev dependencies (hashed, --require-hashes)
+        # Installs the exact, hashed dev-toolchain lock (requirements-dev.lock,
+        # `make lock-dev`, FIX-11) instead of a fresh, unpinned
+        # `pip install -e ".[dev]"` resolve — the tools this gate runs
+        # (pytest/ruff/mypy/pip-audit/babel/...) are pinned AND hash-verified,
+        # not "whatever PyPI serves today." The local package then installs
+        # editable and --no-deps, since it has no PyPI hash of its own.
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
 
       # Dependency vulnerability scan — blocking. A known-vulnerable dependency
       # fails the build (no `|| true`), per SECURITY-AND-SUPPLY-CHAIN §3. The
@@ -382,8 +429,16 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dev dependencies
-        run: python -m pip install -e ".[dev]"
+      - name: Install dev dependencies (hashed, --require-hashes)
+        # Installs the exact, hashed dev-toolchain lock (requirements-dev.lock,
+        # `make lock-dev`, FIX-11) instead of a fresh, unpinned
+        # `pip install -e ".[dev]"` resolve — the tools this gate runs
+        # (pytest/ruff/mypy/pip-audit/babel/...) are pinned AND hash-verified,
+        # not "whatever PyPI serves today." The local package then installs
+        # editable and --no-deps, since it has no PyPI hash of its own.
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
 
       # Rule 5: a clean rebuild from raw inputs must reproduce the committed
       # public artifacts byte-for-byte. Synthetic fixtures (not private raw
