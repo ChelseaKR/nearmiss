@@ -147,9 +147,12 @@ labeling the top-level `rate` as the pooled union across all hazard types with p
 `rates_by_type`), `summary`
 > (segment and report counts, `exposure_coverage`, and `excluded_low_confidence_fraction` — the share of
 > snapped reports excluded from the primary rate for low confidence), `report_intensity_peak_segment` (the KDE peak as a
-> **segment id only**, never a coordinate), `geojson_sha256`, and a `privacy` note. The sidecar is held to
-> the same privacy invariant as the GeoJSON: `assert_metadata_clean()` raises if any forbidden key or raw
-> coordinate appears in it.
+> **segment id only**, never a coordinate), `temporal` (the city-wide report-volume-by-time-of-day
+> breakdown; see `docs/LIMITATIONS.md`), `segment_time_bands_dp` (the EXP-05 epsilon-DP segment x
+> part-of-day prototype — `{"enabled": false}` unless a privacy-SME sign-off has been recorded; see
+> `docs/privacy/exp-05-dp-segment-time-bands.md`), `geojson_sha256`, and a `privacy` note. The sidecar is
+> held to the same privacy invariant as the GeoJSON: `assert_metadata_clean()` raises if any forbidden key
+> or raw coordinate appears in it.
 
 ---
 

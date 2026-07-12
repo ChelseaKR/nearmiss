@@ -41,6 +41,8 @@ _TOP_KEYS = frozenset(
         "thresholds",
         # FIX-05: optional [window] table (ISO start/end, validated in _parse_window).
         "window",
+        # EXP-05: optional [dp_segment_time] table (enabled/epsilon/sme_signoff_ref).
+        "dp_segment_time",
         # RR-02: overdispersion adjustment flag may live top-level or in [thresholds].
         "overdispersion_adjust",
     }
@@ -122,6 +124,13 @@ class Config:
     # Optional provenance note carried into the brief and the published metadata
     # (e.g. to mark a dataset as synthetic demonstration data).
     dataset_note: str | None = None
+    # EXP-05 prototype (see stats/dp_temporal.py + docs/privacy/exp-05-dp-segment-time-bands.md):
+    # an epsilon-DP alternative to k-anonymity suppression for segment x part-of-day counts.
+    # Disabled by default. Even when enabled, dp_segment_time_sme_signoff_ref MUST be set to a
+    # real reviewer reference or the mechanism refuses to run (hard SME sign-off gate).
+    dp_segment_time_enabled: bool = False
+    dp_segment_time_epsilon: float = 1.0
+    dp_segment_time_sme_signoff_ref: str | None = None
     # First-class analysis window (METHODOLOGY §1: "a rate with no window attached is
     # not a publishable number"). ISO-8601 dates (inclusive). Records whose
     # occurred_at date falls outside are filtered before analysis; the window is
@@ -244,6 +253,10 @@ def load_config(path: str | Path) -> Config:
     ref_lat = num(data["ref_lat"], "ref_lat") if "ref_lat" in data else None
     ref_lon = num(data["ref_lon"], "ref_lon") if "ref_lon" in data else None
 
+    dp = data.get("dp_segment_time", {})
+    dp = dp if isinstance(dp, dict) else {}
+    dp_signoff = dp.get("sme_signoff_ref")
+
     # Optional [window] table: an ISO-8601 (YYYY-MM-DD) start/end bounding the
     # analysis period (validated in _parse_window).
     window_start, window_end = _parse_window(data, cfg_path)
@@ -336,6 +349,11 @@ def load_config(path: str | Path) -> Config:
         exposure_floor=exposure_floor,
         exposure_stale_days=exposure_stale_days,
         dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),
+        dp_segment_time_enabled=bool(dp.get("enabled", False)),
+        dp_segment_time_epsilon=(
+            num(dp["epsilon"], "dp_segment_time.epsilon") if "epsilon" in dp else 1.0
+        ),
+        dp_segment_time_sme_signoff_ref=(str(dp_signoff) if dp_signoff else None),
         window_start=window_start,
         window_end=window_end,
         raw=data,

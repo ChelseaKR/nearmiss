@@ -15,13 +15,14 @@ release so a schema change is never buried in a code change:
 - **Intake report schema** — `schema/report.schema.json`, currently `1.0.0`. The intake contract for
   precise, pre-aggregation reports. Carried per payload in the `schema_version` field.
 <!-- claim:dataset-schema-prose -->
-- **Published dataset schema** — `schema/dataset.schema.md`, currently `1.1.0`. The contract for the
-  open per-city `data/published/<city-slug>.geojson` artifact (e.g. `davis.geojson`).
-  Carried per file in `metadata.schema_version`. This contract is **prose only**
-  (`schema/dataset.schema.md`); a machine-readable JSON Schema mirror validated in CI is **planned,
-  not yet committed** (only `schema/report.schema.json`, the intake contract, is a JSON Schema today).
-  [Correction: an earlier revision of this entry claimed a "mirroring JSON Schema validated in CI"
-  for the dataset — that JSON Schema does not exist yet; the dataset contract is the prose file.]
+- **Published dataset schema** — `schema/dataset.schema.md` (prose) together with its mirroring
+  machine-readable JSON Schema `schema/dataset.schema.json`, validated in CI and at publish time
+  (FIX-10), currently `1.1.0`. The contract for the open per-city
+  `data/published/<city-slug>.geojson` artifact (e.g. `davis.geojson`).
+  Carried per file in `metadata.schema_version`.
+  [Correction history: an earlier revision claimed a "mirroring JSON Schema validated in CI" before
+  one existed, and was corrected to "prose only"; FIX-10 has since landed
+  `schema/dataset.schema.json` plus the contract gate, making the machine-readable mirror real.]
 <!-- /claim:dataset-schema-prose -->
 
 Both schemas follow the **versioning and deprecation policy** in
@@ -131,6 +132,12 @@ each will move here under its own `### Added` entry as it lands.
   that landed alongside it: `rates_by_type` (per-hazard-type rate layers, FIX-06) and
   `rate_sensitivity_delta` (quality-tier sensitivity split, FIX-07), both required, aggregate-only,
   and additive.
+- The same `1.1.0` also adds the optional sidecar metadata field `segment_time_bands_dp`
+  (EXP-05 prototype): the epsilon-differential-privacy alternative to k-anonymity suppression for
+  segment x part-of-day counts, described in `docs/privacy/exp-05-dp-segment-time-bands.md`.
+  `{"enabled": false}` for every existing config — this ships the mechanism and its hard
+  privacy-SME sign-off gate, not an enabled real-data release. Existing consumers see no change to
+  any field they already read.
 - `metadata.methods` gained two new keys (`getis_ord_neighbors`, `getis_ord_node_snap_m`) —
   additive to the free-form `methods` provenance object, not part of the versioned feature schema
   (FIX-02).

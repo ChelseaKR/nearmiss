@@ -65,8 +65,14 @@ The five [hard rules](../README.md) are referenced as HR1–HR5.
   block can have a modest rate; a scary-looking rate can be non-significant.
 - **No time dimension is published.** To protect contributors, per-report
   timestamps are not released (HR4), so the public dataset cannot answer
-  "dangerous at the 3pm school bell." Aggregated, privacy-safe temporal bands are
-  a roadmap item, not a current capability.
+  "dangerous at the 3pm school bell." A per-segment, per-time-band release is
+  still not a shipped capability: an epsilon-DP noise mechanism exists as a
+  **disabled-by-default prototype** (`stats/dp_temporal.py`) behind a hard
+  privacy-SME sign-off gate — see
+  [`docs/privacy/exp-05-dp-segment-time-bands.md`](privacy/exp-05-dp-segment-time-bands.md)
+  for the mechanism, epsilon rationale, and what a reviewer must check before
+  it is ever turned on for real data. Until that review happens, this
+  limitation stands as written.
 - **Mode scope is per-city and often cyclist-only.** The main real source
   (BikeMaps.org) is cycling-centric. Pedestrian, wheelchair, and scooter hazards
   may be sparse or absent in a given city even though the schema supports them;
