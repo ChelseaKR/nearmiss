@@ -46,7 +46,7 @@ dev = [
   "pytest>=8.0",
   "pytest-cov>=7.1.0",
   "ruff>=0.15",
-  "mypy>=1.18",
+  "mypy>=2.2.0",
   "pip-audit>=2.10.1",
   # Property/metamorphic testing for the spatial-statistics core (FIX-14). A
   # dev-only, audited dependency surface: it lives in `dev`, so the blocking
