@@ -121,6 +121,68 @@ def test_get_logger_initializes_when_unset(monkeypatch: pytest.MonkeyPatch) -> N
 
 
 # --------------------------------------------------------------------------- #
+# Pipeline-stage telemetry: `nearmiss run` emits one JSON line per stage
+# --------------------------------------------------------------------------- #
+
+_FIXTURES = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "davis"
+
+
+def _run_config(tmp_path: Path) -> Path:
+    """A throwaway config reusing the davis fixtures but writing under tmp_path."""
+    cfg = tmp_path / "city.toml"
+    cfg.write_text(
+        "\n".join(
+            [
+                'city = "Davis"',
+                'dataset_note = "Synthetic demonstration data — not real reports."',
+                f'streets = "{_FIXTURES / "streets.geojson"}"',
+                f'reports = "{_FIXTURES / "reports.json"}"',
+                f'exposure = "{_FIXTURES / "exposure.json"}"',
+                f'raw_dir = "{tmp_path / "raw"}"',
+                f'out_dir = "{tmp_path / "out"}"',
+                f'submissions_dir = "{tmp_path / "pending"}"',
+                "ref_lat = 38.5449",
+                "ref_lon = -121.7405",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return cfg
+
+
+def test_run_command_emits_one_structured_stage_log_per_pipeline_stage(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from nearmiss.__main__ import main
+
+    obs.configure_logging()  # None stream -> live sys.stdout, which capsys captures
+    assert main(["run", "--config", str(_run_config(tmp_path))]) == 0
+
+    stage_records = []
+    for line in capsys.readouterr().out.splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue  # a human-readable print(), not a JSON log line
+        record = json.loads(line)
+        if record.get("msg") == "stage":
+            stage_records.append(record)
+
+    stages = [r["stage"] for r in stage_records]
+    # Every timed pipeline stage produced exactly one structured line.
+    assert stages == ["load", "pipeline", "analyze"]
+    for record in stage_records:
+        assert {"ts", "level", "msg", "service", "stage", "counts", "ms"} <= record.keys()
+        assert record["level"] == "info"
+        assert record["service"] == "nearmiss"
+        assert isinstance(record["counts"], dict)
+        assert isinstance(record["ms"], (int, float))
+    # Counts are structured provenance, not raw report content.
+    pipeline_counts = next(r["counts"] for r in stage_records if r["stage"] == "pipeline")
+    assert "reports_in" in pipeline_counts
+
+
+# --------------------------------------------------------------------------- #
 # Readiness (pure function)
 # --------------------------------------------------------------------------- #
 

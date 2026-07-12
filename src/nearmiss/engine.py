@@ -7,7 +7,8 @@ path (reproducibility / testability).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 
 from . import pipeline
 from .config import Config
@@ -39,10 +40,34 @@ class AnalysisBundle:
     summary: dict[str, int]
     segments: list[Segment]
     exposure_unmatched: list[str]
+    # Per-stage telemetry for the run manifest / stage logs: one
+    # {"stage": str, "counts": dict[str, int], "ms": float} per timed stage. The
+    # counts are deterministic (they go into the hashed provenance section); the
+    # ``ms`` wall-times are an unhashed sidecar (see :mod:`nearmiss.manifest`).
+    stages: list[dict[str, object]] = field(default_factory=list)
+
+
+def _elapsed_ms(start: float) -> float:
+    """Wall-time since ``start`` (a ``perf_counter`` value), in milliseconds."""
+    return round((time.perf_counter() - start) * 1000.0, 3)
 
 
 def build_analysis(config: Config) -> AnalysisBundle:
+    stages: list[dict[str, object]] = []
+
+    t0 = time.perf_counter()
     city = load_city(config)
+    stages.append(
+        {
+            "stage": "load",
+            "counts": {
+                "reports": len(city.reports),
+                "segments": len(city.segments),
+                "exposure": len(city.exposure),
+            },
+            "ms": _elapsed_ms(t0),
+        }
+    )
 
     # Exposure joins to streets by exact segment_id. A TOTAL mismatch almost
     # always means the two layers use different id schemes — fail loudly rather
@@ -68,7 +93,11 @@ def build_analysis(config: Config) -> AnalysisBundle:
         weather_days = record.days
         weather_source = record.source
 
+    t1 = time.perf_counter()
     records, summary = pipeline.run(city.reports, city.segments, config)
+    stages.append({"stage": "pipeline", "counts": dict(summary), "ms": _elapsed_ms(t1)})
+
+    t2 = time.perf_counter()
     result = analyze(
         records,
         city.reports,
@@ -78,10 +107,26 @@ def build_analysis(config: Config) -> AnalysisBundle:
         weather=weather_days,
         weather_source=weather_source,
     )
+    withheld = sum(1 for s in result.segments if not s.publishable)
+    stages.append(
+        {
+            "stage": "analyze",
+            "counts": {
+                "segments_total": len(result.segments),
+                "segments_publishable": len(result.segments) - withheld,
+                "segments_withheld_low_count": withheld,
+                "exposure_matched": len(city.exposure) - len(unmatched),
+                "exposure_unmatched": len(unmatched),
+            },
+            "ms": _elapsed_ms(t2),
+        }
+    )
+
     return AnalysisBundle(
         result=result,
         records=records,
         summary=summary,
         segments=city.segments,
         exposure_unmatched=unmatched,
+        stages=stages,
     )

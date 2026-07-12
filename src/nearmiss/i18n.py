@@ -105,6 +105,21 @@ def confidence_label(translation: gettext.NullTranslations, key: str) -> str:
     return labels.get(key, key.replace("_", " "))
 
 
+def hazard_type_label(translation: gettext.NullTranslations, key: str) -> str:
+    """Localized name for a hazard type from the intake schema's closed vocabulary."""
+    _ = translation.gettext
+    labels: dict[str, str] = {
+        "close_pass": _("close pass"),
+        "dooring": _("dooring"),
+        "surface_hazard": _("surface hazard"),
+        "sightline": _("blocked sightline"),
+        "signal": _("signal conflict"),
+        "debris": _("debris"),
+        "other": _("other"),
+    }
+    return labels.get(key, key.replace("_", " "))
+
+
 def part_of_day_label(translation: gettext.NullTranslations, key: str) -> str:
     """Localized name for a time-of-day bucket."""
     _ = translation.gettext

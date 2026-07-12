@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nearmiss.example/schema/dataset.schema.json",
+  "title": "nearmiss.published.dataset",
+  "description": "Machine-checkable contract for the published, open nearmiss GeoJSON (data/published/<city-slug>.geojson). This JSON Schema is the authoritative, validator-runnable form of schema/dataset.schema.md and is versioned in lockstep with it (metadata.schema_version). A FeatureCollection of aggregated, exposure-normalized, privacy-protected street-segment features carrying a self-describing metadata foreign member. See schema/dataset.schema.md for the full prose contract and the five hard rules (HR1-HR5).",
+  "type": "object",
+  "required": [
+    "type",
+    "features",
+    "metadata"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "type": {
+      "description": "RFC 7946 FeatureCollection.",
+      "const": "FeatureCollection"
+    },
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/feature"
+      }
+    }
+  },
+  "$defs": {
+    "metadata": {
+      "type": "object",
+      "description": "Self-describing metadata foreign member (permitted by RFC 7946) so a consumer reading only the file gets the version, license, exposure unit, and privacy/significance parameters that govern interpretation. Additive-friendly (see dataset.schema.md section 7): unknown members are ignorable.",
+      "required": [
+        "schema_version",
+        "dataset_version",
+        "city",
+        "license",
+        "dataset_note",
+        "exposure_unit",
+        "schema_doc",
+        "data_card",
+        "segments_published",
+        "segments_withheld_low_count",
+        "significance",
+        "privacy"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": {
+          "description": "The version of THIS published-dataset schema the file conforms to. Pinned to the version this JSON Schema encodes; publish.py writes the same string.",
+          "const": "1.0.0"
+        },
+        "dataset_version": {
+          "description": "The version of the data (the city release), independent of the schema version.",
+          "type": "string"
+        },
+        "city": {
+          "description": "Human-readable city name (e.g. \"Davis\").",
+          "type": "string"
+        },
+        "license": {
+          "description": "The license the dataset is published under.",
+          "type": "string"
+        },
+        "dataset_note": {
+          "description": "Provenance / demo label from config; null when no note is configured.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exposure_unit": {
+          "description": "Human-readable denominator unit the rates are expressed against.",
+          "type": "string"
+        },
+        "schema_doc": {
+          "description": "Repo-relative path to the prose schema document.",
+          "type": "string"
+        },
+        "schema_json": {
+          "description": "Repo-relative path to this machine-checkable JSON Schema. Optional/additive.",
+          "type": "string"
+        },
+        "data_card": {
+          "description": "Repo-relative path to the data card.",
+          "type": "string"
+        },
+        "segments_published": {
+          "description": "Count of features actually published in this file.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "segments_withheld_low_count": {
+          "description": "Count of segments withheld entirely under the minimum-occupancy floor (k-anonymity).",
+          "type": "integer",
+          "minimum": 0
+        },
+        "significance": {
+          "description": "One-line statement of the significance method.",
+          "type": "string"
+        },
+        "privacy": {
+          "description": "One-line statement of the aggregation and withholding privacy controls (HR4).",
+          "type": "string"
+        }
+      }
+    },
+    "position": {
+      "description": "A single WGS84 (EPSG:4326) position, [longitude, latitude] order, RFC 7946. Optional third element is elevation.",
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "geometry": {
+      "description": "Exactly one geometry per feature: a LineString street-segment centerline (the default aggregation unit) or a Point aggregation-unit representative. No raw or per-report coordinate.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "type": {
+              "const": "LineString"
+            },
+            "coordinates": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/$defs/position"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "type": {
+              "const": "Point"
+            },
+            "coordinates": {
+              "$ref": "#/$defs/position"
+            }
+          }
+        }
+      ]
+    },
+    "feature": {
+      "type": "object",
+      "required": [
+        "type",
+        "geometry",
+        "properties"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "type": {
+          "const": "Feature"
+        },
+        "geometry": {
+          "$ref": "#/$defs/geometry"
+        },
+        "properties": {
+          "$ref": "#/$defs/properties"
+        }
+      }
+    },
+    "properties": {
+      "type": "object",
+      "description": "Feature properties. Every field below is emitted by publish._feature for every published feature. additionalProperties is true so a MINOR schema bump can add a property without breaking older consumers (dataset.schema.md section 7).",
+      "required": [
+        "segment_id",
+        "name",
+        "report_count",
+        "n",
+        "exposure_estimate",
+        "exposure_source",
+        "exposure_date",
+        "rate",
+        "rate_ci_low",
+        "rate_ci_high",
+        "getis_ord_z",
+        "getis_ord_significant",
+        "confidence_label",
+        "hazard_breakdown",
+        "quality_flags",
+        "rates_by_type",
+        "rate_sensitivity_delta"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "segment_id": {
+          "description": "Stable identifier for the aggregation unit (street segment or cell). Not derived from any contributor identity.",
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "description": "Human-readable street-block name for the segment.",
+          "type": "string"
+        },
+        "report_count": {
+          "description": "Raw count of reports aggregated into this feature (report volume, NOT danger; HR1). >= 0.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "n": {
+          "description": "Sample size the confidence interval is computed from. >= 0.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "exposure_estimate": {
+          "description": "The exposure denominator (> 0) attached to this feature; null means exposure unknown, in which case rate/rate_ci_low/rate_ci_high are also null (HR1, degradability).",
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "exposure_source": {
+          "description": "Versioned identifier of the exposure source used; null only when exposure_estimate is null. Not enumerated: source identifiers are additive per dataset.schema.md section 7.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exposure_date": {
+          "description": "ISO-8601 date / vintage of the exposure data; null only when exposure_estimate is null.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "rate": {
+          "description": "The exposure-normalized risk estimate (reports per unit of exposure); the danger estimate, not report_count (HR2). null when exposure_estimate is null. >= 0.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "rate_ci_low": {
+          "description": "Lower bound of the confidence interval on rate. null when rate is null. >= 0.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "rate_ci_high": {
+          "description": "Upper bound of the confidence interval on rate. null when rate is null. >= 0.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "getis_ord_z": {
+          "description": "Getis-Ord Gi* z-score computed on the exposure-normalized rate. null when the feature has no rate (exposure unknown).",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "getis_ord_significant": {
+          "description": "Significance flag: true when getis_ord_z clears the project threshold after multiple-comparison (FDR) correction. false means \"not significant at our threshold\", NOT \"safe\". null when getis_ord_z is null.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "confidence_label": {
+          "description": "Plain-language weight a reader should put on this feature's rate (HR2). Closed vocabulary; additive across MINOR versions.",
+          "type": "string",
+          "enum": [
+            "certain",
+            "uncertain",
+            "exposure_unknown"
+          ]
+        },
+        "hazard_breakdown": {
+          "description": "Counts of reports at this feature by hazard type, keyed by the closed intake vocabulary; values are integers >= 0 that sum to report_count. Suppressed to {} for small-sample features. An absent key means 0.",
+          "type": "object",
+          "propertyNames": {
+            "enum": [
+              "close_pass",
+              "dooring",
+              "surface_hazard",
+              "sightline",
+              "signal",
+              "debris",
+              "other"
+            ]
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "quality_flags": {
+          "description": "Zero or more machine-readable flags from a closed, published vocabulary (additive across MINOR versions; never silently repurposed).",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "low_sample",
+              "geocode_low_confidence",
+              "exposure_unknown"
+            ]
+          }
+        },
+        "rates_by_type": {
+          "description": "Per-hazard-type exposure-normalized rate layers. The top-level `rate` is the pooled union across ALL hazard types; each entry here maps a hazard type whose own count clears the small-sample threshold to its aggregate rate + confidence interval (types below the threshold are suppressed entirely). Aggregate-only: values are counts and rates, never any per-report datum.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "count",
+              "rate",
+              "rate_ci_low",
+              "rate_ci_high"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "number",
+                "minimum": 0
+              },
+              "rate": {
+                "type": "number",
+                "minimum": 0
+              },
+              "rate_ci_low": {
+                "type": "number",
+                "minimum": 0
+              },
+              "rate_ci_high": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "rate_sensitivity_delta": {
+          "description": "Signed difference (all-records rate minus primary rate, in rate units), reported only when the all-records rate falls outside the primary rate's confidence interval — i.e. when excluding low-confidence records materially moves the rate. Null when the two agree within the interval (the common case).",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

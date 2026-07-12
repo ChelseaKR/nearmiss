@@ -13,6 +13,7 @@ import dataclasses
 
 from nearmiss.config import Config
 from nearmiss.engine import AnalysisBundle, build_analysis
+from nearmiss.stats.aggregate import aggregate
 from nearmiss.stats.rates import rate_with_ci
 
 
@@ -24,13 +25,18 @@ def test_fixture_is_overdispersed_and_reported(bundle: AnalysisBundle) -> None:
 
 def test_default_intervals_are_the_unwidened_poisson_intervals(bundle: AnalysisBundle) -> None:
     # With the adjustment off, each rated segment's CI is exactly the pure Poisson
-    # (dispersion = 1) interval — so the published dataset is unchanged.
+    # (dispersion = 1) interval — so the published dataset is unchanged. The
+    # published rate/CI is built from the PRIMARY (low-confidence-excluded,
+    # FIX-07) count, so recompute the expectation from that count.
     per, z = 1000.0, 1.96
+    agg = aggregate(bundle.records)
     for s in bundle.result.segments:
         if s.rate is None or s.exposure_estimate in (None, 0):
             continue
         assert s.exposure_estimate is not None
-        _, lo, hi = rate_with_ci(s.report_count, s.exposure_estimate, per, z, dispersion=1.0)
+        a = agg.get(s.segment_id)
+        count_primary = a.count_primary if a else 0
+        _, lo, hi = rate_with_ci(count_primary, s.exposure_estimate, per, z, dispersion=1.0)
         assert s.rate_ci_low == round(lo, 4)
         assert s.rate_ci_high == round(hi, 4)
 

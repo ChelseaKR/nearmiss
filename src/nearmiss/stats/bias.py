@@ -68,3 +68,32 @@ def characterize_bias(seg_counts: dict[str, int], exposure_map: dict[str, Exposu
             )
     findings.sort(key=lambda f: f.over_representation, reverse=True)
     return BiasReport(findings=tuple(findings), note=_NOTE)
+
+
+def to_metadata(report: BiasReport, publishable: set[str]) -> dict[str, object]:
+    """A privacy-safe, JSON-serializable view of the reporting-bias audit.
+
+    Mirrors ``stats/temporal.to_metadata``: it surfaces the caveat note plus the
+    over- and under-represented segments so the web UI (not only the brief) can
+    show *who* the dataset over- and under-reports. Only segments that clear the
+    k-anonymity floor are included — the same filter :mod:`nearmiss.brief` applies
+    — and only a segment id and two rounded shares are emitted. No coordinate,
+    raw count, or reporter field ever appears here (hard rule #4 / privacy).
+    """
+
+    def entry(f: BiasFinding) -> dict[str, object]:
+        return {
+            "segment_id": f.segment_id,
+            "report_share": round(f.report_share, 4),
+            "exposure_share": round(f.exposure_share, 4),
+        }
+
+    over = [entry(f) for f in report.over_represented if f.segment_id in publishable]
+    under = [entry(f) for f in report.under_represented if f.segment_id in publishable]
+    # The caveat is emitted as "caveat" (not "note"): "note" is a forbidden
+    # per-report field name, so it must never appear as a key in any artifact.
+    return {
+        "caveat": report.note,
+        "over_represented": over,
+        "under_represented": under,
+    }

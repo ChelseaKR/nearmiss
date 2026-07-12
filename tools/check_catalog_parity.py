@@ -13,11 +13,21 @@ Enforces, over ``src/nearmiss/locales``:
 * **G5 placeholder parity** — the set of ``{...}`` fields is identical between
   each msgid and its translation (so a rename or dropped ``{name}`` cannot ship).
 
+* **Web domain** — every ``web.*`` msgid (the web-UI strings registered in
+  :mod:`nearmiss.web_i18n`, single-sourced into ``web/locales/*.json`` by
+  :mod:`tools.po2json`) is present and non-empty in both en and es, the two
+  translations share an identical ``{...}`` field set, and the committed
+  ``web/locales/<lang>.json`` keys exactly match the ``web.*`` msgid inventory —
+  so a web string that bypasses the catalog fails the build. (The ``web.*``
+  msgids are keys, not English source text, so they are exempt from the
+  msgid-vs-translation placeholder check above and gated here instead.)
+
 Pure standard library + Babel's PO reader; no network, deterministic.
 """
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -25,9 +35,12 @@ from pathlib import Path
 from babel.messages.catalog import Catalog, Message
 from babel.messages.pofile import read_po
 
-LOCALES = Path(__file__).resolve().parent.parent / "src" / "nearmiss" / "locales"
+ROOT = Path(__file__).resolve().parent.parent
+LOCALES = ROOT / "src" / "nearmiss" / "locales"
+WEB_LOCALES = ROOT / "web" / "locales"
 POT = LOCALES / "messages.pot"
 CATALOGS = {"en", "es"}
+WEB_PREFIX = "web."
 
 _FIELD = re.compile(r"\{[^{}]*\}")
 
@@ -105,14 +118,69 @@ def _check_singular_message(name: str, message: Message, src_fields: set[str]) -
 
 
 def _check_message(name: str, message: Message) -> list[str]:
-    """G5: every msgstr (each plural form) non-empty, with placeholders preserved."""
+    """G5: every msgstr (each plural form) non-empty, with placeholders preserved.
+
+    ``web.*`` msgids are keys, not English text (their braces live only in the
+    translations), so they are gated by _check_web, not here.
+    """
     if not message.id:
+        return []
+    if _key(message).startswith(WEB_PREFIX):
         return []
     src_fields = _fields(_key(message))
     if isinstance(message.id, (tuple, list)):
         src_fields |= _fields(message.id[1])
         return _check_plural_message(name, message, src_fields)
     return _check_singular_message(name, message, src_fields)
+
+
+def _string(catalog: Catalog, msgid: str) -> str:
+    message = catalog.get(msgid)
+    return message.string if message and isinstance(message.string, str) else ""
+
+
+def _check_web(pot_ids: set[str], en: Catalog, es: Catalog) -> list[str]:
+    """Gate the web domain: catalog completeness, EN/ES field parity, JSON match."""
+    errors: list[str] = []
+    web_ids = {mid for mid in pot_ids if mid.startswith(WEB_PREFIX)}
+    if not web_ids:
+        return ["web: no web.* msgids in the template (expected the web-UI strings)"]
+
+    # Every web.* id present and non-empty in both catalogs, with matching fields.
+    for name, catalog in (("en", en), ("es", es)):
+        for mid in sorted(web_ids):
+            if not _string(catalog, mid):
+                errors.append(f"web: {name} is missing or empty for {mid!r}")
+    for mid in sorted(web_ids):
+        en_fields, es_fields = _fields(_string(en, mid)), _fields(_string(es, mid))
+        if en_fields != es_fields:
+            errors.append(f"web: en/es placeholder mismatch in {mid!r}: {en_fields} != {es_fields}")
+
+    errors.extend(_check_web_json(web_ids))
+    return errors
+
+
+def _check_web_json(web_ids: set[str]) -> list[str]:
+    """web/locales/<lang>.json keys must exactly equal the web.* inventory, so a
+    string that bypasses the catalog (added only to the JSON, or dropped) fails."""
+    errors: list[str] = []
+    for lang in sorted(CATALOGS):
+        path = WEB_LOCALES / f"{lang}.json"
+        if not path.exists():
+            errors.append(f"web: {path} is missing (run `make i18n-compile`)")
+            continue
+        try:
+            keys = set(json.loads(path.read_text(encoding="utf-8")))
+        except (ValueError, OSError) as exc:
+            errors.append(f"web: could not read {path}: {exc}")
+            continue
+        if keys != web_ids:
+            missing, extra = web_ids - keys, keys - web_ids
+            if missing:
+                errors.append(f"web: {lang}.json missing web ids: {sorted(missing)}")
+            if extra:
+                errors.append(f"web: {lang}.json has non-catalog ids: {sorted(extra)}")
+    return errors
 
 
 def main() -> int:
@@ -130,14 +198,17 @@ def main() -> int:
         for message in catalog:
             errors.extend(_check_message(name, message))
 
+    errors.extend(_check_web(pot_ids, en, es))
+
     if errors:
         print("catalog parity FAILED:", file=sys.stderr)
         for err in errors:
             print(f"  - {err}", file=sys.stderr)
         return 1
+    web_count = sum(1 for mid in pot_ids if mid.startswith(WEB_PREFIX))
     print(
-        f"catalog parity OK: {len(pot_ids)} msgids, en/es key-parity + completeness + "
-        "placeholder parity hold."
+        f"catalog parity OK: {len(pot_ids)} msgids ({web_count} web.*), en/es key-parity + "
+        "completeness + placeholder parity + web JSON match hold."
     )
     return 0
 
