@@ -39,7 +39,12 @@ deterministic `normalize` functions.
 - Serialize writers with an owner-only per-source directory lock. Release it only when the active
   marker is provably the prior or candidate state; retain ambiguous or failed-rollback state for
   operator recovery.
+- When rollback fails, keep the active success marker's historical identity separate from the
+  rollback-failure record (`<attempt>.json` versus `<attempt>.failure.json`) so recovery can preserve
+  both without an immutable-name collision.
 - Default owned directories to `0700` and artifacts, markers, and receipts to `0400`.
+- Scope this backend to POSIX filesystems that provide effective-user ownership, Unix modes, hard
+  links, atomic same-filesystem rename, and file/directory fsync semantics.
 
 ## Consequences
 
@@ -53,6 +58,8 @@ deterministic `normalize` functions.
   an operator must inspect the active marker and artifacts before recovery.
 - The current API materializes bytes supplied by callbacks. Producers that acquire large inputs must
   apply their own streaming/bounded-download controls before returning bytes.
+- Windows and non-POSIX/network filesystems require a separate backend; this implementation does not
+  claim equivalent permission or durability behavior there.
 
 ## Alternatives considered
 

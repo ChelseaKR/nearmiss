@@ -54,7 +54,7 @@ every entry.
 
 ### Added
 
-- A fail-closed, source-agnostic ingestion transaction foundation with owner-only storage,
+- A fail-closed, source-agnostic POSIX ingestion transaction foundation with owner-only storage,
   content-addressed raw and normalized artifacts, an atomically replaced active receipt/commit marker,
   immutable historical receipts, last-known-good validation, controlled error redaction, and explicit
   lock retention when commit state cannot be proven. Fetch and normalization functions remain injected;

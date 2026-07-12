@@ -40,7 +40,15 @@
       "properties": {
         "type": {
           "type": "string",
-          "pattern": "^[A-Za-z][A-Za-z0-9_]{0,127}$"
+          "enum": [
+            "Exception",
+            "IngestionError",
+            "OSError",
+            "RollbackError",
+            "TimeoutError",
+            "TypeError",
+            "ValueError"
+          ]
         },
         "message": {
           "type": "string",

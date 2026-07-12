@@ -4,6 +4,7 @@ import datetime as dt
 import hashlib
 import json
 import stat
+import traceback
 from pathlib import Path
 from typing import cast
 
@@ -161,7 +162,9 @@ def test_invalid_internal_failure_receipt_is_not_installed_or_allowed_to_mask_ca
             attempt_id="invalid-internal",
         )
 
-    assert raised.value.__cause__ is original
+    rendered = "".join(traceback.format_exception(raised.value))
+    assert raised.value.__cause__ is None
+    assert str(original) not in rendered
     assert not (tmp_path / "source" / "receipts" / "invalid-internal.json").exists()
 
 
@@ -186,8 +189,9 @@ def test_receipt_validation_rejects_digest_path_mismatch() -> None:
         ingestion._receipt_bytes(cast(ingestion.IngestionReceipt, receipt))
 
 
-def test_uncontrolled_exception_type_is_sanitized(tmp_path: Path) -> None:
-    unsafe_error = type("unsafe error!", (RuntimeError,), {})
+@pytest.mark.parametrize("class_name", ["unsafe error!", "Token_supersecret"])
+def test_uncontrolled_exception_type_is_sanitized(tmp_path: Path, class_name: str) -> None:
+    unsafe_error = type(class_name, (RuntimeError,), {})
 
     def fail_fetch() -> bytes:
         raise unsafe_error("private")
@@ -273,9 +277,10 @@ def test_failure_receipt_and_public_error_do_not_expose_exception_text(
     receipt_text = raised.value.receipt_path.read_text(encoding="utf-8")
     assert secret not in receipt_text
     assert secret not in str(raised.value)
+    assert secret not in "".join(traceback.format_exception(raised.value))
     assert _receipt(raised.value.receipt_path)["error"] == {
         "message": "fetch failed",
-        "type": "RuntimeError",
+        "type": "Exception",
     }
 
 
@@ -581,8 +586,10 @@ def test_rollback_failure_is_truthful_redacted_and_retains_lock(
 
     receipt_text = raised.value.receipt_path.read_text(encoding="utf-8")
     receipt = _receipt(raised.value.receipt_path)
+    assert raised.value.receipt_path.name == "rollback-failure.failure.json"
     assert secret not in receipt_text
     assert secret not in str(raised.value)
+    assert secret not in "".join(traceback.format_exception(raised.value))
     assert receipt["status"] == "failure"
     assert receipt["activated"] is True
     assert receipt["error"] == {
@@ -591,7 +598,28 @@ def test_rollback_failure_is_truthful_redacted_and_retains_lock(
     }
     marker = _receipt(tmp_path / "source" / "normalized" / "current.json")
     assert marker["normalized_sha256"] == hashlib.sha256(b"candidate").hexdigest()
-    assert (tmp_path / "source" / ".ingestion.lock").is_dir()
+    lock_path = tmp_path / "source" / ".ingestion.lock"
+    assert lock_path.is_dir()
+
+    candidate_marker = (tmp_path / "source" / "normalized" / "current.json").read_bytes()
+    lock_path.rmdir()
+    recovered = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-after-recovery",
+        normalize=lambda _raw: b"normalized-after-recovery",
+        clock=_clock,
+        attempt_id="after-recovery",
+    )
+
+    committed_history = tmp_path / "source" / "receipts" / "rollback-failure.json"
+    assert committed_history.read_bytes() == candidate_marker
+    assert _receipt(committed_history)["status"] == "success"
+    assert _receipt(raised.value.receipt_path)["status"] == "failure"
+    assert recovered.normalized_path.read_bytes() == b"normalized-after-recovery"
+    candidate_path = marker["normalized_path"]
+    assert isinstance(candidate_path, str)
+    assert (tmp_path / "source" / candidate_path).read_bytes() == b"candidate"
 
 
 def test_two_successes_keep_historical_receipts_bound_to_immutable_payloads(

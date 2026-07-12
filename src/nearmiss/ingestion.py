@@ -42,7 +42,15 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 RECEIPT_SCHEMA_VERSION = "1.0.0"
 _SAFE_SOURCE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
-_SAFE_ERROR_TYPE = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,127}$")
+_RECEIPT_ERROR_TYPES = (
+    "Exception",
+    "IngestionError",
+    "OSError",
+    "RollbackError",
+    "TimeoutError",
+    "TypeError",
+    "ValueError",
+)
 
 # Keep the runtime contract embedded: wheels and source distributions must not
 # depend on the repository-level ``schema/`` directory being present. A test
@@ -86,7 +94,7 @@ RECEIPT_SCHEMA: dict[str, object] = {
             "properties": {
                 "type": {
                     "type": "string",
-                    "pattern": "^[A-Za-z][A-Za-z0-9_]{0,127}$",
+                    "enum": list(_RECEIPT_ERROR_TYPES),
                 },
                 "message": {
                     "type": "string",
@@ -356,16 +364,16 @@ def _ensure_directory(path: Path) -> None:
         pass
     try:
         metadata = path.stat(follow_symlinks=False)
-    except FileNotFoundError as exc:
-        raise IngestionError(f"ingestion directory disappeared: {path}") from exc
+    except FileNotFoundError:
+        raise IngestionError(f"ingestion directory disappeared: {path}") from None
     if not stat.S_ISDIR(metadata.st_mode):
         raise IngestionError(f"ingestion path is not a real directory: {path}")
     if metadata.st_uid != os.geteuid():
         raise IngestionError(f"ingestion directory is not owned by the effective user: {path}")
     try:
         path.chmod(0o700, follow_symlinks=False)
-    except (NotImplementedError, OSError) as exc:
-        raise IngestionError(f"ingestion directory permissions are unsafe: {path}") from exc
+    except (NotImplementedError, OSError):
+        raise IngestionError(f"ingestion directory permissions are unsafe: {path}") from None
     if created:
         _fsync_directory(path.parent)
 
@@ -375,16 +383,16 @@ def _ensure_source_directory(root: Path, source_id: str) -> Path:
         root.mkdir(parents=True, mode=0o700)
     try:
         root_metadata = root.stat(follow_symlinks=False)
-    except FileNotFoundError as exc:
-        raise IngestionError(f"ingestion root disappeared: {root}") from exc
+    except FileNotFoundError:
+        raise IngestionError(f"ingestion root disappeared: {root}") from None
     if not stat.S_ISDIR(root_metadata.st_mode):
         raise IngestionError("ingestion root must be a real directory, not a symlink")
     if root_metadata.st_uid != os.geteuid():
         raise IngestionError("ingestion root is not owned by the effective user")
     try:
         root.chmod(0o700, follow_symlinks=False)
-    except (NotImplementedError, OSError) as exc:
-        raise IngestionError("ingestion root permissions are unsafe") from exc
+    except (NotImplementedError, OSError):
+        raise IngestionError("ingestion root permissions are unsafe") from None
     source_root = root / source_id
     _ensure_directory(source_root)
     return source_root
@@ -419,8 +427,8 @@ def _read_regular(path: Path) -> bytes:
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
     try:
         descriptor = os.open(path, flags)
-    except OSError as exc:
-        raise IngestionError(f"ingestion artifact is not safely readable: {path}") from exc
+    except OSError:
+        raise IngestionError(f"ingestion artifact is not safely readable: {path}") from None
     try:
         metadata = os.fstat(descriptor)
         if not stat.S_ISREG(metadata.st_mode):
@@ -475,8 +483,8 @@ def _validate_receipt(receipt: IngestionReceipt) -> None:
     """Reject any receipt that does not satisfy the public audit contract."""
     try:
         _RECEIPT_VALIDATOR.validate(receipt)
-    except Exception as exc:
-        raise IngestionError("internally constructed ingestion receipt is invalid") from exc
+    except Exception:
+        raise IngestionError("internally constructed ingestion receipt is invalid") from None
     raw_snapshot = receipt["raw_snapshot"]
     raw_sha256 = receipt["raw_sha256"]
     if raw_snapshot is not None and raw_snapshot != f"raw/sha256/{raw_sha256}.bin":
@@ -498,8 +506,8 @@ def _receipt_bytes(receipt: IngestionReceipt) -> bytes:
 def _parse_receipt(payload: bytes) -> IngestionReceipt:
     try:
         value = json.loads(payload)
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise IngestionError("active ingestion marker is not valid JSON") from exc
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        raise IngestionError("active ingestion marker is not valid JSON") from None
     if not isinstance(value, dict):
         raise IngestionError("active ingestion marker is not a JSON object")
     receipt = cast(IngestionReceipt, value)
@@ -569,10 +577,10 @@ def _require_payload(value: object, stage: str, maximum_bytes: int | None) -> by
 def _acquire_lock(lock_path: Path, source_id: str) -> LockIdentity:
     try:
         lock_path.mkdir(mode=0o700)
-    except FileExistsError as exc:
+    except FileExistsError:
         raise ConcurrentIngestionError(
             f"ingestion already locked for source {source_id!r}"
-        ) from exc
+        ) from None
     try:
         metadata = lock_path.stat(follow_symlinks=False)
         if not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid != os.geteuid():
@@ -640,10 +648,17 @@ def _failure_timestamp(clock: Clock) -> str | None:
 def _error_type(exc: BaseException, rollback_failed: bool) -> str:
     if rollback_failed:
         return "RollbackError"
-    name = type(exc).__name__
-    if name == "RollbackError" or not _SAFE_ERROR_TYPE.fullmatch(name):
-        return "Exception"
-    return name
+    if isinstance(exc, IngestionError):
+        return "IngestionError"
+    if isinstance(exc, TimeoutError):
+        return "TimeoutError"
+    if isinstance(exc, OSError):
+        return "OSError"
+    if isinstance(exc, ValueError):
+        return "ValueError"
+    if isinstance(exc, TypeError):
+        return "TypeError"
+    return "Exception"
 
 
 def _validate_maximum(value: int | None, name: str) -> None:
@@ -790,7 +805,7 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
             raise IngestionError(
                 "ingestion failed and active marker state could not be determined; "
                 "operator intervention is required"
-            ) from exc
+            ) from None
 
         rollback_failed = False
         if activated:
@@ -805,7 +820,7 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
                     raise IngestionError(
                         "ingestion rollback left active marker state undetermined; "
                         "operator intervention is required"
-                    ) from exc
+                    ) from None
                 else:
                     rollback_failed = True
                     activated = True
@@ -841,20 +856,25 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
                 ),
             },
         }
+        failure_receipt_path = (
+            receipts_dir / f"{run_id}.failure.json" if rollback_failed else receipt_path
+        )
         try:
-            _install_immutable(source_root, receipt_path, _receipt_bytes(failure))
+            _install_immutable(source_root, failure_receipt_path, _receipt_bytes(failure))
         except BaseException as receipt_exc:
             if not isinstance(receipt_exc, Exception):
                 raise
             raise IngestionError(
                 "ingestion failed and its failure receipt could not be written"
-            ) from exc
+            ) from None
         if rollback_failed:
             raise IngestionRunError(
                 f"ingestion failed for source {source_id!r} and rollback failed; "
                 "operator intervention is required",
-                receipt_path,
-            ) from exc
-        raise IngestionRunError(f"ingestion failed for source {source_id!r}", receipt_path) from exc
+                failure_receipt_path,
+            ) from None
+        raise IngestionRunError(
+            f"ingestion failed for source {source_id!r}", failure_receipt_path
+        ) from None
     finally:
         _finalize_lock(lock_path, lock_identity, retain_lock)
