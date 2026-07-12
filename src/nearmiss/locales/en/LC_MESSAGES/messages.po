@@ -19,11 +19,17 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+msgid "## Dominant hazard type by segment (with its own rate)"
+msgstr "## Dominant hazard type by segment (with its own rate)"
+
 msgid "## Highest-rate segments (exposure-normalized)"
 msgstr "## Highest-rate segments (exposure-normalized)"
 
 msgid "## Reporting bias (named, not hidden)"
 msgstr "## Reporting bias (named, not hidden)"
+
+msgid "## Robustness checks (overdispersion & re-segmentation)"
+msgstr "## Robustness checks (overdispersion & re-segmentation)"
 
 msgid "## Statistically significant hotspots (Getis-Ord Gi\\*)"
 msgstr "## Statistically significant hotspots (Getis-Ord Gi\\*)"
@@ -34,124 +40,87 @@ msgstr "## What the numbers mean (plain language)"
 msgid "## When hazards get reported (volume, not risk)"
 msgstr "## When hazards get reported (volume, not risk)"
 
-#, python-brace-format
-msgid ""
-"**Bottom line:** the highest exposure-normalized near-miss rate is on "
-"**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
-"n={n}){sig}. Because it is normalized by exposure, this is a rate, not "
-"just a busy street; still, it rests on {n} reports, so read it with the "
-"interval and the reporting-bias caveats below."
-msgstr ""
-"**Bottom line:** the highest exposure-normalized near-miss rate is on "
-"**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
-"n={n}){sig}. Because it is normalized by exposure, this is a rate, not "
-"just a busy street; still, it rests on {n} reports, so read it with the "
-"interval and the reporting-bias caveats below."
+msgid "**Analysis window:** all available data (no window configured — rates below are all-time and not bounded to a stated period)."
+msgstr "**Analysis window:** all available data (no window configured — rates below are all-time and not bounded to a stated period)."
 
 #, python-brace-format
-msgid ""
-"**Exposure coverage:** {pct}% of segments have an exposure denominator. "
-"Segments without one are listed as *exposure unknown*, not ranked."
-msgstr ""
-"**Exposure coverage:** {pct}% of segments have an exposure denominator. "
-"Segments without one are listed as *exposure unknown*, not ranked."
-
-msgid ""
-"**Over-represented vs exposure** (more reports than traffic alone "
-"predicts):"
-msgstr ""
-"**Over-represented vs exposure** (more reports than traffic alone "
-"predicts):"
+msgid "**Analysis window:** {start} to {end}."
+msgstr "**Analysis window:** {start} to {end}."
 
 #, python-brace-format
-msgid ""
-"**Report-intensity peak (KDE, not danger):** around {name}. This shows "
-"where reports concentrate, which is not the same as where risk is "
-"highest."
-msgstr ""
-"**Report-intensity peak (KDE, not danger):** around {name}. This shows "
-"where reports concentrate, which is not the same as where risk is "
-"highest."
-
-msgid ""
-"**Under-represented vs exposure** (quiet in the data, not necessarily "
-"safe):"
-msgstr ""
-"**Under-represented vs exposure** (quiet in the data, not necessarily "
-"safe):"
+msgid "**Bottom line:** the highest exposure-normalized near-miss rate is on **{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a busy street; still, it rests on {n} reports, so read it with the interval and the reporting-bias caveats below."
+msgstr "**Bottom line:** the highest exposure-normalized near-miss rate is on **{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a busy street; still, it rests on {n} reports, so read it with the interval and the reporting-bias caveats below."
 
 #, python-brace-format
-msgid ""
-"**Weather (association, not a risk rate):** {rws} of matched reports fell"
-" on wet days, while {bws} of days in the weather record were wet. Wet "
-"days usually carry far fewer riders, so this is an association to "
-"investigate, not a weather risk rate. Source: {src}."
-msgstr ""
-"**Weather (association, not a risk rate):** {rws} of matched reports fell"
-" on wet days, while {bws} of days in the weather record were wet. Wet "
-"days usually carry far fewer riders, so this is an association to "
-"investigate, not a weather risk rate. Source: {src}."
+msgid "**Exposure coverage:** {pct}% of segments have an exposure denominator. Segments without one are listed as *exposure unknown*, not ranked."
+msgstr "**Exposure coverage:** {pct}% of segments have an exposure denominator. Segments without one are listed as *exposure unknown*, not ranked."
+
+#, python-brace-format
+msgid "**Null calibration (we attacked our own dataset):** on {n} seeded label-shuffles of this city's own reports, with exposure and geometry held fixed, the hotspot method's empirical false-positive rate was {pct}% — see `{file}`."
+msgstr "**Null calibration (we attacked our own dataset):** on {n} seeded label-shuffles of this city's own reports, with exposure and geometry held fixed, the hotspot method's empirical false-positive rate was {pct}% — see `{file}`."
+
+msgid "**Over-represented vs exposure** (more reports than traffic alone predicts):"
+msgstr "**Over-represented vs exposure** (more reports than traffic alone predicts):"
+
+#, python-brace-format
+msgid "**Report-intensity peak (KDE, not danger):** around {name}. This shows where reports concentrate, which is not the same as where risk is highest."
+msgstr "**Report-intensity peak (KDE, not danger):** around {name}. This shows where reports concentrate, which is not the same as where risk is highest."
+
+msgid "**Under-represented vs exposure** (quiet in the data, not necessarily safe):"
+msgstr "**Under-represented vs exposure** (quiet in the data, not necessarily safe):"
+
+#, python-brace-format
+msgid "**Weather (association, not a risk rate):** {rws} of matched reports fell on wet days, while {bws} of days in the weather record were wet. Wet days usually carry far fewer riders, so this is an association to investigate, not a weather risk rate. Source: {src}."
+msgstr "**Weather (association, not a risk rate):** {rws} of matched reports fell on wet days, while {bws} of days in the weather record were wet. Wet days usually carry far fewer riders, so this is an association to investigate, not a weather risk rate. Source: {src}."
 
 msgid "*Small sample: too few timed reports to read these peaks with confidence.*"
 msgstr "*Small sample: too few timed reports to read these peaks with confidence.*"
 
-msgid ""
-"*Time-of-day breakdown withheld: too few timed reports to share without "
-"risking contributor privacy (k-anonymity).*"
-msgstr ""
-"*Time-of-day breakdown withheld: too few timed reports to share without "
-"risking contributor privacy (k-anonymity).*"
+msgid "*Time-of-day breakdown withheld: too few timed reports to share without risking contributor privacy (k-anonymity).*"
+msgstr "*Time-of-day breakdown withheld: too few timed reports to share without risking contributor privacy (k-anonymity).*"
 
 #, python-brace-format
-msgid ""
-"*{n} segment with fewer than {floor} reports is withheld from this brief "
-"and the open dataset to protect contributor privacy (k-anonymity).*"
-msgid_plural ""
-"*{n} segments with fewer than {floor} reports are withheld from this "
-"brief and the open dataset to protect contributor privacy (k-anonymity).*"
-msgstr[0] ""
-"*{n} segment with fewer than {floor} reports is withheld from this brief "
-"and the open dataset to protect contributor privacy (k-anonymity).*"
-msgstr[1] ""
-"*{n} segments with fewer than {floor} reports are withheld from this "
-"brief and the open dataset to protect contributor privacy (k-anonymity).*"
+msgid "*{n} segment with fewer than {floor} reports is withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
+msgid_plural "*{n} segments with fewer than {floor} reports are withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
+msgstr[0] "*{n} segment with fewer than {floor} reports is withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
+msgstr[1] "*{n} segments with fewer than {floor} reports are withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
 
 msgid ", and it is a statistically significant cluster"
 msgstr ", and it is a statistically significant cluster"
 
-msgid ""
-"- **95% CI (confidence interval)** — the plausible range for the true "
-"rate. A wide range means few reports and real uncertainty; treat those "
-"rankings gently."
-msgstr ""
-"- **95% CI (confidence interval)** — the plausible range for the true "
-"rate. A wide range means few reports and real uncertainty; treat those "
-"rankings gently."
+msgid "- **95% CI (confidence interval)** — the plausible range for the true rate. A wide range means few reports and real uncertainty; treat those rankings gently."
+msgstr "- **95% CI (confidence interval)** — the plausible range for the true rate. A wide range means few reports and real uncertainty; treat those rankings gently."
 
-msgid ""
-"- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot "
-"*beyond* what traffic and chance explain, after a multiple-comparison "
-"correction: a real cluster, not a fluke. Several streets can share a rate"
-" while only one is a significant cluster."
-msgstr ""
-"- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot "
-"*beyond* what traffic and chance explain, after a multiple-comparison "
-"correction: a real cluster, not a fluke. Several streets can share a rate"
-" while only one is a significant cluster."
+msgid "- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot *beyond* what traffic and chance explain, after a multiple-comparison correction: a real cluster, not a fluke. Several streets can share a rate while only one is a significant cluster."
+msgstr "- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot *beyond* what traffic and chance explain, after a multiple-comparison correction: a real cluster, not a fluke. Several streets can share a rate while only one is a significant cluster."
 
 #, python-brace-format
-msgid ""
-"- **Rate** — reports per {per} {unit}. It adjusts for how many people "
-"travel a street, so a quiet street with a few reports can rank above a "
-"busy one with many."
-msgstr ""
-"- **Rate** — reports per {per} {unit}. It adjusts for how many people "
-"travel a street, so a quiet street with a few reports can rank above a "
-"busy one with many."
+msgid "- **Overdispersion (clustered reporting).** The report counts are overdispersed (dispersion ≈ {phi}): by that pooled estimate the Poisson 95% intervals above could be up to {infl}× too narrow. Genuine between-segment differences inflate this estimate too, so {infl}× is an upper bound on the needed widening. {clause}"
+msgstr "- **Overdispersion (clustered reporting).** The report counts are overdispersed (dispersion ≈ {phi}): by that pooled estimate the Poisson 95% intervals above could be up to {infl}× too narrow. Genuine between-segment differences inflate this estimate too, so {infl}× is an upper bound on the needed widening. {clause}"
+
+#, python-brace-format
+msgid "- **Overdispersion.** Report counts show no material overdispersion (dispersion ≈ {phi}); the Poisson intervals stand as computed."
+msgstr "- **Overdispersion.** Report counts show no material overdispersion (dispersion ≈ {phi}); the Poisson intervals stand as computed."
+
+#, python-brace-format
+msgid "- **Rate** — reports per {per} {unit}. It adjusts for how many people travel a street, so a quiet street with a few reports can rank above a busy one with many."
+msgstr "- **Rate** — reports per {per} {unit}. It adjusts for how many people travel a street, so a quiet street with a few reports can rank above a busy one with many."
+
+#, python-brace-format
+msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}) leaves **{name}** the highest-rate, still-significant cluster — the hotspot is not an artifact of where the block lines were drawn. Top-{k} rank overlap: {overlap}."
+msgstr "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}) leaves **{name}** the highest-rate, still-significant cluster — the hotspot is not an artifact of where the block lines were drawn. Top-{k} rank overlap: {overlap}."
+
+#, python-brace-format
+msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}), **{name}** stays the highest-rate unit but loses statistical significance at the coarser scale — read it as scale-sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank overlap: {overlap}."
+msgstr "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}), **{name}** stays the highest-rate unit but loses statistical significance at the coarser scale — read it as scale-sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank overlap: {overlap}."
 
 #, python-brace-format
 msgid "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
 msgstr "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
+
+#, python-brace-format
+msgid "- **{name}** — most common: **{hazard}** ({count} reports), rate {rate}/{per} (CI {lo}-{hi})"
+msgstr "- **{name}** — most common: **{hazard}** ({count} reports), rate {rate}/{per} (CI {lo}-{hi})"
 
 #, python-brace-format
 msgid "- **{part}**: {n} report ({pct}%)"
@@ -167,26 +136,14 @@ msgid "95% CI"
 msgstr "95% CI"
 
 #, python-brace-format
-msgid ""
-"> Rates are reports per {per} {unit}. Every rate carries a 95% confidence"
-" interval and an n. Raw counts are not danger; they are report volume. "
-"Read the caveats — they are the point."
-msgstr ""
-"> Rates are reports per {per} {unit}. Every rate carries a 95% confidence"
-" interval and an n. Raw counts are not danger; they are report volume. "
-"Read the caveats — they are the point."
+msgid "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence interval and an n. Raw counts are not danger; they are report volume. Read the caveats — they are the point."
+msgstr "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence interval and an n. Raw counts are not danger; they are report volume. Read the caveats — they are the point."
 
 msgid "Confidence"
 msgstr "Confidence"
 
-msgid ""
-"Every figure above regenerates from raw inputs with `make reproduce`. "
-"Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and "
-"`docs/DATA-CARD.md`."
-msgstr ""
-"Every figure above regenerates from raw inputs with `make reproduce`. "
-"Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and "
-"`docs/DATA-CARD.md`."
+msgid "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
+msgstr "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
 
 msgid "Friday"
 msgstr "Friday"
@@ -198,12 +155,8 @@ msgid "Monday"
 msgstr "Monday"
 
 #, python-brace-format
-msgid ""
-"Most reports arrive during the **{part}**; the busiest day is "
-"**{weekday}**."
-msgstr ""
-"Most reports arrive during the **{part}**; the busiest day is "
-"**{weekday}**."
+msgid "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
+msgstr "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
 
 msgid "No segment reaches statistical significance at this sample size."
 msgstr "No segment reaches statistical significance at this sample size."
@@ -215,58 +168,35 @@ msgstr "Rank"
 msgid "Rate /{per}"
 msgstr "Rate /{per}"
 
+msgid "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening is available via the `overdispersion_adjust` setting)."
+msgstr "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening is available via the `overdispersion_adjust` setting)."
+
 msgid "Saturday"
 msgstr "Saturday"
 
 msgid "Segment"
 msgstr "Segment"
 
-msgid ""
-"Shares compare where reports land against where exposure is. They cannot,"
-" on their own, separate 'more dangerous' from 'more reported': reporter "
-"pools skew by route choice, demographics, app access, and language. Treat"
-" over-represented segments as candidates for attention and scrutiny, not "
-"as confirmed rankings."
-msgstr ""
-"Shares compare where reports land against where exposure is. They cannot,"
-" on their own, separate 'more dangerous' from 'more reported': reporter "
-"pools skew by route choice, demographics, app access, and language. Treat"
-" over-represented segments as candidates for attention and scrutiny, not "
-"as confirmed rankings."
+msgid "Shares compare where reports land against where exposure is. They cannot, on their own, separate 'more dangerous' from 'more reported': reporter pools skew by route choice, demographics, app access, and language. Treat over-represented segments as candidates for attention and scrutiny, not as confirmed rankings."
+msgstr "Shares compare where reports land against where exposure is. They cannot, on their own, separate 'more dangerous' from 'more reported': reporter pools skew by route choice, demographics, app access, and language. Treat over-represented segments as candidates for attention and scrutiny, not as confirmed rankings."
 
 msgid "Sunday"
 msgstr "Sunday"
 
-msgid ""
-"These segments are hot *beyond* what exposure and spatial structure "
-"explain — candidates for hot because dangerous, not hot because busy:"
-msgstr ""
-"These segments are hot *beyond* what exposure and spatial structure "
-"explain — candidates for hot because dangerous, not hot because busy:"
+msgid "The headline rate is pooled across every hazard type (a union). This names the single most common conflict type at each ranked segment and gives *its* exposure-normalized rate; types with too few reports to share are omitted."
+msgstr "The headline rate is pooled across every hazard type (a union). This names the single most common conflict type at each ranked segment and gives *its* exposure-normalized rate; types with too few reports to share are omitted."
 
-msgid ""
-"This does not mean nothing can be concluded — an exposure-normalized rate"
-" with a stated interval and a flagged bias is a far better basis for "
-"action than a raw heat map. It means: act on the strongest, most-"
-"significant signals, and treat the rest as leads to investigate, not "
-"verdicts."
-msgstr ""
-"This does not mean nothing can be concluded — an exposure-normalized rate"
-" with a stated interval and a flagged bias is a far better basis for "
-"action than a raw heat map. It means: act on the strongest, most-"
-"significant signals, and treat the rest as leads to investigate, not "
-"verdicts."
+msgid "These segments are hot *beyond* what exposure and spatial structure explain — candidates for hot because dangerous, not hot because busy:"
+msgstr "These segments are hot *beyond* what exposure and spatial structure explain — candidates for hot because dangerous, not hot because busy:"
 
-msgid ""
-"This is **report volume** by time of day, not a rate: there is no time-"
-"of-day exposure denominator, so it reflects *when people ride and "
-"report*, not when a street is most dangerous. Read it as a lead for "
-"outreach timing, not a risk ranking."
-msgstr ""
-"This is **report volume** by time of day, not a rate: there is no time-"
-"of-day exposure denominator, so it reflects *when people ride and "
-"report*, not when a street is most dangerous. Read it as a lead for "
-"outreach timing, not a risk ranking."
+msgid "This does not mean nothing can be concluded — an exposure-normalized rate with a stated interval and a flagged bias is a far better basis for action than a raw heat map. It means: act on the strongest, most-significant signals, and treat the rest as leads to investigate, not verdicts."
+msgstr "This does not mean nothing can be concluded — an exposure-normalized rate with a stated interval and a flagged bias is a far better basis for action than a raw heat map. It means: act on the strongest, most-significant signals, and treat the rest as leads to investigate, not verdicts."
+
+msgid "This is **report volume** by time of day, not a rate: there is no time-of-day exposure denominator, so it reflects *when people ride and report*, not when a street is most dangerous. Read it as a lead for outreach timing, not a risk ranking."
+msgstr "This is **report volume** by time of day, not a rate: there is no time-of-day exposure denominator, so it reflects *when people ride and report*, not when a street is most dangerous. Read it as a lead for outreach timing, not a risk ranking."
+
+msgid "Those intervals have already been widened accordingly (quasi-Poisson)."
+msgstr "Those intervals have already been widened accordingly (quasi-Poisson)."
 
 msgid "Thursday"
 msgstr "Thursday"
@@ -281,8 +211,20 @@ msgstr "Wednesday"
 msgid "Where the danger actually is — {city}"
 msgstr "Where the danger actually is — {city}"
 
+msgid "blocked sightline"
+msgstr "blocked sightline"
+
 msgid "certain"
 msgstr "certain"
+
+msgid "close pass"
+msgstr "close pass"
+
+msgid "debris"
+msgstr "debris"
+
+msgid "dooring"
+msgstr "dooring"
 
 msgid "evening (20–24)"
 msgstr "evening (20–24)"
@@ -302,8 +244,375 @@ msgstr "morning commute (06–10)"
 msgid "n"
 msgstr "n"
 
+msgid "other"
+msgstr "other"
+
 msgid "overnight (00–06)"
 msgstr "overnight (00–06)"
 
+msgid "signal conflict"
+msgstr "signal conflict"
+
+msgid "surface hazard"
+msgstr "surface hazard"
+
 msgid "uncertain"
 msgstr "uncertain"
+
+msgid "web.app.asc"
+msgstr "ascending"
+
+msgid "web.app.bias_h"
+msgstr "Reporting bias"
+
+msgid "web.app.bias_over_h"
+msgstr "Over-represented in reports"
+
+msgid "web.app.bias_shares"
+msgstr "{rshare} of reports vs {eshare} of exposure"
+
+msgid "web.app.bias_summary"
+msgstr "Who the data over- and under-reports"
+
+msgid "web.app.bias_under_h"
+msgstr "Under-represented"
+
+msgid "web.app.blEmpty"
+msgstr "Bottom line: no analyzed segments in this dataset yet."
+
+msgid "web.app.blLoading"
+msgstr "Summarizing…"
+
+msgid "web.app.blNone"
+msgstr "Bottom line: none of the {n} analyzed blocks is a statistically significant hotspot — no street is hotter than exposure and chance explain. Raw volume is not danger."
+
+msgid "web.app.blSummary"
+msgstr "Bottom line: {hot} of {n} analyzed blocks are statistically significant hotspots — hotter than traffic (exposure) explains. Highest rate per rider: {list}. Raw volume is not danger."
+
+msgid "web.app.capRate"
+msgstr "The same segments by exposure-normalized rate. {hot} significant hotspot(s) — dashed and labeled — emerge, while the most-reported street recedes to a thin line."
+
+msgid "web.app.capRateNone"
+msgstr "The same segments by exposure-normalized rate. No segment is a statistically significant hotspot; the most-reported street recedes."
+
+msgid "web.app.capReports"
+msgstr "{n} street segments. Thicker, darker lines have more reports. The most-reported street ({peak}) dominates — but volume is exposure, not danger."
+
+msgid "web.app.caption"
+msgstr "Exposure-normalized hazard rates for the {n} analyzed segments (streets with reports)."
+
+msgid "web.app.captionFiltered"
+msgstr "Exposure-normalized hazard rates — showing {shown} of {n} analyzed segments (filtered)."
+
+msgid "web.app.conf_certain"
+msgstr "certain"
+
+msgid "web.app.conf_exposure_unknown"
+msgstr "exposure unknown"
+
+msgid "web.app.conf_uncertain"
+msgstr "uncertain"
+
+msgid "web.app.data_h"
+msgstr "Ranked segments"
+
+msgid "web.app.demo"
+msgstr "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not real reports. The method is the point: swap in real reports with no code change."
+
+msgid "web.app.demo_real"
+msgstr "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {source}"
+
+msgid "web.app.demo_synth"
+msgstr "⚠️ Showing the <strong>{city} synthetic demo</strong> dataset — generated test data, not real reports."
+
+msgid "web.app.desc"
+msgstr "descending"
+
+msgid "web.app.download"
+msgstr "Download this dataset (GeoJSON)"
+
+msgid "web.app.downloadMeta"
+msgstr " — {city}, dataset v{ver} ({n} segments)"
+
+msgid "web.app.fail"
+msgstr "Could not load published data ({msg}). Run `make publish`, then `nearmiss serve` and open /web/index.html."
+
+msgid "web.app.faq_a1"
+msgstr "Because volume is not danger. A busy street collects the most reports simply because the most people use it. We divide reports by exposure (how much cycling each street carries), so the map shows the rate per rider, not the raw count. A high-traffic street can have many reports and still be safer per trip than a quiet one with a few."
+
+msgid "web.app.faq_a2"
+msgstr "No. These are self-reported near-misses and hazards, which by definition usually leave no police report. They are an early-warning signal, not verified injuries or collision statistics, and we never present them as such."
+
+msgid "web.app.faq_a3"
+msgstr "It means we have no trustworthy count of how many people cycle that street, so we will not invent a denominator. Those segments are shown as uncertain and are never ranked as if we were sure. A rate without a denominator is not published."
+
+msgid "web.app.faq_a4"
+msgstr "A street is marked “★ Significant” only when a statistical test (Getis-Ord Gi*, with a false-discovery-rate correction) says it is hotter than exposure and chance alone would explain. Everything else carries a confidence interval so you can see how sure — or unsure — the number is."
+
+msgid "web.app.faq_h"
+msgstr "Questions people ask"
+
+msgid "web.app.faq_q1"
+msgstr "Why isn’t my busy street the most dangerous one?"
+
+msgid "web.app.faq_q2"
+msgstr "Is a near-miss the same as a crash?"
+
+msgid "web.app.faq_q3"
+msgstr "What does “exposure unknown” mean?"
+
+msgid "web.app.faq_q4"
+msgstr "How do I know which streets are really hotspots?"
+
+msgid "web.app.filterStatus"
+msgstr "Showing {shown} of {n} segments"
+
+msgid "web.app.filter_label"
+msgstr "Filter segments by name"
+
+msgid "web.app.flag_exposure_unknown"
+msgstr "exposure unknown"
+
+msgid "web.app.flag_geocode_low_confidence"
+msgstr "low location confidence"
+
+msgid "web.app.flag_low_sample"
+msgstr "low sample"
+
+msgid "web.app.flag_modeled_exposure"
+msgstr "modeled exposure (not measured)"
+
+msgid "web.app.footer"
+msgstr "Open data, Apache-2.0. <a href=\"https://github.com/ChelseaKR/nearmiss\">Source on GitHub</a> · <a href=\"https://chelseakr.com\">chelseakr.com</a>. Maps © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors. Methods: <code>docs/METHODOLOGY.md</code>; what it can't tell you: <code>docs/LIMITATIONS.md</code>; limits and biases: <code>docs/DATA-CARD.md</code>. Every figure regenerates with <code>make reproduce</code>."
+
+msgid "web.app.h1"
+msgstr "nearmiss — where the danger actually is"
+
+msgid "web.app.hsEmpty"
+msgstr "No analyzed segments to summarize."
+
+msgid "web.app.hsLoading"
+msgstr "Summarizing hotspots…"
+
+msgid "web.app.hsSummary"
+msgstr "{n} statistically significant hotspot(s) — hotter than exposure and chance explain: {list}."
+
+msgid "web.app.hsSummaryNone"
+msgstr "No statistically significant hotspots in this dataset (no street is hotter than exposure and chance explain)."
+
+msgid "web.app.hz_close_pass"
+msgstr "close pass"
+
+msgid "web.app.hz_debris"
+msgstr "debris"
+
+msgid "web.app.hz_dooring"
+msgstr "dooring"
+
+msgid "web.app.hz_other"
+msgstr "other"
+
+msgid "web.app.hz_sightline"
+msgstr "sightline"
+
+msgid "web.app.hz_signal"
+msgstr "signal"
+
+msgid "web.app.hz_surface_hazard"
+msgstr "surface hazard"
+
+msgid "web.app.lblBusiest"
+msgstr "{name} — {count} reports (most-reported)"
+
+msgid "web.app.lblHotspot"
+msgstr "{name} — ★ rate {rate}"
+
+msgid "web.app.lede"
+msgstr "Road-hazard and near-miss <strong>rates, normalized by exposure</strong>, each with a 95% confidence interval and an <em>n</em>. Raw counts are report volume, not danger. The two maps below show the difference; the <a href=\"#data-table\">data table</a> carries every finding and is the authoritative, non-visual equivalent of the maps."
+
+msgid "web.app.legend"
+msgstr "<li><strong>Rate /1000</strong> — reports per 1000 units of exposure, not a raw count.</li><li><strong>95% CI</strong> — the plausible range. A wide range means uncertainty.</li><li><strong>Confidence</strong> — “uncertain” marks small samples; “exposure unknown” marks segments with no denominator (never ranked as if certain).</li><li><strong>Hotspot (Gi*)</strong> — “★ Significant” marks a statistically significant cluster (Getis-Ord Gi*, z &gt; 1.96): hot beyond what exposure and chance explain.</li>"
+
+msgid "web.app.legend_h"
+msgstr "How to read this"
+
+msgid "web.app.loading"
+msgstr "Loading published data…"
+
+msgid "web.app.loading_map"
+msgstr "Loading map…"
+
+msgid "web.app.mapEmpty"
+msgstr "No mappable segments."
+
+msgid "web.app.mapNoLeaflet"
+msgstr "The interactive maps need JavaScript and the map library. The data table below carries every finding."
+
+msgid "web.app.map_desc"
+msgstr "The same near-miss reports, mapped two ways on a real street map. On the left, the <strong>raw report count</strong> — what most safety maps show: the busiest street looks the most dangerous. On the right, the <strong>rate per 1000 units of exposure</strong> — which is what actually reflects danger. Watch the busiest street recede and the real hotspot emerge. Nothing is conveyed by color alone: line thickness scales with the value, and significant hotspots are dashed and labeled. Everything here is in the <a href=\"#data-table\">data table</a>, which the maps supplement."
+
+msgid "web.app.map_h"
+msgstr "Two maps, the same reports"
+
+msgid "web.app.map_rate_t"
+msgstr "② Exposure-normalized rate — where the danger actually is"
+
+msgid "web.app.map_reports_t"
+msgstr "① Raw report count — what most maps show"
+
+msgid "web.app.mv_both"
+msgstr "Both maps"
+
+msgid "web.app.mv_label"
+msgstr "Show:"
+
+msgid "web.app.mv_rate"
+msgstr "Rate only"
+
+msgid "web.app.mv_reports"
+msgstr "Reports only"
+
+msgid "web.app.none"
+msgstr "—"
+
+msgid "web.app.print_btn"
+msgstr "🖨 Print / save as PDF"
+
+msgid "web.app.print_caveat"
+msgstr "Rates are shown with 95% confidence intervals. Segments without a trustworthy exposure denominator are shown as uncertain and are never ranked as if certain."
+
+msgid "web.app.print_footer"
+msgstr "nearmiss — near-miss rates, normalized by exposure · https://nearmiss.report"
+
+msgid "web.app.print_generated_label"
+msgstr "Generated:"
+
+msgid "web.app.report_cta"
+msgstr "Report a near-miss →"
+
+msgid "web.app.shareCardDone"
+msgstr "Share card downloaded (1200×630 PNG)."
+
+msgid "web.app.share_card"
+msgstr "Download share card (PNG)"
+
+msgid "web.app.sig"
+msgstr "★ Significant"
+
+msgid "web.app.sigShort"
+msgstr " — ★ significant hotspot"
+
+msgid "web.app.skip"
+msgstr "Skip to the data"
+
+msgid "web.app.sortStatus"
+msgstr "Table sorted by {col}, {dir}."
+
+msgid "web.app.sort_help"
+msgstr "Sort the table with the column buttons. <strong>Significance</strong> and <strong>confidence</strong> are stated in words, not by color."
+
+msgid "web.app.source_label"
+msgstr "Source:"
+
+msgid "web.app.th_ci"
+msgstr "95% CI"
+
+msgid "web.app.th_conf"
+msgstr "Confidence"
+
+msgid "web.app.th_flags"
+msgstr "Quality flags"
+
+msgid "web.app.th_hazards"
+msgstr "Hazards"
+
+msgid "web.app.th_hot"
+msgstr "Hotspot (Gi*)"
+
+msgid "web.app.th_n"
+msgstr "Reports (n)"
+
+msgid "web.app.th_rate"
+msgstr "Rate /1000"
+
+msgid "web.app.th_segment"
+msgstr "Segment"
+
+msgid "web.app.tipRate"
+msgstr "{name}: rate {rate}/1000"
+
+msgid "web.app.tipReports"
+msgstr "{name}: {count} reports"
+
+msgid "web.app.title"
+msgstr "nearmiss — where the danger actually is (Davis)"
+
+msgid "web.app.titleCity"
+msgstr "nearmiss — where the danger actually is ({city})"
+
+msgid "web.app.tt_ci"
+msgstr "95% confidence interval: the plausible range. Wide means uncertain."
+
+msgid "web.app.tt_conf"
+msgstr "“uncertain” = small sample; “exposure unknown” = no denominator."
+
+msgid "web.app.tt_flags"
+msgstr "Data-quality caveats for this segment."
+
+msgid "web.app.tt_hazards"
+msgstr "What kinds of hazard were reported here (suppressed for very small samples)."
+
+msgid "web.app.tt_hot"
+msgstr "Getis-Ord Gi* z-score; ★ Significant is a real cluster (z > 1.96, FDR-corrected)."
+
+msgid "web.app.tt_n"
+msgstr "Number of reports on this segment (the sample size)."
+
+msgid "web.app.tt_rate"
+msgstr "Reports per 1000 units of exposure — risk per rider, not a raw count."
+
+msgid "web.submit.geo_denied"
+msgstr "Couldn't get your location — type a place instead."
+
+msgid "web.submit.geo_filled"
+msgstr "Location filled in. You can adjust it."
+
+msgid "web.submit.geo_locating"
+msgstr "Locating…"
+
+msgid "web.submit.geo_unavailable"
+msgstr "Geolocation isn't available — type a location instead."
+
+msgid "web.submit.need_coords"
+msgstr "a valid latitude (−90..90) and longitude (−180..180)"
+
+msgid "web.submit.need_hazard"
+msgstr "a hazard type"
+
+msgid "web.submit.need_location"
+msgstr "a location (use my location, lat/lon, or an address)"
+
+msgid "web.submit.need_severity"
+msgstr "a severity"
+
+msgid "web.submit.status_copied"
+msgstr "Copied to clipboard."
+
+msgid "web.submit.status_copy_manual"
+msgstr "Select the text and copy it manually."
+
+msgid "web.submit.status_missing"
+msgstr "Please provide: {fields}."
+
+msgid "web.submit.status_ready"
+msgstr "Your submission is ready below — it still needs human review before it counts."
+
+msgid "web.submit.status_received"
+msgstr "Thank you. Your near-miss was received and is awaiting review."
+
+msgid "web.submit.status_send_failed"
+msgstr "Couldn't reach the server — here is your submission to send manually instead."
+
+msgid "web.submit.status_sending"
+msgstr "Sending your submission for review…"
+

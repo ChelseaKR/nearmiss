@@ -40,7 +40,7 @@ community-owned evidence base.
 > address-or-coordinate intake with an offline gazetteer geocoder **and** an opt-in networked
 > (Nominatim) adapter, a reproducible analysis notebook, a second demo city (Riverside) proving
 > config-over-code, a committed hashed lockfile, and a performance benchmark all exist and pass the
-> gates: `make demo`, `make verify`, and `make reproduce` run, 65 tests pass, and ruff + mypy
+> gates: `make demo`, `make verify`, and `make reproduce` run, 193 tests pass, and ruff + mypy
 > `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
 > accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
 > pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
@@ -50,6 +50,7 @@ community-owned evidence base.
 
 ## Table of contents
 
+- [Standards conformance](#standards-conformance)
 - [Why this exists](#why-this-exists)
 - [What it does](#what-it-does)
 - [Hard rules (enforced, not aspirational)](#hard-rules-enforced-not-aspirational)
@@ -60,6 +61,7 @@ community-owned evidence base.
 - [The analysis engine (the actual product)](#the-analysis-engine-the-actual-product)
 - [Quality attributes (engineered for, not assumed)](#quality-attributes-engineered-for-not-assumed)
 - [Accessibility and Section 508 conformance](#accessibility-and-section-508-conformance)
+- [Observability](#observability)
 - [Data, privacy, and ethics](#data-privacy-and-ethics)
 - [Repository layout](#repository-layout)
 - [Roadmap](#roadmap)
@@ -68,6 +70,38 @@ community-owned evidence base.
 - [Governance and independence](#governance-and-independence)
 - [License and citation](#license-and-citation)
 - [Acknowledgements and related work](#acknowledgements-and-related-work)
+
+---
+
+## Standards conformance
+
+nearmiss is governed by a shared set of cross-cutting portfolio standards. Silent omission of a
+standard is treated as a defect in its own right, so every standard gets a row below — including the
+one that's `N/A` (the ADR making that call is
+[`docs/adr/0004-standards-applicability.md`](docs/adr/0004-standards-applicability.md)). This table
+declares *applicability*; it is not a claim that every applicable standard is fully met — open gaps are
+named plainly rather than implied away.
+
+| Standard | Applies? | Current state |
+|---|---|---|
+| QUALITY-AND-METRICS | Applies | AUTO gates strong (90% branch-coverage floor, advisory mutation testing on the stats core); REVIEW-gate artifacts (metrics ledger, `DEFINITION_OF_DONE.md`) not yet committed. |
+| CODE-QUALITY | Applies | Lint/type/test are merge-blocking and green (ruff, `mypy --strict`, pytest); a few config/floor gaps are open (see [Contributing](#contributing)). |
+| SECURITY-AND-SUPPLY-CHAIN | Applies | `pip-audit --strict` (blocking, no mute) + gitleaks + CodeQL run in CI; an ASVS level, an SBOM/signing pipeline, and OpenSSF Scorecard are not yet in place (see [Security](#security) and [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md)). |
+| CI-CD | Applies | The core pipeline (lint/type/test/i18n/accessibility/security/reproducibility) is merge-blocking; `zizmor`, CodeQL for GitHub Actions and web JS, and a committed branch-ruleset artifact are open gaps (branch protection is a live GitHub setting with no committed evidence yet). |
+| RELEASE-AND-VERSIONING | Applies | SemVer + [`CHANGELOG.md`](CHANGELOG.md) are maintained; **no tag-triggered release pipeline exists yet and no version has ever been git-tagged** — see the dated correction at the top of the CHANGELOG. |
+| ACCESSIBILITY | Applies | WCAG 2.2 AA target; the structural gate and an automated axe-core (jsdom) run are both merge-blocking; manual NVDA/VoiceOver review and browser-rendered gates (Lighthouse, pa11y) are still pending — see [Accessibility and Section 508 conformance](#accessibility-and-section-508-conformance). |
+| OBSERVABILITY | Applies (Tier C) | Structured JSON logs + `/livez`/`/readyz`; Tier C is a local-only CLI/library tier (OTel tracing/metrics/SLOs out of scope) — see [Operability, serviceability, sustainability](#operability-serviceability-sustainability). |
+| INTERNATIONALIZATION | Applies | The strongest area: gettext catalogs with four blocking CI gates (POT drift, `msgfmt --check`, EN/ES parity, BCP-47 validity) — see [`docs/I18N.md`](docs/I18N.md). |
+| AI-EVALUATION | **N/A** | No LLM/AI SDK usage anywhere in the codebase (verified: a grep for `anthropic`/`openai`/`langchain`/`bedrock`/generic LLM-client imports across `src/` and `tools/` is clean). See [`docs/adr/0004-standards-applicability.md`](docs/adr/0004-standards-applicability.md) — this flips to **Applies** immediately, per the standard's own AIEV-01, the moment any LLM-backed feature is added (e.g. an AI-assisted moderation triage or an auto-summarized brief). |
+| DOCUMENTATION | Applies | CHANGELOG, ADRs, `CITATION.cff`, `SECURITY.md` are all present and current; this table itself closes the prior gap (the README declared no standards before 2026-07-05). |
+| RESPONSIBLE-TECH | Applies | The threat model and mechanical misuse-resistance tests (k-anonymity floor, privacy leak tests, reproducibility tripwire) are strong; a DPIA, an ASVS-level declaration, and a residual-risk register are new or being added — see [Data, privacy, and ethics](#data-privacy-and-ethics) and [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md). |
+
+Portfolio practice links each open gap above to a GitHub tracking issue. **That issue-linking step is
+not done as of this table's creation (2026-07-05)** — opening tracking issues is a live-repository
+action for the maintainer to take, not a file edit, so it is named here rather than silently skipped.
+Until issues exist, treat this table itself, plus [`CHANGELOG.md`](CHANGELOG.md) and
+[`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md), as the source of truth for gap
+status.
 
 ---
 
@@ -179,11 +213,19 @@ make install                 # pip install -e ".[dev]" + pre-commit install
 # As a tool, isolated (the packaging/release goal once published)
 pipx install nearmiss
 
-# Planned reproducible path: a generated, hashed lock
+# Reproducible path: install from the committed, hashed lock
 python -m pip install --require-hashes -r requirements.lock
-# requirements.lock is produced by `make lock` (pip-compile --generate-hashes); it is a generated
-# artifact and is not committed yet — `pip install -e ".[dev]"` is the install that works today.
+# requirements.lock is committed at the repo root and carries pinned, hashed versions (produced by
+# `make lock`, pip-compile --generate-hashes); it covers the runtime dependency tree. CI does not
+# yet install with --require-hashes (that hardening is planned), so `pip install -e ".[dev]"`
+# remains the install the gates use today.
 ```
+
+<!-- claim:lockfile-committed-hashed -->
+The hashed `requirements.lock` is committed at the repo root (pinned, `--hash=sha256` for every
+runtime dependency). Installing from it with `--require-hashes` in CI is a planned hardening; the
+gates today install with `pip install -e ".[dev]"`.
+<!-- /claim:lockfile-committed-hashed -->
 
 A container image and a one-command serverless intake deploy are described in
 [`infra/`](infra/). Configuration — cities, exposure sources, thresholds, and the minimum-occupancy
@@ -212,6 +254,10 @@ nearmiss pipeline --config config/davis-demo.toml [--dump]  # --dump prints the 
 
 # Attach exposure denominators and compute exposure-normalized rates with intervals
 nearmiss analyze --config config/davis-demo.toml            # rates + CIs + bias + KDE + Gi* + time-of-day
+
+# "We attacked our own dataset": label-shuffle this city's own counts (exposure and
+# geometry held fixed) and publish the method's empirical false-positive rate
+nearmiss analyze --config config/davis-demo.toml --calibrate   # writes <slug>.calibration.json
 
 # Public crowdsourced submissions: queue one for review, then moderate it in
 nearmiss submit submission.json --config config/davis-demo.toml      # -> PENDING (private)
@@ -457,13 +503,9 @@ yet a track record (v0.1.0).
 source, publish a brief); a pipeline status output. **Administrability** — config-over-code is
 implemented; [`src/nearmiss/config.py`](src/nearmiss/config.py) loads
 [`config/davis-demo.toml`](config/davis-demo.toml), so thresholds and sources are versioned rather than
-coded. **Observability** (Tier C per the portfolio OBSERVABILITY-STANDARD — a local-only CLI, so OTel
-tracing/metrics/SLOs are out-of-scope) — structured
-logs and metrics on intake and each pipeline stage; rebuilds report coverage and quality-flag counts.
-The read-only server ([`src/nearmiss/server.py`](src/nearmiss/server.py)) emits one JSON line per request
-(method, status, latency, `request_id`, and a **redacted** path — a protected `data/raw/` or dotfile target
-collapses to `<blocked>`, so hard rule #4 holds in the log stream too) and exposes `GET /livez` (liveness)
-and `GET /readyz` (readiness — fail-closed 503 when the served data dir is unavailable).
+coded. **Observability** — Tier C, declared with its rationale and gates in its own
+[Observability](#observability) section per OBS-21 (structured JSON logs, redacted request logging,
+`/livez`/`/readyz`).
 **Debuggability** — the figure → notebook → statistic → dataset → raw trace is defined in
 [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md), and `nearmiss pipeline --config <cfg> --dump` emits the
 intermediate clean records for inspection. **Serviceability / supportability** — issue templates and a "paste this to reproduce" path.
@@ -473,7 +515,7 @@ CI smoke suite on every PR. **Autonomy** (operational), **self-sustainability**,
 open data and zero-cost hosting mean the dataset survives without a grant or a city's goodwill.
 **Testability**, **inspectability**, **demonstrability** — the planted-hotspot fixtures with known
 answers (documented in [`tests/README.md`](tests/README.md)) are committed under
-[`tests/fixtures/davis/`](tests/fixtures/davis/), 52 pytest tests pass against them, and `make demo`
+[`tests/fixtures/davis/`](tests/fixtures/davis/), 193 pytest tests pass against them, and `make demo`
 runs the full pipeline to make the statistics verifiable.
 
 > Each attribute above maps to a documented decision and, where the implementation exists, a
@@ -510,6 +552,30 @@ lands in front of a city. Full statement: [`docs/ACCESSIBILITY.md`](docs/ACCESSI
   without seeing the map.
 - Accessibility is a **merge-blocking CI gate**; a regression fails the build. The ACR is regenerated
   and re-committed on each release, the same audit-as-artifact discipline applied to the statistics.
+
+## Observability
+
+**Tier C** per the portfolio `OBSERVABILITY-STANDARD` — nearmiss is a local-only CLI/library with an
+optional, local, read-only server; the live public site is static hosting. Tiers A/B (OpenTelemetry
+distributed tracing, metrics/SLO dashboards, burn-rate alerting) are **out of scope at this tier** — there
+is no always-on distributed service to trace or alert on. What Tier C requires, and what's shipped:
+
+- **Structured logs.**
+  <!-- claim:obs-intake-only -->
+  `src/nearmiss/obs.py` emits structured JSON lines (timestamp, level, message, service, `request_id`,
+  latency) for the read-only server's request intake ([`src/nearmiss/server.py`](src/nearmiss/server.py));
+  per-pipeline-stage instrumentation is planned, not yet wired. Rebuilds report coverage and
+  quality-flag counts.
+  <!-- /claim:obs-intake-only -->
+- **No secrets or PII in logs.** The read-only server ([`src/nearmiss/server.py`](src/nearmiss/server.py))
+  emits one JSON line per request (method, status, latency, `request_id`, and a **redacted** path — a
+  protected `data/raw/` or dotfile target collapses to `<blocked>`) — hard rule #4 (contributor privacy)
+  holds in the log stream too, and this is covered by `tests/test_observability.py`.
+- **Liveness / readiness.** The server exposes `GET /livez` (liveness) and `GET /readyz` (readiness —
+  fail-closed `503` when the served data directory is unavailable).
+
+This declaration is the README `## Observability` section that a doc-lint (OBS-21) looks for; see
+[Standards conformance](#standards-conformance) for how this fits the other ten standards.
 
 ## Data, privacy, and ethics
 
@@ -581,6 +647,8 @@ see [`SECURITY.md`](SECURITY.md). Scope explicitly includes the privacy and data
 specific to this project (deanonymization, report poisoning, exposure-source tampering), not only code
 CVEs. Supply chain: pinned and hashed dependencies, pip-audit, gitleaks, and CodeQL run in
 [CI](.github/workflows/ci.yml); secrets live in the environment and are never committed.
+**Supported versions:** the latest released `0.1.x` minor line (best-effort backport of high/critical
+fixes to the previous minor) — see the full table in [`SECURITY.md` § Supported versions](SECURITY.md#supported-versions).
 
 ## Governance and independence
 

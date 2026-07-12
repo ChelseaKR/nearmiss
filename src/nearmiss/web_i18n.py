@@ -1,0 +1,160 @@
+"""Registry of the web UI's translatable strings (message-extraction seam).
+
+The static site (:file:`web/app.js`, :file:`web/submit.js`) renders in English
+or Spanish, but it cannot call gettext at runtime — it is served as flat files
+from GitHub Pages with no build step. Its translations are therefore
+single-sourced from the *same* gettext catalogs as the advocacy brief: this
+module registers every web string under a stable, namespaced id (``web.app.*``
+and ``web.submit.*``) so ``pybabel extract`` records it in
+``locales/messages.pot``. The ids are translated in the en/es ``.po`` catalogs,
+and :mod:`tools.po2json` compiles the ``web.*`` subset into the committed
+``web/locales/<lang>.json`` files the browser fetches at runtime.
+
+Unlike the brief — where the msgid *is* the English source text — the web ids
+are keys: the English lives in the ``en`` catalog like every other locale, so
+``app.js`` no longer carries a hand-maintained ``I18N`` object. Adding a locale
+touches only ``locales/`` (see :file:`docs/I18N.md`).
+
+``N_`` is the conventional gettext no-op marker: it is a default ``pybabel``
+extraction keyword, so wrapping each id in it registers the id for extraction
+while returning it unchanged at runtime.
+"""
+
+from __future__ import annotations
+
+
+def N_(message: str) -> str:  # noqa: N802 — conventional gettext no-op marker name
+    """gettext no-op: mark ``message`` for extraction, return it unchanged."""
+    return message
+
+
+#: Every ``web.app.*`` id (the map + data view, ``web/app.js``).
+_APP_IDS: tuple[str, ...] = (
+    N_("web.app.title"),
+    N_("web.app.skip"),
+    N_("web.app.h1"),
+    N_("web.app.lede"),
+    N_("web.app.demo"),
+    N_("web.app.titleCity"),
+    N_("web.app.report_cta"),
+    N_("web.app.demo_synth"),
+    N_("web.app.demo_real"),
+    N_("web.app.source_label"),
+    N_("web.app.hsLoading"),
+    N_("web.app.hsSummary"),
+    N_("web.app.hsSummaryNone"),
+    N_("web.app.hsEmpty"),
+    N_("web.app.download"),
+    N_("web.app.downloadMeta"),
+    N_("web.app.share_card"),
+    N_("web.app.shareCardDone"),
+    N_("web.app.print_btn"),
+    N_("web.app.print_generated_label"),
+    N_("web.app.print_caveat"),
+    N_("web.app.print_footer"),
+    N_("web.app.bias_h"),
+    N_("web.app.bias_summary"),
+    N_("web.app.bias_over_h"),
+    N_("web.app.bias_under_h"),
+    N_("web.app.bias_shares"),
+    N_("web.app.faq_h"),
+    N_("web.app.faq_q1"),
+    N_("web.app.faq_a1"),
+    N_("web.app.faq_q2"),
+    N_("web.app.faq_a2"),
+    N_("web.app.faq_q3"),
+    N_("web.app.faq_a3"),
+    N_("web.app.faq_q4"),
+    N_("web.app.faq_a4"),
+    N_("web.app.mv_label"),
+    N_("web.app.mv_both"),
+    N_("web.app.mv_reports"),
+    N_("web.app.mv_rate"),
+    N_("web.app.filter_label"),
+    N_("web.app.filterStatus"),
+    N_("web.app.captionFiltered"),
+    N_("web.app.flag_modeled_exposure"),
+    N_("web.app.tt_rate"),
+    N_("web.app.tt_ci"),
+    N_("web.app.tt_n"),
+    N_("web.app.tt_conf"),
+    N_("web.app.tt_hot"),
+    N_("web.app.tt_flags"),
+    N_("web.app.th_hazards"),
+    N_("web.app.tt_hazards"),
+    N_("web.app.hz_close_pass"),
+    N_("web.app.hz_dooring"),
+    N_("web.app.hz_surface_hazard"),
+    N_("web.app.hz_sightline"),
+    N_("web.app.hz_signal"),
+    N_("web.app.hz_debris"),
+    N_("web.app.hz_other"),
+    N_("web.app.blLoading"),
+    N_("web.app.blSummary"),
+    N_("web.app.blNone"),
+    N_("web.app.blEmpty"),
+    N_("web.app.map_h"),
+    N_("web.app.map_desc"),
+    N_("web.app.map_reports_t"),
+    N_("web.app.map_rate_t"),
+    N_("web.app.data_h"),
+    N_("web.app.sort_help"),
+    N_("web.app.legend_h"),
+    N_("web.app.legend"),
+    N_("web.app.footer"),
+    N_("web.app.th_segment"),
+    N_("web.app.th_rate"),
+    N_("web.app.th_ci"),
+    N_("web.app.th_n"),
+    N_("web.app.th_conf"),
+    N_("web.app.th_hot"),
+    N_("web.app.th_flags"),
+    N_("web.app.loading"),
+    N_("web.app.loading_map"),
+    N_("web.app.caption"),
+    N_("web.app.capReports"),
+    N_("web.app.capRate"),
+    N_("web.app.capRateNone"),
+    N_("web.app.mapEmpty"),
+    N_("web.app.mapNoLeaflet"),
+    N_("web.app.tipReports"),
+    N_("web.app.tipRate"),
+    N_("web.app.lblBusiest"),
+    N_("web.app.lblHotspot"),
+    N_("web.app.sortStatus"),
+    N_("web.app.asc"),
+    N_("web.app.desc"),
+    N_("web.app.sig"),
+    N_("web.app.sigShort"),
+    N_("web.app.conf_certain"),
+    N_("web.app.conf_uncertain"),
+    N_("web.app.conf_exposure_unknown"),
+    N_("web.app.flag_low_sample"),
+    N_("web.app.flag_geocode_low_confidence"),
+    N_("web.app.flag_exposure_unknown"),
+    N_("web.app.fail"),
+    N_("web.app.none"),
+)
+
+#: Every ``web.submit.*`` id (the submission form status text, ``web/submit.js``).
+_SUBMIT_IDS: tuple[str, ...] = (
+    N_("web.submit.geo_unavailable"),
+    N_("web.submit.geo_locating"),
+    N_("web.submit.geo_filled"),
+    N_("web.submit.geo_denied"),
+    N_("web.submit.status_missing"),
+    N_("web.submit.need_location"),
+    N_("web.submit.need_coords"),
+    N_("web.submit.need_hazard"),
+    N_("web.submit.need_severity"),
+    N_("web.submit.status_ready"),
+    N_("web.submit.status_sending"),
+    N_("web.submit.status_received"),
+    N_("web.submit.status_send_failed"),
+    N_("web.submit.status_copied"),
+    N_("web.submit.status_copy_manual"),
+)
+
+#: The full ``web.*`` inventory, single-sourced for :mod:`tools.po2json`,
+#: :mod:`tools.check_catalog_parity`, and the i18n tests.
+WEB_MESSAGE_IDS: tuple[str, ...] = _APP_IDS + _SUBMIT_IDS

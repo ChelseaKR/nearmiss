@@ -24,6 +24,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    # Nightly re-scan of `main` (SEC-08's nightly-CodeQL requirement), independent of push/PR
+    # activity — a dependency's newly-published CVE or a new CodeQL query pack can surface a
+    # finding on code that hasn't changed. Every job except `security` guards itself out on this
+    # trigger (`if: github.event_name != 'schedule'`) so a nightly run re-executes only the
+    # CodeQL-bearing security job, not the whole suite.
+    - cron: "0 7 * * *"
 
 # Least privilege by default. Individual jobs widen scope only where a specific
 # action needs it (CodeQL writes to the security-events API).
@@ -38,9 +45,11 @@ concurrency:
 
 env:
   # CI installs the editable package with its dev extras (`pip install -e
-  # ".[dev]"`, the same as `make install`). A hashed reproducible install from a
-  # generated `requirements.lock` (`make lock`) is the planned hardening once
-  # that artifact is committed.
+  # ".[dev]"`, the same as `make install`). `requirements.lock` (hashed,
+  # `make lock`) is committed at the repo root; installing CI itself with
+  # `--require-hashes` from it (or migrating CI to `uv sync --frozen` against
+  # `uv.lock`) is a planned hardening, tracked in
+  # audit-2026-07-05/nearmiss-REMEDIATION.md P1-4 — not yet done.
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   PIP_NO_PYTHON_VERSION_WARNING: "1"
   PYTHONHASHSEED: "0"
@@ -56,7 +65,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           # Need the full PR commit range, not just the merge commit.
           fetch-depth: 0
@@ -83,14 +92,15 @@ jobs:
 
   lint:
     name: lint (ruff)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: "3.12"
           cache: pip
@@ -103,14 +113,15 @@ jobs:
 
   type:
     name: type (mypy --strict)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: "3.12"
           cache: pip
@@ -123,6 +134,7 @@ jobs:
 
   test:
     name: test (pytest, known-answer fixtures)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -132,9 +144,9 @@ jobs:
         python-version: ["3.11", "3.12"]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -147,8 +159,15 @@ jobs:
         # drop in meaningful coverage fails the merge gate (not just a test failure).
         run: make test
 
-  i18n:
-    name: i18n (gettext catalog gate)
+  teaching:
+    name: teaching (execute EXP-12 heat-map notebooks)
+    # EXP-12 "How to lie with heat maps" module: execute the three bilingual
+    # teaching notebooks over the synthetic Davis fixtures and fail if any cell
+    # errors. Like `make reproduce`, this is a reproducibility tripwire — the
+    # notebooks are seeded/known-answer, so a red cell means the analysis API or
+    # the fixtures drifted. The Jupyter execution stack is the isolated
+    # `.[teaching]` extra (NOT in `dev`), so the security job's audited
+    # dependency surface is unchanged.
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -157,6 +176,29 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install the package with the teaching extra
+        run: python -m pip install -e ".[teaching]"
+
+      - name: Execute the teaching notebooks (make teach)
+        # `make teach` runs `nbconvert --execute` on notebooks/teaching/*.ipynb
+        # into the gitignored notebooks/_build/. A cell that raises fails the job.
+        run: make teach
+
+  i18n:
+    name: i18n (gettext catalog gate)
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: "3.12"
           cache: pip
@@ -176,16 +218,41 @@ jobs:
       - name: i18n catalog gate (make i18n)
         run: make i18n
 
-  accessibility:
-    name: accessibility (structural WCAG gate + axe-core on web UI)
+  claims:
+    name: claims (docs-code claims-parity drift gate)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dev dependencies
+        run: python -m pip install -e ".[dev]"
+
+      # Exactly what `make verify` runs locally (no local/CI drift): the
+      # docs/CLAIMS.md manifest, <!-- claim:… --> doc tags, and code witnesses
+      # must stay in three-way agreement or this job fails.
+      - name: Claims-parity gate (make claims)
+        run: make claims
+
+  accessibility:
+    name: accessibility (structural WCAG gate + axe-core on web UI)
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: "3.12"
           cache: pip
@@ -194,7 +261,7 @@ jobs:
         run: python -m pip install -e ".[dev]"
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
         with:
           node-version: "20"
 
@@ -208,12 +275,21 @@ jobs:
 
       # Real automated axe-core run in jsdom (tools/axe_check.mjs), so the
       # axe-core check runs on every CI run in addition to the structural gate.
-      # `npm ci` requires a committed lockfile; until web/package-lock.json is
-      # committed, install resolves from package.json. Manual NVDA/VoiceOver
-      # review is inherently human and is intentionally OUT of CI scope — it
-      # stays tracked in docs/accessibility/ACR.md.
+      # `web/package-lock.json` is committed, so this merge-blocking job installs
+      # with `npm ci` — it resolves axe-core/jsdom exactly from the committed
+      # lockfile instead of a fresh registry resolve, matching the local `make
+      # axe` target (Makefile) and closing the supply-chain gap where a
+      # merge-blocking gate ran unpinned code. Manual NVDA/VoiceOver review is
+      # inherently human and is intentionally OUT of CI scope — it stays tracked
+      # in docs/accessibility/ACR.md.
       - name: axe-core (jsdom) accessibility check
-        run: cd web && npm install --no-audit --no-fund && npm run axe
+        run: cd web && npm ci && npm run axe
+
+      # Web-consumer contract gate (FIX-10): boot app.js against a committed
+      # published GeoJSON in jsdom and assert it honors schema/dataset.schema.json
+      # (every consumed property is schema-required; dropping one breaks the map).
+      - name: dataset schema contract (jsdom web consumer)
+        run: cd web && npm run contract
 
   security:
     name: security (pip-audit + gitleaks + CodeQL)
@@ -224,13 +300,13 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           # gitleaks needs full history to scan every commit on the PR/push.
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: "3.12"
           cache: pip
@@ -251,31 +327,57 @@ jobs:
           python -m pip_audit --strict
 
       - name: gitleaks (committed secrets)
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Initialize CodeQL (python)
-        uses: github/codeql-action/init@dd903d2e4f5405488e5ef1422510ee31c8b32357  # v3
+      # Python, the web JS (web/app.js, submit.js, embed.js, nearmiss-embed.js — CICD-20's prior
+      # "JS unscanned since 6/21" finding), and the workflow YAML itself (the "actions" CodeQL
+      # language, GA since codeql-action v3.28). One init/analyze pair covers all three; the
+      # action auto-scopes each language's SARIF to its own code-scanning category, so no manual
+      # `category:` override is needed (and would be wrong once >1 language is configured).
+      - name: Initialize CodeQL (python, javascript, actions)
+        uses: github/codeql-action/init@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a  # v4.36.3
         with:
-          languages: python
+          languages: python, javascript, actions
           queries: security-extended
 
       - name: Analyze with CodeQL
-        uses: github/codeql-action/analyze@dd903d2e4f5405488e5ef1422510ee31c8b32357  # v3
-        with:
-          category: "/language:python"
+        uses: github/codeql-action/analyze@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a  # v4.36.3
 
-  reproducibility:
-    name: reproducibility (make reproduce + diff published artifacts)
+  zizmor:
+    name: zizmor (GitHub Actions workflow SAST)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+      # `advanced-security: false` makes zizmor-action itself fail the job on a
+      # finding at or above `min-severity` — a real merge-blocking gate that does
+      # not depend on GitHub Advanced Security or a configured code-scanning
+      # merge-protection rule (CICD-19). zizmor's top severity tier is `high`
+      # (there is no separate "critical"), so `min-severity: high` is this
+      # project's High/Critical bar.
+      - name: zizmor (workflow SAST, blocking on high severity)
+        uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa  # v0.5.7
+        with:
+          advanced-security: false
+          min-severity: high
+
+  reproducibility:
+    name: reproducibility (make reproduce + diff published artifacts)
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: "3.12"
           cache: pip

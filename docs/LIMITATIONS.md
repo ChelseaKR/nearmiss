@@ -44,14 +44,22 @@ The five [hard rules](../README.md) are referenced as HR1–HR5.
 5. **The unit of analysis is a block, and blocks are arbitrary (MAUP).** Results
    can shift if you draw the segments differently — the modifiable areal unit
    problem. We split streets at intersections for a defensible, reproducible unit,
-   but a hotspot at one granularity may dissolve at another. Rank *stability*
-   under re-segmentation is a known open analysis (and an honest place to push).
+   but a hotspot at one granularity may dissolve at another. Rank *stability* under
+   re-segmentation is now **measured, not just caveated**: every published dataset
+   carries a `maup_rank_stability` block (and the brief a robustness note) reporting
+   whether the top hotspot survives a coarser re-segmentation and the top-k rank
+   overlap (`stats/maup.py`). It is still a real limit — the check answers one
+   re-segmentation, not every possible one — but the honest place to push now comes
+   with a published answer you can check.
 
 ## More specific limits
 
 - **Small numbers are loud.** A single extra report can swing a low-`n` block.
   Segments below the minimum sample are marked uncertain or withheld for
   k-anonymity (HR4); a rate with a wide CI is telling you it doesn't know yet.
+  How many reports a segment needs before it is publishable, and before it can be
+  distinguished from the median segment, is quantified per city in the
+  [threshold-sensitivity & power notes](../data/published/davis-sensitivity.md) (R34).
 - **Significance is not magnitude.** "★ Significant" (Getis-Ord Gi\*, FDR-corrected)
   means *hotter than exposure and chance explain* — not "the worst." A significant
   block can have a modest rate; a scary-looking rate can be non-significant.
@@ -65,7 +73,9 @@ The five [hard rules](../README.md) are referenced as HR1–HR5.
   the dataset should be read for the modes it actually covers (R33).
 - **Geocoding and snapping are approximate.** Reports are snapped to the nearest
   segment within a threshold; a report just over the line, or a low-confidence
-  location, is flagged, not silently forced onto a block.
+  location, is flagged, not silently forced onto a block. How much the published
+  ranking moves under different snapping/dedupe thresholds is published per city in
+  the [threshold-sensitivity notes](../data/published/davis-sensitivity.md) (R29).
 - **It is a measurement, not a mandate.** A hotspot is evidence for a
   conversation, not an automatic verdict on cause or fix. Causes (sightlines,
   speed, signal timing, road design) require local engineering judgment.

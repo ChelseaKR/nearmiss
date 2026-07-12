@@ -1,7 +1,7 @@
 # nearmiss — project metadata and tooling configuration.
 # Single source of truth for build, dependencies, and the lint/type/test gates.
 [build-system]
-requires = ["hatchling>=1.21"]
+requires = ["hatchling>=1.30.1"]
 build-backend = "hatchling.build"
 
 [project]
@@ -38,16 +38,21 @@ classifiers = [
 # analysis runs anywhere Python 3.11+ runs, with no native/geospatial build step.
 # Versions are pinned and hashed in the generated lock file used for reproducible runs.
 dependencies = [
-  "jsonschema>=4.21",
+  "jsonschema>=4.26.0",
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0",
-  "pytest-cov>=4.1",
-  "ruff>=0.4",
-  "mypy>=1.10",
-  "pip-audit>=2.7",
+  "pytest-cov>=7.1.0",
+  "ruff>=0.15",
+  "mypy>=1.18",
+  "pip-audit>=2.10.1",
+  # Property/metamorphic testing for the spatial-statistics core (FIX-14). A
+  # dev-only, audited dependency surface: it lives in `dev`, so the blocking
+  # `pip-audit --strict` security gate in `make verify` scans it like every
+  # other dev tool. Pure Python, no native build step.
+  "hypothesis>=6.100",
   # i18n message-catalog tooling (INTERNATIONALIZATION-STANDARD §3/§4). Babel
   # provides `pybabel extract` and the CLDR-backed `Locale.parse` used by the
   # i18n gates. Pure Python (no PyICU/native ICU build) so the "runs anywhere
@@ -59,7 +64,7 @@ dev = [
   # (GHSA-6v7p-g79w-8964, fixed in 1.2.1). Keeps the SCA gate deterministically
   # green instead of relying on the resolver to pick the newest msgpack.
   "msgpack>=1.2.1",
-  "pre-commit>=3.7",
+  "pre-commit>=4.6.0",
 ]
 # Advisory mutation testing (backlog #15). Kept in its OWN optional group, NOT in
 # `dev`, so the `make verify` merge gate — and in particular the blocking
@@ -70,6 +75,20 @@ dev = [
 # Install on demand:  pip install -e ".[mutation]"
 mutation = [
   "mutmut>=3.6",
+]
+# EXP-12 "How to lie with heat maps" teaching module (docs/teaching/). Kept in
+# its OWN optional group, NOT in `dev`, for the same reason as `mutation`: the
+# `make verify` merge gate — and the blocking `pip-audit --strict` scan — audits
+# exactly the dependency surface it does today. The Jupyter execution stack
+# (nbconvert + a kernel) pulls a large transitive tree; isolating it here means a
+# CVE in that tooling can never break the merge gate. The teaching notebooks
+# themselves import ONLY `nearmiss.*` + `IPython.display` (no new analysis
+# dependency — figures are hand-built SVG, exactly like src/nearmiss/figures.py).
+# `make teach` installs this group on demand; a dedicated CI job runs it.
+teaching = [
+  "nbconvert>=7.16",
+  "nbclient>=0.10",
+  "ipykernel>=6.29",
 ]
 
 [project.urls]
@@ -96,10 +115,13 @@ src = ["src", "tests"]
 extend-exclude = ["notebooks"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "PTH", "RUF"]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "PTH", "RUF", "C90"]
 # This project's user-facing strings intentionally use Unicode typography
 # (en/em dashes, ★, ⚠) — so the "ambiguous character" rules are noise here.
 ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
 # ---------------------------------------------------------------------------
 # Types — mypy strict. A typed, analyzable codebase. Part of `make verify`.
@@ -125,8 +147,14 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
-addopts = "-ra --strict-markers --strict-config"
+addopts = "-ra --strict-markers --strict-config --import-mode=importlib"
 xfail_strict = true
+markers = [
+  # Seeded Monte-Carlo interval-coverage simulation (METHODOLOGY §9.2). It runs
+  # thousands of Poisson draws, so it is markered `slow` and can be deselected
+  # with `-m 'not slow'` for a fast inner loop; the full gate still runs it.
+  "slow: marks a test as slow (deselect with '-m \"not slow\"')",
+]
 
 # ---------------------------------------------------------------------------
 # Mutation testing — mutmut. ADVISORY ONLY (backlog #15), never a merge gate.
@@ -136,10 +164,12 @@ xfail_strict = true
 # a `<=`/`<` slip in the distance band) would quietly corrupt a hotspot result
 # without failing any coarse test:
 #   * getis_ord.py — the Getis-Ord Gi* local hotspot z-score + the FDR control
-#   * rates.py     — the Poisson (Byar) and Wilson confidence intervals that
-#                    produce the exposure-normalized rate the hotspot runs on
-# (The task brief named a `stats/maup.py`; no such module exists in this repo —
-# the Getis-Ord computation lives in getis_ord.py, which is targeted here.)
+#   * rates.py     — the Poisson (Byar) and Wilson confidence intervals, plus the
+#                    quasi-Poisson dispersion (`pearson_dispersion`) and widening
+#                    (`quasi_poisson_ci`) that produce the exposure-normalized rate
+#   * maup.py      — the MAUP rank-stability re-segmentation (RR-05): a dropped
+#                    sign or a `<`/`<=` slip in the coarse-unit ranking or the
+#                    survives/overlap logic would silently misreport robustness
 #
 # It reuses the existing pytest suite (the stats tests) as the kill oracle, so
 # no separate mutation-only test harness is maintained. Run it with
@@ -151,6 +181,7 @@ source_paths = ["src"]
 only_mutate = [
   "src/nearmiss/stats/getis_ord.py",
   "src/nearmiss/stats/rates.py",
+  "src/nearmiss/stats/maup.py",
 ]
 # Kill oracle: the existing stats tests. test_hotspot.py exercises the Gi*
 # computation end to end via the known-answer fixtures; test_fdr.py and
@@ -161,6 +192,8 @@ pytest_add_cli_args_test_selection = [
   "tests/test_fdr.py",
   "tests/test_rates.py",
   "tests/test_stats_numerics.py",
+  "tests/test_maup.py",
+  "tests/test_overdispersion.py",
 ]
 # The bundle fixture loads config/davis-demo.toml (which points at the fixtures
 # under tests/, already copied). mutmut runs from a mutants/ working copy, so the

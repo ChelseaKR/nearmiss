@@ -15,6 +15,12 @@ submissions_dir = "../data/pending" # PRIVATE moderation queue, gitignored (HR4)
 ref_lat = 33.9533
 ref_lon = -117.3962
 
+# Analysis window (METHODOLOGY §1). Spans all synthetic fixture timestamps so the
+# demo filters nothing and outputs stay byte-stable.
+[window]
+start = "2026-01-01"
+end = "2026-12-31"
+
 [thresholds]
 snap_max_m = 25
 dedupe_window_s = 600

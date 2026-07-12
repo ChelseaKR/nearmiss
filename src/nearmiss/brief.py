@@ -15,16 +15,20 @@ requested ``lang`` is loaded via :mod:`nearmiss.i18n`.
 from __future__ import annotations
 
 import gettext
+import json
+from collections.abc import Callable
 
 from .config import Config
 from .engine import AnalysisBundle, build_analysis
 from .i18n import (
     confidence_label,
     get_translation,
+    hazard_type_label,
     part_of_day_label,
     weekday_label,
 )
 from .models import Segment, SegmentStats
+from .publish import _slug
 from .stats.bias import BiasFinding
 
 
@@ -36,41 +40,38 @@ def _fmt(value: float | None) -> str:
     return "—" if value is None else f"{value:.2f}"
 
 
-def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> str:
-    translation = get_translation(lang)
+def _render_intro(
+    out: list[str],
+    bundle: AnalysisBundle,
+    config: Config,
+    withheld: int,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the title, dataset note, rate caveat, exposure coverage, and k-anonymity notice."""
     _ = translation.gettext
     ngettext = translation.ngettext
-    names = _names(bundle.segments)
-    stats = bundle.result.segments
     per = int(config.rate_per)
     unit = config.exposure_unit
-    publishable = {s.segment_id for s in stats if s.publishable}
-    withheld = sum(1 for s in stats if not s.publishable)
-
-    def name_of(sid: str) -> str:
-        return names.get(sid, sid)
-
-    def bias_line(f: BiasFinding) -> str:
-        template: str = _("- {name}: {rshare}% of reports vs {eshare}% of exposure")
-        return template.format(
-            name=name_of(f.segment_id),
-            rshare=f"{f.report_share * 100:.0f}",
-            eshare=f"{f.exposure_share * 100:.0f}",
-        )
-
-    ranked = sorted(
-        (s for s in stats if s.rate is not None and s.publishable),
-        key=lambda s: s.rate or 0.0,
-        reverse=True,
-    )
-
-    out: list[str] = []
     title = _("Where the danger actually is — {city}").format(city=config.city)
     out.append(f"# {title}")
     out.append("")
     if config.dataset_note:
         out.append(f"> ⚠️ **{config.dataset_note}**")
         out.append("")
+    # METHODOLOGY §1: a rate with no window attached is not a publishable number.
+    # State the analysis window explicitly; warn in-line when none is configured.
+    if config.window_start or config.window_end:
+        start = config.window_start or "…"
+        end = config.window_end or "…"
+        out.append(_("**Analysis window:** {start} to {end}.").format(start=start, end=end))
+    else:
+        out.append(
+            _(
+                "**Analysis window:** all available data (no window configured — rates below "
+                "are all-time and not bounded to a stated period)."
+            )
+        )
+    out.append("")
     out.append(
         _(
             "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence "
@@ -98,7 +99,12 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         )
         out.append("")
 
-    # Plain-language glossary.
+
+def _render_glossary(out: list[str], config: Config, translation: gettext.NullTranslations) -> None:
+    """Append the plain-language glossary section."""
+    _ = translation.gettext
+    per = int(config.rate_per)
+    unit = config.exposure_unit
     out.append(_("## What the numbers mean (plain language)"))
     out.append("")
     out.append(
@@ -123,31 +129,53 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     )
     out.append("")
 
-    # Bottom-line sentence (the headline a non-statistician can read aloud).
-    if ranked:
-        top = ranked[0]
-        sig = _(", and it is a statistically significant cluster") if top.significant else ""
-        out.append(
-            _(
-                "**Bottom line:** the highest exposure-normalized near-miss rate is on "
-                "**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
-                "n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a "
-                "busy street; still, it rests on {n} reports, so read it with the interval and "
-                "the reporting-bias caveats below."
-            ).format(
-                name=name_of(top.segment_id),
-                rate=_fmt(top.rate),
-                per=per,
-                unit=unit,
-                lo=_fmt(top.rate_ci_low),
-                hi=_fmt(top.rate_ci_high),
-                n=top.n,
-                sig=sig,
-            )
-        )
-        out.append("")
 
-    # Highest-rate table.
+def _render_bottom_line(
+    out: list[str],
+    ranked: list[SegmentStats],
+    name_of: Callable[[str], str],
+    config: Config,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the headline sentence a non-statistician can read aloud, if there is a ranking."""
+    if not ranked:
+        return
+    _ = translation.gettext
+    per = int(config.rate_per)
+    unit = config.exposure_unit
+    top = ranked[0]
+    sig = _(", and it is a statistically significant cluster") if top.significant else ""
+    out.append(
+        _(
+            "**Bottom line:** the highest exposure-normalized near-miss rate is on "
+            "**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
+            "n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a "
+            "busy street; still, it rests on {n} reports, so read it with the interval and "
+            "the reporting-bias caveats below."
+        ).format(
+            name=name_of(top.segment_id),
+            rate=_fmt(top.rate),
+            per=per,
+            unit=unit,
+            lo=_fmt(top.rate_ci_low),
+            hi=_fmt(top.rate_ci_high),
+            n=top.n,
+            sig=sig,
+        )
+    )
+    out.append("")
+
+
+def _render_top_table(
+    out: list[str],
+    ranked: list[SegmentStats],
+    name_of: Callable[[str], str],
+    config: Config,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the highest-rate (top 10) segments table."""
+    _ = translation.gettext
+    per = int(config.rate_per)
     out.append(_("## Highest-rate segments (exposure-normalized)"))
     out.append("")
     th_rank = _("Rank")
@@ -173,7 +201,73 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         )
     out.append("")
 
-    # Significant hotspots.
+
+def _render_dominant_hazard(
+    out: list[str],
+    ranked: list[SegmentStats],
+    name_of: Callable[[str], str],
+    config: Config,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the dominant-hazard-type-by-segment section.
+
+    Dominant hazard, with its own rate, for each ranked segment that publishes a
+    per-hazard-type rate layer. The headline rate above is pooled across ALL
+    hazard types (a union); this names the single most common conflict type at a
+    place and gives ITS exposure-normalized rate, so "a corridor of close passes"
+    reads differently from "a corridor of surface defects" — with a rate, not a
+    raw count. Types below the small-sample threshold are suppressed, so a
+    segment may rank without a dominant-hazard line.
+    """
+    _ = translation.gettext
+    per = int(config.rate_per)
+    dominant: list[tuple[SegmentStats, str, dict[str, float]]] = []
+    for s in ranked[:10]:
+        if not s.rates_by_type:
+            continue
+        # Most common qualifying hazard type (ties broken by name, for determinism).
+        top_type = max(sorted(s.rates_by_type), key=lambda t: s.rates_by_type[t]["count"])
+        dominant.append((s, top_type, s.rates_by_type[top_type]))
+    if dominant:
+        out.append(_("## Dominant hazard type by segment (with its own rate)"))
+        out.append("")
+        out.append(
+            _(
+                "The headline rate is pooled across every hazard type (a union). This names the "
+                "single most common conflict type at each ranked segment and gives *its* "
+                "exposure-normalized rate; types with too few reports to share are omitted."
+            )
+        )
+        out.append("")
+        dom_line = _(
+            "- **{name}** — most common: **{hazard}** ({count} reports), "
+            "rate {rate}/{per} (CI {lo}-{hi})"
+        )
+        for s, top_type, layer in dominant:
+            out.append(
+                dom_line.format(
+                    name=name_of(s.segment_id),
+                    hazard=hazard_type_label(translation, top_type),
+                    count=int(layer["count"]),
+                    rate=_fmt(layer["rate"]),
+                    per=per,
+                    lo=_fmt(layer["rate_ci_low"]),
+                    hi=_fmt(layer["rate_ci_high"]),
+                )
+            )
+        out.append("")
+
+
+def _render_hotspots(
+    out: list[str],
+    stats: list[SegmentStats],
+    name_of: Callable[[str], str],
+    config: Config,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the statistically-significant-hotspots section."""
+    _ = translation.gettext
+    per = int(config.rate_per)
     sig_segments: list[SegmentStats] = [s for s in stats if s.significant and s.publishable]
     out.append(_("## Statistically significant hotspots (Getis-Ord Gi\\*)"))
     out.append("")
@@ -202,7 +296,111 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         out.append(_("No segment reaches statistical significance at this sample size."))
     out.append("")
 
-    # Reporting bias, with a counterweight so honesty does not read as "conclude nothing."
+
+# A quasi-Poisson dispersion at or above this is reported as *material*
+# overdispersion in the brief (≈5%+ wider intervals than pure Poisson). Below it,
+# sqrt(phi) rounding noise is not worth alarming a reader with. The dispersion phi
+# itself is always published in the metadata regardless of this display threshold.
+_OVERDISPERSION_MATERIAL = 1.1
+
+
+def _render_robustness(
+    out: list[str],
+    bundle: AnalysisBundle,
+    translation: gettext.NullTranslations,
+    name_of: Callable[[str], str],
+) -> None:
+    """Append the RR-02 overdispersion and RR-05 MAUP re-segmentation checks.
+
+    These are the skeptic-facing robustness answers: whether the Poisson intervals
+    understate uncertainty (clustered reporting) and whether the top hotspot is an
+    artifact of where the block lines were drawn.
+    """
+    _ = translation.gettext
+    phi = bundle.result.dispersion
+    stability = bundle.result.rank_stability
+    out.append(_("## Robustness checks (overdispersion & re-segmentation)"))
+    out.append("")
+
+    if phi >= _OVERDISPERSION_MATERIAL:
+        if bundle.result.overdispersion_adjusted:
+            clause = _("Those intervals have already been widened accordingly (quasi-Poisson).")
+        else:
+            clause = _(
+                "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening "
+                "is available via the `overdispersion_adjust` setting)."
+            )
+        out.append(
+            _(
+                "- **Overdispersion (clustered reporting).** The report counts are overdispersed "
+                "(dispersion ≈ {phi}): by that pooled estimate the Poisson 95% intervals above "
+                "could be up to {infl}× too narrow. Genuine between-segment differences inflate "
+                "this estimate too, so {infl}× is an upper bound on the needed widening. {clause}"
+            ).format(phi=f"{phi:.2f}", infl=f"{phi**0.5:.2f}", clause=clause)
+        )
+    else:
+        out.append(
+            _(
+                "- **Overdispersion.** Report counts show no material overdispersion (dispersion "
+                "≈ {phi}); the Poisson intervals stand as computed."
+            ).format(phi=f"{phi:.2f}")
+        )
+
+    if stability is not None and stability.top_hotspot_id is not None:
+        name = name_of(stability.top_hotspot_id)
+        overlap = f"{stability.topk_overlap:.2f}"
+        if stability.top_hotspot_survives:
+            out.append(
+                _(
+                    "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
+                    "units (from {fine}) leaves **{name}** the highest-rate, still-significant "
+                    "cluster — the hotspot is not an artifact of where the block lines were "
+                    "drawn. Top-{k} rank overlap: {overlap}."
+                ).format(
+                    coarse=stability.coarse_units,
+                    fine=stability.fine_units,
+                    name=name,
+                    k=stability.k,
+                    overlap=overlap,
+                )
+            )
+        else:
+            out.append(
+                _(
+                    "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
+                    "units (from {fine}), **{name}** stays the highest-rate unit but loses "
+                    "statistical significance at the coarser scale — read it as scale-sensitive, "
+                    "a lead to confirm rather than a settled cluster. Top-{k} rank overlap: "
+                    "{overlap}."
+                ).format(
+                    coarse=stability.coarse_units,
+                    fine=stability.fine_units,
+                    name=name,
+                    k=stability.k,
+                    overlap=overlap,
+                )
+            )
+    out.append("")
+
+
+def _render_bias_section(
+    out: list[str],
+    bundle: AnalysisBundle,
+    publishable: set[str],
+    name_of: Callable[[str], str],
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the reporting-bias section, the over/under-represented lists, and the KDE peak."""
+    _ = translation.gettext
+
+    def bias_line(f: BiasFinding) -> str:
+        template: str = _("- {name}: {rshare}% of reports vs {eshare}% of exposure")
+        return template.format(
+            name=name_of(f.segment_id),
+            rshare=f"{f.report_share * 100:.0f}",
+            eshare=f"{f.exposure_share * 100:.0f}",
+        )
+
     bias = bundle.result.bias
     out.append(_("## Reporting bias (named, not hidden)"))
     out.append("")
@@ -249,7 +447,66 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
         )
         out.append("")
 
+
+def _render_calibration(
+    out: list[str], config: Config, translation: gettext.NullTranslations
+) -> None:
+    """Append one sentence pointing at the published null-calibration artifact, if
+    ``nearmiss analyze --calibrate`` has been run for this city (EXP-01: "we attacked
+    our own dataset"). Silently omitted when the artifact hasn't been generated yet —
+    the brief must never claim a calibration that wasn't actually run.
+    """
+    _ = translation.gettext
+    calibration_path = config.out_dir / f"{_slug(config.city)}.calibration.json"
+    if not calibration_path.is_file():
+        return
+    try:
+        calib = json.loads(calibration_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    rate = calib.get("false_positive_rate")
+    n_shuffles = calib.get("n_shuffles")
+    if not isinstance(rate, int | float) or not isinstance(n_shuffles, int):
+        return
+    out.append(
+        _(
+            "**Null calibration (we attacked our own dataset):** on {n} seeded label-shuffles "
+            "of this city's own reports, with exposure and geometry held fixed, the hotspot "
+            "method's empirical false-positive rate was {pct}% — see `{file}`."
+        ).format(n=n_shuffles, pct=f"{rate * 100:.2f}", file=calibration_path.name)
+    )
+    out.append("")
+
+
+def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> str:
+    translation = get_translation(lang)
+    _ = translation.gettext
+    names = _names(bundle.segments)
+    stats = bundle.result.segments
+    publishable = {s.segment_id for s in stats if s.publishable}
+    withheld = sum(1 for s in stats if not s.publishable)
+
+    def name_of(sid: str) -> str:
+        return names.get(sid, sid)
+
+    ranked = sorted(
+        (s for s in stats if s.rate is not None and s.publishable),
+        key=lambda s: s.rate or 0.0,
+        reverse=True,
+    )
+
+    out: list[str] = []
+    _render_intro(out, bundle, config, withheld, translation)
+    _render_glossary(out, config, translation)
+    _render_bottom_line(out, ranked, name_of, config, translation)
+    _render_top_table(out, ranked, name_of, config, translation)
+    _render_dominant_hazard(out, ranked, name_of, config, translation)
+    _render_hotspots(out, stats, name_of, config, translation)
+    # Robustness checks: overdispersion (RR-02) and MAUP re-segmentation (RR-05).
+    _render_robustness(out, bundle, translation, name_of)
+    _render_bias_section(out, bundle, publishable, name_of, translation)
     _render_temporal(out, bundle, translation)
+    _render_calibration(out, config, translation)
 
     out.append("---")
     out.append("")

@@ -68,10 +68,17 @@ For a segment `s` over an analysis window `[t0, t1]`:
 - `n_s` — sample size for `s`; here `n_s = y_s`, the report count, because that is what the
   interval width is governed by. Small `n_s` is the central statistical problem of this project.
 
+<!-- claim:rate-union-not-per-type -->
 Hazard **type** (close pass, dooring, surface hazard, sightline, signal, debris) is carried
-through every step. A rate is always computed *within* a type or for an explicitly defined union
-of types, never by silently pooling incompatible hazards. A dooring rate and a pothole rate are
-not the same quantity and are never added or ranked together.
+through every step and published per segment as a `hazard_breakdown` count by type. **Today the
+single published `rate` per segment is computed over the union of all hazard types** — `aggregate.py`
+sums every type into one segment count that `rates.py` normalizes — so the published rate is an
+all-types union, and the `hazard_breakdown` beside it shows the type mix. Publishing **type-specific
+rate layers** (a separate dooring rate, surface-hazard rate, and so on, each with its own interval
+where `n` permits) is PLANNED, not yet implemented. Until it lands, read the published rate as an
+all-hazard-types union; a dooring rate and a pothole rate are different quantities and separating
+them into per-type rates is future work.
+<!-- /claim:rate-union-not-per-type -->
 
 The analysis window, the reference network version, the exposure source, and the hazard type are
 recorded with every published number. A rate with no window, network, source, and type attached
@@ -99,9 +106,16 @@ with how many reports it removed.
    force-snapped to the nearest segment, because a forced snap manufactures a count on a segment
    no one reported.
 4. **Classification and quality flags** (`pipeline/classify.py`, `pipeline/quality.py`). Each
-   report gets a quality tier. Low-confidence reports (vague location, ambiguous type, snap
-   beyond tolerance) are excluded from the primary rate and analyzed separately as a sensitivity
-   check. The fraction of reports excluded is published.
+   report gets a quality tier.
+   <!-- claim:low-confidence-flagged-not-excluded -->
+   Low-confidence reports (low positional accuracy or a snap beyond tolerance — the internal
+   `low_accuracy` / `far_snap` flags) are **flagged**: the segment they land on carries the published
+   `geocode_low_confidence` quality flag so a consumer sees the caveat (`stats/__init__.py`,
+   `_LOW_CONFIDENCE_RAW`). **They are currently still counted in the primary rate.** Splitting them
+   out — excluding low-confidence reports from the primary rate, computing a separate sensitivity
+   rate, and publishing the excluded fraction — is PLANNED, not yet implemented; today the flag is
+   surfaced but the rate is not recomputed without the flagged reports.
+   <!-- /claim:low-confidence-flagged-not-excluded -->
 
 `y_s` is the count of reports on `s` that pass all four. The per-segment counts, the per-filter
 removal counts, and the quality-tier breakdown are emitted as inspectable intermediate data
@@ -196,16 +210,22 @@ realization of a count process with mean `theta_s * E_s`. The working assumption
 (`y_s ~ Poisson(theta_s * E_s)`), which is the right default for counts of rare events over an
 exposure base and which gives us principled small-count intervals (Section 5).
 
-**Overdispersion is expected — and an explicit check is PLANNED, not yet implemented.** Real report
+**Overdispersion is expected — and the check is implemented (config-gated).** Real report
 counts are usually *more* variable than Poisson because reporting clusters — one viral post, one
-active local group, one bad week drives a burst of correlated reports. The intended behavior is:
-when the pooled data show overdispersion (variance > mean, formally a dispersion statistic materially
-above 1), widen intervals using a quasi-Poisson / negative-binomial treatment rather than pretending
-the counts are cleanly Poisson. **This dispersion check is not implemented today** — the current code
-computes the Poisson-based interval (Section 5.2) without switching to a quasi-Poisson or
-negative-binomial model. Until the check lands, intervals on clustered report counts may be narrower
-than overdispersion would warrant; this is a known gap, flagged here rather than hidden, and is
-tracked as future work.
+active local group, one bad week drives a burst of correlated reports. The behavior is: the pooled
+quasi-Poisson dispersion statistic `phi` is **always computed** (`stats/rates.py::pearson_dispersion`,
+a Pearson chi-square residual against the pooled rate/offset model) and always reported — in every
+published metadata sidecar under `methods.dispersion.phi` and in the advocacy brief's robustness
+section. When `phi` is materially above 1 (overdispersion, variance > mean), the per-segment Poisson
+intervals understate uncertainty by roughly `sqrt(phi)`; enabling the `overdispersion_adjust` config
+key widens every published interval by `sqrt(phi)` (a quasi-Poisson treatment, `stats/rates.py::quasi_poisson_ci`).
+Widening is **off by default** so that turning it on is a deliberate, versioned methodology change
+rather than a silent rewrite of every published interval; when it is off, `phi` is still published so
+a reader can see the clustering and read the intervals as a lower bound on the true uncertainty. The
+estimate is conservative by construction — taken against one pooled rate, genuine between-segment rate
+heterogeneity inflates `phi` too, so it is an upper bound on nuisance overdispersion and the widening
+errs only toward wider, more cautious intervals. (Negative-binomial estimation of the dispersion
+remains possible future work; the quasi-Poisson path is what ships.)
 
 Rates are compared on the **same exposure unit and window** or not compared at all. A rate built
 on observed counts and a rate built on a fitness-app proxy are different measurements; the
@@ -260,16 +280,25 @@ the interval comes from the count, then is divided by the offset:
   Wilson score interval for proportions) have average coverage closer to nominal than the exact
   interval and far better than Wald, without Wald's pathologies.
 
-The implemented `poisson_ci` (Byar's approximation) and the chosen `alpha` are recorded with
-every published interval. We do not mix methods within a single comparison.
+<!-- claim:byar-poisson-ci -->
+The implemented `poisson_ci` (Byar's approximation, `stats/rates.py`) and the chosen `alpha` are
+recorded with every published interval. Byar's approximation is the implemented default small-count
+Poisson interval — it returns a `0` lower bound at count 0 and a finite upper bound, and is exercised
+by `tests/test_rates.py`. We do not mix methods within a single comparison.
+<!-- /claim:byar-poisson-ci -->
 
 ### 5.3 Proportions, when the question is a share
 
 Some questions are proportions, not rates — e.g. "what share of reports on this corridor are
-dooring?" For a proportion `p = k / m` we use **Wilson score** intervals by default and
-**Clopper-Pearson exact** intervals when guaranteed coverage is required, never Wald. Wilson is
-the well-established small-sample default: it stays inside `[0, 1]`, behaves near 0 and 1, and has
-good coverage at small `m`.
+dooring?"
+<!-- claim:wilson-proportions -->
+For a proportion `p = k / m` we use **Wilson score** intervals by default (`stats/rates.py`,
+`wilson_ci`), and **Clopper-Pearson exact** intervals when guaranteed coverage is required, never
+Wald. Wilson is the well-established small-sample default: it stays inside `[0, 1]`, behaves near 0
+and 1, and has good coverage at small `m`. `wilson_ci` is exercised by `tests/test_rates.py`
+(bounds stay in `[0, 1]`; `successes > trials` is rejected). Clopper-Pearson exact intervals are
+noted here as an option, not the implemented default.
+<!-- /claim:wilson-proportions -->
 
 ### 5.4 What the interval does to ranking
 
@@ -295,11 +324,47 @@ segments are flagged so the order is read with its uncertainty, not as bare cert
 ### 5.5 Multiplicity
 
 Scanning every segment in a city for "significant" hotspots runs hundreds or thousands of tests;
-some will look extreme by chance. Wherever we make a many-segments significance claim (the
-Getis-Ord step, Section 8, and any per-segment flagging), we control for multiple comparisons —
-a false-discovery-rate (Benjamini-Hochberg) adjustment by default — and report both the raw and
-adjusted results. An unadjusted "this segment is significant at p < 0.05" out of a thousand
-segments is not a finding, and we do not present it as one.
+some will look extreme by chance.
+<!-- claim:bh-fdr -->
+Wherever we make a many-segments significance claim (the Getis-Ord step, Section 8, and any
+per-segment flagging), we control for multiple comparisons with a false-discovery-rate
+(Benjamini-Hochberg) adjustment by default (`stats/getis_ord.py`, `benjamini_hochberg`); the
+published `getis_ord_significant` flag is the FDR-corrected decision, not a raw per-segment
+`p < 0.05`, and this is exercised by `tests/test_fdr.py`.
+<!-- /claim:bh-fdr -->
+An unadjusted "this segment is significant at p < 0.05" out of a thousand segments is not a finding,
+and we do not present it as one.
+
+### 5.6 Threshold sensitivity and statistical power
+
+Two questions a reader is entitled to ask about any published ranking — *does it survive the
+knobs we chose?* and *how many reports does it take before a segment can be ranked at all?* — are
+answered per city and shipped alongside the data (R29 / R34).
+
+- **Threshold sensitivity.** The snapping distance (`snap_max_m`) and the two dedupe thresholds
+  (`dedupe_distance_m`, `dedupe_window_s`) are analyst choices, not facts. `tools/sensitivity_note.py`
+  re-runs the whole pipeline and the exposure-normalized ranking across a grid of those thresholds
+  (`snap_max_m ∈ {15, 25, 40}`, `dedupe_distance_m ∈ {10, 15, 25}`, `dedupe_window_s ∈ {300, 600,
+  1200}`) and reports, per variant, how many reports were snapped / dropped / deduped and how
+  stable the ranking stays versus the baseline config: the **top-5 overlap** and a
+  **Kendall-tau-style pairwise agreement** (the share of segment pairs the variant orders the same
+  way as the baseline). A ranking that holds across the grid is robust to the threshold choice; one
+  that swings is fragile and should be read with that caveat.
+
+- **Statistical power ("how many reports until rankable").** Two gates decide whether a segment can
+  be ranked. First, the k-anonymity publication gate withholds any segment with
+  `0 < reports < min_publish_n`, so a segment needs at least `min_publish_n` reports to be published
+  at all. Second, being *distinguishable* from the typical segment requires its 95% interval to
+  clear the median segment's (Section 5.4). Using the same Byar/Poisson interval as the published
+  rates (Section 5.2), the note reports how many reports a segment needs — at its own exposure
+  denominator — before its interval separates from the median's. Because the count scales with
+  exposure, a busy corridor needs more reports than a quiet one to reach the same rate; the note
+  makes that explicit.
+
+Both are pure-Python and deterministic (no RNG, no embedded date), regenerated by `make
+sensitivity` and diffed by `make reproduce`. The per-city notes live beside the other published
+artifacts: [`data/published/davis-sensitivity.md`](../data/published/davis-sensitivity.md) and
+[`data/published/riverside-sensitivity.md`](../data/published/riverside-sensitivity.md).
 
 ---
 
@@ -429,15 +494,26 @@ arranged across the network — yielding a z-score and a p-value per segment, so
 
 Decisions that make Gi\* honest here, rather than a fancier heat map:
 
+<!-- claim:gi-on-rate-not-count -->
 - **Run it on the rate, not the raw count.** This is the crucial choice. Gi\* on raw report counts
   finds clusters of *volume* and re-tells the heat-map lie with a p-value attached. Gi\* on the
   exposure-normalized rate `theta_s` (Section 4) finds clusters of elevated *risk* — clusters of
-  "hot because dangerous," which is what we publish. The input to Gi\* is the rate by default and
-  this is recorded; any count-based run is labeled as a volume diagnostic.
-- **A documented spatial weights matrix.** Neighbors are defined on the street network (segment
-  adjacency / network distance), not naive straight-line distance, because two segments on opposite
-  sides of a barrier are not really neighbors. The weights definition and distance band are recorded
-  with the result.
+  "hot because dangerous," which is what we publish. The input to `getis_ord_star` is the rate
+  (`stats/__init__.py` feeds it `rate_values`, not counts), exercised by `tests/test_hotspot.py`
+  (the planted low-exposure corridor is recovered as the significant cluster while the busy decoy is
+  not).
+<!-- /claim:gi-on-rate-not-count -->
+<!-- claim:gi-weights-straightline -->
+- **The spatial weights matrix, honestly described.** Neighbors are currently defined by a **binary
+  straight-line distance band**: two segments are neighbors when their centroids fall within
+  `gi_band_m` of each other, measured as great-circle (haversine) distance, with the focal segment
+  included as Gi\* requires (`stats/getis_ord.py` calls `haversine_m` between `polyline_centroid`
+  points). The band is recorded with the result (`metadata.methods.getis_ord_band_m`).
+  **Street-network adjacency / network-distance weights — which would keep two segments on opposite
+  sides of a river or freeway from counting as neighbors — are PLANNED, not yet implemented.** Until
+  they land, a Euclidean band can treat barrier-separated segments as neighbors and so manufacture or
+  dilute a cluster near a barrier; this is a known limitation, flagged here rather than hidden.
+<!-- /claim:gi-weights-straightline -->
 - **Analytic inference, with multiplicity control.** Significance comes from the **analytic
   normal-approximation Gi\* z-score** (`stats/getis_ord.py`) — the standard closed-form Gi\*
   statistic and its asymptotic normal reference — and across the many per-segment tests we apply
@@ -458,6 +534,18 @@ its exposure source and date, and its significance. The KDE surface, if shown, i
 it strictly as labeled report-intensity context. Significance is conveyed in **text and pattern, not
 color alone** (the accessibility requirement), and the same ranked, flagged set is available in the
 non-visual list/table equivalent.
+
+**Re-segmentation sensitivity (MAUP) — implemented.** Street segments are an arbitrary areal unit, so
+a hotspot drawn at one granularity can dissolve at another (the modifiable areal unit problem; see
+[LIMITATIONS §5](LIMITATIONS.md)). Rather than only caveating this, we answer it with a reproducible
+artifact: `stats/maup.py::rank_stability` deterministically **re-segments the network** into a coarser
+partition (a greedy nearest-neighbour pairing that moves both MAUP axes at once — scale *and* zoning),
+recomputes the exposure-normalized rate ranking and the Gi\* + FDR significance on the coarser units,
+and reports whether the top hotspot **survives** (stays the top-ranked coarse unit and still a
+significant cluster) together with a top-k rank-overlap scalar. This ships in every published metadata
+sidecar under `maup_rank_stability` and is surfaced in the advocacy brief's robustness section, so a
+reader can see whether a headline hotspot is a real cluster or an artifact of where the block lines
+were drawn.
 
 ---
 
@@ -481,13 +569,29 @@ elevated rate). The pipeline and statistics must:
 
 ### 9.2 Interval-coverage checks
 
+<!-- claim:coverage-sims-implemented -->
 For the confidence intervals (Section 5) we run **coverage simulations**: simulate many datasets
 from a known true rate, build a 95% interval each time, and confirm the intervals contain the true
 rate close to 95% of the time. This catches a miscalibrated interval method — an interval that
 claims 95% but covers 80% is a lie this check is designed to expose, and it is exactly the lie the
 banned Wald interval (Section 5.1) tells. We assert coverage stays close to nominal for Byar's
-approximation (the implemented default, Section 5.2) and near nominal for the score method, and the
-test fails if an interval method drifts out of tolerance.
+approximation (the implemented default, Section 5.2) and the test fails if the interval drifts out
+of tolerance.
+
+This is **implemented**, not aspirational. The seeded Monte-Carlo coverage check lives in
+`tests/test_coverage_simulation.py`: for true Poisson means across the small-count range the project
+operates in (lambda in {1, 3, 5, 10, 25}), it draws ~2000 samples each, builds the Byar 95%
+interval with `stats/rates.poisson_ci`, and asserts the empirical coverage lands in an asymmetric
+band around nominal — a strict lower bound (it must not *under*-cover, the Wald failure) and a
+lenient upper bound (conservative over-coverage at small discrete counts is safe, not a defect). It
+is marked `slow` and runs deterministically from a fixed seed. Alongside it,
+`tests/test_stats_properties.py` uses property-based (Hypothesis) and metamorphic tests to pin the
+invariants of the same core — CI bounds ordered, non-negative, containing the point estimate, and
+widening monotonically with the confidence level; Wilson bounds confined to [0, 1]; and the Gi*
+z-scores invariant to value re-scaling and to input ordering. The score (Wilson) method is provided
+for proportions but is not the published rate default, so its coverage is checked structurally
+(bounds within [0, 1]) rather than by a separate rate simulation.
+<!-- /claim:coverage-sims-implemented -->
 
 ### 9.3 Bias and null behavior
 
@@ -503,6 +607,39 @@ test fails if an interval method drifts out of tolerance.
 
 These fixtures, their planted answers, and the assertions are committed; `make reproduce` and the
 CI test gate re-run them, so a regression in any statistical claim breaks the build.
+
+### 9.4 Publish-time null calibration ("we attacked our own dataset")
+
+Section 9.3's null-behavior fixture proves the method behaves on a synthetic network we invented —
+a build-time regression guard, not a claim about any particular published city. A skeptic reading
+one city's dataset is entitled to ask a sharper question: *on this exact street network and this
+exact exposure surface, how often does your method manufacture a hotspot out of nothing?*
+
+`nearmiss analyze --calibrate` (`src/nearmiss/stats/calibration.py`) answers that directly. It takes
+the city's own published per-segment report counts and exposure estimates, then repeatedly
+**relabels which segment each count belongs to** with a seeded pseudo-random permutation — holding
+every segment's exposure estimate and geometry (and so the spatial weights matrix) completely fixed
+— and re-runs the exact rate + Getis-Ord Gi\* + Benjamini-Hochberg pipeline used to publish. A label
+shuffle carries no real spatial signal by construction, so any segment the method calls
+"significant" on a shuffle is a genuine false positive, measured on this city's real geometry rather
+than an invented one.
+
+- **Output:** `<city-slug>.calibration.json` beside the published dataset — `n_shuffles`, the
+  deterministic `seed`, `n_segments_tested`, `fdr_alpha`, `getis_ord_band_m`, the mean and max
+  false positives observed per shuffle, and the resulting `false_positive_rate` (mean false
+  positives divided by segments tested).
+- **Determinism:** the shuffle uses a fixed default seed (`DEFAULT_SEED` in `calibration.py`) unless
+  overridden, so the artifact reproduces byte-for-byte under `make reproduce` for a given seed —
+  the same reproducibility guarantee (Hard Rule 5) as every other published number.
+- **Privacy:** the artifact carries only aggregate summary statistics across shuffles — never a
+  per-shuffle or per-segment breakdown — so it is privacy-safe by construction (an aggregate of
+  aggregates, like every other published artifact).
+- **Distinct from `RR-09`** (permutation inference for the Gi\* statistic itself, a different
+  reference distribution for one z-score) and from Section 9.3's fixture test (one synthetic
+  network, run once at build/CI time, not published per city).
+- **Where it shows up:** the brief includes one sentence naming the empirical false-positive rate
+  when a calibration artifact exists for that city (`brief.py`); it is silently omitted, never
+  fabricated, when `--calibrate` hasn't been run yet for that city.
 
 ---
 

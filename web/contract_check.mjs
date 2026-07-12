@@ -1,0 +1,226 @@
+// Web-consumer contract test (FIX-10). The published dataset promises a schema
+// (schema/dataset.schema.json); this check proves the browser consumer (app.js)
+// actually depends on that contract and breaks when it is violated — so a schema
+// change that would strand the map cannot land silently.
+//
+// It loads the committed data/published/davis.geojson fixture, boots app.js in
+// jsdom (no browser, no Leaflet), and:
+//   1. asserts every feature property app.js reads is declared REQUIRED in the
+//      JSON Schema (the schema guarantees what the consumer needs);
+//   2. exercises app.js's GeoJSON parse+render path against the fixture and
+//      asserts it consumes those properties without error, rendering the right
+//      per-segment rate / n / name into the authoritative data table; and
+//   3. removes each required, table-rendered property in turn and asserts the
+//      rendered output visibly changes — i.e. dropping a required property fails
+//      the consumer rather than passing silently.
+//
+// Lives in web/ so Node resolves web/node_modules (jsdom), mirroring axe_check.mjs.
+// Usage:  cd web && npm install && npm run contract
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+import { JSDOM, VirtualConsole } from "jsdom";
+
+const here = dirname(fileURLToPath(import.meta.url)); // web/
+const repoRoot = join(here, "..");
+const INDEX = join(here, "index.html");
+const APP_JS = join(here, "app.js");
+const I18N_JS = join(here, "i18n.js");
+const LOCALES_DIR = join(here, "locales");
+const FIXTURE = join(repoRoot, "data", "published", "davis.geojson");
+const SCHEMA = join(repoRoot, "schema", "dataset.schema.json");
+
+function die(msg) {
+  console.error(`contract: FAIL — ${msg}`);
+  process.exit(1);
+}
+
+// Feature properties app.js reads out of each feature's `properties` object while
+// parsing and rendering the dataset. Kept in step with web/app.js by hand; every
+// entry must be declared required by the JSON Schema (checked below).
+//   segment_id, name         -> renderTable row header + anchor id (l.404-406)
+//   rate                     -> hasRate filter + rate cell (l.369, 409)
+//   rate_ci_low/high         -> interval cell (l.410)
+//   n                        -> sample-size cell (l.411)
+//   hazard_breakdown         -> hazard-mix cell (l.414-425)
+//   confidence_label         -> confidence cell + styling (l.427-429)
+//   getis_ord_significant    -> hotspot row class + cell (l.402, 431)
+//   getis_ord_z              -> hotspot cell z-score (l.436)
+//   report_count             -> map intensity + protagonist selection (l.585-597)
+const CONSUMED_FEATURE_PROPS = [
+  "segment_id",
+  "name",
+  "rate",
+  "rate_ci_low",
+  "rate_ci_high",
+  "n",
+  "hazard_breakdown",
+  "confidence_label",
+  "getis_ord_significant",
+  "getis_ord_z",
+  "report_count",
+];
+
+// Embedded-metadata members app.js reads (applyProvenance / applyDownload).
+const CONSUMED_META_MEMBERS = [
+  "city",
+  "exposure_unit",
+  "dataset_note",
+  "dataset_version",
+  "segments_published",
+];
+
+// The subset of consumed properties that render into the authoritative data
+// table, so removing any one of them observably changes the rendered rows.
+const TABLE_RENDERED_PROPS = [
+  "segment_id",
+  "name",
+  "rate",
+  "rate_ci_low",
+  "rate_ci_high",
+  "n",
+  "hazard_breakdown",
+  "confidence_label",
+  "getis_ord_significant",
+];
+
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+function without(geojson, prop) {
+  const copy = clone(geojson);
+  for (const f of copy.features) delete f.properties[prop];
+  return copy;
+}
+
+// Boot app.js in jsdom with fetch stubbed to serve `geojson`, no Leaflet present
+// (so renderMaps short-circuits and the data TABLE is the parse-path evidence).
+async function render(geojson) {
+  const html = readFileSync(INDEX, "utf-8");
+  const appSource = readFileSync(APP_JS, "utf-8");
+  const i18nSource = readFileSync(I18N_JS, "utf-8");
+  const dom = new JSDOM(html, {
+    runScripts: "outside-only",
+    pretendToBeVisual: true,
+    url: "https://example.test/web/index.html",
+    virtualConsole: new VirtualConsole(),
+  });
+  const { window } = dom;
+  // app.js fetches both the dataset and the web locale catalogs (FIX-13's
+  // single-sourced translations); serve the committed catalogs for locales/*
+  // and the fixture under test for everything else.
+  window.fetch = (url) => {
+    const target = String(url);
+    const locale = target.match(/locales\/([a-z]{2,3})\.json$/);
+    if (locale) {
+      const raw = JSON.parse(readFileSync(join(LOCALES_DIR, `${locale[1]}.json`), "utf-8"));
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(raw) });
+    }
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(clone(geojson)) });
+  };
+  // i18n.js loads first in index.html and app.js depends on window.NearmissI18n.
+  window.eval(i18nSource);
+  window.eval(appSource);
+  // Flush the fetch().then().then() microtask chain.
+  await new Promise((r) => setTimeout(r, 0));
+  await new Promise((r) => setTimeout(r, 0));
+
+  const doc = window.document;
+  const body = doc.getElementById("data-body");
+  const failed = !!body.querySelector("td[colspan]"); // app.js fail() marker
+  return { doc, window, body, failed, html: body.innerHTML };
+}
+
+function cellsFor(doc, segmentId) {
+  const th = doc.getElementById(`seg-${segmentId}`);
+  if (!th) return null;
+  const tr = th.parentElement;
+  return Array.from(tr.children).map((c) => c.textContent);
+}
+
+async function main() {
+  const schema = JSON.parse(readFileSync(SCHEMA, "utf-8"));
+  const requiredProps = new Set(schema.$defs.properties.required);
+  const requiredMeta = new Set(schema.$defs.metadata.required);
+  const fixture = JSON.parse(readFileSync(FIXTURE, "utf-8"));
+
+  // (1) The schema must promise every property the consumer relies on.
+  for (const p of CONSUMED_FEATURE_PROPS) {
+    if (!requiredProps.has(p)) {
+      die(`app.js consumes feature property "${p}" but the schema does not require it`);
+    }
+  }
+  for (const m of CONSUMED_META_MEMBERS) {
+    if (!requiredMeta.has(m)) {
+      die(`app.js consumes metadata member "${m}" but the schema does not require it`);
+    }
+  }
+  console.log(
+    `contract: schema requires all ${CONSUMED_FEATURE_PROPS.length} consumed feature ` +
+      `properties and all ${CONSUMED_META_MEMBERS.length} consumed metadata members.`
+  );
+
+  // (2) Positive: app.js parses the real fixture and renders it without error.
+  const rated = fixture.features.filter(
+    (f) => f.properties.rate !== null && f.properties.rate !== undefined
+  );
+  if (rated.length === 0) die("fixture has no rate-bearing features to exercise");
+
+  const base = await render(fixture);
+  if (base.failed) die("app.js entered its error state on the valid fixture");
+  const rows = base.doc.querySelectorAll("#data-body tr").length;
+  if (rows !== rated.length) {
+    die(`expected ${rated.length} rendered data rows, got ${rows}`);
+  }
+  for (const f of rated) {
+    const p = f.properties;
+    const cells = cellsFor(base.doc, p.segment_id);
+    if (!cells) die(`no rendered row (anchor seg-${p.segment_id}) — segment_id not consumed`);
+    if (cells[0] !== p.name) die(`row ${p.segment_id}: name not rendered (got "${cells[0]}")`);
+    if (cells[1] !== p.rate.toFixed(2)) {
+      die(`row ${p.segment_id}: rate not rendered (got "${cells[1]}")`);
+    }
+    if (cells[3] !== String(p.n)) die(`row ${p.segment_id}: n not rendered (got "${cells[3]}")`);
+    const ci = `${p.rate_ci_low.toFixed(2)} – ${p.rate_ci_high.toFixed(2)}`;
+    if (cells[2] !== ci) die(`row ${p.segment_id}: interval not rendered (got "${cells[2]}")`);
+  }
+  console.log(
+    `contract: app.js parsed the fixture and rendered ${rows} segments with correct ` +
+      `rate / interval / n / name.`
+  );
+
+  // (3) Negative: dropping any required, table-rendered property must change output.
+  for (const prop of TABLE_RENDERED_PROPS) {
+    const mutated = await render(without(fixture, prop));
+    if (mutated.html === base.html) {
+      die(`removing required property "${prop}" did not change the rendered output`);
+    }
+  }
+  // rate is the linchpin the consumer filters on: without it the data view collapses.
+  const noRate = await render(without(fixture, "rate"));
+  const noRateRows = noRate.doc.querySelectorAll("#data-body tr").length;
+  if (noRateRows === rated.length) {
+    die("removing required property \"rate\" left the data table fully populated");
+  }
+  console.log(
+    `contract: removing each of ${TABLE_RENDERED_PROPS.length} required properties ` +
+      `visibly breaks the rendered dataset.`
+  );
+
+  // Metadata consumption: dropping the embedded metadata empties the provenance-
+  // driven download summary that applyDownload builds from it.
+  const noMeta = clone(fixture);
+  delete noMeta.metadata;
+  const rendered = await render(noMeta);
+  const dl = rendered.doc.getElementById("download-meta");
+  const baseDl = base.doc.getElementById("download-meta");
+  if ((baseDl.textContent || "") === "" ) {
+    die("expected the valid fixture to populate the download-meta summary");
+  }
+  if (dl.textContent === baseDl.textContent) {
+    die("removing embedded metadata did not change the metadata-driven summary");
+  }
+
+  console.log("contract: OK — web consumer honors the published dataset schema.");
+}
+
+main().catch((e) => die(e && e.stack ? e.stack : String(e)));

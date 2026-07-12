@@ -51,7 +51,17 @@ therefore not a pile of pins. It is:
    structure — plus
 4. a **self-describing top-level `metadata` member** embedded in the GeoJSON itself, plus a
    machine-readable **metadata sidecar** (`<city-slug>.metadata.json`) recording sources,
-   dates, methods, thresholds, totals, and the content hash for reproducibility.
+   dates, methods, thresholds, totals, and the content hash for reproducibility, plus
+5. an optional **null-calibration artifact** (`<city-slug>.calibration.json`, written by
+   `nearmiss analyze --calibrate`) — "we attacked our own dataset": the hotspot method run
+   against many seeded label-shuffles of this city's own report counts, exposure and geometry
+   held fixed, publishing the method's *empirical false-positive rate on this city's actual
+   network* (`docs/METHODOLOGY.md` §9.4), not just on an invented test fixture.
+
+Each city also ships a **threshold-sensitivity & statistical-power note**
+(`<city-slug>-sensitivity.md`, e.g. [`davis-sensitivity.md`](../data/published/davis-sensitivity.md))
+showing how stable the ranking is across snapping/dedupe thresholds and how many reports a segment
+needs before it is rankable (R29 / R34; see METHODOLOGY.md §5.6).
 
 The dataset is the product, not an app. The accessible web map and table are just two views
 of these published artifacts.
@@ -160,6 +170,7 @@ feature is a GeoJSON `LineString` (the public street centerline) whose `properti
 | `rate_ci_high`           | number \| `null`                                                         | Upper bound of the rate confidence interval. |
 | `getis_ord_z`            | number \| `null`                                                         | Getis-Ord Gi\* z-score on the exposure-normalized rate, where computed. |
 | `getis_ord_significant`  | boolean \| `null`                                                        | Whether the segment is a statistically significant cluster after Benjamini-Hochberg FDR correction. `null` when `getis_ord_z` is `null`. |
+| `rate_sensitivity_delta` | number \| `null`                                                         | Signed difference (all-records rate minus the published primary rate), reported only when excluding low-confidence records (`low_accuracy`/`far_snap`) would move the rate outside its confidence interval; `null` when the exclusion is immaterial. |
 | `confidence_label`       | `certain` \| `uncertain` \| `exposure_unknown`                           | Plain-language reliability label surfaced in the map and table. |
 | `hazard_breakdown`       | object (closed hazard vocabulary → integer)                              | Counts of reports at this feature by hazard type; suppressed (emitted as `{}`) for segments below `small_n`. |
 | `quality_flags`          | array of strings                                                         | Pipeline quality flags from the published vocabulary `low_sample`, `geocode_low_confidence`, `exposure_unknown` (see [Quality flags](#published-quality-flags)). |
@@ -184,8 +195,8 @@ The **metadata sidecar** (`<city-slug>.metadata.json`, e.g. `davis.metadata.json
 content hash (`geojson_sha256`) plus the full `methods` block (`confidence_z`, `fdr_alpha`,
 `getis_ord_band_m`, `kde_bandwidth_m`, `min_publish_n`, `rate_per`, `small_n`, and the
 `significance` string) and a `summary` block (`reports_in`, `duplicates_removed`, `snapped`,
-`unsnapped`, `exposure_coverage`, `segments_total`, `segments_published`,
-`segments_withheld_low_count`), the `report_intensity_peak_segment` (a segment id only, never a
+`unsnapped`, `exposure_coverage`, `excluded_low_confidence_fraction`, `segments_total`,
+`segments_published`, `segments_withheld_low_count`), the `report_intensity_peak_segment` (a segment id only, never a
 coordinate), and a pointer to this data card (`docs/DATA-CARD.md`).
 
 ### Published quality flags
@@ -445,6 +456,10 @@ Contributor privacy is a hard rule, and the published dataset is engineered arou
 - **Residual risk.** Aggregation and withholding reduce but do not erase re-identification
   risk: a repeat contributor reporting across multiple segments could still be linked across
   those segments. This residual risk remains and is not claimed away.
+- **Re-identification model.** The detailed model for the rare-`hazard_type`-on-a-low-traffic-segment
+  attack — the adversary, the join, the `min_publish_n` / `small_n` parameter rationale, and why the
+  pipeline withholds rather than jitters — is documented in
+  [`docs/RE-IDENTIFICATION.md`](RE-IDENTIFICATION.md).
 
 These are publishing-rule and threat-model protections, not license restrictions — the data
 itself is meant to be free, so the privacy lives in *what* is published, not in legal terms.
@@ -567,6 +582,7 @@ this dataset, and a number from here without them is not this dataset's claim.
 - `schema/dataset.schema.md` — published GeoJSON schema (authoritative field reference).
 - `docs/METHODOLOGY.md` — full statistical methodology (rates, intervals, KDE, Getis-Ord Gi\*).
 - `docs/THREAT-MODEL.md` — privacy threat model and the basis for the withheld-precision rules.
+- `docs/RE-IDENTIFICATION.md` — the rare-hazard-type re-identification model and parameter rationale.
 - `data/published/<city-slug>.metadata.json` (e.g. `davis.metadata.json`) — per-release
   machine-readable metadata sidecar (versions, content hash, methods, sources, windows, totals).
 - `data/published/<city-slug>.geojson` (e.g. `davis.geojson`) — the published open GeoJSON, with

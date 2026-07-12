@@ -150,6 +150,51 @@ def test_figures_to_out_dir(tmp_path: Path) -> None:
     assert list(figdir.iterdir())
 
 
+# --------------------------------------------------------------------------- #
+# null calibration (EXP-01: "we attacked our own dataset")
+# --------------------------------------------------------------------------- #
+def test_analyze_calibrate_writes_calibration_json(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    caldir = tmp_path / "cal"
+    code = main(
+        [
+            "analyze",
+            "--config",
+            str(_config(tmp_path)),
+            "--calibrate",
+            "--n-shuffles",
+            "20",
+            "--seed",
+            "3",
+            "--out",
+            str(caldir),
+        ]
+    )
+    assert code == 0
+    [written] = list(caldir.glob("*.calibration.json"))
+    payload = json.loads(written.read_text(encoding="utf-8"))
+    assert payload["n_shuffles"] == 20
+    assert payload["seed"] == 3
+    assert payload["city"] == "Davis"
+    assert "false_positive_rate" in payload
+    assert "interpretation" in payload
+    out = capsys.readouterr().out
+    assert "calibrate [Davis]" in out
+
+
+def test_analyze_without_calibrate_does_not_write_calibration_json(tmp_path: Path) -> None:
+    caldir = tmp_path / "out"
+    assert main(["analyze", "--config", str(_config(tmp_path))]) == 0
+    assert not list(caldir.glob("*.calibration.json"))
+
+
+def test_analyze_calibrate_defaults_to_out_dir(tmp_path: Path) -> None:
+    cfg = _config(tmp_path)
+    assert main(["analyze", "--config", str(cfg), "--calibrate", "--n-shuffles", "5"]) == 0
+    assert list((tmp_path / "out").glob("*.calibration.json"))
+
+
 def test_run_end_to_end(tmp_path: Path) -> None:
     out = tmp_path / "run-brief.md"
     assert main(["run", "--config", str(_config(tmp_path)), "--out", str(out)]) == 0
@@ -298,3 +343,64 @@ def test_contributor_purge_expired_disabled_is_noop(
     cfg = _config(tmp_path)  # retention_days defaults to 0
     assert main(["contributor", "--config", str(cfg), "purge-expired"]) == 0
     assert "retention disabled" in capsys.readouterr().out
+
+
+def test_moderate_stats_summary_and_artifacts(
+    tmp_path: Path, a_valid_report: dict[str, object], capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _config(tmp_path)
+    _submit_one(tmp_path, a_valid_report, "a.json")
+    capsys.readouterr()  # drop submit chatter
+
+    # Human-readable summary to stdout.
+    assert main(["moderate", "--config", str(cfg), "stats"]) == 0
+    out = capsys.readouterr().out
+    assert "by status" in out
+    assert "reason categories" in out
+    assert "median review latency" in out
+    assert "withheld cells" in out
+
+    # A JSON artifact (dated-path style) exposes the machine-readable report.
+    art = tmp_path / "docs" / "audits" / "2026-07-02-moderation.json"
+    assert main(["moderate", "--config", str(cfg), "stats", "--out", str(art)]) == 0
+    data = json.loads(art.read_text(encoding="utf-8"))
+    assert {
+        "status_counts",
+        "reason_categories",
+        "flag_counts",
+        "review_latency_hours",
+        "withheld_cells",
+        "min_publish_n",
+        "total_submissions",
+    } <= set(data)
+
+    # A Markdown artifact for the audit trail.
+    md = tmp_path / "docs" / "audits" / "2026-07-02-moderation.md"
+    assert main(["moderate", "--config", str(cfg), "stats", "--out", str(md)]) == 0
+    assert "# Moderation transparency report" in md.read_text(encoding="utf-8")
+
+
+def test_moderate_stats_never_prints_free_text_reason(
+    tmp_path: Path, a_valid_report: dict[str, object], capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _config(tmp_path)
+    _submit_one(tmp_path, a_valid_report, "a.json")
+    pending = moderation.list_submissions(load_config(cfg), moderation.PENDING)
+    secret = "REJECT-NOTE-jane@example.com-plate-XYZ7788"
+    assert (
+        main(
+            [
+                "moderate",
+                "--config",
+                str(cfg),
+                "reject",
+                pending[0].submission_id,
+                "--reason",
+                f"{secret} spam",
+            ]
+        )
+        == 0
+    )
+    capsys.readouterr()
+    assert main(["moderate", "--config", str(cfg), "stats"]) == 0
+    assert secret not in capsys.readouterr().out

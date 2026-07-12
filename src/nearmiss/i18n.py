@@ -43,6 +43,35 @@ def get_translation(lang: str) -> gettext.NullTranslations:
     return gettext.translation(DOMAIN, localedir=str(LOCALEDIR), languages=[lang], fallback=True)
 
 
+def _parse_weight(params: str) -> float:
+    """Parse the ``q=`` weight from an Accept-Language parameter segment (default 1.0)."""
+    if not params.startswith("q="):
+        return 1.0
+    try:
+        return float(params[2:])
+    except ValueError:
+        return 0.0
+
+
+def _parse_ranked_tags(accept_language: str) -> list[tuple[float, int, str]]:
+    """Parse an Accept-Language header into ``(weight, -index, tag)`` tuples.
+
+    ``-index`` breaks quality-weight ties in source order (earlier tag wins).
+    """
+    ranked: list[tuple[float, int, str]] = []
+    for index, part in enumerate(accept_language.split(",")):
+        token = part.strip()
+        if not token:
+            continue
+        tag_part, _sep, params = token.partition(";")
+        tag = tag_part.strip().lower()
+        if not tag:
+            continue
+        weight = _parse_weight(params.strip())
+        ranked.append((weight, -index, tag))
+    return ranked
+
+
 def negotiate_lang(accept_language: str | None) -> str:
     """Resolve a supported language from an RFC 9110 ``Accept-Language`` value.
 
@@ -54,25 +83,7 @@ def negotiate_lang(accept_language: str | None) -> str:
     """
     if not accept_language:
         return DEFAULT_LANGUAGE
-    ranked: list[tuple[float, int, str]] = []
-    for index, part in enumerate(accept_language.split(",")):
-        token = part.strip()
-        if not token:
-            continue
-        tag_part, _sep, params = token.partition(";")
-        tag = tag_part.strip().lower()
-        if not tag:
-            continue
-        weight = 1.0
-        params = params.strip()
-        if params.startswith("q="):
-            try:
-                weight = float(params[2:])
-            except ValueError:
-                weight = 0.0
-        # index breaks q ties in source order (earlier = higher priority).
-        ranked.append((weight, -index, tag))
-    for weight, _neg_index, tag in sorted(ranked, reverse=True):
+    for weight, _neg_index, tag in sorted(_parse_ranked_tags(accept_language), reverse=True):
         if weight <= 0.0:
             continue
         if tag == "*" or tag in SUPPORTED_LANGUAGES:
@@ -90,6 +101,21 @@ def confidence_label(translation: gettext.NullTranslations, key: str) -> str:
         "certain": _("certain"),
         "uncertain": _("uncertain"),
         "exposure_unknown": _("exposure unknown"),
+    }
+    return labels.get(key, key.replace("_", " "))
+
+
+def hazard_type_label(translation: gettext.NullTranslations, key: str) -> str:
+    """Localized name for a hazard type from the intake schema's closed vocabulary."""
+    _ = translation.gettext
+    labels: dict[str, str] = {
+        "close_pass": _("close pass"),
+        "dooring": _("dooring"),
+        "surface_hazard": _("surface hazard"),
+        "sightline": _("blocked sightline"),
+        "signal": _("signal conflict"),
+        "debris": _("debris"),
+        "other": _("other"),
     }
     return labels.get(key, key.replace("_", " "))
 

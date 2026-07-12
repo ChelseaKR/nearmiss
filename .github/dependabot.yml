@@ -2,18 +2,20 @@
 #
 # Scope: keep the supply chain current without breaking reproducibility.
 #
-# Dependencies in this project are intended to be PINNED AND HASHED. The
-# reproducible-install target is `requirements.lock`, a generated, fully
-# pinned, hashed lockfile (produced by `pip-compile --generate-hashes` via
-# `make lock`); it is not committed yet, so the working install today is
-# `pip install -e ".[dev]"`. GitHub Actions are pinned by version tag (e.g.
-# @v4), and Dependabot keeps those tags current; pinning to commit SHAs is a
-# future hardening goal, not a current fact. Dependabot proposes exact
-# version bumps (regenerating the lockfile hashes once `requirements.lock`
-# lands); CI is designed to re-run lint, mypy --strict, pytest, the
-# accessibility checks, and `pip-audit --strict` on every PR, so an update
-# only lands after the pipeline still reproduces (Hard Rule 5: open and
-# reproducible end to end).
+# Dependencies in this project are PINNED AND HASHED. `requirements.lock` (a
+# generated, fully pinned, hashed lockfile produced by `pip-compile
+# --generate-hashes` via `make lock`) is committed at the repo root; `uv.lock`
+# is also committed (see audit-2026-07-05/nearmiss-REMEDIATION.md P1-4 for the
+# plan to consolidate on one canonical lock CI actually installs from — CI
+# today still installs via `pip install -e ".[dev]"`). GitHub Actions in this
+# repo's workflows are SHA-pinned (every `uses:` carries a full commit SHA with
+# a `# vN` version comment); Dependabot (this file) and Renovate
+# (`renovate.json`, `helpers:pinGitHubActionDigestsToSemver`) both keep those
+# pinned digests current. Dependabot proposes exact version bumps (and, for
+# Python, a regenerated lockfile-hash bump); CI re-runs lint, mypy --strict,
+# pytest, the accessibility checks, i18n gates, and `pip-audit --strict`
+# (blocking, no `|| true`) on every PR, so an update only lands after the
+# pipeline still reproduces (Hard Rule 5: open and reproducible end to end).
 #
 # Updates are grouped so a week's bumps arrive as a small number of reviewable
 # PRs rather than one PR per package — this is a single-maintainer project and
@@ -62,8 +64,9 @@ updates:
         patterns:
           - "*"
 
-  # GitHub Actions — pinned by version tag in .github/workflows/.
-  # Dependabot keeps the tags current; SHA-pinning is a future hardening goal.
+  # GitHub Actions — SHA-pinned (full commit SHA + `# vN` comment) in
+  # .github/workflows/. Dependabot (and Renovate) keep the pinned digest
+  # current as upstream tags move.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
