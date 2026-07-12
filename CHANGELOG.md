@@ -50,7 +50,9 @@ every entry.
 
 - An explicit GitHub Pages deployment pipeline that runs only after successful `main` CI, publishes
   a minimal allowlisted artifact instead of the repository root, stamps the deployed commit, hashes
-  every public file, and smoke-checks the live UI and aggregated dataset after deployment.
+  every payload file (excluding only the hash-manifest envelope itself), rejects symlink/path escapes,
+  exercises artifact assembly on pull requests, and smoke-checks the live UI and aggregated dataset
+  after deployment.
 - A versioned per-city source registry and `nearmiss coverage` assessment. The command reports a
   conservative evidence tier, actual observed/usable exposure coverage, stale and missing sources,
   supported capabilities, and the concrete inputs needed to unlock the next tier. Synthetic inputs

@@ -6,11 +6,13 @@ there is no always-on component to keep paid.
 
 What lives here (optional — the analysis runs entirely offline without any of it):
 
-- The public site deploys through the dependency-gated `deploy-pages` job in
-  `.github/workflows/ci.yml` only after the full `main` CI is
-  green. `tools/build_site.py` allowlists `web/` and `data/published/`, excluding private/raw and
-  repository-internal files. The artifact exposes `/deployment.json` and `/site-manifest.json`; the
-  workflow verifies the deployed commit and critical data/UI paths before reporting success.
+- Pull requests exercise the exact `build-pages` assembly and Pages-artifact upload path. On `main`,
+  the dependency-gated `deploy-pages` job consumes that artifact only after the full CI is green.
+  `tools/build_site.py` allowlists `web/` and `data/published/`, rejects symlinks and path-resolution
+  escapes, and excludes private/raw and repository-internal files. The artifact exposes
+  `/deployment.json` and `/site-manifest.json`; the manifest hashes every payload file (the manifest
+  envelope itself is the sole exception), and the workflow verifies the deployed commit and critical
+  data/UI paths before reporting success.
 
 - A serverless **intake** deploy (validate against the report schema, rate-limit to resist spam and
   poisoning, write to the private raw store).
