@@ -60,7 +60,7 @@ exposure-normalized hotspot map. Two ways to embed:
 **iframe** (simplest, fully sandboxed):
 
 ```html
-<iframe src="https://nearmiss.report/embed.html?city=davis"
+<iframe src="https://nearmiss.report/web/embed.html?city=davis"
         title="nearmiss hazard hotspot map" width="100%" height="380"
         style="border:1px solid #d3dae2;border-radius:6px"></iframe>
 ```
@@ -68,7 +68,7 @@ exposure-normalized hotspot map. Two ways to embed:
 **script tag** (injects the sandboxed iframe for you):
 
 ```html
-<script src="https://nearmiss.report/nearmiss-embed.js"
+<script src="https://nearmiss.report/web/nearmiss-embed.js"
         data-city="davis" data-height="380" async></script>
 ```
 
