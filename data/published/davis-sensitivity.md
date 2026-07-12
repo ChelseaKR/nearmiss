@@ -61,8 +61,8 @@ Per published segment, its observed count and whether its 95% interval already c
 | 5th St (B–C) | 6 | 15.00 | 5.48–32.65 | no |
 | 5th St (D–E) | 6 | 15.00 | 5.48–32.65 | no |
 | D St (4th–5th) | 6 | 15.00 | 5.48–32.65 | no |
-| B St (1st–2nd) | 4 | 2.67 | 0.72–6.83 | no |
 | 3rd St (B–C) | 20 | 2.50 | 1.53–3.86 | yes |
+| B St (1st–2nd) | 4 | 2.00 | 0.40–5.84 | no |
 | 1st St (A–B) | 0 | 0.00 | 0.00–2.45 | yes |
 | 2nd St (D–E) | 0 | 0.00 | 0.00–2.45 | yes |
 
