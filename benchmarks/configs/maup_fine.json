@@ -1,0 +1,5 @@
+{
+  "name": "maup_fine",
+  "seed": 90005,
+  "notes": "MAUP pair 1/2: one street segment per grid cell (merge_cols=1). Shares seed 90005 with maup_coarse so the underlying per-cell incident realization is identical -- only the published spatial units differ."
+}

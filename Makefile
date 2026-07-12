@@ -33,7 +33,8 @@ PUBLISHED_DIR := data/published
 
 .PHONY: help install lock lock-dev lint type test accessibility axe rtl security verify \
         conformance i18n i18n-compile i18n-pseudo claims qgis-plugin-test \
-        reproduce sensitivity demo teach publish serve bench bikemaps simra osm-streets real clean mutation release-build
+        reproduce sensitivity demo teach publish serve bench bench-suite bench-suite-verify \
+        bikemaps simra osm-streets real clean mutation release-build
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
 # Override CITY and the output paths as needed.
@@ -238,6 +239,15 @@ serve: ## Serve the accessible map + data view (read-only) at /web/index.html
 
 bench: ## Performance benchmark: time the pipeline + statistics on a city-scale synthetic dataset
 	$(PYTHON) tools/benchmark.py
+
+bench-suite: ## EXP-09 planted-truth benchmark suite: regenerate cities + score nearmiss on all of them
+	$(PYTHON) benchmarks/generator.py
+	$(PYTHON) benchmarks/scorer.py
+
+bench-suite-verify: ## Regenerate the benchmark suite and fail if the committed frozen cities changed
+	$(PYTHON) benchmarks/generator.py
+	git diff --exit-code -- benchmarks/cities
+	@echo "bench-suite-verify: every frozen city regenerates byte-for-byte from its config."
 
 bikemaps: ## Fetch REAL near-miss reports from BikeMaps.org (CITY=victoria) into BIKEMAPS_OUT
 	@mkdir -p $(dir $(BIKEMAPS_OUT))

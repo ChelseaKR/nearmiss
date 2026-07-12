@@ -1,0 +1,6 @@
+{
+  "name": "reporting_bias",
+  "seed": 90002,
+  "decoy_reporting_multiplier": 5.0,
+  "notes": "decoy_reporting_bias segments have baseline true incident rate AND baseline exposure, but report 5x as often per incident -- tests whether a tool mistakes reporting propensity for risk. Exposure normalization alone cannot fix this; it is the known limitation nearmiss's stats/bias.py surfaces but does not correct."
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ChelseaKR/nearmiss/benchmarks/schema/results.schema.json",
+  "title": "nearmiss planted-truth benchmark suite -- external tool results",
+  "description": "The common format any hotspot-detection tool writes its verdict in, to be scored by benchmarks/scorer.py --results against a city's ground_truth.json. One entry per segment_id present in that city's streets.geojson; segments the tool did not evaluate may be omitted (scored as not-significant with no CI).",
+  "type": "object",
+  "required": ["segments"],
+  "additionalProperties": false,
+  "properties": {
+    "tool": {
+      "type": "string",
+      "description": "Name of the tool being scored, for the scorecard/README table."
+    },
+    "segments": {
+      "type": "object",
+      "description": "segment_id -> verdict",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["significant"],
+        "additionalProperties": false,
+        "properties": {
+          "significant": {
+            "type": "boolean",
+            "description": "Whether the tool flags this segment as a statistically significant hotspot."
+          },
+          "rate": {
+            "type": ["number", "null"],
+            "description": "The tool's exposure-normalized rate estimate for this segment, if any."
+          },
+          "rate_ci_low": {
+            "type": ["number", "null"],
+            "description": "Lower bound of the tool's confidence/credible interval on the rate, if any."
+          },
+          "rate_ci_high": {
+            "type": ["number", "null"],
+            "description": "Upper bound of the tool's confidence/credible interval on the rate, if any."
+          }
+        }
+      }
+    }
+  }
+}

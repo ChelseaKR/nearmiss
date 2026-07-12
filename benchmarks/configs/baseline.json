@@ -1,0 +1,5 @@
+{
+  "name": "baseline",
+  "seed": 90001,
+  "notes": "Control regime: pure Poisson, no reporting bias, no exposure error. Every other regime changes exactly one axis relative to this one."
+}
