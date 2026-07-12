@@ -31,6 +31,7 @@ from .i18n import (
 from .models import Segment, SegmentStats
 from .publish import _slug
 from .stats.bias import BiasFinding
+from .stats.corridors import CorridorStats
 
 
 def _names(segments: list[Segment]) -> dict[str, str]:
@@ -303,6 +304,65 @@ def _render_hotspots(
     out.append("")
 
 
+def _render_corridors(
+    out: list[str],
+    corridors: list[CorridorStats],
+    config: Config,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the corridor view: the unit advocacy asks and council motions use.
+
+    Always published alongside the block-level tables above, never instead of
+    them — a corridor is a coarser aggregate of segments that are each already
+    ranked and flagged on their own (EXP-03).
+    """
+    _ = translation.gettext
+    per = int(config.rate_per)
+    out.append(_("## Corridor view (for advocacy asks)"))
+    out.append("")
+    out.append(
+        _(
+            "Blocks are the unit of measurement; corridors are the unit council motions "
+            "and campaigns are written in. Each corridor below merges contiguous, "
+            "statistically significant blocks of the same street into one named span, "
+            "with its own rate, interval, and n — published *alongside*, never instead "
+            "of, the block-level table above."
+        )
+    )
+    out.append("")
+    if not corridors:
+        out.append(
+            _(
+                "No contiguous run of significant blocks reached corridor size in this "
+                "dataset — the block-level hotspots above are the finest and only unit "
+                "available this cycle."
+            )
+        )
+        out.append("")
+        return
+    th_corridor = _("Corridor")
+    th_rate = _("Rate /{per}").format(per=per)
+    th_ci = _("95% CI")
+    th_n = _("n")
+    th_blocks = _("Blocks merged")
+    out.append(f"| {th_corridor} | {th_rate} | {th_ci} | {th_n} | {th_blocks} |")
+    out.append("| --- | ---: | --- | ---: | ---: |")
+    for c in sorted(corridors, key=lambda c: c.rate or 0.0, reverse=True):
+        ci = f"{_fmt(c.rate_ci_low)}-{_fmt(c.rate_ci_high)}"
+        out.append(f"| {c.name} | {_fmt(c.rate)} | {ci} | {c.n} | {len(c.segment_ids)} |")
+    out.append("")
+    out.append(
+        _(
+            "**MAUP transparency note:** how you draw the boundary can itself shift a "
+            "rate (the Modifiable Areal Unit Problem). Corridor counts and exposure are "
+            "sums of the same already-published, already-significant blocks above — no "
+            "block is surfaced here that was withheld or non-significant on its own. "
+            "Read the corridor rate as a complement to the block rates, not a "
+            "replacement for them."
+        )
+    )
+
+
 # A quasi-Poisson dispersion at or above this is reported as *material*
 # overdispersion in the brief (≈5%+ wider intervals than pure Poisson). Below it,
 # sqrt(phi) rounding noise is not worth alarming a reader with. The dispersion phi
@@ -508,6 +568,8 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     _render_top_table(out, ranked, name_of, config, translation)
     _render_dominant_hazard(out, ranked, name_of, config, translation)
     _render_hotspots(out, stats, name_of, config, translation)
+    _render_corridors(out, bundle.result.corridors, config, translation)
+
     # Robustness checks: overdispersion (RR-02) and MAUP re-segmentation (RR-05).
     _render_robustness(out, bundle, translation, name_of)
     _render_bias_section(out, bundle, publishable, name_of, translation)

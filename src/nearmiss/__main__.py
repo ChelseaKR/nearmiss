@@ -155,9 +155,10 @@ def _cmd_publish(args: argparse.Namespace) -> int:
     config = load_config(args.config)
     result = publish(config)
     print(f"publish [{config.city}]: {result.geojson_path}")
-    print(f"  metadata: {result.metadata_path}")
-    print(f"  manifest: {result.manifest_path}")
-    print(f"  sha256:   {result.geojson_sha256}")
+    print(f"  metadata:  {result.metadata_path}")
+    print(f"  manifest:  {result.manifest_path}")
+    print(f"  sha256:    {result.geojson_sha256}")
+    print(f"  corridors: {result.corridor_geojson_path} ({result.corridor_count} corridor(s))")
     return 0
 
 

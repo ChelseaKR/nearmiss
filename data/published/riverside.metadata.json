@@ -32,9 +32,12 @@
     ]
   },
   "city": "Riverside",
+  "corridor_dataset": "riverside.corridors.geojson",
+  "corridor_maup_note": "Corridor rates are a second, coarser view over the same already-published block-level segments — a MAUP-aware complement, not a replacement. Both granularities are published side by side; a corridor's count and exposure are sums of segments that individually already cleared the k-anonymity floor and the Getis-Ord significance test, so corridors never surface a block that was withheld or non-significant on its own. Aggregation choice (the boundary you draw) can itself shift a rate — the Modifiable Areal Unit Problem — which is exactly why the block-level file remains the primary published unit and this file is always secondary to it.",
+  "corridors_published": 0,
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "89d10aad34b1062c0ad3c69f983c7a60afc726e0529adc424f238f878badd35e",
+  "geojson_sha256": "0cc1493ee2b6e5d9721ebfd37d9f78e401636cc59b3eec69c309a250b9ba0607",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",

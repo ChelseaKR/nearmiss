@@ -15,14 +15,18 @@ def test_publish_is_deterministic(config: Config, tmp_path: Path) -> None:
     first = publish(cfg)
     content1 = first.geojson_path.read_text(encoding="utf-8")
     meta1 = first.metadata_path.read_text(encoding="utf-8")
+    corridors1 = first.corridor_geojson_path.read_text(encoding="utf-8")
 
     second = publish(cfg)
     content2 = second.geojson_path.read_text(encoding="utf-8")
     meta2 = second.metadata_path.read_text(encoding="utf-8")
+    corridors2 = second.corridor_geojson_path.read_text(encoding="utf-8")
 
     assert content1 == content2
     assert meta1 == meta2
+    assert corridors1 == corridors2
     assert first.geojson_sha256 == second.geojson_sha256
+    assert first.corridor_count == second.corridor_count
 
 
 def test_run_manifest_provenance_is_deterministic(config: Config, tmp_path: Path) -> None:

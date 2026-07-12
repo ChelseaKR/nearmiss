@@ -20,6 +20,7 @@ from ..network import SegmentGraph
 from ..util import round_stable
 from .aggregate import _LOW_CONFIDENCE_RAW, SegmentAgg, aggregate
 from .bias import BiasReport, characterize_bias
+from .corridors import CorridorStats, build_corridors
 from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
 from .kde import KdeResult, kde
 from .maup import RankStability, rank_stability
@@ -37,6 +38,10 @@ class AnalysisResult:
     exposure_coverage: float
     kde_peak_segment: str | None
     temporal: TemporalBreakdown
+    # Corridor-level aggregation (EXP-03): contiguous, same-street, already-
+    # significant and already-publishable segments merged for advocacy asks.
+    # Published ALONGSIDE `segments`, never instead of it.
+    corridors: list[CorridorStats]
     # Quasi-Poisson dispersion of the report counts (RR-02); ~1 is clean Poisson,
     # materially above 1 is overdispersion (clustered reporting), in which case the
     # per-segment Poisson intervals understate uncertainty by ~sqrt(dispersion).
@@ -284,6 +289,10 @@ def analyze(
 
     temporal = temporal_breakdown(records, config, weather, weather_source)
 
+    corridors = build_corridors(
+        stats, segments, config.rate_per, config.confidence_z, config.small_n
+    )
+
     # RR-05: re-segment the network and report whether the top hotspots survive.
     stability = rank_stability(stats, segments, exposure_map, config)
 
@@ -301,6 +310,7 @@ def analyze(
         exposure_coverage=coverage(attached, config.exposure_floor),
         kde_peak_segment=peak_segment,
         temporal=temporal,
+        corridors=corridors,
         dispersion=round(dispersion, 4),
         overdispersion_adjusted=config.overdispersion_adjust,
         rank_stability=stability,

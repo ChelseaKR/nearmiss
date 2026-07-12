@@ -12,13 +12,18 @@ from nearmiss.errors import PrivacyError
 from nearmiss.publish import (
     assert_metadata_clean,
     assert_published_clean,
+    build_corridor_geojson,
     build_geojson,
     publish,
 )
 
 
 def _geojson(bundle: AnalysisBundle) -> dict[str, object]:
-    return build_geojson(bundle.result.segments, bundle.segments)
+    return build_geojson(bundle.result.segments, bundle.segments, bundle.result.corridors)
+
+
+def _corridor_geojson(bundle: AnalysisBundle) -> dict[str, object]:
+    return build_corridor_geojson(bundle.result.corridors, bundle.segments)
 
 
 def _features(geojson: dict[str, object]) -> list[dict[str, object]]:
@@ -190,6 +195,44 @@ def test_metadata_carries_no_coordinate_and_passes_gate(
     assert "kde_peak" not in meta
     # And the metadata passes its own privacy gate.
     assert_metadata_clean(meta, load_city(config).reports)
+
+
+def test_corridor_geojson_passes_the_same_privacy_gate(
+    bundle: AnalysisBundle, config: Config
+) -> None:
+    """EXP-03: the corridor layer is subject to every invariant the block layer is."""
+    corridors = _corridor_geojson(bundle)
+    assert_published_clean(corridors, load_city(config).reports, config.min_publish_n)
+
+
+def test_corridor_report_count_never_below_min_publish_n(
+    bundle: AnalysisBundle, config: Config
+) -> None:
+    for p in (_props(f) for f in _features(_corridor_geojson(bundle))):
+        rc = p["report_count"]
+        assert isinstance(rc, int)
+        assert rc == 0 or rc >= config.min_publish_n
+
+
+def test_every_corridor_member_segment_is_itself_significant_and_publishable(
+    bundle: AnalysisBundle,
+) -> None:
+    by_id = {s.segment_id: s for s in bundle.result.segments}
+    for corridor in bundle.result.corridors:
+        for seg_id in corridor.segment_ids:
+            st = by_id[seg_id]
+            assert st.significant is True
+            assert st.publishable is True
+
+
+def test_corridor_id_on_a_block_feature_points_at_a_real_published_corridor(
+    bundle: AnalysisBundle,
+) -> None:
+    corridor_ids = {c.corridor_id for c in bundle.result.corridors}
+    for p in (_props(f) for f in _features(_geojson(bundle))):
+        cid = p["corridor_id"]
+        if cid is not None:
+            assert cid in corridor_ids
 
 
 def test_metadata_stamps_the_analysis_window(config: Config, tmp_path: object) -> None:

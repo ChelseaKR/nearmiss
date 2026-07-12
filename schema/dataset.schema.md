@@ -16,11 +16,14 @@ different artifact from the **intake** contract in
 [`report.schema.json`](report.schema.json): that schema accepts a single precise raw report; this one
 describes the analyzed, exposure-normalized, privacy-protected result that is safe to make public.
 
-Two files are written per city, both slugged from the city name. The GeoJSON
-(`<city-slug>.geojson`, e.g. `davis.geojson`) is the open dataset and carries a self-describing
-top-level [`metadata`](#2-top-level-structure) foreign member. The sidecar
+Three files are written per city, all slugged from the city name. The GeoJSON
+(`<city-slug>.geojson`, e.g. `davis.geojson`) is the open, block-level dataset and carries a
+self-describing top-level [`metadata`](#2-top-level-structure) foreign member. The sidecar
 (`<city-slug>.metadata.json`, e.g. `davis.metadata.json`) carries the content hash (`geojson_sha256`)
-and the full methods and summary; it is the integrity manifest for the GeoJSON. The plain-language
+and the full methods and summary; it is the integrity manifest for the GeoJSON. A second GeoJSON
+(`<city-slug>.corridors.geojson`, e.g. `davis.corridors.geojson`) is a coarser, corridor-level view
+published **alongside** the block-level file, never instead of it — see
+[§9, Corridor-level aggregation](#9-corridor-level-aggregation-exp-03). The plain-language
 [data card](../docs/DATA-CARD.md) lives at `docs/DATA-CARD.md`.
 
 A third, optional file, `<city-slug>.calibration.json`, is written by `nearmiss analyze --calibrate`
@@ -181,6 +184,7 @@ inventing a number, so that "unknown" is a first-class, machine-readable state (
 | `segment_id` | string | no | Stable identifier for the aggregation unit (street segment or cell). Stable across releases for the same underlying geometry, so a consumer can join releases over time. Not derived from any contributor identity. For `Point`/cell features this is the cell id. |
 | `name` | string | no | Human-readable street-block name for the segment (e.g. `"5th St (C–D)"`), carried from the base network so the map, the table, and the brief can label a place without exposing a coordinate. Real Davis street-block names replace the earlier `"Street seg-NN"` placeholders. |
 | `report_count` | integer ≥ 0 | no | **Raw count of reports** aggregated into this feature after dedupe and quality-flagging. This is *report volume*, not danger (**HR1**): it confounds hazard with how many people travel and choose to report here. It is published so consumers can see the basis of the rate and the sample size, and it is the field a "report volume" map must use — never as a standalone risk surface. |
+| `corridor_id` | string | yes | The `corridor_id` of the published corridor (§9) this segment is a member of, or `null` when the segment is not part of any corridor. Joins to `properties.corridor_id` in `<city-slug>.corridors.geojson`. A segment is independently published and ranked whether or not it belongs to a corridor. |
 
 ### 4.2 Exposure / the denominator (HR1)
 
@@ -522,6 +526,42 @@ violation), and `assert_metadata_clean()` covers the sidecar metadata — all co
 
 If you find any of the above in a published `nearmiss` dataset, treat it as a privacy defect and report
 it through the channel in [`SECURITY.md`](../SECURITY.md); it is a build that should never have shipped.
+
+---
+
+## 9. Corridor-level aggregation (EXP-03)
+
+**Artifact:** `data/published/<city-slug>.corridors.geojson` (e.g. `davis.corridors.geojson`), built by
+`stats/corridors.py` and `publish.build_corridor_geojson`.
+
+Blocks (segments) are the unit `§3`–`§4` describe; corridors are the unit council motions and advocacy
+campaigns are actually written in ("5th St from C to E"). A corridor merges **contiguous, already
+significant, already publishable** same-street segments — contiguity is a shared endpoint coordinate
+(within ~2m) **and** an unchanged base street name, so a corridor never bridges a name change or a
+geometric gap (a river, a freeway, a park with no through street). This is published **alongside**
+`<city-slug>.geojson`, never instead of it: every corridor member keeps its own independently ranked
+`SegmentStats` entry, and a segment's `corridor_id` (§4.1) is `null` unless it was actually merged.
+
+Feature shape: a `MultiLineString` geometry (the unioned member segment geometries — public street
+infrastructure, same as §3) with these properties:
+
+| Property | Type | Nullable | Description |
+|---|---|---|---|
+| `corridor_id` | string | no | Stable id derived from a hash of the sorted member `segment_id`s — deterministic across a `make reproduce` re-run of the same inputs. |
+| `name` | string | no | The corridor's outer cross streets, e.g. `"5th St (C–E)"`, derived from its members' own `name` spans. Falls back to a `"<street> (merged: seg-a, seg-b)"` form when the member names don't parse into a clean span (branching intersections, non-standard names). |
+| `segment_ids` | array of string | no | The member `segment_id`s, in geographic chain order when the members form a simple path. |
+| `report_count`, `n`, `exposure_estimate`, `exposure_source`, `exposure_date`, `rate`, `rate_ci_low`, `rate_ci_high`, `confidence_label` | — | see §4 | Recomputed at the corridor unit: `report_count`/`n` are sums of the members'; `exposure_estimate` is the sum of the members' exposure (only when **every** member has a usable exposure — otherwise `null`, same degradability rule as §4.2); `rate`/CI are recomputed from the summed count and exposure by the same method as §4.3, never carried over from a member. `exposure_source`/`exposure_date` are `"mixed"` when members disagree. |
+| `significant` | boolean | no | Always `true`. A corridor is built only from segments that already independently cleared Getis-Ord Gi\* significance (§4.4); Gi\* is **not** re-run at the corridor unit (re-scoring significance on a unit derived from segment-level significance would double-count the same evidence), so this flag records provenance, not a fresh statistical test. |
+
+**Privacy (HR4):** a corridor's `report_count` and exposure are sums of segments that were each already
+individually publishable (cleared `min_publish_n`) and significant — `assert_published_clean` is run
+against this file exactly as it is against the block-level file, so a corridor can never surface a
+report count that was withheld at the block level, and can never fall in `(0, min_publish_n)` itself.
+
+**MAUP transparency:** how you draw an aggregation boundary can itself shift a rate — the Modifiable
+Areal Unit Problem. The top-level `maup_note` string (and the identical `metadata.maup_note`) states this
+plainly in the artifact itself; the brief's corridor section (`brief._render_corridors`) carries the same
+note. The block-level file remains the primary published unit; this file is always secondary to it.
 
 ---
 

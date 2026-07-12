@@ -37,9 +37,12 @@
     ]
   },
   "city": "Davis",
+  "corridor_dataset": "davis.corridors.geojson",
+  "corridor_maup_note": "Corridor rates are a second, coarser view over the same already-published block-level segments — a MAUP-aware complement, not a replacement. Both granularities are published side by side; a corridor's count and exposure are sums of segments that individually already cleared the k-anonymity floor and the Getis-Ord significance test, so corridors never surface a block that was withheld or non-significant on its own. Aggregation choice (the boundary you draw) can itself shift a rate — the Modifiable Areal Unit Problem — which is exactly why the block-level file remains the primary published unit and this file is always secondary to it.",
+  "corridors_published": 1,
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "e6dabb01013453bdc1f1cf3d8c2b59251f9ab7229754d4db005c77364bf6e147",
+  "geojson_sha256": "8844d6027a9d61107118259f9f17f1cdc86dcb5872c18301b5944023804dc233",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
