@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Scope and conventions
 
 This file tracks the **software** version of the `nearmiss` repository (the version in
-`pyproject.toml` and the git release tag). The two data contracts the project ships are versioned
+`pyproject.toml` and the git release tag). The three data contracts the project ships are versioned
 **independently** of the software and of each other, and each has a dedicated subsection under every
 release so a schema change is never buried in a code change:
 
@@ -24,8 +24,11 @@ release so a schema change is never buried in a code change:
   one existed, and was corrected to "prose only"; FIX-10 has since landed
   `schema/dataset.schema.json` plus the contract gate, making the machine-readable mirror real.]
 <!-- /claim:dataset-schema-prose -->
+- **Official outcome schema** — `schema/official-outcome.schema.json`, currently `1.0.0`. A sibling
+  contract for traceable government crash/injury outcomes that must not acquire contributor-report
+  fields or self-assessed semantics merely to fit the intake schema.
 
-Both schemas follow the **versioning and deprecation policy** in
+All three schemas follow the **versioning and deprecation policy** in
 [`schema/dataset.schema.md`](schema/dataset.schema.md#7-versioning-and-deprecation-policy), summarized
 under [Schema-versioning policy](#schema-versioning-policy) at the foot of this file. In short: PATCH =
 clarifications, MINOR = backward-compatible additive changes (flag and hazard vocabularies are additive,
@@ -48,6 +51,11 @@ every entry.
 
 ### Added
 
+- A strict, offline-testable NHTSA FARS crash-level adapter and `official-outcome` schema. The adapter
+  accepts extracted CSV or official nested ZIP exports, produces deterministic IDs and complete
+  provenance/rejection accounting, bounds archive expansion, and keeps official fatal-crash outcomes
+  separate from crowdsourced near-miss intake. It intentionally does not infer involved road-user
+  modes until a later person-table join.
 - An explicit GitHub Pages deployment pipeline that runs only after successful `main` CI, publishes
   a minimal allowlisted artifact instead of the repository root, stamps the deployed commit, hashes
   every payload file (excluding only the hash-manifest envelope itself), rejects symlink/path escapes,
