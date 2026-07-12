@@ -58,10 +58,16 @@ every entry.
 
 ### Added
 
+- Read-only FARS lineage verification for `nearmiss coverage --fars-root`. Coverage now separates a
+  source declaration from a verified active receipt/history/raw/artifact chain, deterministically
+  replays normalization, and grants only `verified_official_outcomes` when source `fars` is also
+  declared. It never grants triangulation or changes tiers, core counts, exposure, or publication;
+  unloaded context/intervention declarations likewise no longer mint analytical capabilities.
 - A local `nearmiss ingest-fars` workflow that takes an official NHTSA CSV/ZIP already on disk,
   validates its year, identities, coordinates, accounting and rejection fraction, builds a canonical
   private outcome artifact, and activates it through the fail-closed ingestion receipt chain. It does
-  not download data, infer involved modes, publish precise outcomes, or grant a coverage capability.
+  not download data, infer involved modes, publish precise outcomes, or grant an analytical outcome
+  capability by itself.
 - A fail-closed, source-agnostic POSIX ingestion transaction foundation with owner-only storage,
   content-addressed raw and normalized artifacts, an atomically replaced active receipt/commit marker,
   immutable historical receipts, last-known-good validation, controlled error redaction, and explicit

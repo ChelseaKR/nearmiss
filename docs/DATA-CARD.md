@@ -296,6 +296,12 @@ published until a reviewed aggregation/privacy publication path explicitly consu
 root must remain outside every served directory and is never part of the allowlisted Pages artifact.
 See [`INGESTION.md`](INGESTION.md) for the operator contract and limits.
 
+The coverage command may read that private FARS root only when the operator supplies `--fars-root`.
+It verifies the active receipt/history/raw/artifact chain and deterministic normalization replay, then
+emits aggregate lineage metadata only. A matching registry declaration is still required; neither
+declaration nor verification alone changes the dataset, evidence tier, report counts, exposure, or
+public artifact. Even the matched state is crash context, not outcome triangulation.
+
 ### Pipeline transforms (recorded, inspectable)
 
 The pipeline is a sequence of pure transforms, each emitting plain inspectable data so a

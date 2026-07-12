@@ -259,6 +259,9 @@ nearmiss analyze --config config/davis-demo.toml --calibrate   # writes <slug>.c
 
 # Audit what this city's declared + loaded sources can honestly support
 nearmiss coverage --config config/davis-demo.toml  # evidence tier, freshness, capabilities, gaps
+# Optionally prove a declared id="fars" source from its private raw/artifact/receipt chain;
+# this grants verified crash context only, never triangulation or a tier promotion.
+nearmiss coverage --config config/city.toml --fars-root "$HOME/.local/share/nearmiss/ingestion"
 
 # Public crowdsourced submissions: queue one for review, then moderate it in
 nearmiss submit submission.json --config config/davis-demo.toml      # -> PENDING (private)
