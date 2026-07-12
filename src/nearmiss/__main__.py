@@ -14,6 +14,7 @@ nearmiss preregister --config C [--out DIR]     # EXP-16: freeze flagged corrido
 nearmiss score-preregistration --registration F --config C [--out DIR]  # EXP-16: score vs held-out
 nearmiss coverage  --config C [--registry R] [--fars-root R]  # evidence + verified gaps
 nearmiss ingest-fars EXPORT --root R --year Y # preserve + validate a private FARS artifact
+nearmiss ingest-fars-joined EXPORT --root R    # private 2024 crash/person join
 nearmiss serve     [--dir D] [--port P]         # accessible map + data view (read-only)
 nearmiss version
 """
@@ -526,6 +527,13 @@ def _fars_year(value: str) -> int:
     return year
 
 
+def _fars_joined_year(value: str) -> int:
+    year = _fars_year(value)
+    if year != 2024:
+        raise argparse.ArgumentTypeError("joined FARS person mapping currently supports 2024 only")
+    return year
+
+
 def _invalid_fraction(value: str) -> float:
     try:
         fraction = float(value)
@@ -556,6 +564,13 @@ def _fars_distribution_url(value: str) -> str:
         raise argparse.ArgumentTypeError(
             "must be an exact static.nhtsa.gov FARS HTTPS distribution URL"
         ) from exc
+
+
+def _fars_joined_distribution_url(value: str) -> str:
+    url = _fars_distribution_url(value)
+    if not url.casefold().endswith(".zip"):
+        raise argparse.ArgumentTypeError("joined FARS distribution must be an official ZIP URL")
+    return url
 
 
 def _reject_json_constant(value: str) -> object:
@@ -626,6 +641,133 @@ def _validate_fars_normalized_candidate(
     if not allow_record_regression and _accepted_count(decoded) < _accepted_count(prior):
         raise ValueError(
             "FARS accepted-record count regressed; use --allow-record-regression "
+            "only after operator review"
+        )
+
+
+def _joined_section(artifact: dict[str, object], key: str) -> dict[str, object]:
+    section = artifact.get(key)
+    if not isinstance(section, dict):
+        raise ValueError(f"normalized joined FARS artifact has invalid {key}")
+    return section
+
+
+def _joined_count(artifact: dict[str, object], section: str, key: str) -> int:
+    value = _joined_section(artifact, section).get(key)
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ValueError("normalized joined FARS artifact has invalid record accounting")
+    return value
+
+
+def _joined_mode_totals(artifact: dict[str, object]) -> tuple[int, ...]:
+    from .adapters.fars_joined import MODE_ORDER
+
+    records = artifact.get("records")
+    if not isinstance(records, list):
+        raise ValueError("normalized joined FARS artifact has invalid records")
+    involved = dict.fromkeys(MODE_ORDER, 0)
+    fatal = dict.fromkeys(MODE_ORDER, 0)
+    for record in records:
+        if not isinstance(record, dict):
+            raise ValueError("normalized joined FARS artifact has invalid records")
+        summary = record.get("mode_summary")
+        if not isinstance(summary, dict):
+            raise ValueError("normalized joined FARS artifact has invalid mode summary")
+        for field, totals in (
+            ("involved_person_count_by_mode", involved),
+            ("fatality_count_by_mode", fatal),
+        ):
+            counts = summary.get(field)
+            if not isinstance(counts, dict):
+                raise ValueError("normalized joined FARS artifact has invalid mode accounting")
+            for mode in MODE_ORDER:
+                value = counts.get(mode)
+                if not isinstance(value, int) or isinstance(value, bool):
+                    raise ValueError("normalized joined FARS artifact has invalid mode accounting")
+                totals[mode] += value
+    return tuple(involved[mode] for mode in MODE_ORDER) + tuple(fatal[mode] for mode in MODE_ORDER)
+
+
+def _validate_fars_joined_normalized_candidate(
+    candidate: bytes,
+    previous: bytes | None,
+    *,
+    allow_record_regression: bool,
+    allow_mode_regression: bool,
+    allow_release_regression: bool,
+) -> None:
+    from .joined_outcome_artifacts import validate_joined_outcome_artifact
+
+    decoded = _decode_outcome_artifact(candidate)
+    validate_joined_outcome_artifact(decoded)
+    policy = _joined_section(decoded, "crash_normalization")
+    if policy.get("allow_record_regression") is not allow_record_regression:
+        raise ValueError("joined FARS artifact override policy does not match the CLI")
+    if policy.get("allow_year_regression") is not False:
+        raise ValueError("joined FARS artifact must not authorize year regression")
+    join_policy = _joined_section(decoded, "join_policy")
+    if (
+        join_policy.get("allow_mode_regression") is not allow_mode_regression
+        or join_policy.get("allow_release_regression") is not allow_release_regression
+    ):
+        raise ValueError("joined FARS artifact override policy does not match the CLI")
+    if previous is None:
+        return
+    prior = _decode_outcome_artifact(previous)
+    validate_joined_outcome_artifact(prior)
+    candidate_counts = (
+        _joined_count(decoded, "crash_provenance", "records_read"),
+        _joined_count(decoded, "crash_provenance", "records_accepted"),
+        _joined_count(decoded, "person_join", "records_read"),
+        _joined_count(decoded, "person_join", "records_accepted"),
+        _joined_count(decoded, "person_join", "cases_joined"),
+    )
+    prior_counts = (
+        _joined_count(prior, "crash_provenance", "records_read"),
+        _joined_count(prior, "crash_provenance", "records_accepted"),
+        _joined_count(prior, "person_join", "records_read"),
+        _joined_count(prior, "person_join", "records_accepted"),
+        _joined_count(prior, "person_join", "cases_joined"),
+    )
+    candidate_exclusions = (
+        _joined_count(decoded, "person_join", "records_excluded_with_rejected_crash"),
+        _joined_count(decoded, "person_join", "cases_excluded_with_rejected_crash"),
+    )
+    prior_exclusions = (
+        _joined_count(prior, "person_join", "records_excluded_with_rejected_crash"),
+        _joined_count(prior, "person_join", "cases_excluded_with_rejected_crash"),
+    )
+    record_regressed = any(
+        candidate_value < prior_value
+        for candidate_value, prior_value in zip(candidate_counts, prior_counts, strict=True)
+    ) or any(
+        candidate_value > prior_value
+        for candidate_value, prior_value in zip(candidate_exclusions, prior_exclusions, strict=True)
+    )
+    if not allow_record_regression and record_regressed:
+        raise ValueError(
+            "joined FARS accepted-record accounting regressed; use "
+            "--allow-record-regression only after operator review"
+        )
+    prior_release = _joined_section(prior, "crash_provenance").get("release_status")
+    candidate_release = _joined_section(decoded, "crash_provenance").get("release_status")
+    if (
+        not allow_release_regression
+        and prior_release == "final"
+        and candidate_release == "preliminary"
+    ):
+        raise ValueError(
+            "joined FARS release status regressed; use --allow-release-regression "
+            "only after operator review"
+        )
+    if not allow_mode_regression and any(
+        candidate_value < prior_value
+        for candidate_value, prior_value in zip(
+            _joined_mode_totals(decoded), _joined_mode_totals(prior), strict=True
+        )
+    ):
+        raise ValueError(
+            "joined FARS mode accounting regressed; use --allow-mode-regression "
             "only after operator review"
         )
 
@@ -714,6 +856,118 @@ def _cmd_ingest_fars(args: argparse.Namespace) -> int:
         },
         "years": provenance.get("dataset_years"),
         "release_status": provenance.get("release_status"),
+    }
+    print(json.dumps(output, ensure_ascii=False, sort_keys=True))
+    return 0
+
+
+def _cmd_ingest_fars_joined(args: argparse.Namespace) -> int:
+    """Activate a private deterministic 2024 FARS accident/person join."""
+    from .adapters import fars
+    from .adapters.fars import validate_fars_distribution_url
+    from .adapters.fars_joined import collect_joined, read_joined_export_bytes
+    from .ingestion import IngestionError, run_ingestion
+    from .joined_outcome_artifacts import (
+        build_joined_outcome_artifact,
+        canonical_joined_outcome_artifact_bytes,
+    )
+
+    try:
+        validate_fars_distribution_url(args.distribution_url, expected_year=args.year)
+    except (TypeError, ValueError):
+        raise NearmissError("joined FARS preflight validation failed") from None
+    root = Path(args.root).expanduser()
+    try:
+        resolved_root = root.resolve(strict=False)
+        repository_root = Path(__file__).resolve().parents[2]
+        resolved_root.relative_to(repository_root)
+    except ValueError:
+        pass
+    except OSError:
+        raise NearmissError("joined FARS preflight validation failed") from None
+    else:
+        raise NearmissError("joined FARS private root must remain outside the repository")
+    export_path = Path(args.export).expanduser()
+    artifact: dict[str, object] | None = None
+
+    def fetch() -> bytes:
+        return fars.load_export_bytes(export_path, limit=args.max_raw_bytes)
+
+    def normalize(raw: bytes) -> bytes:
+        nonlocal artifact
+        outcomes, summaries, crash_provenance, person_provenance = collect_joined(
+            read_joined_export_bytes(raw),
+            release_status=args.release_status,
+        )
+        artifact = build_joined_outcome_artifact(
+            outcomes,
+            summaries,
+            person_provenance,
+            crash_provenance,
+            distribution_url=args.distribution_url,
+            max_invalid_fraction=args.max_invalid_fraction,
+            allow_record_regression=args.allow_record_regression,
+            allow_mode_regression=args.allow_mode_regression,
+            allow_release_regression=args.allow_release_regression,
+        )
+        return canonical_joined_outcome_artifact_bytes(artifact)
+
+    def validate(candidate: bytes, previous: bytes | None) -> None:
+        _validate_fars_joined_normalized_candidate(
+            candidate,
+            previous,
+            allow_record_regression=args.allow_record_regression,
+            allow_mode_regression=args.allow_mode_regression,
+            allow_release_regression=args.allow_release_regression,
+        )
+
+    try:
+        result = run_ingestion(
+            root=root,
+            source_id="fars-joined",
+            fetch=fetch,
+            normalize=normalize,
+            validate_normalized=validate,
+            max_raw_bytes=args.max_raw_bytes,
+            max_normalized_bytes=args.max_normalized_bytes,
+        )
+    except (IngestionError, OSError):
+        raise NearmissError(
+            "joined FARS ingestion failed; inspect the private receipt store "
+            "for the redacted failure"
+        ) from None
+
+    if artifact is None:  # pragma: no cover - normalization is required for success
+        raise NearmissError("joined FARS ingestion completed without a normalized artifact")
+    crash = _joined_section(artifact, "crash_provenance")
+    person = _joined_section(artifact, "person_join")
+    output = {
+        "source_id": result.source_id,
+        "raw_sha256": result.raw_sha256,
+        "normalized_sha256": result.normalized_sha256,
+        "artifact_path": str(result.normalized_path.relative_to(root)),
+        "current_path": str(result.current_path.relative_to(root)),
+        "receipt_path": str(result.receipt_path.relative_to(root)),
+        "crash_counts": {
+            "records_read": crash.get("records_read"),
+            "records_accepted": crash.get("records_accepted"),
+            "rejection_reasons": crash.get("rejection_reasons"),
+        },
+        "person_counts": {
+            "records_read": person.get("records_read"),
+            "records_accepted": person.get("records_accepted"),
+            "cases_joined": person.get("cases_joined"),
+            "records_excluded_with_rejected_crash": person.get(
+                "records_excluded_with_rejected_crash"
+            ),
+            "cases_excluded_with_rejected_crash": person.get("cases_excluded_with_rejected_crash"),
+            "rejection_reasons": person.get("rejection_reasons"),
+        },
+        "year": person.get("dataset_year"),
+        "release_status": crash.get("release_status"),
+        "allow_record_regression": args.allow_record_regression,
+        "allow_mode_regression": args.allow_mode_regression,
+        "allow_release_regression": args.allow_release_regression,
     }
     print(json.dumps(output, ensure_ascii=False, sort_keys=True))
     return 0
@@ -950,6 +1204,68 @@ def build_parser() -> argparse.ArgumentParser:
         help="activate an older dataset year than current only after operator review",
     )
     p_fars.set_defaults(func=_cmd_ingest_fars)
+
+    p_fars_joined = sub.add_parser(
+        "ingest-fars-joined",
+        help="activate a private 2024 FARS accident/person joined artifact",
+    )
+    p_fars_joined.add_argument(
+        "export", help="local official NHTSA ZIP containing accident.csv and person.csv"
+    )
+    p_fars_joined.add_argument("--root", required=True, help="private ingestion artifact root")
+    p_fars_joined.add_argument(
+        "--year",
+        required=True,
+        type=_fars_joined_year,
+        help="dataset year; joined person mapping currently supports 2024 only",
+    )
+    p_fars_joined.add_argument(
+        "--release-status",
+        required=True,
+        type=_release_status,
+        choices=("preliminary", "final"),
+        help="operator-supplied NHTSA release status, such as preliminary or final",
+    )
+    p_fars_joined.add_argument(
+        "--distribution-url",
+        required=True,
+        type=_fars_joined_distribution_url,
+        help="exact static.nhtsa.gov FARS ZIP distribution URL represented by EXPORT",
+    )
+    p_fars_joined.add_argument(
+        "--max-invalid-fraction",
+        type=_invalid_fraction,
+        default=0.05,
+        help="maximum rejected crash-row fraction permitted before activation (default: 0.05)",
+    )
+    p_fars_joined.add_argument(
+        "--max-raw-bytes",
+        type=_positive_int,
+        default=64 * 1024 * 1024,
+        help="bounded raw ZIP read cap in bytes (default: 67108864)",
+    )
+    p_fars_joined.add_argument(
+        "--max-normalized-bytes",
+        type=_positive_int,
+        default=64 * 1024 * 1024,
+        help="post-materialization activation cap in bytes (default: 67108864)",
+    )
+    p_fars_joined.add_argument(
+        "--allow-record-regression",
+        action="store_true",
+        help="activate lower crash/person/case counts only after operator review",
+    )
+    p_fars_joined.add_argument(
+        "--allow-mode-regression",
+        action="store_true",
+        help="activate lower aggregate per-mode counts only after operator review",
+    )
+    p_fars_joined.add_argument(
+        "--allow-release-regression",
+        action="store_true",
+        help="activate preliminary data over final data only after operator review",
+    )
+    p_fars_joined.set_defaults(func=_cmd_ingest_fars_joined)
 
     p_serve = sub.add_parser("serve", help="serve the accessible map + data view (read-only)")
     p_serve.add_argument("--dir", default=".", help="directory to serve (repo root)")
