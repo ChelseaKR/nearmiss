@@ -9,6 +9,7 @@ exposure_unit = "bike trips (synthetic)"
 streets = "../tests/fixtures/davis/streets.geojson"
 reports = "../tests/fixtures/davis/reports.json"
 exposure = "../tests/fixtures/davis/exposure.json"
+source_registry = "sources/davis-demo.toml"
 
 raw_dir = "../data/raw/davis"        # PRIVATE, gitignored
 out_dir = "../data/published"        # open, committed

@@ -46,7 +46,13 @@ every entry.
 
 ## [Unreleased]
 
-Nothing yet — `0.2.0` below drained the entire open roadmap-PR queue on 2026-07-12.
+### Added
+
+- A versioned per-city source registry and `nearmiss coverage` assessment. The command reports a
+  conservative evidence tier, actual observed/usable exposure coverage, stale and missing sources,
+  supported capabilities, and the concrete inputs needed to unlock the next tier. Synthetic inputs
+  are permanently labeled `demonstration`; `partner_city` requires both measured coverage and an
+  explicit partner organization plus review reference, never report volume alone.
 
 ## [0.2.0] - 2026-07-12
 
