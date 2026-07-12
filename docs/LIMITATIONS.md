@@ -57,6 +57,9 @@ The five [hard rules](../README.md) are referenced as HR1–HR5.
 - **Small numbers are loud.** A single extra report can swing a low-`n` block.
   Segments below the minimum sample are marked uncertain or withheld for
   k-anonymity (HR4); a rate with a wide CI is telling you it doesn't know yet.
+  How many reports a segment needs before it is publishable, and before it can be
+  distinguished from the median segment, is quantified per city in the
+  [threshold-sensitivity & power notes](../data/published/davis-sensitivity.md) (R34).
 - **Significance is not magnitude.** "★ Significant" (Getis-Ord Gi\*, FDR-corrected)
   means *hotter than exposure and chance explain* — not "the worst." A significant
   block can have a modest rate; a scary-looking rate can be non-significant.
@@ -70,7 +73,9 @@ The five [hard rules](../README.md) are referenced as HR1–HR5.
   the dataset should be read for the modes it actually covers (R33).
 - **Geocoding and snapping are approximate.** Reports are snapped to the nearest
   segment within a threshold; a report just over the line, or a low-confidence
-  location, is flagged, not silently forced onto a block.
+  location, is flagged, not silently forced onto a block. How much the published
+  ranking moves under different snapping/dedupe thresholds is published per city in
+  the [threshold-sensitivity notes](../data/published/davis-sensitivity.md) (R29).
 - **It is a measurement, not a mandate.** A hotspot is evidence for a
   conversation, not an automatic verdict on cause or fix. Causes (sightlines,
   speed, signal timing, road design) require local engineering judgment.

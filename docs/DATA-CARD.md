@@ -58,6 +58,11 @@ therefore not a pile of pins. It is:
    held fixed, publishing the method's *empirical false-positive rate on this city's actual
    network* (`docs/METHODOLOGY.md` §9.4), not just on an invented test fixture.
 
+Each city also ships a **threshold-sensitivity & statistical-power note**
+(`<city-slug>-sensitivity.md`, e.g. [`davis-sensitivity.md`](../data/published/davis-sensitivity.md))
+showing how stable the ranking is across snapping/dedupe thresholds and how many reports a segment
+needs before it is rankable (R29 / R34; see METHODOLOGY.md §5.6).
+
 The dataset is the product, not an app. The accessible web map and table are just two views
 of these published artifacts.
 
