@@ -224,7 +224,10 @@ def publish(config: Config) -> PublishResult:
     # (that would be self-referential); the sidecar carries the hash.
     embedded: dict[str, object] = {
         "schema_version": SCHEMA_VERSION,
-        "dataset_version": "0.1.0",
+        # FIX-02 (network-topology Gi* weights) changed every published
+        # getis_ord_z / getis_ord_significant value — a dataset content
+        # change, not a schema change, so only the DATA version moves.
+        "dataset_version": "0.1.1",
         "city": config.city,
         "license": "Apache-2.0",
         "dataset_note": config.dataset_note,
@@ -262,7 +265,7 @@ def publish(config: Config) -> PublishResult:
 
     metadata: dict[str, object] = {
         "city": config.city,
-        "version": "0.1.0",
+        "version": "0.1.1",
         "schema_version": SCHEMA_VERSION,
         "dataset_note": config.dataset_note,
         # Analysis window bounding every rate in this dataset (null when unset).
@@ -278,6 +281,13 @@ def publish(config: Config) -> PublishResult:
             "min_publish_n": config.min_publish_n,
             "fdr_alpha": config.fdr_alpha,
             "getis_ord_band_m": config.gi_band_m,
+            # FIX-02: neighbors are street-network adjacency/distance
+            # (nearmiss.network.SegmentGraph), not straight-line centroid
+            # distance — see METHODOLOGY §8.2. gi_node_snap_m is the tolerance
+            # (metres) within which two segment endpoints are treated as the
+            # same real-world intersection when building that graph.
+            "getis_ord_neighbors": "street-network adjacency/distance",
+            "getis_ord_node_snap_m": config.gi_node_snap_m,
             "kde_bandwidth_m": config.kde_bandwidth_m,
             "exposure_floor": config.exposure_floor,
             "exposure_stale_days": config.exposure_stale_days,

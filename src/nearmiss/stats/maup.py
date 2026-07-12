@@ -31,6 +31,7 @@ from ..config import Config
 from ..exposure import attach_exposure, is_usable
 from ..geometry import haversine_m, polyline_centroid
 from ..models import Exposure, Segment, SegmentStats
+from ..network import SegmentGraph
 from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
 
 
@@ -93,7 +94,6 @@ def rank_stability(
     top-ranked coarse unit by rate *and* remains a significant Gi* cluster after
     the same Benjamini-Hochberg FDR control used in the primary analysis.
     """
-    seg_by_id = {s.id: s for s in segments}
     coarse_of = _pair_segments(segments)
 
     # Fine top-k hotspots: publishable, rated, highest rate first (the brief's order).
@@ -109,9 +109,6 @@ def rank_stability(
     attached = attach_exposure([s.id for s in segments], exposure_map)
     counts: dict[int, int] = {}
     exposures: dict[int, float] = {}
-    lat_sum: dict[int, float] = {}
-    lon_sum: dict[int, float] = {}
-    members: dict[int, int] = {}
     count_by_id = {s.segment_id: s.report_count for s in stats}
     for sid, unit in coarse_of.items():
         exp = attached.get(sid)
@@ -124,23 +121,27 @@ def rank_stability(
             # would silently inflate the coarse rate.
             counts[unit] = counts.get(unit, 0) + count_by_id.get(sid, 0)
             exposures[unit] = exposures.get(unit, 0.0) + exp.estimate
-        cy, cx = polyline_centroid(seg_by_id[sid].coords)
-        lat_sum[unit] = lat_sum.get(unit, 0.0) + cy
-        lon_sum[unit] = lon_sum.get(unit, 0.0) + cx
-        members[unit] = members.get(unit, 0) + 1
 
     coarse_rate: dict[str, float] = {
         str(unit): counts[unit] / exposures[unit] * config.rate_per
         for unit in exposures
         if exposures[unit] > 0
     }
-    coarse_centroid = {
-        str(unit): (lat_sum[unit] / members[unit], lon_sum[unit] / members[unit])
-        for unit in members
-    }
-
-    # Gi* + FDR on the coarse rates, mirroring the primary analysis.
-    z = getis_ord_star(coarse_rate, {u: coarse_centroid[u] for u in coarse_rate}, config.gi_band_m)
+    # Gi* + FDR on the coarse rates, mirroring the primary analysis. Coarse
+    # units are Gi* neighbors when any of their member segments are
+    # STREET-NETWORK neighbors within the band (FIX-02) — never straight-line
+    # centroid distance, so units across a river/freeway stay non-adjacent.
+    graph = SegmentGraph.build(segments, node_snap_m=config.gi_node_snap_m)
+    fine_neighbors = graph.neighbors_within(config.gi_band_m)
+    coarse_neighbors: dict[str, set[str]] = {}
+    for sid, unit in coarse_of.items():
+        u = str(unit)
+        coarse_neighbors.setdefault(u, set())
+        for nb_sid in fine_neighbors.get(sid, ()):
+            nb_unit = coarse_of.get(nb_sid)
+            if nb_unit is not None and str(nb_unit) != u:
+                coarse_neighbors[u].add(str(nb_unit))
+    z = getis_ord_star(coarse_rate, coarse_neighbors)
     rejected = benjamini_hochberg({u: two_sided_p(zi) for u, zi in z.items()}, config.fdr_alpha)
     coarse_significant = {u for u in rejected if z.get(u, 0.0) > 0.0}
 

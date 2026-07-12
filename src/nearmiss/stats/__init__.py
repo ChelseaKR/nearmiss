@@ -16,6 +16,7 @@ from ..config import Config
 from ..exposure import attach_exposure, corroboration, coverage, is_stale, is_usable
 from ..geometry import haversine_m, polyline_centroid
 from ..models import CleanRecord, ConfidenceLabel, Exposure, Report, Segment, SegmentStats
+from ..network import SegmentGraph
 from ..util import round_stable
 from .aggregate import _LOW_CONFIDENCE_RAW, SegmentAgg, aggregate
 from .bias import BiasReport, characterize_bias
@@ -251,7 +252,12 @@ def analyze(
 
     # Getis-Ord Gi* on the exposure-normalized rate, with a Benjamini-Hochberg
     # FDR adjustment so a "significant" cluster is not a multiple-comparison fluke.
-    z = getis_ord_star(rate_values, {sid: centroids[sid] for sid in rate_values}, config.gi_band_m)
+    # Neighbors are decided on the STREET NETWORK (SegmentGraph), not by
+    # straight-line centroid distance, so segments across a river or freeway
+    # with no connecting street cannot be counted as neighbors.
+    graph = SegmentGraph.build(segments, node_snap_m=config.gi_node_snap_m)
+    neighbor_map = graph.neighbors_within(config.gi_band_m)
+    z = getis_ord_star(rate_values, neighbor_map)
     pvals = {sid: two_sided_p(zi) for sid, zi in z.items()}
     rejected = benjamini_hochberg(pvals, config.fdr_alpha)
     for st in stats:

@@ -195,7 +195,8 @@ min_publish_n = 3          # k-anonymity floor: segments with 0 < reports < this
 rate_per = 1000            # rates are expressed per this many exposure units
 confidence_z = 1.96        # 95% confidence interval
 fdr_alpha = 0.05           # Benjamini-Hochberg false-discovery-rate level for hotspot significance
-gi_band_m = 300            # Getis-Ord Gi* neighbourhood distance band
+gi_band_m = 300            # Getis-Ord Gi* neighbourhood NETWORK-distance band (see network.py)
+gi_node_snap_m = 5         # street-segment endpoints within this many metres share an intersection
 kde_bandwidth_m = 150      # kernel density bandwidth
 kde_grid = 20              # KDE grid resolution
 ```

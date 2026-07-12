@@ -22,7 +22,7 @@
         "exposure_source": "synthetic_bike_count",
         "exposure_tier": "observed",
         "getis_ord_significant": false,
-        "getis_ord_z": -1.8325,
+        "getis_ord_z": -1.2161,
         "hazard_breakdown": {},
         "n": 4,
         "name": "B St (1st–2nd)",
@@ -62,7 +62,7 @@
         "exposure_source": "synthetic_bike_count",
         "exposure_tier": "observed",
         "getis_ord_significant": true,
-        "getis_ord_z": 2.8652,
+        "getis_ord_z": 2.3918,
         "hazard_breakdown": {
           "close_pass": 6
         },
@@ -108,7 +108,7 @@
         "exposure_source": "synthetic_bike_count",
         "exposure_tier": "observed",
         "getis_ord_significant": false,
-        "getis_ord_z": -0.1791,
+        "getis_ord_z": -0.6218,
         "hazard_breakdown": {
           "close_pass": 12,
           "debris": 3,
@@ -161,8 +161,8 @@
         "exposure_estimate": 400.0,
         "exposure_source": "synthetic_bike_count",
         "exposure_tier": "observed",
-        "getis_ord_significant": false,
-        "getis_ord_z": 2.1933,
+        "getis_ord_significant": true,
+        "getis_ord_z": 2.3918,
         "hazard_breakdown": {
           "close_pass": 6
         },
@@ -249,7 +249,7 @@
         "exposure_source": "synthetic_bike_count",
         "exposure_tier": "observed",
         "getis_ord_significant": true,
-        "getis_ord_z": 2.8003,
+        "getis_ord_z": 2.3918,
         "hazard_breakdown": {
           "close_pass": 6
         },
@@ -332,7 +332,7 @@
         "exposure_source": "synthetic_bike_count",
         "exposure_tier": "observed",
         "getis_ord_significant": true,
-        "getis_ord_z": 3.2545,
+        "getis_ord_z": 2.3918,
         "hazard_breakdown": {
           "close_pass": 6
         },
@@ -6987,7 +6987,7 @@
     "city": "Davis",
     "data_card": "docs/DATA-CARD.md",
     "dataset_note": "Synthetic demonstration data — not real reports.",
-    "dataset_version": "0.1.0",
+    "dataset_version": "0.1.1",
     "exposure_unit": "bike trips (synthetic)",
     "license": "Apache-2.0",
     "privacy": "Aggregated to public street segments; low-count segments withheld (k-anonymity); no per-report coordinate, time, reporter, mode, or severity is published.",

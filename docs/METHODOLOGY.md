@@ -503,17 +503,20 @@ Decisions that make Gi\* honest here, rather than a fancier heat map:
   (the planted low-exposure corridor is recovered as the significant cluster while the busy decoy is
   not).
 <!-- /claim:gi-on-rate-not-count -->
-<!-- claim:gi-weights-straightline -->
-- **The spatial weights matrix, honestly described.** Neighbors are currently defined by a **binary
-  straight-line distance band**: two segments are neighbors when their centroids fall within
-  `gi_band_m` of each other, measured as great-circle (haversine) distance, with the focal segment
-  included as Gi\* requires (`stats/getis_ord.py` calls `haversine_m` between `polyline_centroid`
-  points). The band is recorded with the result (`metadata.methods.getis_ord_band_m`).
-  **Street-network adjacency / network-distance weights — which would keep two segments on opposite
-  sides of a river or freeway from counting as neighbors — are PLANNED, not yet implemented.** Until
-  they land, a Euclidean band can treat barrier-separated segments as neighbors and so manufacture or
-  dilute a cluster near a barrier; this is a known limitation, flagged here rather than hidden.
-<!-- /claim:gi-weights-straightline -->
+<!-- claim:gi-weights-network -->
+- **A documented spatial weights matrix.** Neighbors are defined on the street network — a segment
+  adjacency graph built from the same segment polylines the pipeline snaps reports to
+  (`network.py`'s `SegmentGraph`), where two segments are adjacent when they share an endpoint
+  (a real intersection, within `gi_node_snap_m`) — and Gi\* neighborhood is every segment reachable
+  by network distance (Dijkstra over segment lengths) within `gi_band_m`, not naive straight-line
+  distance. Two segments on opposite sides of a river or freeway with no connecting street are
+  therefore not neighbors even if their centroids are close, which a Euclidean band would have
+  manufactured or diluted a cluster near the barrier by getting wrong (`tests/test_network.py`'s
+  barrier fixture asserts the two answers disagree). The weights definition (neighbor type, distance
+  band, node-snap tolerance) is recorded with the result in `metadata.methods`. A segment with no
+  adjacent segment in the extract (an island) is honestly its own sole neighbor, not a special case
+  papered over.
+<!-- /claim:gi-weights-network -->
 - **Analytic inference, with multiplicity control.** Significance comes from the **analytic
   normal-approximation Gi\* z-score** (`stats/getis_ord.py`) — the standard closed-form Gi\*
   statistic and its asymptotic normal reference — and across the many per-segment tests we apply

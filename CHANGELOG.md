@@ -64,6 +64,23 @@ each will move here under its own `### Added` entry as it lands.
   JSON artifact. Submissions now carry a `decided_at` timestamp (set on approve/reject; legacy queue
   entries without it load fine and are excluded from latency).
 
+- **FIX-02: network-topology spatial weights for Getis-Ord Gi\*.** `stats/getis_ord.py` previously
+  decided Gi\* neighbors with a straight-line (haversine) centroid distance band, contradicting
+  METHODOLOGY §8.2's claim that neighbors are "defined on the street network ... not naive
+  straight-line distance." A new `network.py` (`SegmentGraph`) builds a segment-adjacency graph from
+  the same polylines the pipeline already snaps reports to (two segments are adjacent when they
+  share an endpoint — a real intersection — within the new `gi_node_snap_m` threshold) and computes
+  network-distance neighbors via a band-bounded Dijkstra; `getis_ord_star` now takes a precomputed
+  neighbor map instead of centroids and a distance band. `tests/test_network.py` includes the barrier
+  fixture (two parallel, unconnected streets close in straight-line terms) asserting the network and
+  Euclidean answers disagree and the network answer is what is published. See
+  `docs/ideation/02-large-scale-fixes.md` FIX-02.
+
+### Changed
+
+- This changes every published `getis_ord_z` / `getis_ord_significant` value (a dataset content
+  change, not a schema change) — see the per-city `dataset_version` bump below.
+
 ### Intake report schema (`schema/report.schema.json`)
 
 - No changes since `1.0.0`.
@@ -86,6 +103,15 @@ each will move here under its own `### Added` entry as it lands.
   that landed alongside it: `rates_by_type` (per-hazard-type rate layers, FIX-06) and
   `rate_sensitivity_delta` (quality-tier sensitivity split, FIX-07), both required, aggregate-only,
   and additive.
+- `metadata.methods` gained two new keys (`getis_ord_neighbors`, `getis_ord_node_snap_m`) —
+  additive to the free-form `methods` provenance object, not part of the versioned feature schema
+  (FIX-02).
+
+### Data (per-city `dataset_version`, in `data/published/`)
+
+- `davis` and `riverside`: `0.1.0` -> `0.1.1`. Regenerated with FIX-02's network-topology Gi* weights
+  (above); every feature's `getis_ord_z` / `getis_ord_significant` may have changed relative to the
+  prior `0.1.0` release, though the known-answer fixtures still recover the same planted hotspots.
 
 ## [0.1.0] - 2026-06-16 (versioned milestone — not yet tagged or published)
 

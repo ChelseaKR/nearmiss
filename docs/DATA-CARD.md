@@ -195,7 +195,8 @@ synthetic-demo / provenance label), a plain-language `privacy` note, and a `sign
 
 The **metadata sidecar** (`<city-slug>.metadata.json`, e.g. `davis.metadata.json`) carries the
 content hash (`geojson_sha256`) plus the full `methods` block (`confidence_z`, `fdr_alpha`,
-`getis_ord_band_m`, `kde_bandwidth_m`, `min_publish_n`, `rate_per`, `small_n`, `exposure_floor`,
+`getis_ord_band_m`, `getis_ord_neighbors`, `getis_ord_node_snap_m`, `kde_bandwidth_m`,
+`min_publish_n`, `rate_per`, `small_n`, `exposure_floor`,
 `exposure_stale_days`, and the `significance` string) and a `summary` block (`reports_in`, `duplicates_removed`, `snapped`,
 `unsnapped`, `exposure_coverage`, `excluded_low_confidence_fraction`, `segments_total`,
 `segments_published`, `segments_withheld_low_count`), the `report_intensity_peak_segment` (a segment id only, never a
