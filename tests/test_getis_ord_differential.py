@@ -1,17 +1,21 @@
 """Differential tests: getis_ord_star() vs. an independent brute-force oracle.
 
-The spatial-indexing branch (FIX-12) built the Gi* neighbor index with
-``cell_size_m=max(band_m, 1000.0)`` (a metric cell size) but inserted raw
-(lon, lat) *degrees* as (x, y) — a unit mismatch. For typical city-scale
-inputs this happened to be self-correcting (the oversized "metre" cell size
-applied to tiny degree coordinates meant every point landed in one of a
-handful of cells, so the index degraded to an unaccelerated full scan rather
-than an incorrect one) — but it was accidentally correct, not correctly
-built, and nothing proved it stayed correct outside that lucky regime. The fix
-projects centroids to local metres (as the rest of the pipeline does) before
-indexing. These tests prove, at a non-trivial latitude (~34 degrees, not the
-equator), that z-scores from the indexed implementation exactly match a
-brute-force (no spatial index) reference over many random layouts.
+FIX-02 replaced the straight-line centroid distance band with a precomputed,
+network-topology neighbor map (built by ``nearmiss.network.SegmentGraph`` and
+tested independently in ``tests/test_network.py``). This file now isolates the
+*other* half of Gi* correctness: given an arbitrary neighbor map (regardless of
+how it was built), is the weighted z-score arithmetic right? So these tests
+generate random neighbor structures directly — no geometry involved — and
+compare ``getis_ord_star`` against a direct, independent transcription of the
+documented Gi* formula.
+
+(The previous incarnation of this file caught a real bug: the spatial-indexing
+branch (FIX-12) built the old haversine-based neighbor index with a metric
+cell_size_m but inserted raw (lon, lat) *degrees* as (x, y) — a unit mismatch
+that only happened to be self-correcting near the equator. That geometry/
+projection concern now lives entirely in ``nearmiss.network``, so its
+regression coverage moved to ``tests/test_network.py``, which builds graphs at
+a non-trivial ~34 degree latitude.)
 """
 
 from __future__ import annotations
@@ -19,18 +23,22 @@ from __future__ import annotations
 import math
 import random
 
-from nearmiss.geometry import haversine_m
 from nearmiss.stats.getis_ord import getis_ord_star
-
-LAT0, LON0 = 34.05, -118.25
 
 
 def _brute_force_getis_ord(
-    values: dict[str, float], centroids: dict[str, tuple[float, float]], band_m: float
+    values: dict[str, float], neighbor_ids: dict[str, set[str]]
 ) -> dict[str, float]:
-    """O(n^2) oracle with no spatial index at all — a direct transcription of
-    the documented Gi* formula, independent of getis_ord.py's indexing code."""
+    """Independent transcription of the documented Gi* formula.
+
+    Builds the same binary weight matrix as ``getis_ord_star`` (a neighbor
+    map, with the focal segment always included in its own neighborhood) but
+    accumulates the weighted sums with an explicit double loop instead of a
+    set comprehension, so a bug shared between the two implementations is
+    unlikely to be identical by construction.
+    """
     ids = list(values.keys())
+    ids_set = set(ids)
     n = len(ids)
     if n < 3:
         return dict.fromkeys(ids, 0.0)
@@ -43,12 +51,10 @@ def _brute_force_getis_ord(
 
     z: dict[str, float] = {}
     for i in ids:
+        allowed = neighbor_ids.get(i, set()) | {i}
         w_sum = w2_sum = wx_sum = 0.0
-        ci = centroids[i]
         for j in ids:
-            cj = centroids[j]
-            d = haversine_m(ci[0], ci[1], cj[0], cj[1])
-            w = 1.0 if d <= band_m else 0.0
+            w = 1.0 if j in allowed and j in ids_set else 0.0
             w_sum += w
             w2_sum += w * w
             wx_sum += w * values[j]
@@ -58,31 +64,44 @@ def _brute_force_getis_ord(
     return z
 
 
-def test_getis_ord_matches_brute_force_at_la_latitude() -> None:
-    """Randomized differential test: 300 trials x 30 segments, scattered over a
-    city-sized area at ~34 degrees latitude, with a band_m comparable to the
-    segment spacing so in/out-of-band membership is genuinely contested."""
+def test_getis_ord_matches_brute_force_over_random_neighbor_graphs() -> None:
+    """Randomized differential test: 300 trials x 30 segments, with a random
+    (not necessarily symmetric, not necessarily complete) neighbor structure
+    per trial — the network graph could hand back any subset."""
     rng = random.Random(2026)
     trials = 300
     n_segments = 30
-    band_m = 300.0
 
     max_abs_diff = 0.0
     for t in range(trials):
         ids = [f"s{t}-{k}" for k in range(n_segments)]
-        centroids = {
-            i: (LAT0 + rng.uniform(-0.02, 0.02), LON0 + rng.uniform(-0.02, 0.02)) for i in ids
-        }
         values = {i: rng.uniform(0.0, 20.0) for i in ids}
+        # Each segment gets a random handful of neighbors (possibly none,
+        # possibly itself, possibly asymmetric — getis_ord_star must not
+        # assume symmetry or self-inclusion; it enforces the latter itself).
+        neighbor_ids = {i: set(rng.sample(ids, k=rng.randint(0, 6))) for i in ids}
 
-        actual = getis_ord_star(values, centroids, band_m)
-        expected = _brute_force_getis_ord(values, centroids, band_m)
+        actual = getis_ord_star(values, neighbor_ids)
+        expected = _brute_force_getis_ord(values, neighbor_ids)
 
         assert actual.keys() == expected.keys()
         for i in ids:
             max_abs_diff = max(max_abs_diff, abs(actual[i] - expected[i]))
 
-    # Both implementations decide band membership with the same exact
-    # haversine `d <= band_m` check, so they should match to floating-point
-    # noise, not just approximately.
     assert max_abs_diff < 1e-9, f"max |actual - expected| z-score diff was {max_abs_diff}"
+
+
+def test_getis_ord_always_includes_the_focal_segment() -> None:
+    """Even an empty neighbor set must still test the segment against itself
+    (Gi* requires the focal unit in its own neighborhood)."""
+    values = {"a": 10.0, "b": 1.0, "c": 1.0, "d": 1.0}
+    neighbor_ids: dict[str, set[str]] = {"a": set(), "b": set(), "c": set(), "d": set()}
+    z = getis_ord_star(values, neighbor_ids)
+    # With no cross-segment neighbors, each segment is only compared to
+    # itself: w_sum == 1 for all, so denom's (n*w2_sum - w_sum^2) term is
+    # n - 1 for every segment, and z reduces to (x_i - mean) / (s * sqrt(1)).
+    mean = sum(values.values()) / 4
+    variance = sum(v * v for v in values.values()) / 4 - mean * mean
+    s = math.sqrt(variance)
+    for i, x in values.items():
+        assert math.isclose(z[i], (x - mean) / s, rel_tol=1e-9)

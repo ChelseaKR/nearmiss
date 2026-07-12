@@ -28,11 +28,13 @@ from nearmiss.stats.rates import rate_with_ci
 
 
 def test_getis_ord_star_pins_exact_zscores() -> None:
-    """Gi* z-scores match the exact closed form on a hand-computable layout.
+    """Gi* z-scores match the exact closed form on a hand-computable neighbor map.
 
-    Two hot neighbours (A, B ~222 m apart) and two distant cold neighbours
-    (C, D ~111 km away, ~222 m apart) with a 300 m band. In/out-of-band membership
-    is unambiguous and the weights are binary, so the statistic is exactly solvable:
+    Two hot neighbours (A, B) and two cold neighbours (C, D), each pair mutually
+    adjacent (as a network-adjacency neighbor map, e.g. from SegmentGraph, would
+    give a pair of segments meeting at a shared intersection) and the two pairs
+    NOT neighbors of each other. Membership is unambiguous and the weights are
+    binary, so the statistic is exactly solvable:
 
         n = 4,  mean = 5,  s = 5;
         every segment neighbours exactly its own pair (w_sum = w2_sum = 2), so the
@@ -44,14 +46,9 @@ def test_getis_ord_star_pins_exact_zscores() -> None:
     swap, the ``(n - 1)`` off-by-one, and the mean/variance mutants.
     """
     values = {"A": 10.0, "B": 10.0, "C": 0.0, "D": 0.0}
-    centroids = {
-        "A": (0.0, 0.0),
-        "B": (0.0, 0.002),
-        "C": (0.0, 1.0),
-        "D": (0.0, 1.002),
-    }
+    neighbor_ids = {"A": {"B"}, "B": {"A"}, "C": {"D"}, "D": {"C"}}
 
-    z = getis_ord_star(values, centroids, band_m=300.0)
+    z = getis_ord_star(values, neighbor_ids)
 
     assert z["A"] == pytest.approx(math.sqrt(3.0), abs=1e-9)
     assert z["B"] == pytest.approx(math.sqrt(3.0), abs=1e-9)
@@ -66,23 +63,23 @@ def test_getis_ord_star_boundary_and_degenerate_inputs() -> None:
     """The n == 3 boundary computes; undefined cases return exactly 0.0 for every id."""
     # Exactly three segments is the MINIMUM that standardizes (guard is `n < 3`),
     # and it must still produce a real hotspot, not silently collapse to zeros.
-    # Same geometry as above minus D: A,B neighbour each other, C is isolated ->
-    # z_A = z_B = +sqrt(2), z_C = -sqrt(2). Kills the `n < 3` -> `n <= 3` off-by-one.
+    # Same neighbor map as above minus D: A,B neighbour each other, C is isolated
+    # (empty neighbor set, so only itself) -> z_A = z_B = +sqrt(2), z_C = -sqrt(2).
+    # Kills the `n < 3` -> `n <= 3` off-by-one.
     three = getis_ord_star(
         {"A": 10.0, "B": 10.0, "C": 0.0},
-        {"A": (0.0, 0.0), "B": (0.0, 0.002), "C": (0.0, 1.0)},
-        band_m=300.0,
+        {"A": {"B"}, "B": {"A"}, "C": set()},
     )
     assert three["A"] == pytest.approx(math.sqrt(2.0), abs=1e-9)
     assert three["C"] == pytest.approx(-math.sqrt(2.0), abs=1e-9)
 
     # Fewer than three segments -> no stable standardization -> 0.0 (never None).
-    two = getis_ord_star({"A": 1.0, "B": 9.0}, {"A": (0.0, 0.0), "B": (0.0, 0.002)}, band_m=300.0)
+    two = getis_ord_star({"A": 1.0, "B": 9.0}, {"A": {"B"}, "B": {"A"}})
     assert two == {"A": 0.0, "B": 0.0}
 
     # Zero spatial variance (all values identical) -> s == 0 -> 0.0 everywhere.
-    centroids = {"A": (0.0, 0.0), "B": (0.0, 0.002), "C": (0.0, 1.0)}
-    flat = getis_ord_star({"A": 5.0, "B": 5.0, "C": 5.0}, centroids, band_m=300.0)
+    neighbor_ids = {"A": {"B"}, "B": {"A"}, "C": set()}
+    flat = getis_ord_star({"A": 5.0, "B": 5.0, "C": 5.0}, neighbor_ids)
     assert flat == {"A": 0.0, "B": 0.0, "C": 0.0}
 
 

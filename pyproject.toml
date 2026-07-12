@@ -170,23 +170,30 @@ markers = [
 #   * maup.py      — the MAUP rank-stability re-segmentation (RR-05): a dropped
 #                    sign or a `<`/`<=` slip in the coarse-unit ranking or the
 #                    survives/overlap logic would silently misreport robustness
+#   * network.py   — the street-network adjacency graph + bounded Dijkstra that
+#                    decide Gi*'s neighbor map (FIX-02); an off-by-one in the
+#                    node-snap tolerance or the band cutoff silently redraws
+#                    which segments count as neighbors.
 #
 # It reuses the existing pytest suite (the stats tests) as the kill oracle, so
 # no separate mutation-only test harness is maintained. Run it with
 # `make mutation`; see docs/MUTATION-TESTING.md for the baseline and workflow.
 # ---------------------------------------------------------------------------
 [tool.mutmut]
-# Copy the whole package so imports resolve, but mutate ONLY the two files below.
+# Copy the whole package so imports resolve, but mutate ONLY the files below.
 source_paths = ["src"]
 only_mutate = [
   "src/nearmiss/stats/getis_ord.py",
   "src/nearmiss/stats/rates.py",
   "src/nearmiss/stats/maup.py",
+  "src/nearmiss/network.py",
 ]
 # Kill oracle: the existing stats tests. test_hotspot.py exercises the Gi*
 # computation end to end via the known-answer fixtures; test_fdr.py and
-# test_rates.py cover the FDR and CI helpers directly. Scoping the selection
-# keeps each mutant fast to check (advisory, bounded).
+# test_rates.py cover the FDR and CI helpers directly; test_network.py covers
+# the adjacency graph and bounded Dijkstra directly (including the barrier
+# fixture). Scoping the selection keeps each mutant fast to check (advisory,
+# bounded).
 pytest_add_cli_args_test_selection = [
   "tests/test_hotspot.py",
   "tests/test_fdr.py",
@@ -194,6 +201,8 @@ pytest_add_cli_args_test_selection = [
   "tests/test_stats_numerics.py",
   "tests/test_maup.py",
   "tests/test_overdispersion.py",
+  "tests/test_network.py",
+  "tests/test_getis_ord_differential.py",
 ]
 # The bundle fixture loads config/davis-demo.toml (which points at the fixtures
 # under tests/, already copied). mutmut runs from a mutants/ working copy, so the

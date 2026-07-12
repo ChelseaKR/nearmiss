@@ -23,6 +23,7 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from nearmiss.config import Config
+from nearmiss.geometry import haversine_m
 from nearmiss.models import Report
 from nearmiss.pipeline.dedupe import dedupe
 from nearmiss.stats.getis_ord import getis_ord_star
@@ -65,6 +66,29 @@ def _layout(draw: st.DrawFn) -> tuple[dict[str, float], dict[str, tuple[float, f
     )
     centroids = {sid: (lats[i], lons[i]) for i, sid in enumerate(ids)}
     return values, centroids
+
+
+def _band_neighbors(
+    centroids: dict[str, tuple[float, float]], band_m: float
+) -> dict[str, set[str]]:
+    """Fixed straight-line-band neighborhood for exercising getis_ord_star.
+
+    The production pipeline builds neighborhoods from the street network
+    (FIX-02, nearmiss.network.SegmentGraph); these metamorphic tests only need
+    SOME fixed neighborhood structure, so a centroid distance band keeps the
+    fixtures self-contained.
+    """
+    ids = list(centroids)
+    return {
+        a: {
+            b
+            for b in ids
+            if b != a
+            and haversine_m(centroids[a][0], centroids[a][1], centroids[b][0], centroids[b][1])
+            <= band_m
+        }
+        for a in ids
+    }
 
 
 _BAND_M = 500.0
@@ -122,8 +146,9 @@ def test_getis_ord_scale_invariant(
     invariant to that common factor.
     """
     values, centroids = layout
-    base = getis_ord_star(values, centroids, _BAND_M)
-    scaled = getis_ord_star({k: v * c for k, v in values.items()}, centroids, _BAND_M)
+    neighbors = _band_neighbors(centroids, _BAND_M)
+    base = getis_ord_star(values, neighbors)
+    scaled = getis_ord_star({k: v * c for k, v in values.items()}, neighbors)
     assert base.keys() == scaled.keys()
     for k in base:
         assert math.isclose(base[k], scaled[k], rel_tol=1e-9, abs_tol=1e-9)
@@ -143,8 +168,8 @@ def test_getis_ord_permutation_invariant(
     order = data.draw(st.permutations(keys))
     perm_values = {k: values[k] for k in order}
     perm_centroids = {k: centroids[k] for k in order}
-    base = getis_ord_star(values, centroids, _BAND_M)
-    permuted = getis_ord_star(perm_values, perm_centroids, _BAND_M)
+    base = getis_ord_star(values, _band_neighbors(centroids, _BAND_M))
+    permuted = getis_ord_star(perm_values, _band_neighbors(perm_centroids, _BAND_M))
     assert base.keys() == permuted.keys()
     for k in base:
         assert math.isclose(base[k], permuted[k], rel_tol=1e-12, abs_tol=1e-12)
@@ -180,7 +205,7 @@ def test_getis_ord_survives_large_common_offset(offset: float) -> None:
         "C": (0.0, 1.0),
         "D": (0.0, 1.002),
     }
-    z = getis_ord_star(values, centroids, band_m=300.0)
+    z = getis_ord_star(values, _band_neighbors(centroids, 300.0))
     assert all(math.isfinite(v) for v in z.values())
     # The variance did not collapse: the hot/cold structure is preserved.
     assert z["A"] > 0.0 > z["C"]

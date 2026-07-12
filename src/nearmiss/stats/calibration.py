@@ -34,8 +34,8 @@ import random
 from dataclasses import dataclass
 
 from ..config import Config
-from ..geometry import polyline_centroid
 from ..models import Segment, SegmentStats
+from ..network import SegmentGraph
 from ..util import round_stable
 from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
 from .rates import rate_with_ci
@@ -136,14 +136,14 @@ def run_null_calibration(
     re-aggregation, so calibration can never silently diverge from what was
     actually published.
     """
-    centroid_by_id = {s.id: polyline_centroid(s.coords) for s in segments}
+    segment_ids = {s.id for s in segments}
     # Only segments with a usable exposure denominator entered the real rate/Gi*
     # computation (see stats/__init__.py's rate_values); mirror that exactly so
     # the null distribution is calibrated against the same segment set.
     usable_ids = sorted(
         st.segment_id
         for st in stats
-        if st.exposure_estimate is not None and st.segment_id in centroid_by_id
+        if st.exposure_estimate is not None and st.segment_id in segment_ids
     )
     n = len(usable_ids)
     if n == 0:
@@ -163,8 +163,13 @@ def run_null_calibration(
 
     by_id = {st.segment_id: st for st in stats}
     exposures = {sid: by_id[sid].exposure_estimate for sid in usable_ids}
-    centroids = {sid: centroid_by_id[sid] for sid in usable_ids}
     count_values = [by_id[sid].report_count for sid in usable_ids]
+
+    # Mirror the real analysis exactly (FIX-02): Gi* neighborhoods come from the
+    # street-network graph, not straight-line centroid distance. Geometry is held
+    # fixed across shuffles, so build the graph and neighbor map once.
+    graph = SegmentGraph.build(segments, node_snap_m=config.gi_node_snap_m)
+    neighbor_map = graph.neighbors_within(config.gi_band_m)
 
     false_positive_counts: list[int] = []
     for shuffled_counts in shuffled_count_sequences(count_values, n_shuffles, seed):
@@ -174,7 +179,7 @@ def run_null_calibration(
             )[0]
             for i, sid in enumerate(usable_ids)
         }
-        z = getis_ord_star(rate_values, centroids, config.gi_band_m)
+        z = getis_ord_star(rate_values, neighbor_map)
         pvalues = {sid: two_sided_p(zi) for sid, zi in z.items()}
         rejected = benjamini_hochberg(pvalues, config.fdr_alpha)
         false_positives = sum(1 for sid in rejected if z[sid] > 0.0)

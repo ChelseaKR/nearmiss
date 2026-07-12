@@ -22,11 +22,13 @@ Deliberately narrow, aimed at the highest-stakes numerical routines:
 | --- | --- | --- |
 | `src/nearmiss/stats/getis_ord.py` | Getis-Ord Gi\* local hotspot z-score + Benjamini-Hochberg FDR control | The hotspot verdict itself. A sign flip or off-by-one here corrupts a published hotspot without failing a coarse test. |
 | `src/nearmiss/stats/rates.py` | Byar Poisson and Wilson confidence intervals | Produces the exposure-normalized rate the hotspot runs on. |
+| `src/nearmiss/network.py` | Street-network adjacency graph + band-bounded Dijkstra deciding Gi\*'s neighbor map (FIX-02) | An off-by-one in the node-snap tolerance or the network-distance band cutoff silently redraws which segments count as neighbors, without failing a coarse test. |
 
 Configuration lives in `[tool.mutmut]` in `pyproject.toml`. mutmut reuses the
 existing pytest suite (`test_hotspot.py`, `test_fdr.py`, `test_rates.py`,
-`test_stats_numerics.py`) as the kill oracle — there is no separate
-mutation-only test harness to maintain.
+`test_stats_numerics.py`, `test_network.py`, `test_getis_ord_differential.py`)
+as the kill oracle — there is no separate mutation-only test harness to
+maintain.
 
 mutmut is kept in its **own** optional-dependency group (`.[mutation]`), *not* in
 `dev`, so the `make verify` merge gate — and in particular the blocking
@@ -58,13 +60,22 @@ turning a required check red.
 
 ## Baseline
 
-Recorded on 2026-06-30 (Python 3.12, mutmut 3.6.0).
+Recorded on 2026-06-30 (Python 3.12, mutmut 3.6.0), before `network.py` existed.
 
 | Module | Baseline (existing suite) | After `test_stats_numerics.py` |
 | --- | --- | --- |
 | `getis_ord.py` | 61 / 116 killed — **52.6%** | 106 / 116 killed — **91.4%** |
 | `rates.py` | 59 / 114 killed — **51.8%** | 59 / 114 killed — **51.8%** |
 | **Total** | 120 / 230 — **52.2%** | 165 / 230 — **71.7%** |
+
+`network.py` (added by FIX-02) is in scope as of this change (see the table above) but has **no
+recorded mutation-score baseline yet** — that requires an actual `make mutation` run, which this
+advisory, non-blocking process has not had a scheduled/manual trigger for since the module landed.
+`tests/test_network.py` includes a differential test against an independent brute-force oracle
+(`test_dijkstra_matches_a_brute_force_relaxation_oracle_on_random_grids`) and 100% line/branch
+coverage of `network.py`, but that is not a substitute for an actual mutation run; do not treat this
+paragraph as one. The next `make mutation` (weekly cron or manual `workflow_dispatch`) will record a
+real baseline for it.
 
 ### Notable baseline survivors (real bugs the old tests missed)
 

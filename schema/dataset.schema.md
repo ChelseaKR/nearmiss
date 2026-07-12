@@ -96,7 +96,7 @@ parameters that govern interpretation.
   "type": "FeatureCollection",
   "metadata": {
     "schema_version": "1.1.0",
-    "dataset_version": "0.1.0",
+    "dataset_version": "0.1.1",
     "city": "Davis",
     "license": "Apache-2.0",
     "dataset_note": "Synthetic demonstration data — not real reports.",

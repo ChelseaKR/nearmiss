@@ -28,5 +28,5 @@ it, so the gap stays visible instead of drifting back into a promise.
 | `wilson-proportions` | `docs/METHODOLOGY.md` — § 5.3 Proportions, when the question is a share | `tests/test_rates.py::test_wilson_ci_bounds` |
 | `bh-fdr` | `docs/METHODOLOGY.md` — § 5.5 Multiplicity | `tests/test_fdr.py::test_significant_field_is_fdr_corrected_in_analysis` |
 | `gi-on-rate-not-count` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_hotspot.py::test_getis_ord_flags_the_planted_corridor_cluster` |
-| `gi-weights-straightline` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `src/nearmiss/stats/getis_ord.py` |
+| `gi-weights-network` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_network.py` |
 | `coverage-sims-implemented` | `docs/METHODOLOGY.md` — § 9.2 Interval-coverage checks | `tests/test_coverage_simulation.py::test_byar_poisson_interval_coverage` |

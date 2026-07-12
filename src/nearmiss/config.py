@@ -59,6 +59,7 @@ _THRESHOLD_KEYS = frozenset(
         "kde_bandwidth_m",
         "kde_grid",
         "retention_days",
+        "gi_node_snap_m",
         "exposure_floor",
         "exposure_stale_days",
         "overdispersion_adjust",
@@ -97,6 +98,12 @@ class Config:
     overdispersion_adjust: bool = False
     fdr_alpha: float = 0.05  # Benjamini-Hochberg false-discovery-rate level
     gi_band_m: float = 300.0
+    # Two street-segment endpoints within this many metres are treated as the
+    # same network intersection when building the Gi* adjacency graph (see
+    # network.py). Independent of snap_max_m (which snaps a REPORT to its
+    # nearest segment) — this is about recognizing that two segment endpoints
+    # are the same real-world junction.
+    gi_node_snap_m: float = 5.0
     kde_bandwidth_m: float = 150.0
     kde_grid: int = 24
     # METHODOLOGY §3.3: exposure at/below this is treated as "exposure unknown"
@@ -253,6 +260,7 @@ def load_config(path: str | Path) -> Config:
     kde_bandwidth_m = thr("kde_bandwidth_m", 150.0)
     kde_grid = int(thr("kde_grid", 24))
     retention_days = int(thr("retention_days", 0))
+    gi_node_snap_m = thr("gi_node_snap_m", 5.0)
     exposure_floor = thr("exposure_floor", 0.0)
     exposure_stale_days = thr("exposure_stale_days", 365.0)
 
@@ -266,6 +274,9 @@ def load_config(path: str | Path) -> Config:
     )
     _check_range(
         cfg_path, exposure_floor >= 0, "exposure_floor", exposure_floor, "exposure_floor >= 0"
+    )
+    _check_range(
+        cfg_path, gi_node_snap_m >= 0, "gi_node_snap_m", gi_node_snap_m, "gi_node_snap_m >= 0"
     )
     _check_range(
         cfg_path,
@@ -321,6 +332,7 @@ def load_config(path: str | Path) -> Config:
         kde_grid=kde_grid,
         retention_days=retention_days,
         overdispersion_adjust=flag("overdispersion_adjust", False),
+        gi_node_snap_m=gi_node_snap_m,
         exposure_floor=exposure_floor,
         exposure_stale_days=exposure_stale_days,
         dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),
