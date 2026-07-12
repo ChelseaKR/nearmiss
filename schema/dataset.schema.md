@@ -140,7 +140,8 @@ Anything that affects how a rate should be read is mirrored, in full, in the dat
 > the FDR level, the Getis-Ord band and KDE bandwidth, the significance statement, and a `rate_definition`
 labeling the top-level `rate` as the pooled union across all hazard types with per-type rates in
 `rates_by_type`), `summary`
-> (segment and report counts plus `exposure_coverage`), `report_intensity_peak_segment` (the KDE peak as a
+> (segment and report counts, `exposure_coverage`, and `excluded_low_confidence_fraction` — the share of
+> snapped reports excluded from the primary rate for low confidence), `report_intensity_peak_segment` (the KDE peak as a
 > **segment id only**, never a coordinate), `geojson_sha256`, and a `privacy` note. The sidecar is held to
 > the same privacy invariant as the GeoJSON: `assert_metadata_clean()` raises if any forbidden key or raw
 > coordinate appears in it.
@@ -226,6 +227,7 @@ not rank features whose intervals overlap as if the ordering were established.
 |---|---|---|---|
 | `getis_ord_z` | number | yes | The Getis-Ord Gi\* z-score for this feature from `getis_ord.py`, computed on the **exposure-normalized rate** (not raw counts) over the spatial neighborhood. A high positive z indicates a feature whose rate, together with its neighbors', is higher than chance and spatial structure would predict — a candidate "hot because dangerous" cluster, as opposed to merely "hot because busy." `null` when the feature has no rate (exposure unknown) and is therefore excluded from the cluster statistic. |
 | `getis_ord_significant` | boolean | yes | Significance flag: `true` when `getis_ord_z` clears the project's significance threshold **after multiple-comparison correction** (e.g. a false-discovery-rate adjustment across features). The threshold, the correction method, and the spatial weights definition are recorded in the data card and the config. `false` means "not a statistically significant hot or cold spot at our threshold," **not** "safe." `null` when `getis_ord_z` is `null`. |
+| `rate_sensitivity_delta` | number | yes | Sensitivity of the published rate to the quality-tier split. The published `rate` is the **primary** rate — computed only from high-confidence records (records flagged `low_accuracy` or `far_snap` are excluded, per METHODOLOGY §2 step 4). This field is the signed difference (all-records rate minus primary rate, same units as `rate`) reported **only** when the all-records rate falls outside the primary rate's confidence interval — i.e. when including the excluded low-confidence reports would materially move the rate. `null` (the common case) means the two rates agree within the interval, so the exclusion did not change the published claim. |
 
 `getis_ord_significant` is the field a map should use to mark a cluster as significant, and the
 equivalent table must carry it as text — significance is conveyed in text and pattern, never by color

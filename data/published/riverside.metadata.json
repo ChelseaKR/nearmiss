@@ -34,7 +34,7 @@
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "06682c8723949d01f3cc9b13cc0e62f8714d5b5403424c7ba7e1f8b1620f4640",
+  "geojson_sha256": "8140df17e49120819dd11565c6eceb4d56c5e0edc00816a3298dcf6e7ac275ff",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -69,6 +69,7 @@
   "schema_version": "1.0.0",
   "summary": {
     "duplicates_removed": 0,
+    "excluded_low_confidence_fraction": 0.0,
     "exposure_coverage": 1.0,
     "out_of_window": 0,
     "reports_in": 20,

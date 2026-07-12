@@ -148,3 +148,8 @@ class SegmentStats:
     # "rate_ci_high"} — never any per-report datum.
     rates_by_type: dict[str, dict[str, float]] = field(default_factory=dict)
     quality_flags: tuple[str, ...] = ()
+    # Signed difference (all-records rate minus primary rate, in rate units) reported
+    # only when the all-records rate falls outside the primary rate's confidence
+    # interval — i.e. when excluding low-confidence reports materially moves the rate.
+    # None when the two agree within the interval (the common case).
+    rate_sensitivity_delta: float | None = None

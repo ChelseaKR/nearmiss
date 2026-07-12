@@ -66,6 +66,7 @@ def _feature(stat: SegmentStats, segment: Segment) -> dict[str, object]:
             "rate_ci_high": stat.rate_ci_high,
             "getis_ord_z": stat.getis_ord_z,
             "getis_ord_significant": stat.significant,
+            "rate_sensitivity_delta": stat.rate_sensitivity_delta,
             "confidence_label": stat.confidence_label,
             "hazard_breakdown": dict(sorted(stat.hazard_breakdown.items())),
             # Per-hazard-type rate layers. The ``rate`` above is the pooled rate
@@ -253,6 +254,11 @@ def publish(config: Config) -> PublishResult:
             "snapped": bundle.summary["snapped"],
             "unsnapped": bundle.summary["unsnapped"],
             "exposure_coverage": round(bundle.result.exposure_coverage, 4),
+            # Fraction of snapped reports excluded from the primary rate for low
+            # confidence (low_accuracy / far_snap); they feed only the sensitivity rate.
+            "excluded_low_confidence_fraction": round(
+                bundle.result.excluded_low_confidence_fraction, 4
+            ),
         },
         # The KDE report-intensity peak is reported ONLY as a segment id, never a coordinate.
         "report_intensity_peak_segment": bundle.result.kde_peak_segment,
