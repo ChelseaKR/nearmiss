@@ -268,6 +268,71 @@ def test_moderate_list_empty_queue(tmp_path: Path, capsys: pytest.CaptureFixture
 
 
 # --------------------------------------------------------------------------- #
+# preregister / score-preregistration (EXP-16)
+# --------------------------------------------------------------------------- #
+SIGNOFF = ROOT / "docs" / "preregistration" / "scoring-rule-signoff.json"
+
+
+def test_preregister_writes_hashed_manifest(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out_dir = tmp_path / "prereg"
+    code = main(
+        [
+            "preregister",
+            "--config",
+            str(_config(tmp_path)),
+            "--out",
+            str(out_dir),
+            "--signoff",
+            str(SIGNOFF),
+        ]
+    )
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "flagged segment(s) frozen" in out
+    assert "NOTE" in out  # the statistician sign-off warning
+    manifests = list(out_dir.glob("*.manifest.json"))
+    artifacts = [p for p in out_dir.glob("*.json") if not p.name.endswith(".manifest.json")]
+    assert len(manifests) == 1
+    assert len(artifacts) == 1
+
+
+def test_score_preregistration_end_to_end(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out_dir = tmp_path / "prereg"
+    cfg = str(_config(tmp_path))
+    assert (
+        main(["preregister", "--config", cfg, "--out", str(out_dir), "--signoff", str(SIGNOFF)])
+        == 0
+    )
+    artifact_path = next(p for p in out_dir.glob("*.json") if not p.name.endswith(".manifest.json"))
+
+    # Score against the SAME (davis demo) data standing in for the held-out period —
+    # a smoke test of the mechanism, not a real prospective evaluation (see
+    # docs/PREREGISTRATION.md). Every flagged segment should be a perfect hit
+    # against itself.
+    code = main(
+        [
+            "score-preregistration",
+            "--config",
+            cfg,
+            "--registration",
+            str(artifact_path),
+            "--out",
+            str(out_dir),
+        ]
+    )
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "hit_rate: 1.000" in out
+    scored = list(out_dir.glob("*-scored-*.json"))
+    assert len(scored) == 1
+    payload = json.loads(scored[0].read_text(encoding="utf-8"))
+    assert payload["hit_rate"] == 1.0
+
+
 # contributor data-rights (token = auth)
 # --------------------------------------------------------------------------- #
 def _write_raw_store(tmp_path: Path, reports: list[dict[str, object]]) -> None:

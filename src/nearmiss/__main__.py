@@ -10,6 +10,8 @@ nearmiss run       --config C                   # intake -> ... -> brief, end to
 nearmiss submit   <submission.json> --config C  # queue a public submission (PENDING)
 nearmiss moderate  list|approve|reject|export|stats --config C  # review the moderation queue
 nearmiss contributor export|delete|purge-expired --config C  # data-rights (token = auth)
+nearmiss preregister --config C [--out DIR]     # EXP-16: freeze flagged corridors (hash+timestamp)
+nearmiss score-preregistration --registration F --config C [--out DIR]  # EXP-16: score vs held-out
 nearmiss serve     [--dir D] [--port P]         # accessible map + data view (read-only)
 nearmiss version
 """
@@ -41,6 +43,14 @@ from .moderation import (
     moderation_stats,
     reject,
     submit,
+)
+from .preregister import (
+    DEFAULT_REGISTRATION_DIR,
+    DEFAULT_SIGNOFF_PATH,
+    load_registration,
+    score_registration,
+    write_registration,
+    write_score_result,
 )
 from .publish import _slug, publish
 from .server import serve
@@ -160,6 +170,53 @@ def _cmd_publish(args: argparse.Namespace) -> int:
     print(f"  sha256:    {result.geojson_sha256}")
     print(f"  corridors: {result.corridor_geojson_path} ({result.corridor_count} corridor(s))")
     return 0
+
+
+def _cmd_preregister(args: argparse.Namespace) -> int:
+    config = load_config(args.config)
+    out_dir = Path(args.out) if args.out else DEFAULT_REGISTRATION_DIR
+    signoff_path = Path(args.signoff) if args.signoff else DEFAULT_SIGNOFF_PATH
+    result = write_registration(config, out_dir, signoff_path=signoff_path)
+    print(f"preregister [{config.city}]: {result.n_flagged} flagged segment(s) frozen")
+    print(f"  artifact: {result.artifact_path}")
+    print(f"  manifest: {result.manifest_path}")
+    print(f"  sha256:   {result.artifact_sha256}")
+    print(f"  registered_at: {result.registered_at}")
+    print(
+        "  NOTE: this registration is evidence of predictive validity only once "
+        f"{signoff_path} records a statistician sign-off — see docs/PREREGISTRATION.md."
+    )
+    return 0
+
+
+def _cmd_score_preregistration(args: argparse.Namespace) -> int:
+    config = load_config(args.config)
+    registration_path = Path(args.registration)
+    manifest_path = (
+        Path(args.manifest) if args.manifest else _default_manifest_path(registration_path)
+    )
+    registration = load_registration(registration_path)
+    held_out_bundle = build_analysis(config)
+    result = score_registration(registration, held_out_bundle)
+    out_dir = Path(args.out) if args.out else DEFAULT_REGISTRATION_DIR
+    scored_path = write_score_result(result, manifest_path, config.city, out_dir)
+    print(f"score-preregistration: scored against held-out city={config.city}")
+    print(
+        f"  hit_rate: {result.hit_rate:.3f} "
+        f"[{result.hit_rate_ci_low:.3f}, {result.hit_rate_ci_high:.3f}] "
+        f"({result.hit_count}/{result.n_evaluable})"
+    )
+    rho = "n/a" if result.rank_correlation is None else f"{result.rank_correlation:.3f}"
+    print(f"  rank_correlation: {rho}")
+    if result.unevaluable_segments:
+        print(f"  unevaluable: {len(result.unevaluable_segments)} flagged segment(s)")
+    print(f"  scored artifact: {scored_path}")
+    return 0
+
+
+def _default_manifest_path(registration_path: Path) -> Path:
+    """Registration ``<slug>-<date>.json`` -> its sidecar ``<slug>-<date>.manifest.json``."""
+    return registration_path.with_name(registration_path.stem + ".manifest.json")
 
 
 def _cmd_brief(args: argparse.Namespace) -> int:
@@ -504,6 +561,35 @@ def build_parser() -> argparse.ArgumentParser:
         "e.g. docs/audits/YYYY-MM-DD-moderation.md",
     )
     p_mod.set_defaults(func=_cmd_moderate)
+
+    p_prereg = sub.add_parser(
+        "preregister",
+        help="EXP-16: freeze currently-flagged corridors to a hashed, timestamped artifact",
+    )
+    add_config(p_prereg)
+    p_prereg.add_argument(
+        "--out", help="output directory (default: data/published/preregistration)"
+    )
+    p_prereg.add_argument(
+        "--signoff",
+        help="path to the scoring-rule sign-off record "
+        "(default: docs/preregistration/scoring-rule-signoff.json)",
+    )
+    p_prereg.set_defaults(func=_cmd_preregister)
+
+    p_score = sub.add_parser(
+        "score-preregistration",
+        help="EXP-16: score a frozen registration against this config's (held-out) data",
+    )
+    add_config(p_score)
+    p_score.add_argument(
+        "--registration", required=True, help="path to a registration artifact JSON"
+    )
+    p_score.add_argument(
+        "--manifest", help="path to the registration's manifest (default: sibling *.manifest.json)"
+    )
+    p_score.add_argument("--out", help="output directory (default: data/published/preregistration)")
+    p_score.set_defaults(func=_cmd_score_preregistration)
 
     p_con = sub.add_parser(
         "contributor",
