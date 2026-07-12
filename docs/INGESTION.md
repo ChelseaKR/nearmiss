@@ -98,3 +98,11 @@ reviewed operator action; automated jobs must fail closed.
 
 The architecture decision and trade-offs are recorded in
 [ADR 0007](adr/0007-content-addressed-fail-closed-ingestion.md).
+
+## First source integration: local FARS
+
+`nearmiss ingest-fars` is the first source-specific consumer of this transaction. It reads a bounded
+local NHTSA FARS CSV/ZIP, validates a deterministic private outcome artifact, and uses source ID `fars`.
+See [REAL-DATA.md](REAL-DATA.md#official-outcomes--national-context-not-an-intake-source) for the
+operator command and source-specific limits. It does not perform network acquisition, scheduling,
+publication, mode inference, or segment comparison.

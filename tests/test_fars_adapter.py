@@ -4,12 +4,23 @@ from __future__ import annotations
 
 import io
 import math
+import uuid
 import zipfile
 from pathlib import Path
 
 import pytest
 
-from nearmiss.adapters.fars import FarsAdapter, FarsRawBatch, collect, read_export
+import nearmiss.adapters.fars as fars
+from nearmiss.adapters.fars import (
+    FarsAdapter,
+    FarsRawBatch,
+    collect,
+    fars_outcome_id,
+    load_export_bytes,
+    read_export,
+    read_export_bytes,
+    validate_fars_distribution_url,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "fars" / "accident.csv"
@@ -34,6 +45,8 @@ def test_ids_and_order_are_stable() -> None:
     second, _ = adapter.parse(FIXTURE)
     assert first == second
     assert [row["source_record_id"] for row in first] == ["2023:100001", "2023:100002"]
+    assert first[0]["id"] == fars_outcome_id(2023, "100001")
+    assert uuid.UUID(first[0]["id"]).version == 5
 
 
 def test_year_scoped_case_ids_are_globally_qualified() -> None:
@@ -113,6 +126,103 @@ def test_reads_case_insensitive_nested_zip_member(tmp_path: Path) -> None:
     batch = read_export(archive_path)
     assert len(batch.rows) == 3
     assert len(batch.input_sha256) == 64
+
+
+def test_path_and_byte_export_boundaries_are_equivalent() -> None:
+    payload = load_export_bytes(FIXTURE)
+    assert read_export(FIXTURE) == read_export_bytes(payload)
+
+
+def test_load_export_bytes_is_bounded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = tmp_path / "too-large.csv"
+    path.write_bytes(b"12345")
+    monkeypatch.setattr(fars, "_MAX_INPUT_BYTES", 4)
+    with pytest.raises(ValueError, match="safety limit"):
+        load_export_bytes(path)
+
+
+def test_operator_export_limit_is_applied_before_read(tmp_path: Path) -> None:
+    path = tmp_path / "too-large.csv"
+    path.write_bytes(b"12345")
+    with pytest.raises(ValueError, match="4-byte safety limit"):
+        load_export_bytes(path, limit=4)
+
+
+def test_builtin_export_cap_cannot_be_raised_by_operator(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "too-large.csv"
+    path.write_bytes(b"12345")
+    monkeypatch.setattr(fars, "_MAX_INPUT_BYTES", 4)
+    with pytest.raises(ValueError, match="4-byte safety limit"):
+        load_export_bytes(path, limit=100)
+
+
+@pytest.mark.parametrize("limit", [0, -1])
+def test_operator_export_limit_must_be_positive(tmp_path: Path, limit: int) -> None:
+    path = tmp_path / "export.csv"
+    path.write_bytes(b"1")
+    with pytest.raises(ValueError, match="must be positive"):
+        load_export_bytes(path, limit=limit)
+
+
+@pytest.mark.parametrize("limit", [True, 1.5, "1"])
+def test_operator_export_limit_must_be_an_integer(tmp_path: Path, limit: object) -> None:
+    path = tmp_path / "export.csv"
+    path.write_bytes(b"1")
+    with pytest.raises(TypeError, match="must be an integer"):
+        load_export_bytes(path, limit=limit)  # type: ignore[arg-type]
+
+
+def test_read_export_bytes_requires_immutable_bytes() -> None:
+    with pytest.raises(TypeError, match="must be bytes"):
+        read_export_bytes(bytearray(FIXTURE.read_bytes()))  # type: ignore[arg-type]
+
+
+def test_validates_canonical_nhtsa_fars_distribution_url() -> None:
+    url = "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/National/FARS2023.zip"
+    assert validate_fars_distribution_url(url) == url
+    assert validate_fars_distribution_url(url, expected_year=2023) == url
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://static.nhtsa.gov/nhtsa/downloads/FARS/2023/data.zip",
+        "https://evil.test/nhtsa/downloads/FARS/2023/data.zip",
+        "https://static.nhtsa.gov.evil.test/nhtsa/downloads/FARS/2023/data.zip",
+        "https://user:secret@static.nhtsa.gov/nhtsa/downloads/FARS/2023/data.zip",
+        "https://static.nhtsa.gov:443/nhtsa/downloads/FARS/2023/data.zip",
+        "https://static.nhtsa.gov:bad/nhtsa/downloads/FARS/2023/data.zip",
+        "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/data.zip?token=secret",
+        "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/data.zip#fragment",
+        "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/../other/data.zip",
+        "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/%2e%2e/other/data.zip",
+        "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023//National/data.zip",
+        "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/National\\data.zip",
+        "https://static.nhtsa.gov/other/data.zip",
+        "https://static.nhtsa.gov/nhtsa/downloads/FARS/National/data.zip",
+        "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/readme.txt",
+    ],
+)
+def test_rejects_noncanonical_fars_distribution_urls(url: str) -> None:
+    with pytest.raises(ValueError, match="FARS distribution URL"):
+        validate_fars_distribution_url(url)
+
+
+def test_distribution_url_year_must_match_expected_year() -> None:
+    url = "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/National/data.zip"
+    with pytest.raises(ValueError, match="match expected_year"):
+        validate_fars_distribution_url(url, expected_year=2024)
+
+
+@pytest.mark.parametrize(
+    ("year", "case_id"),
+    [(1974, "1"), (2023, "0"), (2023, "01"), (2023, "+1"), (2023, "abc")],
+)
+def test_fars_outcome_id_rejects_noncanonical_identity(year: int, case_id: str) -> None:
+    with pytest.raises(ValueError, match="FARS"):
+        fars_outcome_id(year, case_id)
 
 
 def test_raw_batch_rows_are_immutable() -> None:

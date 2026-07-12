@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nearmiss.dev/schema/official-outcome-artifact.schema.json",
+  "title": "NearMiss normalized official-outcome artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "normalization",
+    "provenance",
+    "outcomes"
+  ],
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter_id",
+        "adapter_version",
+        "expected_year",
+        "distribution_url",
+        "max_invalid_fraction",
+        "allow_record_regression",
+        "allow_year_regression"
+      ],
+      "properties": {
+        "adapter_id": {"const": "fars"},
+        "adapter_version": {"const": "1.0.0"},
+        "expected_year": {"type": "integer", "minimum": 1975, "maximum": 9999},
+        "distribution_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://static\\.nhtsa\\.gov/nhtsa/downloads/FARS/[0-9]{4}/.+\\.(?:[zZ][iI][pP]|[cC][sS][vV])$"
+        },
+        "max_invalid_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        "allow_record_regression": {"type": "boolean"},
+        "allow_year_regression": {"type": "boolean"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_name",
+        "source_url",
+        "license",
+        "dataset_years",
+        "release_status",
+        "scope",
+        "limitations",
+        "records_read",
+        "records_accepted",
+        "rejection_reasons",
+        "input_sha256"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "source_name": {"type": "string", "minLength": 1},
+        "source_url": {"type": "string", "format": "uri"},
+        "license": {"type": "string", "minLength": 1},
+        "dataset_years": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 1975, "maximum": 9999}
+        },
+        "release_status": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[^\\x00-\\x1f\\x7f]+$"
+        },
+        "scope": {"type": "string", "minLength": 1},
+        "limitations": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "records_read": {"type": "integer", "minimum": 0},
+        "records_accepted": {"type": "integer", "minimum": 0},
+        "rejection_reasons": {
+          "type": "object",
+          "propertyNames": {"minLength": 1},
+          "additionalProperties": {"type": "integer", "minimum": 1}
+        },
+        "input_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lat", "lon"],
+      "properties": {
+        "lat": {"type": "number", "minimum": -90, "maximum": 90},
+        "lon": {"type": "number", "minimum": -180, "maximum": 180}
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "id",
+        "source_record_id",
+        "occurred_on",
+        "location",
+        "outcome_type",
+        "maximum_injury_severity",
+        "fatality_count"
+      ],
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "source_record_id": {
+          "type": "string",
+          "pattern": "^[0-9]{4}:[1-9][0-9]*$"
+        },
+        "occurred_on": {"type": "string", "format": "date"},
+        "occurred_time_local": {
+          "type": "string",
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "location": {"$ref": "#/$defs/location"},
+        "outcome_type": {"const": "motor_vehicle_traffic_crash"},
+        "maximum_injury_severity": {"const": "fatal"},
+        "fatality_count": {"type": "integer", "minimum": 1},
+        "state_code": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "artifact_type": {"const": "nearmiss.official_outcomes"},
+    "normalization": {"$ref": "#/$defs/normalization"},
+    "provenance": {"$ref": "#/$defs/provenance"},
+    "outcomes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/outcome"}
+    }
+  }
+}
