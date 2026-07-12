@@ -20,9 +20,11 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import __version__
 from .config import Config
 from .engine import build_analysis, load_city
 from .errors import PrivacyError
+from .manifest import build_manifest, canonical_json
 from .models import Report, Segment, SegmentStats
 from .stats.bias import to_metadata as bias_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
@@ -145,15 +147,19 @@ def assert_metadata_clean(metadata: dict[str, object], reports: list[Report]) ->
             raise PrivacyError("metadata appears to contain a raw report coordinate")
 
 
-def _canonical_json(obj: object) -> str:
-    return json.dumps(obj, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+# Canonical serialization lives in ``manifest`` (a pure, stdlib-only module) so the
+# published GeoJSON, its metadata sidecar, and the run manifest all serialize
+# byte-identically. Kept as a module-local name so existing call sites are unchanged.
+_canonical_json = canonical_json
 
 
 @dataclass
 class PublishResult:
     geojson_path: Path
     metadata_path: Path
+    manifest_path: Path
     geojson_sha256: str
+    manifest_digest: str
     feature_count: int
     withheld_count: int
 
@@ -284,17 +290,42 @@ def publish(config: Config) -> PublishResult:
     }
     assert_metadata_clean(metadata, reports)
 
+    # Per-run provenance manifest: input hashes, effective-config digest, package
+    # version, and per-stage counts (deterministic) plus a wall-time sidecar. Its
+    # provenance section is counts-and-hashes only, so it passes the same privacy
+    # gate as the metadata; the timings section is unhashed and NOT byte-stable, so
+    # the file is treated as a regenerated artifact (see .gitignore: *.run.json).
+    manifest = build_manifest(
+        config,
+        inputs={
+            "streets": config.streets_path,
+            "reports": config.reports_path,
+            "exposure": config.exposure_path,
+        },
+        stage_summaries=bundle.stages,
+        package_version=__version__,
+    )
+    provenance = manifest["provenance"]
+    assert isinstance(provenance, dict)
+    assert_metadata_clean(provenance, reports)
+    manifest_digest = manifest["manifest_digest"]
+    assert isinstance(manifest_digest, str)
+
     config.out_dir.mkdir(parents=True, exist_ok=True)
     slug = _slug(config.city)
     geojson_path = config.out_dir / f"{slug}.geojson"
     metadata_path = config.out_dir / f"{slug}.metadata.json"
+    manifest_path = config.out_dir / f"{slug}.run.json"
     geojson_path.write_text(payload, encoding="utf-8")
     metadata_path.write_text(_canonical_json(metadata), encoding="utf-8")
+    manifest_path.write_text(_canonical_json(manifest), encoding="utf-8")
 
     return PublishResult(
         geojson_path=geojson_path,
         metadata_path=metadata_path,
+        manifest_path=manifest_path,
         geojson_sha256=sha,
+        manifest_digest=manifest_digest,
         feature_count=len(stats) - withheld,
         withheld_count=withheld,
     )

@@ -21,7 +21,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__
+from . import __version__, obs
 from .brief import render_brief
 from .config import Config, load_config
 from .engine import AnalysisBundle, build_analysis
@@ -154,6 +154,7 @@ def _cmd_publish(args: argparse.Namespace) -> int:
     result = publish(config)
     print(f"publish [{config.city}]: {result.geojson_path}")
     print(f"  metadata: {result.metadata_path}")
+    print(f"  manifest: {result.manifest_path}")
     print(f"  sha256:   {result.geojson_sha256}")
     return 0
 
@@ -176,8 +177,21 @@ def _cmd_run(args: argparse.Namespace) -> int:
     rows = run_intake(config)
     result = publish(config)
     bundle = build_analysis(config)
+    # Structured pipeline-stage telemetry: one JSON line per stage on stdout, via
+    # the same StructuredLogger the read-only server uses. Counts are provenance;
+    # ``ms`` is a wall-time sidecar (never hashed into the manifest digest).
+    logger = obs.get_logger()
+    for stage in bundle.stages:
+        logger.emit(
+            "info",
+            "stage",
+            stage=stage.get("stage"),
+            counts=stage.get("counts"),
+            ms=stage.get("ms"),
+        )
     print(f"run [{config.city}]: {len(rows)} reports -> {result.geojson_path}")
     print(f"  sha256: {result.geojson_sha256}")
+    print(f"  manifest: {result.manifest_path} (digest {result.manifest_digest[:12]})")
     if args.out:
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)
