@@ -71,8 +71,11 @@ the operator-supplied release label, source years, accepted count, and every rej
 analysis can prove exactly what it used. Programmatic row iterables have no source-byte digest and are
 intended for controlled transformations and tests.
 
-This foundation is local/offline only. A later ingestion slice will add bounded acquisition, an
-expected-digest pin, immutable receipt, normalized artifact, and CLI path needed for scheduled use.
+This adapter remains local/offline only. The generic
+[fail-closed ingestion foundation](INGESTION.md) now supplies immutable snapshots, normalized
+artifacts, active commit markers, and receipts. A later source-specific slice still needs to connect
+FARS to that transaction, enforce an expected digest/year, and add the operator CLI needed for
+scheduled use.
 
 ## 1. Incidents — real, and available today (BikeMaps.org)
 

@@ -101,9 +101,12 @@ raw timing in any published artifact would defeat the whole privacy promise.
 
 **Mitigations (HR4):**
 
-- **Raw stays private and is gitignored.** Precise reports live only in `data/raw/`, which is
-  gitignored and never committed; nothing in the public path (`publish.py`, `server.py`, the GeoJSON,
-  the map) can read from it. The map server reads only published artifacts by design.
+- **Raw stays private and is gitignored.** Contributor submissions live in `data/raw/`. Imported
+  source snapshots and normalized artifacts live in an operator-selected POSIX ingestion root with
+  owner-only `0700`/`0400` permissions and content-addressed names. That ingestion root must be outside
+  every served directory; unlike `data/raw/`, an arbitrary operator path is not automatically blocked
+  by the development server. Neither private tree is committed or included in the allowlisted Pages
+  artifact.
 - **Aggregate to public street segments.** The open dataset is aggregated to public street segments, and
   the published geometry is the real public street centerline (public infrastructure) — never a report
   location and never a per-report point. The published unit is a place, not a person; snapping to a
@@ -198,6 +201,10 @@ clean. This is the harder attack to spot precisely because **HR1** makes exposur
 - **Hashed, reproducible inputs (HR5).** `make reproduce` rebuilds every figure from raw inputs, and
   published artifacts are hashed; an exposure input that changed without a corresponding, reviewed
   config change and a regenerated artifact is detectable.
+- **Fail-closed ingestion lineage.** Imported source bytes and normalized outputs are immutable and
+  content-addressed. An atomically replaced success receipt is the active commit marker, and preflight
+  rehashes both artifacts before permitting another refresh. Ambiguous state and failed rollback retain
+  a source lock for operator inspection rather than silently accepting a partial refresh.
 
 **Stops at:** a corrupted *upstream* exposure provider that ships plausible-but-wrong data the project
 has no independent way to check. See **Residual risk**.
@@ -262,7 +269,8 @@ reaching everything at once.
 - **Least privilege in the public path.** `server.py` (`nearmiss serve`) is read-only — it answers only
   `GET`/`HEAD` — and it refuses any request under `data/raw/` or any dotfile path with HTTP 403, even
   when launched on the repo root (HTTP-verified). A compromise of the serving layer cannot reach
-  `data/raw/`.
+  `data/raw/`. Operator-selected ingestion roots must remain outside the served directory; the Pages
+  deployment separately publishes only its explicit allowlist.
 
 **Stops at:** a compromise of a pinned dependency *at the version the hash already trusts* (a malicious
 release that lands before any advisory), or a compromise of GitHub/CI infrastructure itself. See
@@ -289,6 +297,9 @@ private data.
   includes rotating an exposure source, so a suspected leak has a defined response.
 - **No secrets in logs.** Structured logging on intake and pipeline stages is written to avoid emitting
   credentials or precise report contents.
+- **Controlled ingestion failures.** Ingestion receipts use a small allowlist of error categories and
+  fixed messages. Public exceptions suppress callback exception chaining, so a tokenized upstream URL
+  cannot reappear through Python's formatted traceback even when the receipt text is clean.
 - **Cost containment limits blast radius.** Scale-to-zero serverless intake with a budget alarm means a
   leaked key that is abused trips a cost alarm rather than silently draining a budget.
 
@@ -329,6 +340,11 @@ the gaps. None of the following should be read as "handled."
   provider dashboard, a phished maintainer account, or a compromised laptop. Single-maintainer
   ownership means there is no second reviewer on every change and no separation of duties; this is an
   accepted limitation of a personal open-source project, not a solved problem.
+- **Private-ingestion filesystem boundary.** The POSIX backend narrows permissions, rejects foreign
+  ownership and symlinks, hashes immutable artifacts, and fails closed on ambiguous commits. It does
+  not eliminate same-user pathname races, does not garbage-collect retained blobs, and cannot prevent
+  an operator from placing the private root under an unrelated static server. Recovery is manual until
+  a verified recovery CLI and an `openat`/directory-descriptor backend exist.
 - **Targeted and well-resourced adversaries.** This model defends against opportunistic attackers,
   manipulators, and re-identification by ordinary parties. It does not claim to withstand a
   nation-state, a data broker combining `nearmiss` data with large external datasets, or an attacker
@@ -340,7 +356,7 @@ the gaps. None of the following should be read as "handled."
 
 ## Residual risk register
 
-The prose above is the analysis; this table is the same eight residual risks as a tracked register
+The prose above is the analysis; this table is the same nine residual risks as a tracked register
 (RTF-06) — added 2026-07-05, reviewed alongside the rest of this document. "Residual severity" is
 qualitative (Low/Medium/High), assessed *after* the mitigations in the corresponding threat section
 above are applied, not before. There is one maintainer, so "Owner" is uniformly the maintainer; this is
@@ -356,6 +372,7 @@ named explicitly rather than left implicit, per the same honesty standard as the
 | RR-6 | Out-of-band secret / maintainer-account compromise (T6) | Low | High — could reach the private raw store or tamper with the pipeline | **Medium** | Maintainer | Accepted. No second reviewer / separation of duties exists (solo maintainer) — this is a structural limitation of a personal OSS project, not a solved problem, and is named as such rather than hidden. |
 | RR-7 | Targeted, well-resourced adversary (nation-state, large-scale correlation with external datasets, physical device access) | Low for a community advocacy dataset | High if it occurred | **Low** (low likelihood keeps this from being higher despite high impact) | Maintainer | Explicitly out of scope. No mitigation is claimed; stated here so it is not silently assumed away. |
 | RR-8 | Single-host availability (canonical site + intake run on one account) | Medium — any single-account outage or takedown affects the canonical URL | Low–Medium — the artifact itself is portable and mirrorable; only *canonical* availability is at risk | **Low** | Maintainer | Accepted. Mitigation: the published GeoJSON is a single file anyone can mirror or fork; no SLA or multi-region hosting is planned for a zero-cost personal project. |
+| RR-9 | Private-ingestion filesystem boundary | Low–Medium — requires same-user filesystem access, unsafe root placement, or manual recovery error | High — precise imported data could be exposed or an incorrect source version activated | **Medium** | Maintainer | Accepted for the local foundation. Mitigation: POSIX owner/mode checks, symlink rejection, content hashes, atomic active receipt, fail-closed lock. Next actions: source-specific bounded acquisition, verified recovery CLI, reviewed garbage collection, and directory-descriptor hardening. |
 
 None of the above are claimed as "solved" — a register entry with a mitigation still names its residual
 severity, because the point of this table (like the rest of the threat model) is to make the gaps
