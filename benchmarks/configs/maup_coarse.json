@@ -1,0 +1,6 @@
+{
+  "name": "maup_coarse",
+  "seed": 90005,
+  "merge_cols": 3,
+  "notes": "MAUP pair 2/2: every 3 adjacent grid cells merged into one published street segment (merge_cols=3). Same seed (90005) and same underlying per-cell incident realization as maup_fine -- tests whether the planted hotspot is still detected after a change of spatial units (the Modifiable Areal Unit Problem)."
+}

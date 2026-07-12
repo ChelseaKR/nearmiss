@@ -1,0 +1,313 @@
+{
+  "suite_version": "1.0.0",
+  "regime": "maup_coarse",
+  "seed": 90005,
+  "rate_per": 1000.0,
+  "true_hotspot_segments": [
+    "seg-03-03",
+    "seg-04-03",
+    "seg-05-03"
+  ],
+  "decoy_exposure_segments": [
+    "seg-01-00",
+    "seg-01-03"
+  ],
+  "decoy_reporting_bias_segments": [
+    "seg-01-06",
+    "seg-03-00"
+  ],
+  "background_segments": [
+    "seg-00-00",
+    "seg-00-03",
+    "seg-00-06",
+    "seg-02-00",
+    "seg-02-03",
+    "seg-02-06",
+    "seg-03-06",
+    "seg-04-00",
+    "seg-04-06",
+    "seg-05-00",
+    "seg-05-06",
+    "seg-06-00",
+    "seg-06-03",
+    "seg-06-06",
+    "seg-07-00",
+    "seg-07-03",
+    "seg-07-06",
+    "seg-08-00",
+    "seg-08-03",
+    "seg-08-06"
+  ],
+  "segments": {
+    "seg-00-00": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 8
+    },
+    "seg-00-03": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 13
+    },
+    "seg-00-06": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 10
+    },
+    "seg-01-00": {
+      "role": "decoy_exposure",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 3600.0,
+      "published_exposure": 3600.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 36.0,
+      "observed_reports": 33
+    },
+    "seg-01-03": {
+      "role": "decoy_exposure",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 6300.0,
+      "published_exposure": 6300.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 63.0,
+      "observed_reports": 56
+    },
+    "seg-01-06": {
+      "role": "decoy_reporting_bias",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 8
+    },
+    "seg-02-00": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 5
+    },
+    "seg-02-03": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 5
+    },
+    "seg-02-06": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 4
+    },
+    "seg-03-00": {
+      "role": "decoy_reporting_bias",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 6
+    },
+    "seg-03-03": {
+      "role": "hotspot",
+      "true_lambda": 16.666667,
+      "true_incident_rate_per": 16.666667,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 15.0,
+      "observed_reports": 13
+    },
+    "seg-03-06": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 11
+    },
+    "seg-04-00": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 9
+    },
+    "seg-04-03": {
+      "role": "hotspot",
+      "true_lambda": 40.0,
+      "true_incident_rate_per": 40.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 36.0,
+      "observed_reports": 44
+    },
+    "seg-04-06": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 7
+    },
+    "seg-05-00": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 13
+    },
+    "seg-05-03": {
+      "role": "hotspot",
+      "true_lambda": 16.666667,
+      "true_incident_rate_per": 16.666667,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 15.0,
+      "observed_reports": 19
+    },
+    "seg-05-06": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 10
+    },
+    "seg-06-00": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 10
+    },
+    "seg-06-03": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 7
+    },
+    "seg-06-06": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 6
+    },
+    "seg-07-00": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 13
+    },
+    "seg-07-03": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 12
+    },
+    "seg-07-06": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 11
+    },
+    "seg-08-00": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 8
+    },
+    "seg-08-03": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 9
+    },
+    "seg-08-06": {
+      "role": "background",
+      "true_lambda": 10.0,
+      "true_incident_rate_per": 10.0,
+      "true_exposure": 900.0,
+      "published_exposure": 900.0,
+      "reporting_multiplier": 1.0,
+      "mean_reports": 9.0,
+      "observed_reports": 9
+    }
+  }
+}

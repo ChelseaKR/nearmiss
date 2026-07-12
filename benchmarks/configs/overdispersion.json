@@ -1,0 +1,6 @@
+{
+  "name": "overdispersion",
+  "seed": 90003,
+  "overdispersion_phi": 0.6,
+  "notes": "Report counts are drawn from a Gamma-Poisson (negative binomial) mixture with dispersion phi=0.6 instead of pure Poisson, so Var(reports) > E[reports]. Tests whether the published Poisson confidence intervals (Byar's approximation) keep honest coverage when the real generative process is overdispersed."
+}

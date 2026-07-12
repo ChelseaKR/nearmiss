@@ -1,0 +1,25 @@
+{
+  "regime": "baseline",
+  "suite_version": "1.0.0",
+  "tool": "nearmiss",
+  "n_segments": 81,
+  "n_flagged_significant": 3,
+  "hotspot_recall": 0.6,
+  "hotspot_precision": 1.0,
+  "decoy_exposure_fp_rate": 0.0,
+  "reporting_bias_trap_rate": 0.0,
+  "background_fp_rate": 0.0,
+  "interval_coverage": 0.9872,
+  "counts": {
+    "true_hotspots": 5,
+    "hotspots_flagged": 3,
+    "decoy_exposure": 3,
+    "decoy_exposure_flagged": 0,
+    "decoy_reporting_bias": 3,
+    "decoy_reporting_bias_flagged": 0,
+    "background": 70,
+    "background_flagged": 0,
+    "coverage_checked": 78,
+    "coverage_hits": 77
+  }
+}

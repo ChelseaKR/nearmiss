@@ -1,0 +1,4648 @@
+{
+  "reports": [
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000001",
+      "occurred_at": "2026-06-01T07:15:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.70045
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000002",
+      "occurred_at": "2026-06-01T07:30:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.70015
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000003",
+      "occurred_at": "2026-06-01T07:45:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.69985
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000004",
+      "occurred_at": "2026-06-01T08:00:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.69955
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000005",
+      "occurred_at": "2026-06-01T08:15:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.69748
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000006",
+      "occurred_at": "2026-06-01T08:30:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.69724
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000007",
+      "occurred_at": "2026-06-01T08:45:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.697
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000008",
+      "occurred_at": "2026-06-01T09:00:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.69676
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000009",
+      "occurred_at": "2026-06-01T09:15:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.69652
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000a",
+      "occurred_at": "2026-06-01T09:30:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.6944
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000b",
+      "occurred_at": "2026-06-01T09:45:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.694
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000c",
+      "occurred_at": "2026-06-01T10:00:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.6936
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000d",
+      "occurred_at": "2026-06-01T10:15:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.69148
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000e",
+      "occurred_at": "2026-06-01T10:30:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.69124
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000000f",
+      "occurred_at": "2026-06-01T10:45:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.691
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000010",
+      "occurred_at": "2026-06-01T11:00:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.69076
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000011",
+      "occurred_at": "2026-06-01T11:15:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.69052
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000012",
+      "occurred_at": "2026-06-01T11:30:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.68845
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000013",
+      "occurred_at": "2026-06-01T11:45:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.68815
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000014",
+      "occurred_at": "2026-06-01T12:00:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.68785
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000015",
+      "occurred_at": "2026-06-01T12:15:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.68755
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000016",
+      "occurred_at": "2026-06-01T12:30:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.6854
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000017",
+      "occurred_at": "2026-06-01T12:45:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.685
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000018",
+      "occurred_at": "2026-06-01T13:00:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.6846
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000019",
+      "occurred_at": "2026-06-01T13:15:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.6824
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000001a",
+      "occurred_at": "2026-06-01T13:30:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.682
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000001b",
+      "occurred_at": "2026-06-01T13:45:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.6816
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000001c",
+      "occurred_at": "2026-06-01T14:00:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.67945
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000001d",
+      "occurred_at": "2026-06-01T14:15:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.67915
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000001e",
+      "occurred_at": "2026-06-01T14:30:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.67885
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000001f",
+      "occurred_at": "2026-06-01T14:45:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.67855
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000020",
+      "occurred_at": "2026-06-01T15:00:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.6764
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000021",
+      "occurred_at": "2026-06-01T15:15:00-07:00",
+      "location": {
+        "lat": 38.49997,
+        "lon": -121.676
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000022",
+      "occurred_at": "2026-06-01T15:30:00-07:00",
+      "location": {
+        "lat": 38.50003,
+        "lon": -121.6756
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000023",
+      "occurred_at": "2026-06-01T15:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.70048
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000024",
+      "occurred_at": "2026-06-01T16:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.70024
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000025",
+      "occurred_at": "2026-06-01T16:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.7
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000026",
+      "occurred_at": "2026-06-01T16:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.69976
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000027",
+      "occurred_at": "2026-06-01T16:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.69952
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000028",
+      "occurred_at": "2026-06-01T17:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.697581
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000029",
+      "occurred_at": "2026-06-01T17:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.697542
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000002a",
+      "occurred_at": "2026-06-01T17:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.697503
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000002b",
+      "occurred_at": "2026-06-01T17:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.697465
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000002c",
+      "occurred_at": "2026-06-01T18:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.697426
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000002d",
+      "occurred_at": "2026-06-01T18:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.697387
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000002e",
+      "occurred_at": "2026-06-01T18:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.697348
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000002f",
+      "occurred_at": "2026-06-01T18:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.69731
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000030",
+      "occurred_at": "2026-06-01T19:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.697271
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000031",
+      "occurred_at": "2026-06-01T19:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.697232
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000032",
+      "occurred_at": "2026-06-01T19:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.697194
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000033",
+      "occurred_at": "2026-06-01T19:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.697155
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000034",
+      "occurred_at": "2026-06-01T20:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.697116
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000035",
+      "occurred_at": "2026-06-01T20:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.697077
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000036",
+      "occurred_at": "2026-06-01T20:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.697039
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000037",
+      "occurred_at": "2026-06-01T20:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.697
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000038",
+      "occurred_at": "2026-06-01T21:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.696961
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000039",
+      "occurred_at": "2026-06-01T21:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.696923
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000003a",
+      "occurred_at": "2026-06-01T21:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.696884
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000003b",
+      "occurred_at": "2026-06-01T21:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.696845
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000003c",
+      "occurred_at": "2026-06-01T22:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.696806
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000003d",
+      "occurred_at": "2026-06-01T22:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.696768
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000003e",
+      "occurred_at": "2026-06-01T22:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.696729
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000003f",
+      "occurred_at": "2026-06-01T22:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.69669
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000040",
+      "occurred_at": "2026-06-01T23:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.696652
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000041",
+      "occurred_at": "2026-06-01T23:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.696613
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000042",
+      "occurred_at": "2026-06-01T23:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.696574
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000043",
+      "occurred_at": "2026-06-01T23:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.696535
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000044",
+      "occurred_at": "2026-06-02T00:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.696497
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000045",
+      "occurred_at": "2026-06-02T00:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.696458
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000046",
+      "occurred_at": "2026-06-02T00:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.696419
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000047",
+      "occurred_at": "2026-06-02T00:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.69445
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000048",
+      "occurred_at": "2026-06-02T01:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.69415
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000049",
+      "occurred_at": "2026-06-02T01:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.69385
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000004a",
+      "occurred_at": "2026-06-02T01:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.69355
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000004b",
+      "occurred_at": "2026-06-02T01:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.691578
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000004c",
+      "occurred_at": "2026-06-02T02:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.691533
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000004d",
+      "occurred_at": "2026-06-02T02:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.691489
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000004e",
+      "occurred_at": "2026-06-02T02:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.691444
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000004f",
+      "occurred_at": "2026-06-02T02:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.6914
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000050",
+      "occurred_at": "2026-06-02T03:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.691356
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000051",
+      "occurred_at": "2026-06-02T03:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.691311
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000052",
+      "occurred_at": "2026-06-02T03:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.691267
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000053",
+      "occurred_at": "2026-06-02T03:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.691222
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000054",
+      "occurred_at": "2026-06-02T04:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.691178
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000055",
+      "occurred_at": "2026-06-02T04:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.691133
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000056",
+      "occurred_at": "2026-06-02T04:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.691089
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000057",
+      "occurred_at": "2026-06-02T04:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.691044
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000058",
+      "occurred_at": "2026-06-02T05:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.691
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000059",
+      "occurred_at": "2026-06-02T05:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.690956
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000005a",
+      "occurred_at": "2026-06-02T05:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.690911
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000005b",
+      "occurred_at": "2026-06-02T05:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.690867
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000005c",
+      "occurred_at": "2026-06-02T06:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.690822
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000005d",
+      "occurred_at": "2026-06-02T06:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.690778
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000005e",
+      "occurred_at": "2026-06-02T06:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.690733
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000005f",
+      "occurred_at": "2026-06-02T06:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.690689
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000060",
+      "occurred_at": "2026-06-02T07:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.690644
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000061",
+      "occurred_at": "2026-06-02T07:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.6906
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000062",
+      "occurred_at": "2026-06-02T07:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.690556
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000063",
+      "occurred_at": "2026-06-02T07:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.690511
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000064",
+      "occurred_at": "2026-06-02T08:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.690467
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000065",
+      "occurred_at": "2026-06-02T08:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.690422
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000066",
+      "occurred_at": "2026-06-02T08:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.688
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000067",
+      "occurred_at": "2026-06-02T08:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685585
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000068",
+      "occurred_at": "2026-06-02T09:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685555
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000069",
+      "occurred_at": "2026-06-02T09:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685525
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000006a",
+      "occurred_at": "2026-06-02T09:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685495
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000006b",
+      "occurred_at": "2026-06-02T09:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685465
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000006c",
+      "occurred_at": "2026-06-02T10:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685435
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000006d",
+      "occurred_at": "2026-06-02T10:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685405
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000006e",
+      "occurred_at": "2026-06-02T10:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685375
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000006f",
+      "occurred_at": "2026-06-02T10:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685345
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000070",
+      "occurred_at": "2026-06-02T11:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685315
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000071",
+      "occurred_at": "2026-06-02T11:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685285
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000072",
+      "occurred_at": "2026-06-02T11:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685255
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000073",
+      "occurred_at": "2026-06-02T11:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685225
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000074",
+      "occurred_at": "2026-06-02T12:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685195
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000075",
+      "occurred_at": "2026-06-02T12:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685165
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000076",
+      "occurred_at": "2026-06-02T12:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685135
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000077",
+      "occurred_at": "2026-06-02T12:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685105
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000078",
+      "occurred_at": "2026-06-02T13:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685075
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000079",
+      "occurred_at": "2026-06-02T13:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.685045
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000007a",
+      "occurred_at": "2026-06-02T13:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.685015
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000007b",
+      "occurred_at": "2026-06-02T13:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684985
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000007c",
+      "occurred_at": "2026-06-02T14:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684955
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000007d",
+      "occurred_at": "2026-06-02T14:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684925
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000007e",
+      "occurred_at": "2026-06-02T14:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684895
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000007f",
+      "occurred_at": "2026-06-02T14:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684865
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000080",
+      "occurred_at": "2026-06-02T15:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684835
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000081",
+      "occurred_at": "2026-06-02T15:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684805
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000082",
+      "occurred_at": "2026-06-02T15:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684775
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000083",
+      "occurred_at": "2026-06-02T15:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684745
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000084",
+      "occurred_at": "2026-06-02T16:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684715
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000085",
+      "occurred_at": "2026-06-02T16:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684685
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000086",
+      "occurred_at": "2026-06-02T16:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684655
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000087",
+      "occurred_at": "2026-06-02T16:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684625
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000088",
+      "occurred_at": "2026-06-02T17:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684595
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000089",
+      "occurred_at": "2026-06-02T17:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684565
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000008a",
+      "occurred_at": "2026-06-02T17:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684535
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000008b",
+      "occurred_at": "2026-06-02T17:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684505
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000008c",
+      "occurred_at": "2026-06-02T18:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684475
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000008d",
+      "occurred_at": "2026-06-02T18:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.684445
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000008e",
+      "occurred_at": "2026-06-02T18:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.684415
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000008f",
+      "occurred_at": "2026-06-02T18:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.6823
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000090",
+      "occurred_at": "2026-06-02T19:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.6817
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000091",
+      "occurred_at": "2026-06-02T19:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.679567
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000092",
+      "occurred_at": "2026-06-02T19:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.6795
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000093",
+      "occurred_at": "2026-06-02T19:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.679433
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000094",
+      "occurred_at": "2026-06-02T20:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.679367
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000095",
+      "occurred_at": "2026-06-02T20:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.6793
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000096",
+      "occurred_at": "2026-06-02T20:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.679233
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000097",
+      "occurred_at": "2026-06-02T20:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.679167
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000098",
+      "occurred_at": "2026-06-02T21:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.6791
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000099",
+      "occurred_at": "2026-06-02T21:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.679033
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000009a",
+      "occurred_at": "2026-06-02T21:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.678967
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000009b",
+      "occurred_at": "2026-06-02T21:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.6789
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000009c",
+      "occurred_at": "2026-06-02T22:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.678833
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000009d",
+      "occurred_at": "2026-06-02T22:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.678767
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000009e",
+      "occurred_at": "2026-06-02T22:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.6787
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000009f",
+      "occurred_at": "2026-06-02T22:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.678633
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a0",
+      "occurred_at": "2026-06-02T23:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.678567
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a1",
+      "occurred_at": "2026-06-02T23:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.6785
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a2",
+      "occurred_at": "2026-06-02T23:30:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.678433
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a3",
+      "occurred_at": "2026-06-02T23:45:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.6764
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a4",
+      "occurred_at": "2026-06-03T00:00:00-07:00",
+      "location": {
+        "lat": 38.50253,
+        "lon": -121.676
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a5",
+      "occurred_at": "2026-06-03T00:15:00-07:00",
+      "location": {
+        "lat": 38.50247,
+        "lon": -121.6756
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a6",
+      "occurred_at": "2026-06-03T00:30:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.7
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a7",
+      "occurred_at": "2026-06-03T00:45:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.6973
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a8",
+      "occurred_at": "2026-06-03T01:00:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.6967
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000a9",
+      "occurred_at": "2026-06-03T01:15:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.6944
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000aa",
+      "occurred_at": "2026-06-03T01:30:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.694
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ab",
+      "occurred_at": "2026-06-03T01:45:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.6936
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ac",
+      "occurred_at": "2026-06-03T02:00:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.6913
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ad",
+      "occurred_at": "2026-06-03T02:15:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.6907
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ae",
+      "occurred_at": "2026-06-03T02:30:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.6884
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000af",
+      "occurred_at": "2026-06-03T02:45:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.688
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b0",
+      "occurred_at": "2026-06-03T03:00:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.6876
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b1",
+      "occurred_at": "2026-06-03T03:15:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.685
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b2",
+      "occurred_at": "2026-06-03T03:30:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.6824
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b3",
+      "occurred_at": "2026-06-03T03:45:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.682
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b4",
+      "occurred_at": "2026-06-03T04:00:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.6816
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b5",
+      "occurred_at": "2026-06-03T04:15:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.67945
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b6",
+      "occurred_at": "2026-06-03T04:30:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.67915
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b7",
+      "occurred_at": "2026-06-03T04:45:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.67885
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b8",
+      "occurred_at": "2026-06-03T05:00:00-07:00",
+      "location": {
+        "lat": 38.50503,
+        "lon": -121.67855
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000b9",
+      "occurred_at": "2026-06-03T05:15:00-07:00",
+      "location": {
+        "lat": 38.50497,
+        "lon": -121.676
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ba",
+      "occurred_at": "2026-06-03T05:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.70056
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000bb",
+      "occurred_at": "2026-06-03T05:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.70048
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000bc",
+      "occurred_at": "2026-06-03T06:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.7004
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000bd",
+      "occurred_at": "2026-06-03T06:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.70032
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000be",
+      "occurred_at": "2026-06-03T06:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.70024
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000bf",
+      "occurred_at": "2026-06-03T06:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.70016
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c0",
+      "occurred_at": "2026-06-03T07:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.70008
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c1",
+      "occurred_at": "2026-06-03T07:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.7
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c2",
+      "occurred_at": "2026-06-03T07:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.69992
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c3",
+      "occurred_at": "2026-06-03T07:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.69984
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c4",
+      "occurred_at": "2026-06-03T08:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.69976
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c5",
+      "occurred_at": "2026-06-03T08:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.69968
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c6",
+      "occurred_at": "2026-06-03T08:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.6996
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c7",
+      "occurred_at": "2026-06-03T08:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.69952
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c8",
+      "occurred_at": "2026-06-03T09:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.69944
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000c9",
+      "occurred_at": "2026-06-03T09:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.697
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ca",
+      "occurred_at": "2026-06-03T09:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.694533
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000cb",
+      "occurred_at": "2026-06-03T09:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.6944
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000cc",
+      "occurred_at": "2026-06-03T10:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.694267
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000cd",
+      "occurred_at": "2026-06-03T10:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.694133
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ce",
+      "occurred_at": "2026-06-03T10:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.694
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000cf",
+      "occurred_at": "2026-06-03T10:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.693867
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d0",
+      "occurred_at": "2026-06-03T11:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.693733
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d1",
+      "occurred_at": "2026-06-03T11:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.6936
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d2",
+      "occurred_at": "2026-06-03T11:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.693467
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d3",
+      "occurred_at": "2026-06-03T11:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.6913
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d4",
+      "occurred_at": "2026-06-03T12:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.6907
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d5",
+      "occurred_at": "2026-06-03T12:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.688525
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d6",
+      "occurred_at": "2026-06-03T12:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.688375
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d7",
+      "occurred_at": "2026-06-03T12:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.688225
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d8",
+      "occurred_at": "2026-06-03T13:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.688075
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000d9",
+      "occurred_at": "2026-06-03T13:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.687925
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000da",
+      "occurred_at": "2026-06-03T13:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.687775
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000db",
+      "occurred_at": "2026-06-03T13:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.687625
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000dc",
+      "occurred_at": "2026-06-03T14:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.687475
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000dd",
+      "occurred_at": "2026-06-03T14:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.6854
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000de",
+      "occurred_at": "2026-06-03T14:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.685
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000df",
+      "occurred_at": "2026-06-03T14:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.6846
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e0",
+      "occurred_at": "2026-06-03T15:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.6823
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e1",
+      "occurred_at": "2026-06-03T15:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.6817
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e2",
+      "occurred_at": "2026-06-03T15:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.67945
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e3",
+      "occurred_at": "2026-06-03T15:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.67915
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e4",
+      "occurred_at": "2026-06-03T16:00:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.67885
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e5",
+      "occurred_at": "2026-06-03T16:15:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.67855
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e6",
+      "occurred_at": "2026-06-03T16:30:00-07:00",
+      "location": {
+        "lat": 38.50753,
+        "lon": -121.6763
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e7",
+      "occurred_at": "2026-06-03T16:45:00-07:00",
+      "location": {
+        "lat": 38.50747,
+        "lon": -121.6757
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e8",
+      "occurred_at": "2026-06-03T17:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.6974
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000e9",
+      "occurred_at": "2026-06-03T17:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.697
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ea",
+      "occurred_at": "2026-06-03T17:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.6966
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000eb",
+      "occurred_at": "2026-06-03T17:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.6944
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ec",
+      "occurred_at": "2026-06-03T18:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.694
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ed",
+      "occurred_at": "2026-06-03T18:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.6936
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ee",
+      "occurred_at": "2026-06-03T18:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.691563
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ef",
+      "occurred_at": "2026-06-03T18:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.691488
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f0",
+      "occurred_at": "2026-06-03T19:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.691413
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f1",
+      "occurred_at": "2026-06-03T19:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.691338
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f2",
+      "occurred_at": "2026-06-03T19:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.691263
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f3",
+      "occurred_at": "2026-06-03T19:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.691188
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f4",
+      "occurred_at": "2026-06-03T20:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.691113
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f5",
+      "occurred_at": "2026-06-03T20:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.691038
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f6",
+      "occurred_at": "2026-06-03T20:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.690963
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f7",
+      "occurred_at": "2026-06-03T20:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.690888
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f8",
+      "occurred_at": "2026-06-03T21:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.690813
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000f9",
+      "occurred_at": "2026-06-03T21:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.690738
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000fa",
+      "occurred_at": "2026-06-03T21:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.690663
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000fb",
+      "occurred_at": "2026-06-03T21:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.690588
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000fc",
+      "occurred_at": "2026-06-03T22:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.690513
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000fd",
+      "occurred_at": "2026-06-03T22:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.690438
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000fe",
+      "occurred_at": "2026-06-03T22:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.688563
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-0000000000ff",
+      "occurred_at": "2026-06-03T22:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.688488
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000100",
+      "occurred_at": "2026-06-03T23:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.688413
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000101",
+      "occurred_at": "2026-06-03T23:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.688338
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000102",
+      "occurred_at": "2026-06-03T23:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.688263
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000103",
+      "occurred_at": "2026-06-03T23:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.688188
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000104",
+      "occurred_at": "2026-06-04T00:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.688113
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000105",
+      "occurred_at": "2026-06-04T00:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.688038
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000106",
+      "occurred_at": "2026-06-04T00:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.687963
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000107",
+      "occurred_at": "2026-06-04T00:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.687888
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000108",
+      "occurred_at": "2026-06-04T01:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.687813
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000109",
+      "occurred_at": "2026-06-04T01:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.687738
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000010a",
+      "occurred_at": "2026-06-04T01:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.687663
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000010b",
+      "occurred_at": "2026-06-04T01:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.687588
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000010c",
+      "occurred_at": "2026-06-04T02:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.687513
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000010d",
+      "occurred_at": "2026-06-04T02:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.687438
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000010e",
+      "occurred_at": "2026-06-04T02:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.685514
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000010f",
+      "occurred_at": "2026-06-04T02:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.685343
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000110",
+      "occurred_at": "2026-06-04T03:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.685171
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000111",
+      "occurred_at": "2026-06-04T03:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.685
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000112",
+      "occurred_at": "2026-06-04T03:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.684829
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000113",
+      "occurred_at": "2026-06-04T03:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.684657
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000114",
+      "occurred_at": "2026-06-04T04:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.684486
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000115",
+      "occurred_at": "2026-06-04T04:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.6824
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000116",
+      "occurred_at": "2026-06-04T04:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.682
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000117",
+      "occurred_at": "2026-06-04T04:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.6816
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000118",
+      "occurred_at": "2026-06-04T05:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.67945
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000119",
+      "occurred_at": "2026-06-04T05:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.67915
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000011a",
+      "occurred_at": "2026-06-04T05:30:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.67885
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000011b",
+      "occurred_at": "2026-06-04T05:45:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.67855
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000011c",
+      "occurred_at": "2026-06-04T06:00:00-07:00",
+      "location": {
+        "lat": 38.51003,
+        "lon": -121.6763
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000011d",
+      "occurred_at": "2026-06-04T06:15:00-07:00",
+      "location": {
+        "lat": 38.50997,
+        "lon": -121.6757
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000011e",
+      "occurred_at": "2026-06-04T06:30:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.7003
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000011f",
+      "occurred_at": "2026-06-04T06:45:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6997
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000120",
+      "occurred_at": "2026-06-04T07:00:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.6974
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000121",
+      "occurred_at": "2026-06-04T07:15:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.697
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000122",
+      "occurred_at": "2026-06-04T07:30:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.6966
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000123",
+      "occurred_at": "2026-06-04T07:45:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6945
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000124",
+      "occurred_at": "2026-06-04T08:00:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.6943
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000125",
+      "occurred_at": "2026-06-04T08:15:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6941
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000126",
+      "occurred_at": "2026-06-04T08:30:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.6939
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000127",
+      "occurred_at": "2026-06-04T08:45:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6937
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000128",
+      "occurred_at": "2026-06-04T09:00:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.6935
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000129",
+      "occurred_at": "2026-06-04T09:15:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6914
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000012a",
+      "occurred_at": "2026-06-04T09:30:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.691
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000012b",
+      "occurred_at": "2026-06-04T09:45:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6906
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000012c",
+      "occurred_at": "2026-06-04T10:00:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.688514
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000012d",
+      "occurred_at": "2026-06-04T10:15:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.688343
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000012e",
+      "occurred_at": "2026-06-04T10:30:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.688171
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000012f",
+      "occurred_at": "2026-06-04T10:45:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.688
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000130",
+      "occurred_at": "2026-06-04T11:00:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.687829
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000131",
+      "occurred_at": "2026-06-04T11:15:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.687657
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000132",
+      "occurred_at": "2026-06-04T11:30:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.687486
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000133",
+      "occurred_at": "2026-06-04T11:45:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6853
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000134",
+      "occurred_at": "2026-06-04T12:00:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.6847
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000135",
+      "occurred_at": "2026-06-04T12:15:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6824
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000136",
+      "occurred_at": "2026-06-04T12:30:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.682
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000137",
+      "occurred_at": "2026-06-04T12:45:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6816
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000138",
+      "occurred_at": "2026-06-04T13:00:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.6794
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000139",
+      "occurred_at": "2026-06-04T13:15:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.679
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000013a",
+      "occurred_at": "2026-06-04T13:30:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.6786
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000013b",
+      "occurred_at": "2026-06-04T13:45:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6764
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000013c",
+      "occurred_at": "2026-06-04T14:00:00-07:00",
+      "location": {
+        "lat": 38.51253,
+        "lon": -121.676
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000013d",
+      "occurred_at": "2026-06-04T14:15:00-07:00",
+      "location": {
+        "lat": 38.51247,
+        "lon": -121.6756
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000013e",
+      "occurred_at": "2026-06-04T14:30:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.70045
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000013f",
+      "occurred_at": "2026-06-04T14:45:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.70015
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000140",
+      "occurred_at": "2026-06-04T15:00:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.69985
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000141",
+      "occurred_at": "2026-06-04T15:15:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.69955
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000142",
+      "occurred_at": "2026-06-04T15:30:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.69748
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000143",
+      "occurred_at": "2026-06-04T15:45:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.69724
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000144",
+      "occurred_at": "2026-06-04T16:00:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.697
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000145",
+      "occurred_at": "2026-06-04T16:15:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.69676
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000146",
+      "occurred_at": "2026-06-04T16:30:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.69652
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000147",
+      "occurred_at": "2026-06-04T16:45:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.6943
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000148",
+      "occurred_at": "2026-06-04T17:00:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.6937
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000149",
+      "occurred_at": "2026-06-04T17:15:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.69145
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000014a",
+      "occurred_at": "2026-06-04T17:30:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.69115
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000014b",
+      "occurred_at": "2026-06-04T17:45:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.69085
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000014c",
+      "occurred_at": "2026-06-04T18:00:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.69055
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000014d",
+      "occurred_at": "2026-06-04T18:15:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.6883
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000014e",
+      "occurred_at": "2026-06-04T18:30:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.6877
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000014f",
+      "occurred_at": "2026-06-04T18:45:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.6793
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000150",
+      "occurred_at": "2026-06-04T19:00:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.6787
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000151",
+      "occurred_at": "2026-06-04T19:15:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.67648
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000152",
+      "occurred_at": "2026-06-04T19:30:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.67624
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000153",
+      "occurred_at": "2026-06-04T19:45:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.676
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000154",
+      "occurred_at": "2026-06-04T20:00:00-07:00",
+      "location": {
+        "lat": 38.51503,
+        "lon": -121.67576
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000155",
+      "occurred_at": "2026-06-04T20:15:00-07:00",
+      "location": {
+        "lat": 38.51497,
+        "lon": -121.67552
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000156",
+      "occurred_at": "2026-06-04T20:30:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.7003
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000157",
+      "occurred_at": "2026-06-04T20:45:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.6997
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000158",
+      "occurred_at": "2026-06-04T21:00:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.6973
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000159",
+      "occurred_at": "2026-06-04T21:15:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.6967
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000015a",
+      "occurred_at": "2026-06-04T21:30:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.6944
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000015b",
+      "occurred_at": "2026-06-04T21:45:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.694
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000015c",
+      "occurred_at": "2026-06-04T22:00:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.6936
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000015d",
+      "occurred_at": "2026-06-04T22:15:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.6914
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000015e",
+      "occurred_at": "2026-06-04T22:30:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.691
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000015f",
+      "occurred_at": "2026-06-04T22:45:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.6906
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000160",
+      "occurred_at": "2026-06-04T23:00:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.68845
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000161",
+      "occurred_at": "2026-06-04T23:15:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.68815
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000162",
+      "occurred_at": "2026-06-04T23:30:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.68785
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000163",
+      "occurred_at": "2026-06-04T23:45:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.68755
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000164",
+      "occurred_at": "2026-06-05T00:00:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.685
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000165",
+      "occurred_at": "2026-06-05T00:15:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.68245
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000166",
+      "occurred_at": "2026-06-05T00:30:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.68215
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000167",
+      "occurred_at": "2026-06-05T00:45:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.68185
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000168",
+      "occurred_at": "2026-06-05T01:00:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.68155
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000169",
+      "occurred_at": "2026-06-05T01:15:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.6793
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000016a",
+      "occurred_at": "2026-06-05T01:30:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.6787
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000016b",
+      "occurred_at": "2026-06-05T01:45:00-07:00",
+      "location": {
+        "lat": 38.51747,
+        "lon": -121.6763
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000016c",
+      "occurred_at": "2026-06-05T02:00:00-07:00",
+      "location": {
+        "lat": 38.51753,
+        "lon": -121.6757
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000016d",
+      "occurred_at": "2026-06-05T02:15:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.7004
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000016e",
+      "occurred_at": "2026-06-05T02:30:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.7
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000016f",
+      "occurred_at": "2026-06-05T02:45:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.6996
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000170",
+      "occurred_at": "2026-06-05T03:00:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.697
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000171",
+      "occurred_at": "2026-06-05T03:15:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.694
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000172",
+      "occurred_at": "2026-06-05T03:30:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.69148
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000173",
+      "occurred_at": "2026-06-05T03:45:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.69124
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000174",
+      "occurred_at": "2026-06-05T04:00:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.691
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000175",
+      "occurred_at": "2026-06-05T04:15:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.69076
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000176",
+      "occurred_at": "2026-06-05T04:30:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.69052
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000177",
+      "occurred_at": "2026-06-05T04:45:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.688
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000178",
+      "occurred_at": "2026-06-05T05:00:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.68545
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000179",
+      "occurred_at": "2026-06-05T05:15:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.68515
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000017a",
+      "occurred_at": "2026-06-05T05:30:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.68485
+      },
+      "mode": "pedestrian",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000017b",
+      "occurred_at": "2026-06-05T05:45:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.68455
+      },
+      "mode": "scooter",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000017c",
+      "occurred_at": "2026-06-05T06:00:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.6823
+      },
+      "mode": "cyclist",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000017d",
+      "occurred_at": "2026-06-05T06:15:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.6817
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000017e",
+      "occurred_at": "2026-06-05T06:30:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.6794
+      },
+      "mode": "pedestrian",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-00000000017f",
+      "occurred_at": "2026-06-05T06:45:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.679
+      },
+      "mode": "scooter",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000180",
+      "occurred_at": "2026-06-05T07:00:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.6786
+      },
+      "mode": "cyclist",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000181",
+      "occurred_at": "2026-06-05T07:15:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.6764
+      },
+      "mode": "cyclist",
+      "hazard_type": "surface_hazard",
+      "severity": "near_miss"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000182",
+      "occurred_at": "2026-06-05T07:30:00-07:00",
+      "location": {
+        "lat": 38.52003,
+        "lon": -121.676
+      },
+      "mode": "pedestrian",
+      "hazard_type": "dooring",
+      "severity": "minor"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "00000000-0000-4000-8000-000000000183",
+      "occurred_at": "2026-06-05T07:45:00-07:00",
+      "location": {
+        "lat": 38.51997,
+        "lon": -121.6756
+      },
+      "mode": "scooter",
+      "hazard_type": "close_pass",
+      "severity": "near_miss"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "segments": [
+    {
+      "segment_id": "seg-00-00",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-03",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-06",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-00",
+      "estimate": 3600.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-03",
+      "estimate": 6300.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-06",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-00",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-03",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-06",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-00",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-03",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-06",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-00",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-03",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-06",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-00",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-03",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-06",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-00",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-03",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-06",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-00",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-03",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-06",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-00",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-03",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-06",
+      "estimate": 900.0,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    }
+  ]
+}

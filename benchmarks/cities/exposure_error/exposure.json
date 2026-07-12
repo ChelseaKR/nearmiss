@@ -1,0 +1,490 @@
+{
+  "segments": [
+    {
+      "segment_id": "seg-00-00",
+      "estimate": 309.819,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-01",
+      "estimate": 504.902,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-02",
+      "estimate": 333.686,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-03",
+      "estimate": 165.638,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-04",
+      "estimate": 319.126,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-05",
+      "estimate": 285.555,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-06",
+      "estimate": 240.602,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-07",
+      "estimate": 234.313,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-00-08",
+      "estimate": 407.385,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-00",
+      "estimate": 193.414,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-01",
+      "estimate": 1590.725,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-02",
+      "estimate": 230.181,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-03",
+      "estimate": 1462.564,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-04",
+      "estimate": 208.569,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-05",
+      "estimate": 2181.116,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-06",
+      "estimate": 253.559,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-07",
+      "estimate": 483.647,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-01-08",
+      "estimate": 324.549,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-00",
+      "estimate": 317.063,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-01",
+      "estimate": 246.483,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-02",
+      "estimate": 328.265,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-03",
+      "estimate": 345.921,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-04",
+      "estimate": 444.572,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-05",
+      "estimate": 206.799,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-06",
+      "estimate": 343.508,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-07",
+      "estimate": 342.032,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-02-08",
+      "estimate": 424.265,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-00",
+      "estimate": 315.745,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-01",
+      "estimate": 173.969,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-02",
+      "estimate": 250.987,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-03",
+      "estimate": 382.226,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-04",
+      "estimate": 248.008,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-05",
+      "estimate": 273.228,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-06",
+      "estimate": 487.808,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-07",
+      "estimate": 160.097,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-03-08",
+      "estimate": 223.239,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-00",
+      "estimate": 237.021,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-01",
+      "estimate": 296.294,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-02",
+      "estimate": 202.762,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-03",
+      "estimate": 292.649,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-04",
+      "estimate": 180.279,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-05",
+      "estimate": 195.961,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-06",
+      "estimate": 251.781,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-07",
+      "estimate": 479.657,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-04-08",
+      "estimate": 157.704,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-00",
+      "estimate": 311.766,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-01",
+      "estimate": 335.6,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-02",
+      "estimate": 425.021,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-03",
+      "estimate": 292.079,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-04",
+      "estimate": 298.769,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-05",
+      "estimate": 347.822,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-06",
+      "estimate": 226.069,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-07",
+      "estimate": 173.198,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-05-08",
+      "estimate": 427.547,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-00",
+      "estimate": 302.643,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-01",
+      "estimate": 176.582,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-02",
+      "estimate": 276.651,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-03",
+      "estimate": 546.6,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-04",
+      "estimate": 508.705,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-05",
+      "estimate": 253.202,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-06",
+      "estimate": 260.181,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-07",
+      "estimate": 367.025,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-06-08",
+      "estimate": 387.773,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-00",
+      "estimate": 251.426,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-01",
+      "estimate": 557.305,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-02",
+      "estimate": 322.622,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-03",
+      "estimate": 323.299,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-04",
+      "estimate": 288.227,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-05",
+      "estimate": 465.228,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-06",
+      "estimate": 157.734,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-07",
+      "estimate": 307.742,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-07-08",
+      "estimate": 215.553,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-00",
+      "estimate": 253.823,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-01",
+      "estimate": 248.861,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-02",
+      "estimate": 355.341,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-03",
+      "estimate": 310.861,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-04",
+      "estimate": 227.092,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-05",
+      "estimate": 204.901,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-06",
+      "estimate": 336.653,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-07",
+      "estimate": 218.375,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    },
+    {
+      "segment_id": "seg-08-08",
+      "estimate": 459.105,
+      "source": "benchmark_synthetic",
+      "date": "2026-05-01"
+    }
+  ]
+}

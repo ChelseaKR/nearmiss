@@ -1,0 +1,6 @@
+{
+  "name": "exposure_error",
+  "seed": 90004,
+  "exposure_error_sigma": 0.35,
+  "notes": "Published exposure is true exposure times mean-1 lognormal noise (sigma=0.35), simulating an imperfect real-world exposure estimate (e.g. a bike count survey). Incidents are generated from the TRUE exposure; the tool only ever sees the noisy published one."
+}

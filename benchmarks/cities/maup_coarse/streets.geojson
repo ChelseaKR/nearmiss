@@ -1,0 +1,545 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7008,
+            38.5
+          ],
+          [
+            -121.6932,
+            38.5
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-00-00",
+        "name": "Row 0 Ave 0-2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6918,
+            38.5
+          ],
+          [
+            -121.6842,
+            38.5
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-00-03",
+        "name": "Row 0 Ave 3-5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6828,
+            38.5
+          ],
+          [
+            -121.6752,
+            38.5
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-00-06",
+        "name": "Row 0 Ave 6-8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7008,
+            38.5025
+          ],
+          [
+            -121.6932,
+            38.5025
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-01-00",
+        "name": "Row 1 Ave 0-2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6918,
+            38.5025
+          ],
+          [
+            -121.6842,
+            38.5025
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-01-03",
+        "name": "Row 1 Ave 3-5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6828,
+            38.5025
+          ],
+          [
+            -121.6752,
+            38.5025
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-01-06",
+        "name": "Row 1 Ave 6-8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7008,
+            38.505
+          ],
+          [
+            -121.6932,
+            38.505
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-02-00",
+        "name": "Row 2 Ave 0-2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6918,
+            38.505
+          ],
+          [
+            -121.6842,
+            38.505
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-02-03",
+        "name": "Row 2 Ave 3-5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6828,
+            38.505
+          ],
+          [
+            -121.6752,
+            38.505
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-02-06",
+        "name": "Row 2 Ave 6-8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7008,
+            38.5075
+          ],
+          [
+            -121.6932,
+            38.5075
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-03-00",
+        "name": "Row 3 Ave 0-2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6918,
+            38.5075
+          ],
+          [
+            -121.6842,
+            38.5075
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-03-03",
+        "name": "Row 3 Ave 3-5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6828,
+            38.5075
+          ],
+          [
+            -121.6752,
+            38.5075
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-03-06",
+        "name": "Row 3 Ave 6-8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7008,
+            38.51
+          ],
+          [
+            -121.6932,
+            38.51
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-04-00",
+        "name": "Row 4 Ave 0-2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6918,
+            38.51
+          ],
+          [
+            -121.6842,
+            38.51
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-04-03",
+        "name": "Row 4 Ave 3-5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6828,
+            38.51
+          ],
+          [
+            -121.6752,
+            38.51
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-04-06",
+        "name": "Row 4 Ave 6-8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7008,
+            38.5125
+          ],
+          [
+            -121.6932,
+            38.5125
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-05-00",
+        "name": "Row 5 Ave 0-2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6918,
+            38.5125
+          ],
+          [
+            -121.6842,
+            38.5125
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-05-03",
+        "name": "Row 5 Ave 3-5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6828,
+            38.5125
+          ],
+          [
+            -121.6752,
+            38.5125
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-05-06",
+        "name": "Row 5 Ave 6-8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7008,
+            38.515
+          ],
+          [
+            -121.6932,
+            38.515
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-06-00",
+        "name": "Row 6 Ave 0-2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6918,
+            38.515
+          ],
+          [
+            -121.6842,
+            38.515
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-06-03",
+        "name": "Row 6 Ave 3-5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6828,
+            38.515
+          ],
+          [
+            -121.6752,
+            38.515
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-06-06",
+        "name": "Row 6 Ave 6-8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7008,
+            38.5175
+          ],
+          [
+            -121.6932,
+            38.5175
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-07-00",
+        "name": "Row 7 Ave 0-2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6918,
+            38.5175
+          ],
+          [
+            -121.6842,
+            38.5175
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-07-03",
+        "name": "Row 7 Ave 3-5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6828,
+            38.5175
+          ],
+          [
+            -121.6752,
+            38.5175
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-07-06",
+        "name": "Row 7 Ave 6-8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.7008,
+            38.52
+          ],
+          [
+            -121.6932,
+            38.52
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-08-00",
+        "name": "Row 8 Ave 0-2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6918,
+            38.52
+          ],
+          [
+            -121.6842,
+            38.52
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-08-03",
+        "name": "Row 8 Ave 3-5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -121.6828,
+            38.52
+          ],
+          [
+            -121.6752,
+            38.52
+          ]
+        ]
+      },
+      "properties": {
+        "segment_id": "seg-08-06",
+        "name": "Row 8 Ave 6-8"
+      }
+    }
+  ]
+}

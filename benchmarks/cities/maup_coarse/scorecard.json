@@ -1,0 +1,25 @@
+{
+  "regime": "maup_coarse",
+  "suite_version": "1.0.0",
+  "tool": "nearmiss",
+  "n_segments": 27,
+  "n_flagged_significant": 1,
+  "hotspot_recall": 0.3333,
+  "hotspot_precision": 1.0,
+  "decoy_exposure_fp_rate": 0.0,
+  "reporting_bias_trap_rate": 0.0,
+  "background_fp_rate": 0.0,
+  "interval_coverage": 1.0,
+  "counts": {
+    "true_hotspots": 3,
+    "hotspots_flagged": 1,
+    "decoy_exposure": 2,
+    "decoy_exposure_flagged": 0,
+    "decoy_reporting_bias": 2,
+    "decoy_reporting_bias_flagged": 0,
+    "background": 20,
+    "background_flagged": 0,
+    "coverage_checked": 25,
+    "coverage_hits": 25
+  }
+}
