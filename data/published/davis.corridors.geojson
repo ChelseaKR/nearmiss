@@ -1,0 +1,70 @@
+{
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -121.744,
+              38.5494
+            ],
+            [
+              -121.74199999999999,
+              38.5494
+            ]
+          ],
+          [
+            [
+              -121.74199999999999,
+              38.5494
+            ],
+            [
+              -121.74,
+              38.5494
+            ]
+          ],
+          [
+            [
+              -121.74,
+              38.5494
+            ],
+            [
+              -121.738,
+              38.5494
+            ]
+          ]
+        ],
+        "type": "MultiLineString"
+      },
+      "properties": {
+        "confidence_label": "certain",
+        "corridor_id": "corridor-dd8fbf5922ba",
+        "exposure_date": "2026-05-01",
+        "exposure_estimate": 1100.0,
+        "exposure_source": "synthetic_bike_count",
+        "n": 18,
+        "name": "5th St (B–E)",
+        "rate": 16.363636363636363,
+        "rate_ci_high": 25.863132164308666,
+        "rate_ci_low": 9.693079079709724,
+        "report_count": 18,
+        "segment_ids": [
+          "seg-05",
+          "seg-06",
+          "seg-07"
+        ],
+        "significant": true
+      },
+      "type": "Feature"
+    }
+  ],
+  "maup_note": "Corridor rates are a second, coarser view over the same already-published block-level segments — a MAUP-aware complement, not a replacement. Both granularities are published side by side; a corridor's count and exposure are sums of segments that individually already cleared the k-anonymity floor and the Getis-Ord significance test, so corridors never surface a block that was withheld or non-significant on its own. Aggregation choice (the boundary you draw) can itself shift a rate — the Modifiable Areal Unit Problem — which is exactly why the block-level file remains the primary published unit and this file is always secondary to it.",
+  "metadata": {
+    "block_level_dataset": "davis.geojson",
+    "city": "Davis",
+    "corridors_published": 1,
+    "maup_note": "Corridor rates are a second, coarser view over the same already-published block-level segments — a MAUP-aware complement, not a replacement. Both granularities are published side by side; a corridor's count and exposure are sums of segments that individually already cleared the k-anonymity floor and the Getis-Ord significance test, so corridors never surface a block that was withheld or non-significant on its own. Aggregation choice (the boundary you draw) can itself shift a rate — the Modifiable Areal Unit Problem — which is exactly why the block-level file remains the primary published unit and this file is always secondary to it.",
+    "schema_version": "1.0.0"
+  },
+  "type": "FeatureCollection"
+}

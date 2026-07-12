@@ -30,6 +30,7 @@ from .errors import PrivacyError, ValidationError
 from .manifest import build_manifest, canonical_json
 from .models import Report, Segment, SegmentStats
 from .stats.bias import to_metadata as bias_to_metadata
+from .stats.corridors import CorridorStats
 from .stats.maup import to_metadata as maup_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
 from .versions import DATASET_SCHEMA_VERSION, DATASET_VERSION
@@ -41,6 +42,21 @@ from .versions import DATASET_SCHEMA_VERSION, DATASET_VERSION
 SCHEMA_DOC_PATH = "schema/dataset.schema.md"
 SCHEMA_JSON_PATH = "schema/dataset.schema.json"
 _SCHEMA_JSON_FILE = Path(__file__).resolve().parents[2] / SCHEMA_JSON_PATH
+
+# Shown beside every corridor artifact (EXP-03): corridor aggregation is a
+# second, coarser view, never a replacement for the block-level dataset — a
+# MAUP-aware transparency note per `stats/corridors.py`'s discipline.
+MAUP_NOTE = (
+    "Corridor rates are a second, coarser view over the same already-published "
+    "block-level segments — a MAUP-aware complement, not a replacement. Both "
+    "granularities are published side by side; a corridor's count and exposure "
+    "are sums of segments that individually already cleared the k-anonymity "
+    "floor and the Getis-Ord significance test, so corridors never surface a "
+    "block that was withheld or non-significant on its own. Aggregation choice "
+    "(the boundary you draw) can itself shift a rate — the Modifiable Areal "
+    "Unit Problem — which is exactly why the block-level file remains the "
+    "primary published unit and this file is always secondary to it."
+)
 
 # Property/field keys that must NEVER appear in any published artifact.
 _FORBIDDEN_KEYS = frozenset(
@@ -62,7 +78,7 @@ def _slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
-def _feature(stat: SegmentStats, segment: Segment) -> dict[str, object]:
+def _feature(stat: SegmentStats, segment: Segment, corridor_id: str | None) -> dict[str, object]:
     coordinates = [[lon, lat] for (lat, lon) in segment.coords]
     return {
         "type": "Feature",
@@ -94,19 +110,78 @@ def _feature(stat: SegmentStats, segment: Segment) -> dict[str, object]:
                 for t, rates_by_type_entry in sorted(stat.rates_by_type.items())
             },
             "quality_flags": list(stat.quality_flags),
+            # EXP-03: which published corridor (if any) this segment is a member
+            # of; null when the segment is not part of any corridor. The block
+            # remains independently published and ranked either way.
+            "corridor_id": corridor_id,
         },
     }
 
 
-def build_geojson(stats: list[SegmentStats], segments: list[Segment]) -> dict[str, object]:
+def build_geojson(
+    stats: list[SegmentStats],
+    segments: list[Segment],
+    corridors: list[CorridorStats] | None = None,
+) -> dict[str, object]:
     """Build the FeatureCollection, omitting segments withheld for k-anonymity."""
     by_id = {s.id: s for s in segments}
+    corridor_of: dict[str, str] = {}
+    for c in corridors or ():
+        for sid in c.segment_ids:
+            corridor_of[sid] = c.corridor_id
     features = [
-        _feature(st, by_id[st.segment_id])
+        _feature(st, by_id[st.segment_id], corridor_of.get(st.segment_id))
         for st in sorted(stats, key=lambda s: s.segment_id)
         if st.publishable and st.segment_id in by_id
     ]
     return {"type": "FeatureCollection", "features": features}
+
+
+def _corridor_feature(corridor: CorridorStats, segments: dict[str, Segment]) -> dict[str, object]:
+    """A corridor as a MultiLineString foreign feature — its member segments' geometry."""
+    lines = [
+        [[lon, lat] for (lat, lon) in segments[sid].coords]
+        for sid in corridor.segment_ids
+        if sid in segments
+    ]
+    return {
+        "type": "Feature",
+        "geometry": {"type": "MultiLineString", "coordinates": lines},
+        "properties": {
+            "corridor_id": corridor.corridor_id,
+            "name": corridor.name,
+            "segment_ids": list(corridor.segment_ids),
+            "report_count": corridor.report_count,
+            "n": corridor.n,
+            "exposure_estimate": corridor.exposure_estimate,
+            "exposure_source": corridor.exposure_source,
+            "exposure_date": corridor.exposure_date,
+            "rate": corridor.rate,
+            "rate_ci_low": corridor.rate_ci_low,
+            "rate_ci_high": corridor.rate_ci_high,
+            "confidence_label": corridor.confidence_label,
+            "significant": corridor.significant,
+        },
+    }
+
+
+def build_corridor_geojson(
+    corridors: list[CorridorStats], segments: list[Segment]
+) -> dict[str, object]:
+    """Build the corridor FeatureCollection — a second, coarser layer.
+
+    Published ALONGSIDE ``build_geojson``'s block-level output, never instead
+    of it (EXP-03). Every corridor here is built only from segments that were
+    already individually publishable and significant, so this file introduces
+    no new disclosure beyond a re-aggregation of already-public numbers.
+    """
+    by_id = {s.id: s for s in segments}
+    features = [_corridor_feature(c, by_id) for c in corridors]
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "maup_note": MAUP_NOTE,
+    }
 
 
 def _iter_lonlat(coords: object) -> Iterator[tuple[float, float]]:
@@ -199,12 +274,15 @@ class PublishResult:
     manifest_digest: str
     feature_count: int
     withheld_count: int
+    corridor_geojson_path: Path
+    corridor_count: int
 
 
 def publish(config: Config) -> PublishResult:
     bundle = build_analysis(config)
     stats = bundle.result.segments
-    geojson = build_geojson(stats, bundle.segments)
+    corridors = bundle.result.corridors
+    geojson = build_geojson(stats, bundle.segments, corridors)
     reports = load_city(config).reports
     withheld = sum(1 for s in stats if not s.publishable)
 
@@ -247,6 +325,8 @@ def publish(config: Config) -> PublishResult:
             "Aggregated to public street segments; low-count segments withheld (k-anonymity); "
             "no per-report coordinate, time, reporter, mode, or severity is published."
         ),
+        "corridors_published": len(corridors),
+        "corridor_dataset": f"{_slug(config.city)}.corridors.geojson",
     }
     assert_metadata_clean(embedded, reports)
     geojson["metadata"] = embedded
@@ -257,8 +337,23 @@ def publish(config: Config) -> PublishResult:
     # does not conform to schema/dataset.schema.json is never written.
     assert_conforms_to_schema(geojson)
 
+    corridor_geojson = build_corridor_geojson(corridors, bundle.segments)
+    corridor_embedded: dict[str, object] = {
+        "schema_version": "1.0.0",
+        "city": config.city,
+        "corridors_published": len(corridors),
+        "maup_note": MAUP_NOTE,
+        "block_level_dataset": f"{_slug(config.city)}.geojson",
+    }
+    assert_metadata_clean(corridor_embedded, reports)
+    corridor_geojson["metadata"] = corridor_embedded
+    # Same privacy invariants apply: a corridor feature is still just an
+    # aggregate of already-publishable block-level features.
+    assert_published_clean(corridor_geojson, reports, config.min_publish_n)
+
     payload = _canonical_json(geojson)
     sha = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    corridor_payload = _canonical_json(corridor_geojson)
 
     metadata: dict[str, object] = {
         "city": config.city,
@@ -342,6 +437,11 @@ def publish(config: Config) -> PublishResult:
             "min_publish_n are withheld (k-anonymity). No per-report coordinate, time, reporter "
             "token, note, mode, or severity is published. Small-n hazard breakdowns are suppressed."
         ),
+        # EXP-03: corridor-level aggregation, published alongside (never instead
+        # of) the block-level dataset above.
+        "corridors_published": len(corridors),
+        "corridor_dataset": f"{_slug(config.city)}.corridors.geojson",
+        "corridor_maup_note": MAUP_NOTE,
     }
     assert_metadata_clean(metadata, reports)
 
@@ -371,8 +471,10 @@ def publish(config: Config) -> PublishResult:
     geojson_path = config.out_dir / f"{slug}.geojson"
     metadata_path = config.out_dir / f"{slug}.metadata.json"
     manifest_path = config.out_dir / f"{slug}.run.json"
+    corridor_geojson_path = config.out_dir / f"{slug}.corridors.geojson"
     geojson_path.write_text(payload, encoding="utf-8")
     metadata_path.write_text(_canonical_json(metadata), encoding="utf-8")
+    corridor_geojson_path.write_text(corridor_payload, encoding="utf-8")
     manifest_path.write_text(_canonical_json(manifest), encoding="utf-8")
 
     return PublishResult(
@@ -383,4 +485,6 @@ def publish(config: Config) -> PublishResult:
         manifest_digest=manifest_digest,
         feature_count=len(stats) - withheld,
         withheld_count=withheld,
+        corridor_geojson_path=corridor_geojson_path,
+        corridor_count=len(corridors),
     )

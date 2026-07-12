@@ -30,7 +30,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_JSON = ROOT / "schema" / "dataset.schema.json"
 SCHEMA_MD = ROOT / "schema" / "dataset.schema.md"
 PUBLISHED = ROOT / "data" / "published"
-PUBLISHED_GEOJSON = sorted(PUBLISHED.glob("*.geojson"))
+# The corridor layer (<slug>.corridors.geojson, EXP-03) is a separate, coarser
+# contract with its own schema_version — it is not the block-level dataset this
+# JSON Schema pins, so it is excluded here (its invariants are covered by
+# tests/test_corridors.py and the corridor checks in test_publish_privacy.py).
+PUBLISHED_GEOJSON = sorted(
+    p for p in PUBLISHED.glob("*.geojson") if not p.name.endswith(".corridors.geojson")
+)
 
 
 def _load_schema() -> Any:
@@ -152,6 +158,11 @@ def _md_property_names() -> set[str]:
     in_property_table = False
     for raw in SCHEMA_MD.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
+        # Stop at the corridor-level section (§9): <slug>.corridors.geojson is a
+        # separate artifact with its own property table and its own contract,
+        # not part of the block-level feature vocabulary this schema pins.
+        if line.startswith("#") and "orridor-level aggregation" in line:
+            break
         if _MD_PROPERTY_TABLE_HEADER.match(line):
             in_property_table = True
             continue

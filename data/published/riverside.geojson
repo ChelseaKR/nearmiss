@@ -16,6 +16,7 @@
       },
       "properties": {
         "confidence_label": "uncertain",
+        "corridor_id": null,
         "exposure_date": "2026-05-01",
         "exposure_disagreement": 0.2,
         "exposure_estimate": 1500.0,
@@ -55,6 +56,7 @@
       },
       "properties": {
         "confidence_label": "uncertain",
+        "corridor_id": null,
         "exposure_date": "2026-05-01",
         "exposure_disagreement": null,
         "exposure_estimate": 800.0,
@@ -94,6 +96,7 @@
       },
       "properties": {
         "confidence_label": "certain",
+        "corridor_id": null,
         "exposure_date": "2026-05-01",
         "exposure_disagreement": null,
         "exposure_estimate": 250.0,
@@ -141,6 +144,7 @@
       },
       "properties": {
         "confidence_label": "uncertain",
+        "corridor_id": null,
         "exposure_date": "2026-05-01",
         "exposure_disagreement": null,
         "exposure_estimate": 1500.0,
@@ -178,6 +182,7 @@
       },
       "properties": {
         "confidence_label": "uncertain",
+        "corridor_id": null,
         "exposure_date": "2026-05-01",
         "exposure_disagreement": null,
         "exposure_estimate": 800.0,
@@ -236,6 +241,8 @@
       ]
     },
     "city": "Riverside",
+    "corridor_dataset": "riverside.corridors.geojson",
+    "corridors_published": 0,
     "data_card": "docs/DATA-CARD.md",
     "dataset_note": "Synthetic demonstration data — not real reports.",
     "dataset_version": "0.1.1",

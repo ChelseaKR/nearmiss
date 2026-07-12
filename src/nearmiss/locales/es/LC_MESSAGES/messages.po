@@ -19,6 +19,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+msgid "## Corridor view (for advocacy asks)"
+msgstr "## Vista de corredores (para peticiones de incidencia)"
+
 msgid "## Dominant hazard type by segment (with its own rate)"
 msgstr "## Tipo de peligro dominante por segmento (con su propia tasa)"
 
@@ -54,6 +57,9 @@ msgstr "**En resumen:** la mayor tasa de cuasi-accidentes normalizada por exposi
 #, python-brace-format
 msgid "**Exposure coverage:** {pct}% of segments have an exposure denominator. Segments without one are listed as *exposure unknown*, not ranked."
 msgstr "**Cobertura de exposición:** el {pct}% de los segmentos tiene un denominador de exposición. Los que no lo tienen aparecen como *exposición desconocida*, sin ranking."
+
+msgid "**MAUP transparency note:** how you draw the boundary can itself shift a rate (the Modifiable Areal Unit Problem). Corridor counts and exposure are sums of the same already-published, already-significant blocks above — no block is surfaced here that was withheld or non-significant on its own. Read the corridor rate as a complement to the block rates, not a replacement for them."
+msgstr "**Nota de transparencia MAUP:** cómo se traza el límite puede alterar una tasa por sí mismo (el Problema de la Unidad de Área Modificable). Los recuentos y la exposición del corredor son sumas de los mismos bloques ya publicados y ya significativos anteriores — ningún bloque se muestra aquí que haya sido retenido o no significativo por sí solo. Lea la tasa del corredor como un complemento de las tasas por bloque, no como un reemplazo de ellas."
 
 #, python-brace-format
 msgid "**Null calibration (we attacked our own dataset):** on {n} seeded label-shuffles of this city's own reports, with exposure and geometry held fixed, the hotspot method's empirical false-positive rate was {pct}% — see `{file}`."
@@ -139,8 +145,17 @@ msgstr "IC 95%"
 msgid "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence interval and an n. Raw counts are not danger; they are report volume. Read the caveats — they are the point."
 msgstr "> Las tasas son reportes por {per} {unit}. Cada tasa lleva un intervalo de confianza del 95% y una n. Los conteos crudos no son peligro; son volumen de reportes. Lea las advertencias — son lo esencial."
 
+msgid "Blocks are the unit of measurement; corridors are the unit council motions and campaigns are written in. Each corridor below merges contiguous, statistically significant blocks of the same street into one named span, with its own rate, interval, and n — published *alongside*, never instead of, the block-level table above."
+msgstr "Los bloques son la unidad de medición; los corredores son la unidad en la que se redactan las mociones municipales y las campañas. Cada corredor a continuación combina bloques contiguos y estadísticamente significativos de la misma calle en un tramo con nombre, con su propia tasa, intervalo y n — publicado *junto a*, nunca en lugar de, la tabla a nivel de bloque anterior."
+
+msgid "Blocks merged"
+msgstr "Bloques combinados"
+
 msgid "Confidence"
 msgstr "Confianza"
+
+msgid "Corridor"
+msgstr "Corredor"
 
 msgid "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
 msgstr "Cada cifra de arriba se regenera desde los datos crudos con `make reproduce`. Los datos y métodos son abiertos (Apache-2.0); vea `docs/METHODOLOGY.md` y `docs/DATA-CARD.md`."
@@ -160,6 +175,9 @@ msgstr "lunes"
 #, python-brace-format
 msgid "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
 msgstr "La mayoría de los reportes llegan durante la **{part}**; el día más activo es **{weekday}**."
+
+msgid "No contiguous run of significant blocks reached corridor size in this dataset — the block-level hotspots above are the finest and only unit available this cycle."
+msgstr "Ninguna serie contigua de bloques significativos alcanzó el tamaño de corredor en este conjunto de datos — los puntos calientes a nivel de bloque anteriores son la unidad más fina y la única disponible en este ciclo."
 
 msgid "No segment reaches statistical significance at this sample size."
 msgstr "Ningún segmento alcanza significancia estadística con este tamaño de muestra."

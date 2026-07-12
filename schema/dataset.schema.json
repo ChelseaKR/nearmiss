@@ -196,7 +196,8 @@
         "rates_by_type",
         "rate_sensitivity_delta",
         "exposure_tier",
-        "exposure_disagreement"
+        "exposure_disagreement",
+        "corridor_id"
       ],
       "additionalProperties": true,
       "properties": {
@@ -379,6 +380,13 @@
           ],
           "minimum": 0,
           "maximum": 1
+        },
+        "corridor_id": {
+          "description": "The corridor_id of the published corridor (<slug>.corridors.geojson, EXP-03) this segment is a member of, or null when the segment is not part of any corridor. The block remains independently published and ranked either way.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     }

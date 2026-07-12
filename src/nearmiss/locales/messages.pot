@@ -17,6 +17,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel\n"
 
+msgid "## Corridor view (for advocacy asks)"
+msgstr ""
+
 msgid "## Dominant hazard type by segment (with its own rate)"
 msgstr ""
 
@@ -60,6 +63,15 @@ msgstr ""
 msgid ""
 "**Exposure coverage:** {pct}% of segments have an exposure denominator. "
 "Segments without one are listed as *exposure unknown*, not ranked."
+msgstr ""
+
+msgid ""
+"**MAUP transparency note:** how you draw the boundary can itself shift a "
+"rate (the Modifiable Areal Unit Problem). Corridor counts and exposure "
+"are sums of the same already-published, already-significant blocks above "
+"— no block is surfaced here that was withheld or non-significant on its "
+"own. Read the corridor rate as a complement to the block rates, not a "
+"replacement for them."
 msgstr ""
 
 #, python-brace-format
@@ -198,7 +210,21 @@ msgid ""
 "Read the caveats — they are the point."
 msgstr ""
 
+msgid ""
+"Blocks are the unit of measurement; corridors are the unit council "
+"motions and campaigns are written in. Each corridor below merges "
+"contiguous, statistically significant blocks of the same street into one "
+"named span, with its own rate, interval, and n — published *alongside*, "
+"never instead of, the block-level table above."
+msgstr ""
+
+msgid "Blocks merged"
+msgstr ""
+
 msgid "Confidence"
+msgstr ""
+
+msgid "Corridor"
 msgstr ""
 
 msgid ""
@@ -223,6 +249,12 @@ msgstr ""
 msgid ""
 "Most reports arrive during the **{part}**; the busiest day is "
 "**{weekday}**."
+msgstr ""
+
+msgid ""
+"No contiguous run of significant blocks reached corridor size in this "
+"dataset — the block-level hotspots above are the finest and only unit "
+"available this cycle."
 msgstr ""
 
 msgid "No segment reaches statistical significance at this sample size."

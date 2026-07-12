@@ -23,10 +23,14 @@ weak, this card says so plainly. Read the "Out-of-scope and discouraged uses" an
 - **License:** Apache-2.0 (see [License and citation](#license-and-citation)).
 - **Schema:** report intake schema at `schema/report.schema.json`; published GeoJSON schema
   at `schema/dataset.schema.md`.
-- **Published files (per city, named by city slug):** the open GeoJSON is `<city-slug>.geojson`
-  (e.g. `davis.geojson`) and its metadata sidecar is `<city-slug>.metadata.json` (e.g.
-  `davis.metadata.json`). There is no `nearmiss.geojson`. This data card lives at
-  `docs/DATA-CARD.md`; there is no sidecar `DATA-CARD.md`.
+- **Published files (per city, named by city slug):** the open, block-level GeoJSON is
+  `<city-slug>.geojson` (e.g. `davis.geojson`) and its metadata sidecar is
+  `<city-slug>.metadata.json` (e.g. `davis.metadata.json`). A second, coarser GeoJSON,
+  `<city-slug>.corridors.geojson` (e.g. `davis.corridors.geojson`), merges contiguous significant
+  blocks of the same street into named corridors for advocacy asks — published *alongside*, never
+  instead of, the block-level file (see `schema/dataset.schema.md` §9). There is no
+  `nearmiss.geojson`. This data card lives at `docs/DATA-CARD.md`; there is no sidecar
+  `DATA-CARD.md`.
 
 ---
 
@@ -646,3 +650,6 @@ this dataset, and a number from here without them is not this dataset's claim.
   machine-readable metadata sidecar (versions, content hash, methods, sources, windows, totals).
 - `data/published/<city-slug>.geojson` (e.g. `davis.geojson`) — the published open GeoJSON, with
   its self-describing top-level `metadata` member.
+- `data/published/<city-slug>.corridors.geojson` (e.g. `davis.corridors.geojson`) — the
+  corridor-level view (EXP-03), published alongside the block-level file above, never instead of
+  it; see `schema/dataset.schema.md` §9.

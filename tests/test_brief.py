@@ -24,6 +24,12 @@ def test_english_brief_is_comprehensible(bundle: AnalysisBundle, config: Config)
     assert "does not mean nothing can be concluded" in text
     # Withheld (k-anonymity) segments are never named in a published brief.
     assert "A St (1st–2nd)" not in text  # seg-08 is withheld (n=1)
+    # EXP-03: the corridor view is published alongside the block-level table.
+    # Under the network-topology Gi* weights (FIX-02) the borderline 5th St
+    # block clears the FDR bar too, so the planted corridor spans seg-05/06/07.
+    assert "Corridor view" in text
+    assert "5th St (B–E)" in text
+    assert "MAUP transparency note" in text
 
 
 def test_spanish_brief_renders_in_spanish(bundle: AnalysisBundle, config: Config) -> None:

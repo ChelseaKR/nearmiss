@@ -19,6 +19,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+msgid "## Corridor view (for advocacy asks)"
+msgstr "## Corridor view (for advocacy asks)"
+
 msgid "## Dominant hazard type by segment (with its own rate)"
 msgstr "## Dominant hazard type by segment (with its own rate)"
 
@@ -54,6 +57,9 @@ msgstr "**Bottom line:** the highest exposure-normalized near-miss rate is on **
 #, python-brace-format
 msgid "**Exposure coverage:** {pct}% of segments have an exposure denominator. Segments without one are listed as *exposure unknown*, not ranked."
 msgstr "**Exposure coverage:** {pct}% of segments have an exposure denominator. Segments without one are listed as *exposure unknown*, not ranked."
+
+msgid "**MAUP transparency note:** how you draw the boundary can itself shift a rate (the Modifiable Areal Unit Problem). Corridor counts and exposure are sums of the same already-published, already-significant blocks above — no block is surfaced here that was withheld or non-significant on its own. Read the corridor rate as a complement to the block rates, not a replacement for them."
+msgstr "**MAUP transparency note:** how you draw the boundary can itself shift a rate (the Modifiable Areal Unit Problem). Corridor counts and exposure are sums of the same already-published, already-significant blocks above — no block is surfaced here that was withheld or non-significant on its own. Read the corridor rate as a complement to the block rates, not a replacement for them."
 
 #, python-brace-format
 msgid "**Null calibration (we attacked our own dataset):** on {n} seeded label-shuffles of this city's own reports, with exposure and geometry held fixed, the hotspot method's empirical false-positive rate was {pct}% — see `{file}`."
@@ -139,8 +145,17 @@ msgstr "95% CI"
 msgid "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence interval and an n. Raw counts are not danger; they are report volume. Read the caveats — they are the point."
 msgstr "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence interval and an n. Raw counts are not danger; they are report volume. Read the caveats — they are the point."
 
+msgid "Blocks are the unit of measurement; corridors are the unit council motions and campaigns are written in. Each corridor below merges contiguous, statistically significant blocks of the same street into one named span, with its own rate, interval, and n — published *alongside*, never instead of, the block-level table above."
+msgstr "Blocks are the unit of measurement; corridors are the unit council motions and campaigns are written in. Each corridor below merges contiguous, statistically significant blocks of the same street into one named span, with its own rate, interval, and n — published *alongside*, never instead of, the block-level table above."
+
+msgid "Blocks merged"
+msgstr "Blocks merged"
+
 msgid "Confidence"
 msgstr "Confidence"
+
+msgid "Corridor"
+msgstr "Corridor"
 
 msgid "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
 msgstr "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
@@ -160,6 +175,9 @@ msgstr "Monday"
 #, python-brace-format
 msgid "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
 msgstr "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
+
+msgid "No contiguous run of significant blocks reached corridor size in this dataset — the block-level hotspots above are the finest and only unit available this cycle."
+msgstr "No contiguous run of significant blocks reached corridor size in this dataset — the block-level hotspots above are the finest and only unit available this cycle."
 
 msgid "No segment reaches statistical significance at this sample size."
 msgstr "No segment reaches statistical significance at this sample size."
