@@ -446,6 +446,159 @@ footer {
   }
 }
 
+/* R23: council-ready "Print / save as PDF". A print stylesheet plus a button —
+   no external PDF library. The print-only blocks carry the caveats and metadata
+   into the packet; interactive chrome is hidden and both maps are forced visible
+   so the printed page is the honest, self-contained equivalent of the screen. */
+
+/* Print-only blocks are hidden on screen. */
+.print-only {
+  display: none;
+}
+
+.print-control {
+  margin: 0 0 0.75rem;
+}
+
+.print-control button {
+  font: inherit;
+  cursor: pointer;
+  padding: 0.3rem 0.75rem;
+  min-height: 24px;
+  min-width: 24px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.print-control button:hover {
+  text-decoration: underline;
+}
+
+@media print {
+  /* Make map tiles and hotspot colors actually print. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+
+  body {
+    padding: 0;
+    color: #000;
+  }
+
+  /* Hide interactive chrome: language switch, map toggle, the print button
+     itself, the table filter, and Leaflet's own zoom/attribution controls. */
+  .lang-switch,
+  .map-toggle,
+  .print-control,
+  .table-controls,
+  .report-cta,
+  .skip-link,
+  .leaflet-control-container {
+    display: none !important;
+  }
+
+  /* Show the print-only header and footer. */
+  .print-only {
+    display: block;
+  }
+
+  .print-header {
+    margin-bottom: 0.75rem;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.4rem;
+  }
+
+  .print-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+  }
+
+  .print-meta {
+    margin: 0 0 0.35rem;
+    font-size: 0.95rem;
+  }
+
+  .print-caveat {
+    margin: 0;
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+
+  .print-footer {
+    margin-top: 1rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid #000;
+    font-size: 0.8rem;
+    color: #000;
+  }
+
+  /* Force BOTH maps visible regardless of the on-screen data-view state. */
+  .map-split[data-view] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.5rem;
+  }
+
+  .map-split[data-view] .map-fig {
+    display: flex !important;
+  }
+
+  /* Fixed, print-friendly map heights and keep each figure/table on one page. */
+  .leaflet-map {
+    height: 9cm !important;
+  }
+
+  figure,
+  .map-fig,
+  #data-table,
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Show every table row: undo any name-filter hiding and let the table print
+     in full, including the Significance/CI columns. */
+  #data-table {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.8rem;
+  }
+
+  .table-wrap {
+    overflow: visible !important;
+    border: none;
+  }
+
+  thead th,
+  th[scope="row"] {
+    position: static !important;
+  }
+
+  /* Hotspot rows keep their pattern marker but print with a plain background. */
+  tr.is-hotspot td {
+    background: transparent;
+  }
+
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+
+  details.faq {
+    break-inside: avoid;
+  }
+
+  details.faq > p {
+    display: block !important;
+  }
+}
+
 /* ---------------------------------------------------------------------------
  * Public submission form (submit.html). Accessible, native controls, generous
  * target sizes (>= 24px), clear focus and labels — the same WCAG 2.2 AA bar as

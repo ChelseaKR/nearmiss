@@ -20,7 +20,11 @@ import math
 
 import pytest
 
+from nearmiss.config import Config
+from nearmiss.models import CleanRecord, Exposure, Segment
+from nearmiss.stats import analyze
 from nearmiss.stats.getis_ord import benjamini_hochberg, getis_ord_star
+from nearmiss.stats.rates import rate_with_ci
 
 
 def test_getis_ord_star_pins_exact_zscores() -> None:
@@ -94,3 +98,87 @@ def test_benjamini_hochberg_ranks_by_pvalue_and_handles_edges() -> None:
     # Ordering is by p-value, NOT by key/insertion order: the significant id wins
     # even though it sorts LAST alphabetically.
     assert benjamini_hochberg({"z": 0.001, "a": 0.5}, 0.05) == {"z"}
+
+
+def _clean(report_id: str, segment_id: str, flags: tuple[str, ...] = ()) -> CleanRecord:
+    return CleanRecord(
+        report_id=report_id,
+        occurred_at="2026-06-10T12:00:00-07:00",
+        segment_id=segment_id,
+        hazard_type="close_pass",
+        severity="near_miss",
+        mode="cyclist",
+        snapped_distance_m=1.0,
+        quality_flags=flags,
+    )
+
+
+def test_quality_tier_split_primary_rate_excludes_low_confidence(config: Config) -> None:
+    """The PRIMARY rate is built from the N clean records only; the all-records
+    rate uses N+M; the sensitivity delta and excluded fraction are exact.
+
+    Segment ``seg-a`` has N=5 clean records and M=10 ``low_accuracy`` records over an
+    exposure of 1000 (so a rate is numerically its count). The primary rate must be
+    5/1000, the all-records rate 15/1000, and because 15 falls outside the Byar CI of
+    the primary count (5) the signed delta is reported. ``report_count``/``n`` stay the
+    all-records total. The excluded fraction is M / (N + M) = 10/15.
+    """
+    n_clean, m_low = 5, 10
+    records = [_clean(f"c-{i}", "seg-a") for i in range(n_clean)]
+    records += [_clean(f"l-{i}", "seg-a", ("low_accuracy",)) for i in range(m_low)]
+
+    segments = [
+        Segment(id="seg-a", name="A St", coords=((38.50, -121.70), (38.50, -121.699))),
+        # A second, report-free segment so Getis-Ord has >1 id; it must not perturb
+        # the excluded fraction (it contributes zero snapped records).
+        Segment(id="seg-b", name="B St", coords=((38.60, -121.60), (38.60, -121.599))),
+    ]
+    exposure = {
+        "seg-a": Exposure("seg-a", 1000.0, "test", "2026-01-01"),
+        "seg-b": Exposure("seg-b", 1000.0, "test", "2026-01-01"),
+    }
+
+    result = analyze(records, [], segments, exposure, config)
+    by_id = {s.segment_id: s for s in result.segments}
+    a = by_id["seg-a"]
+
+    # report_count / n stay the ALL-records total.
+    assert a.report_count == n_clean + m_low
+    assert a.n == n_clean + m_low
+
+    # Published rate is the PRIMARY (clean-only) rate.
+    rate_primary, _, hi_primary = rate_with_ci(
+        n_clean, 1000.0, config.rate_per, config.confidence_z
+    )
+    rate_all, _, _ = rate_with_ci(n_clean + m_low, 1000.0, config.rate_per, config.confidence_z)
+    assert a.rate == pytest.approx(rate_primary)
+    assert a.rate == pytest.approx(5.0)
+
+    # The all-records rate lands outside the primary CI, so a delta is reported.
+    assert rate_all > hi_primary
+    assert a.rate_sensitivity_delta == pytest.approx(round(rate_all - rate_primary, 4))
+    assert a.rate_sensitivity_delta == pytest.approx(10.0)
+
+    # Excluded fraction is exactly M / (N + M) across all snapped records (rounded).
+    assert result.excluded_low_confidence_fraction == round(m_low / (n_clean + m_low), 4)
+
+
+def test_quality_tier_no_delta_when_all_records_rate_inside_primary_ci(config: Config) -> None:
+    """A single excluded record that leaves the rate inside the primary CI reports
+    no delta (delta is only raised on a MATERIAL move), and never changes n."""
+    records = [_clean(f"c-{i}", "seg-a") for i in range(6)]
+    records.append(_clean("l-0", "seg-a", ("far_snap",)))
+    segments = [
+        Segment(id="seg-a", name="A St", coords=((38.50, -121.70), (38.50, -121.699))),
+        Segment(id="seg-b", name="B St", coords=((38.60, -121.60), (38.60, -121.599))),
+    ]
+    exposure = {
+        "seg-a": Exposure("seg-a", 1000.0, "test", "2026-01-01"),
+        "seg-b": Exposure("seg-b", 1000.0, "test", "2026-01-01"),
+    }
+    result = analyze(records, [], segments, exposure, config)
+    a = {s.segment_id: s for s in result.segments}["seg-a"]
+    assert a.report_count == 7  # all-records total unchanged by the split
+    assert a.rate == pytest.approx(6.0)  # primary rate = 6 clean records
+    assert a.rate_sensitivity_delta is None  # 7 is well within the CI of 6
+    assert result.excluded_low_confidence_fraction == round(1 / 7, 4)
