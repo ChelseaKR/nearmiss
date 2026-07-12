@@ -42,6 +42,38 @@ Two adapters exist today: `bikemaps` and `simra` (below). Both are `--from-file`
 no network, and both are exercised by `tests/test_adapters_conformance.py` in addition to their own
 fixture tests.
 
+## Official outcomes — national context, not an intake source
+
+Near-miss reports are a leading signal; official crash outcomes are a separate, lagging signal.
+nearmiss therefore does **not** force official records through `schema/report.schema.json` or register
+them as contributor `SourceAdapter`s. They implement the sibling `OfficialOutcomeAdapter` contract
+and validate against `schema/official-outcome.schema.json`.
+
+The first official adapter reads NHTSA Fatality Analysis Reporting System (FARS) crash-level
+`accident.csv` data from either an extracted CSV or NHTSA's nested national ZIP export:
+
+```python
+from nearmiss.adapters import FarsAdapter
+
+outcomes, provenance = FarsAdapter().parse(
+    "FARS2024NationalCSV.zip",
+    release_status="final",
+)
+```
+
+NHTSA describes FARS as a nationwide census of fatal motor-vehicle traffic crashes and publishes
+annual downloads from 1975 onward at the
+[official FARS data page](https://www.nhtsa.gov/research-data/fatality-analysis-reporting-system-fars).
+The crash table provides a nationwide baseline but cannot identify pedestrian or cyclist involvement
+by itself; that requires a later join to FARS `person.csv`. It also says nothing about nonfatal or
+unreported near misses. For file-backed exports, the adapter preserves the input SHA-256 along with
+the operator-supplied release label, source years, accepted count, and every rejection reason so later
+analysis can prove exactly what it used. Programmatic row iterables have no source-byte digest and are
+intended for controlled transformations and tests.
+
+This foundation is local/offline only. A later ingestion slice will add bounded acquisition, an
+expected-digest pin, immutable receipt, normalized artifact, and CLI path needed for scheduled use.
+
 ## 1. Incidents — real, and available today (BikeMaps.org)
 
 [BikeMaps.org](https://bikemaps.org) is a crowdsourced global map of cycling **collisions, near
@@ -268,3 +300,8 @@ nearmiss serve   # open web/index.html — the two maps now show real reports
 Steps 1 and 2 are solved today. **Step 3 (exposure) is the remaining real work** — and it is the
 input that distinguishes this project from a dot-map, so it is worth doing properly rather than
 faking.
+
+Last verified: 2026-07-12
+
+Recheck cadence: Quarterly, and before changing any external source URL, field mapping, or access
+claim.
