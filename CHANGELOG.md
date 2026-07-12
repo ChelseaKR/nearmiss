@@ -52,6 +52,26 @@ each will move here under its own `### Added` entry as it lands.
 
 ### Added
 
+- **Hashed CI installs.** `make lock-dev` compiles the dev toolchain (`.[dev]`: pytest, ruff, mypy,
+  pip-audit, babel, ...) to a new committed, hashed `requirements-dev.lock`. Every CI job in
+  `.github/workflows/ci.yml` now installs from it with `pip install --require-hashes`, then the local
+  package `--no-deps -e .`, instead of resolving `pip install -e ".[dev]"` fresh on every run. Closes
+  `audit-2026-07-05/nearmiss-REMEDIATION.md` P1-4.
+- **Single-sourced version strings.** `publish.py`'s embedded and sidecar metadata now read
+  `dataset_version` and `schema_version` from the new `src/nearmiss/versions.py`
+  (`DATASET_VERSION`, `DATASET_SCHEMA_VERSION`), instead of hand-duplicated `"0.1.0"` / `"1.0.0"`
+  literals; `models.Report.schema_version` reads the same module's `REPORT_SCHEMA_VERSION`. No
+  version string now exists in more than one place in the source.
+- **Tag-triggered release pipeline.** New `.github/workflows/release.yml`: on a `vX.Y.Z` tag, it
+  re-checks version consistency (tag == `pyproject.toml` == installed `__version__`) and the CHANGELOG
+  entry, re-runs `make verify` at the tagged commit, builds the sdist + wheel, generates a CycloneDX
+  1.7 SBOM, Sigstore-signs (keyless, OIDC) the sdist, wheel, SBOM, **and every published city
+  GeoJSON**, attaches SLSA build provenance, cuts a GitHub Release, and publishes to PyPI via Trusted
+  Publishing (OIDC — no stored token). See "How to verify a release" in
+  [`docs/DATA-CARD.md`](docs/DATA-CARD.md). **Not yet exercised**: no tag has been pushed and PyPI
+  Trusted Publishing has not yet been registered for this repository — see the NOTE at the top of
+  `release.yml`.
+
 - **Moderation transparency report** (`nearmiss moderate stats`). Publishes an aggregate, privacy-floored
   view of the moderation queue: submission totals by status (pending/approved/rejected), review-flag
   frequencies, rejection-reason **category** counts, and the median review latency in hours

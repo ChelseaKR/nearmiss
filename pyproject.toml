@@ -76,6 +76,14 @@ dev = [
 mutation = [
   "mutmut>=3.6",
 ]
+# The PEP 517 build front-end used ONLY by the tag-triggered release workflow
+# (`.github/workflows/release.yml`, `make release-build`) to build the sdist +
+# wheel via hatchling. Kept in its OWN optional group for the same reason as
+# `mutation` above: it never touches the `make verify` / pip-audit-scanned
+# surface that runs on every PR. Install on demand:  pip install -e ".[release]"
+release = [
+  "build>=1.2",
+]
 # EXP-12 "How to lie with heat maps" teaching module (docs/teaching/). Kept in
 # its OWN optional group, NOT in `dev`, for the same reason as `mutation`: the
 # `make verify` merge gate — and the blocking `pip-audit --strict` scan — audits

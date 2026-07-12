@@ -2,12 +2,13 @@
 #
 # Scope: keep the supply chain current without breaking reproducibility.
 #
-# Dependencies in this project are PINNED AND HASHED. `requirements.lock` (a
-# generated, fully pinned, hashed lockfile produced by `pip-compile
-# --generate-hashes` via `make lock`) is committed at the repo root; `uv.lock`
-# is also committed (see audit-2026-07-05/nearmiss-REMEDIATION.md P1-4 for the
-# plan to consolidate on one canonical lock CI actually installs from — CI
-# today still installs via `pip install -e ".[dev]"`). GitHub Actions in this
+# Dependencies in this project are PINNED AND HASHED. `requirements.lock` (runtime only) and
+# `requirements-dev.lock` (runtime + the full dev toolchain) are both generated, fully pinned,
+# hashed lockfiles produced by `pip-compile --generate-hashes` (`make lock` / `make lock-dev`),
+# committed at the repo root; CI installs from `requirements-dev.lock` with `--require-hashes`
+# (FIX-11, closes audit-2026-07-05/nearmiss-REMEDIATION.md P1-4). `uv.lock` is also committed;
+# whether to consolidate the whole toolchain onto `uv` instead of pip-tools remains an open,
+# separate decision — not resolved by this pinning. GitHub Actions in this
 # repo's workflows are SHA-pinned (every `uses:` carries a full commit SHA with
 # a `# vN` version comment); Dependabot (this file) and Renovate
 # (`renovate.json`, `helpers:pinGitHubActionDigestsToSemver`) both keep those

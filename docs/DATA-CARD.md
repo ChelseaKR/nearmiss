@@ -559,6 +559,43 @@ ways this kind of data is misused.
 - **Deprecation.** Superseded dataset versions remain identifiable by version and hash; consumers
   should pin the version they cite.
 
+### How to verify a release
+
+Starting with the first tagged release, every `vX.Y.Z` tag runs the release pipeline in
+[`.github/workflows/release.yml`](../.github/workflows/release.yml): it builds the Python
+package, generates a CycloneDX SBOM, keyless-signs the sdist, wheel, SBOM, **and every
+published `<city-slug>.geojson`** with [Sigstore](https://www.sigstore.dev/) cosign (no
+long-lived private key — the signer's identity is this repository's own GitHub Actions OIDC
+token, publicly logged to the [Rekor](https://docs.sigstore.dev/logging/overview/)
+transparency log), and attaches [SLSA](https://slsa.dev/) build provenance. Signing a data
+artifact (rather than only code) is unusual — it exists so a consumer can answer, offline and
+without trusting this README, "did this exact `davis.geojson` come from a tagged, CI-built
+release of `github.com/ChelseaKR/nearmiss`, unmodified since?"
+
+Every GitHub Release attaches a `<artifact>.sigstore.json` bundle (signature + certificate +
+Rekor inclusion proof) next to each signed file. To verify a downloaded `davis.geojson` against
+its bundle from the same release:
+
+```bash
+cosign verify-blob \
+  --bundle davis.geojson.sigstore.json \
+  --certificate-identity-regexp '^https://github\.com/ChelseaKR/nearmiss/' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  davis.geojson
+```
+
+A `Verified OK` result means: this file was signed by *this repository's own* release
+workflow, the signature is logged in Rekor (so a maintainer cannot quietly re-sign a tampered
+file later without leaving a public trace), and the file has not been altered since. Separately,
+`geojson_sha256` in the metadata sidecar (`davis.metadata.json`) lets you confirm content
+identity even without cosign installed. To additionally verify the SLSA provenance attestation
+(that the artifact was built by the expected GitHub Actions workflow from the expected source
+repository, not hand-crafted and uploaded):
+
+```bash
+gh attestation verify davis.geojson --owner ChelseaKR
+```
+
 ---
 
 ## License and citation

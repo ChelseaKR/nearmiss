@@ -12,6 +12,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
+from .versions import REPORT_SCHEMA_VERSION
+
 Mode = Literal["cyclist", "pedestrian", "wheelchair", "scooter", "other"]
 HazardType = Literal[
     "close_pass", "dooring", "surface_hazard", "sightline", "signal", "debris", "other"
@@ -53,7 +55,7 @@ class Report:
     mode: str
     hazard_type: str
     severity: str
-    schema_version: str = "1.0.0"
+    schema_version: str = REPORT_SCHEMA_VERSION
     accuracy_m: float | None = None
     heading_deg: float | None = None
     note: str | None = None
@@ -79,7 +81,7 @@ class Report:
             mode=str(d["mode"]),
             hazard_type=str(d["hazard_type"]),
             severity=str(d["severity"]),
-            schema_version=str(d.get("schema_version", "1.0.0")),
+            schema_version=str(d.get("schema_version", REPORT_SCHEMA_VERSION)),
             heading_deg=_opt_float(d.get("heading_deg")),
             note=_opt_str(d.get("note")),
             reporter_token=_opt_str(d.get("reporter_token")),
