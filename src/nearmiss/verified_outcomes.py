@@ -51,6 +51,7 @@ _DIRECTORY_FLAGS = (
 _FILE_FLAGS = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
 _PROOF_TOKEN = object()
 _JOINED_PROOF_TOKEN = object()
+_JOINED_SNAPSHOT_PROOF_TOKEN = object()
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _SEMVER_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 _SAFE_ATTEMPT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -246,6 +247,31 @@ class _ReceiptRecord:
 class _VerifiedGeneration:
     receipt: _ReceiptRecord
     artifact: Mapping[str, object]
+    normalized_bytes: bytes | None = None
+
+
+@dataclass(frozen=True, init=False)
+class _VerifiedJoinedSnapshot:
+    """Internal private handoff of bytes authenticated by the joined verifier."""
+
+    evidence: VerifiedJoinedOutcomeEvidence
+    normalized_bytes: bytes
+
+    def __init__(
+        self,
+        *,
+        evidence: VerifiedJoinedOutcomeEvidence,
+        normalized_bytes: bytes,
+        _proof_token: object,
+    ) -> None:
+        if (
+            _proof_token is not _JOINED_SNAPSHOT_PROOF_TOKEN
+            or type(normalized_bytes) is not bytes
+            or hashlib.sha256(normalized_bytes).hexdigest() != evidence.normalized_sha256
+        ):
+            raise VerificationError("verified joined snapshot invariants are invalid")
+        object.__setattr__(self, "evidence", evidence)
+        object.__setattr__(self, "normalized_bytes", normalized_bytes)
 
 
 def _fail(message: str) -> NoReturn:
@@ -547,7 +573,10 @@ def _verify_generation(
     if provenance["input_sha256"] != raw_digest:
         _fail("FARS lineage artifact provenance does not match the raw artifact")
     _replay(raw, normalized, artifact)
-    return _VerifiedGeneration(receipt=receipt, artifact=artifact)
+    return _VerifiedGeneration(
+        receipt=receipt,
+        artifact=artifact,
+    )
 
 
 def _generation_key(receipt: _ReceiptRecord) -> tuple[str, str]:
@@ -570,7 +599,10 @@ def _verify_success_chain(
         if receipt.receipt["previous_normalized_sha256"] != expected_previous:
             _fail("FARS lineage predecessor link is invalid")
         if previous is not None and _generation_key(receipt) == _generation_key(previous.receipt):
-            generation = _VerifiedGeneration(receipt=receipt, artifact=previous.artifact)
+            generation = _VerifiedGeneration(
+                receipt=receipt,
+                artifact=previous.artifact,
+            )
         else:
             generation = _verify_generation(receipt, raw_hashes, normalized_hashes)
         if previous is not None:
@@ -807,7 +839,11 @@ def _verify_joined_generation(
     if crash["input_sha256"] != raw_digest or person["input_sha256"] != raw_digest:
         _fail("joined FARS artifact provenance does not match the raw artifact")
     _replay_joined(raw, normalized, artifact)
-    return _VerifiedGeneration(receipt=receipt, artifact=artifact)
+    return _VerifiedGeneration(
+        receipt=receipt,
+        artifact=artifact,
+        normalized_bytes=normalized,
+    )
 
 
 def _verify_joined_chain(
@@ -824,7 +860,11 @@ def _verify_joined_chain(
         generation_key = _generation_key(receipt)
         normalized_digest = generation_key[1]
         if previous is not None and generation_key == _generation_key(previous.receipt):
-            generation = _VerifiedGeneration(receipt=receipt, artifact=previous.artifact)
+            generation = _VerifiedGeneration(
+                receipt=receipt,
+                artifact=previous.artifact,
+                normalized_bytes=previous.normalized_bytes,
+            )
         elif normalized_digest in seen_normalized:
             _fail("joined FARS lineage reused an older normalized generation")
         else:
@@ -866,8 +906,15 @@ def _joined_evidence_from(
     )
 
 
-def verify_active_fars_joined(root: str | Path) -> VerifiedJoinedOutcomeEvidence:
-    """Verify the complete active joined-FARS lineage without returning record data."""
+def _load_verified_active_fars_joined_snapshot(root: str | Path) -> _VerifiedJoinedSnapshot:
+    """Return the exact immutable joined bytes authenticated through secure descriptors.
+
+    This is an intentionally private derivation seam.  Public callers must use
+    :func:`verify_active_fars_joined`, which projects only safe aggregate
+    evidence.  Keeping the normalized bytes captured on ``_VerifiedGeneration``
+    means a private downstream builder never verifies one inode and then reopens
+    a mutable path to obtain precise records.
+    """
     _require_posix_filesystem_support()
     with ExitStack() as stack:
         root_fd = _open_root(root)
@@ -903,4 +950,15 @@ def verify_active_fars_joined(root: str | Path) -> VerifiedJoinedOutcomeEvidence
         if final_digest != current_digest or final_current != current_bytes:
             _fail("joined FARS active receipt changed during verification")
         _lock_absent(source_fd)
-        return _joined_evidence_from(current, active.artifact)
+        if active.normalized_bytes is None:  # pragma: no cover - joined verifier invariant
+            _fail("joined FARS verified generation lost its normalized snapshot")
+        return _VerifiedJoinedSnapshot(
+            evidence=_joined_evidence_from(current, active.artifact),
+            normalized_bytes=active.normalized_bytes,
+            _proof_token=_JOINED_SNAPSHOT_PROOF_TOKEN,
+        )
+
+
+def verify_active_fars_joined(root: str | Path) -> VerifiedJoinedOutcomeEvidence:
+    """Verify the complete active joined-FARS lineage without returning record data."""
+    return _load_verified_active_fars_joined_snapshot(root).evidence

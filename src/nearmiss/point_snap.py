@@ -22,6 +22,7 @@ from .models import Segment
 from .spatial_index import SpatialIndex
 
 PointSnapStatus = Literal["snapped", "ambiguous", "unsnapped"]
+POINT_SNAP_METHOD_VERSION = "1.0.0"
 
 # Dense index samples make long, two-vertex road segments discoverable near
 # their midpoint.  A query padded by half this step contains every polyline
@@ -44,6 +45,35 @@ _MAX_SEGMENTS = 250_000
 _MAX_TOTAL_COORDINATES = 2_000_000
 _MAX_PROJECTED_EDGE_M = 100_000.0
 _MAX_INDEX_SAMPLES = 2_000_000
+
+
+def point_snap_method_descriptor() -> dict[str, object]:
+    """Return the closed method/cap contract used by snap execution.
+
+    Returning a fresh mapping prevents callers from mutating module state.
+    Every value comes from the constants used below, so a reviewed behavior or
+    safety-cap change necessarily changes downstream context method hashes.
+    """
+
+    return {
+        "version": POINT_SNAP_METHOD_VERSION,
+        "decision_tolerance_m": DECISION_TOLERANCE_M,
+        "densification_step_m": _DENSIFY_STEP_M,
+        "index_epsilon_m": _INDEX_EPSILON_M,
+        "index_padding_rule": "half_densification_step_plus_index_epsilon",
+        "decision_radius_rule": "max_distance_plus_ambiguity_margin_plus_decision_tolerance",
+        "distance_rule": "nearest_distance_lte_max_distance_plus_decision_tolerance",
+        "ambiguity_rule": ("runner_up_minus_nearest_lte_ambiguity_margin_plus_decision_tolerance"),
+        "caps": {
+            "max_distance_m": _MAX_DISTANCE_M,
+            "max_id_length": _MAX_ID_LENGTH,
+            "max_points": _MAX_POINTS,
+            "max_segments": _MAX_SEGMENTS,
+            "max_total_coordinates": _MAX_TOTAL_COORDINATES,
+            "max_projected_edge_m": _MAX_PROJECTED_EDGE_M,
+            "max_index_samples": _MAX_INDEX_SAMPLES,
+        },
+    }
 
 
 @dataclass(frozen=True)
@@ -350,8 +380,11 @@ def snap_points_to_segments(
 
 
 __all__ = [
+    "DECISION_TOLERANCE_M",
+    "POINT_SNAP_METHOD_VERSION",
     "PointSnapResult",
     "PointSnapStatus",
     "SnapPoint",
+    "point_snap_method_descriptor",
     "snap_points_to_segments",
 ]
