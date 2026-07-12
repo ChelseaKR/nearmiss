@@ -17,6 +17,31 @@ the correction side by side (see [`web/README.md`](../web/README.md)).
 A real city needs **three** inputs (the same three the demo fixtures provide). They differ wildly in
 how available they are.
 
+## Source adapters
+
+Incident sources (this section) are implemented as **source adapters**: a `SourceAdapter`
+(`src/nearmiss/adapters/base.py`) is a small `fetch()`/`parse()` contract, and the source-specific
+vocabulary mapping — the crosswalk tables below rendered as prose — is **declarative data**, not code:
+a TOML manifest per source under `src/nearmiss/adapters/crosswalks/`. Adding a new source (a city
+311/SeeClickFix export, an advocacy-group spreadsheet, …) is meant to touch no pipeline code: write a
+crosswalk TOML, a small adapter module that reads that source's file format, and a conformance test
+(`tests/test_adapters_conformance.py` round-trips every registered adapter's output through
+`validation.validate_report`).
+
+Every adapter also returns a **provenance block** alongside its reports — not part of the report
+payload itself (`schema/report.schema.json` sets `additionalProperties: false` on purpose, so
+provenance never gets tangled with the schema-validated payload), but a sibling record naming the
+source, its license, and, critically, **that source's own reporting-bias profile** (`bias_label` +
+`bias_notes`). This is what lets an imported dataset carry its own honesty into `stats/bias.py`'s
+narrative and this project's data card, rather than quietly averaging every source's skew into one
+undifferentiated pile of points — see each source's crosswalk manifest for its specific biases, and
+[`docs/DATA-CARD.md`](DATA-CARD.md#known-reporting-biases-who-is-over--and-under-represented) for how
+that shows up in the published dataset's own documentation.
+
+Two adapters exist today: `bikemaps` and `simra` (below). Both are `--from-file`/`--dir` testable with
+no network, and both are exercised by `tests/test_adapters_conformance.py` in addition to their own
+fixture tests.
+
 ## 1. Incidents — real, and available today (BikeMaps.org)
 
 [BikeMaps.org](https://bikemaps.org) is a crowdsourced global map of cycling **collisions, near
@@ -62,6 +87,57 @@ conflict — honesty over precision we don't have.
 
 BikeMaps publishes its points publicly (already slightly fuzzed for privacy), so using them does not
 re-expose anyone; we still aggregate to segments downstream like any other source.
+
+The full crosswalk (including every rule's stated rationale) is the machine-readable source of truth
+at `src/nearmiss/adapters/crosswalks/bikemaps.toml`; this table is a rendering of it for readers who
+don't want to open a TOML file.
+
+## 1b. Incidents — SimRa (TU Berlin), the second source adapter
+
+[SimRa](https://github.com/simra-project/dataset) (TU Berlin) is a crowdsourced, openly-published
+dataset of **bicycle near-crashes** with GPS, collected via a research-partner smartphone app. It is
+unusual among real-data sources in that the same download also carries the *ride* GPS traces — a
+natural exposure denominator (not wired into `tools/build_exposure.py` yet; see the exposure section
+below) — alongside the annotated incidents.
+
+`tools/fetch_simra.py` (the second `SourceAdapter` implementation, landing what had been an unmerged
+branch) reads a directory of SimRa ride files — each one a CSV-like block of annotated incident rows,
+a divider line, then the raw GPS trace — and emits reports in the intake contract:
+
+```bash
+# A downloaded SimRa region folder (or a parent directory of several):
+python tools/fetch_simra.py --dir path/to/SimRa/Berlin_2023_03 --out reports.json
+
+# Restrict to a known city's bounding box (berlin, london, munich):
+python tools/fetch_simra.py --dir path/to/SimRa --city berlin --out reports.json
+```
+
+SimRa has no live API — you download a region's data from the
+[simra-project/dataset](https://github.com/simra-project/dataset) repository (or a research partner's
+mirror) and point `--dir` at it, which is also why this source needs no network egress allowlisting.
+
+### Crosswalk (SimRa → intake)
+
+Derived from the SimRa incident-code enum (Close pass, pulling in/out, near left/right hook, head-on,
+tailgating, near-dooring, dodging an obstacle, other). SimRa records near-misses only — there is no
+injury/outcome field at all — so **every** SimRa report is intake `severity: near_miss`; this source
+alone can never speak to collision severity.
+
+| SimRa `incident` code | intake field | Mapping |
+|---|---|---|
+| (any row) | `severity` | `near_miss` (SimRa has no injury/outcome field) |
+| `1` (Close pass) | `hazard_type` | `close_pass` |
+| `7` (near-dooring) | `hazard_type` | `dooring` |
+| `8` (dodging an obstacle) | `hazard_type` | `surface_hazard` |
+| `2`-`6`, `9` (pulling in/out, near hook, head-on, tailgating, other) | `hazard_type` | `other` (no generic "vehicle conflict" type) |
+| epoch-ms `ts` | `occurred_at` | converted to RFC 3339 UTC |
+| (reporter is a cyclist) | `mode` | `cyclist` |
+
+The full crosswalk (with rationale) is `src/nearmiss/adapters/crosswalks/simra.toml`. SimRa's own bias
+profile — app-recruited, region-limited, near-miss-detection-only — is in that manifest's
+`bias_notes` and is meaningfully different from BikeMaps': combining the two sources without naming
+each one's skew separately would be exactly the kind of averaging-away this project's bias rule (HR3)
+exists to prevent.
 
 ## 2. Street network — real, available today (OpenStreetMap)
 

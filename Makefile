@@ -33,13 +33,17 @@ PUBLISHED_DIR := data/published
 
 .PHONY: help install lock lock-dev lint type test accessibility axe rtl security verify \
         conformance i18n i18n-compile i18n-pseudo claims \
-        reproduce sensitivity demo teach publish serve bench bikemaps osm-streets real clean mutation release-build
+        reproduce sensitivity demo teach publish serve bench bikemaps simra osm-streets real clean mutation release-build
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
 # Override CITY and the output paths as needed.
 CITY            ?= victoria
 BIKEMAPS_OUT    ?= build/$(CITY)-reports.json
 OSM_STREETS_OUT ?= build/$(CITY)-streets.geojson
+# SimRa ships as a downloaded directory of ride files, not a live API — point
+# SIMRA_DIR at one (see docs/REAL-DATA.md) before running `make simra`.
+SIMRA_DIR       ?= data/simra/$(CITY)
+SIMRA_OUT       ?= build/$(CITY)-simra-reports.json
 # `make real` assembles the three inputs for a committed real config (davis,
 # sacramento) into its gitignored input dir. Provide COUNTS=path to a bike-count
 # file (GeoJSON points or CSV) for the exposure step; omit it to leave exposure
@@ -237,6 +241,13 @@ bikemaps: ## Fetch REAL near-miss reports from BikeMaps.org (CITY=victoria) into
 	$(PYTHON) tools/fetch_bikemaps.py --city $(CITY) --out $(BIKEMAPS_OUT)
 	@echo "bikemaps: real reports in $(BIKEMAPS_OUT) (intake schema)."
 	@echo "          Next: real streets + exposure, then 'nearmiss run' — see docs/REAL-DATA.md."
+
+simra: ## Convert a downloaded SimRa directory (SIMRA_DIR) into intake reports at SIMRA_OUT
+	@mkdir -p $(dir $(SIMRA_OUT))
+	$(PYTHON) tools/fetch_simra.py --dir $(SIMRA_DIR) --out $(SIMRA_OUT)
+	@echo "simra: real reports in $(SIMRA_OUT) (intake schema)."
+	@echo "       SimRa ships as a directory, not a live API — pass CITY=berlin|london|munich"
+	@echo "       to bbox-filter, or see docs/REAL-DATA.md for the full recipe."
 
 osm-streets: ## Fetch the REAL OSM street network (CITY=victoria) into OSM_STREETS_OUT
 	@mkdir -p $(dir $(OSM_STREETS_OUT))

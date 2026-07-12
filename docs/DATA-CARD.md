@@ -430,6 +430,14 @@ baselines; the briefs restate the relevant ones in plain language.
   reported than mundane chronic hazards; report mix is not an unbiased sample of all hazards.
 - **Temporal and campaign bias.** A local campaign, a news story, or a crash can cause a
   reporting spike that is about attention, not a change in danger.
+- **Per-source bias when reports are imported from a real-data source.** Each source adapter
+  (`src/nearmiss/adapters/`, see [`docs/REAL-DATA.md`](REAL-DATA.md#source-adapters)) carries its
+  own `bias_label` and `bias_notes` in its crosswalk manifest — e.g. BikeMaps.org skews toward
+  self-selected app-user cyclists in cities where it has been promoted, while SimRa skews toward
+  app-recruited riders in a handful of research-partner regions and can only ever report
+  near-misses, never collision severity. A published dataset assembled from more than one source
+  should name each source's bias separately rather than blend them into one undifferentiated
+  reporter-pool description.
 
 **Net effect:** treat the dataset as a biased sample of *reported* near misses, partially
 corrected for traffic by exposure, with residual bias that cannot be fully removed. Findings
