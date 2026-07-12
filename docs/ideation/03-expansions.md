@@ -200,6 +200,11 @@ cited and exceeded, and everything respects the panel's anti-features list
   it does poorly.
 
 ### EXP-10 — HR1–HR5 conformance verifier for forks and instances
+- **Status:** ✅ Done (2026-07-02). Shipped as `tools/verify_dataset.py` (stdlib-only
+  CLI: JSON verdict + 0/1 exit), covered by `tests/test_verify_dataset.py` (both
+  committed datasets pass; a corrupted fixture fails each of HR1–HR5 individually), and
+  wired into `make conformance` / `make verify`. The verdict is scoped to the artifact,
+  not the publisher's conduct.
 - **Pitch:** A runnable checker that audits any nearmiss-style published artifact
   for the five hard rules — denominator present or honestly absent, intervals on
   every rate, bias statement present, k-anonymity floor respected, reproducibility
