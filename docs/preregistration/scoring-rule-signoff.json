@@ -1,0 +1,9 @@
+{
+  "_comment": "Human-editable sign-off record for the EXP-16 prospective-evaluation scoring rule. A statistician reviews docs/PREREGISTRATION.md's 'Scoring rule' section against a real registration artifact and edits this file to record their verdict. `nearmiss preregister` reads this file and stamps its verdict into every registration artifact it writes, so the honesty gate travels with the artifact instead of living only in a doc nobody re-checks.",
+  "rule_version": "v1-draft",
+  "status": "pending_statistician_review",
+  "reviewer_name": null,
+  "reviewer_affiliation": null,
+  "reviewed_at": null,
+  "notes": "Not yet reviewed. Registrations produced while status is 'pending_statistician_review' are DRAFTS ONLY and must not be cited as evidence of predictive validity — see docs/PREREGISTRATION.md."
+}
