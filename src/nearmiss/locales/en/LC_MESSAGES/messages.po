@@ -67,6 +67,18 @@ msgstr ""
 "**Exposure coverage:** {pct}% of segments have an exposure denominator. "
 "Segments without one are listed as *exposure unknown*, not ranked."
 
+#, python-brace-format
+msgid ""
+"**Null calibration (we attacked our own dataset):** on {n} seeded label-"
+"shuffles of this city's own reports, with exposure and geometry held "
+"fixed, the hotspot method's empirical false-positive rate was {pct}% — "
+"see `{file}`."
+msgstr ""
+"**Null calibration (we attacked our own dataset):** on {n} seeded label-"
+"shuffles of this city's own reports, with exposure and geometry held "
+"fixed, the hotspot method's empirical false-positive rate was {pct}% — "
+"see `{file}`."
+
 msgid ""
 "**Over-represented vs exposure** (more reports than traffic alone "
 "predicts):"

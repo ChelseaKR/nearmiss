@@ -70,6 +70,18 @@ msgstr ""
 "denominador de exposición. Los que no lo tienen aparecen como *exposición"
 " desconocida*, sin ranking."
 
+#, python-brace-format
+msgid ""
+"**Null calibration (we attacked our own dataset):** on {n} seeded label-"
+"shuffles of this city's own reports, with exposure and geometry held "
+"fixed, the hotspot method's empirical false-positive rate was {pct}% — "
+"see `{file}`."
+msgstr ""
+"**Calibración nula (pusimos a prueba nuestro propio conjunto de datos):**"
+" en {n} barajados aleatorios con semilla de los propios reportes de esta"
+" ciudad, con la exposición y la geometría fijas, la tasa empírica de "
+"falsos positivos del método fue del {pct}% — ver `{file}`."
+
 msgid ""
 "**Over-represented vs exposure** (more reports than traffic alone "
 "predicts):"

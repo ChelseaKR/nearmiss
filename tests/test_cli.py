@@ -150,6 +150,51 @@ def test_figures_to_out_dir(tmp_path: Path) -> None:
     assert list(figdir.iterdir())
 
 
+# --------------------------------------------------------------------------- #
+# null calibration (EXP-01: "we attacked our own dataset")
+# --------------------------------------------------------------------------- #
+def test_analyze_calibrate_writes_calibration_json(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    caldir = tmp_path / "cal"
+    code = main(
+        [
+            "analyze",
+            "--config",
+            str(_config(tmp_path)),
+            "--calibrate",
+            "--n-shuffles",
+            "20",
+            "--seed",
+            "3",
+            "--out",
+            str(caldir),
+        ]
+    )
+    assert code == 0
+    [written] = list(caldir.glob("*.calibration.json"))
+    payload = json.loads(written.read_text(encoding="utf-8"))
+    assert payload["n_shuffles"] == 20
+    assert payload["seed"] == 3
+    assert payload["city"] == "Davis"
+    assert "false_positive_rate" in payload
+    assert "interpretation" in payload
+    out = capsys.readouterr().out
+    assert "calibrate [Davis]" in out
+
+
+def test_analyze_without_calibrate_does_not_write_calibration_json(tmp_path: Path) -> None:
+    caldir = tmp_path / "out"
+    assert main(["analyze", "--config", str(_config(tmp_path))]) == 0
+    assert not list(caldir.glob("*.calibration.json"))
+
+
+def test_analyze_calibrate_defaults_to_out_dir(tmp_path: Path) -> None:
+    cfg = _config(tmp_path)
+    assert main(["analyze", "--config", str(cfg), "--calibrate", "--n-shuffles", "5"]) == 0
+    assert list((tmp_path / "out").glob("*.calibration.json"))
+
+
 def test_run_end_to_end(tmp_path: Path) -> None:
     out = tmp_path / "run-brief.md"
     assert main(["run", "--config", str(_config(tmp_path)), "--out", str(out)]) == 0

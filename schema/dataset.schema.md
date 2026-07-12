@@ -23,6 +23,14 @@ top-level [`metadata`](#2-top-level-structure) foreign member. The sidecar
 and the full methods and summary; it is the integrity manifest for the GeoJSON. The plain-language
 [data card](../docs/DATA-CARD.md) lives at `docs/DATA-CARD.md`.
 
+A third, optional file, `<city-slug>.calibration.json`, is written by `nearmiss analyze --calibrate`
+(`src/nearmiss/stats/calibration.py`; see `docs/METHODOLOGY.md` §9.4). It is a per-dataset
+null-calibration artifact: the empirical false-positive rate of the hotspot method, measured by
+label-shuffling this city's own report counts with exposure and geometry held fixed. It carries only
+aggregate statistics (shuffle count, seed, segments tested, mean/max false positives, the resulting
+rate) — never a per-shuffle or per-segment listing — and is absent for a city until `--calibrate` has
+been run for it.
+
 It is written to the same standard as the rest of the project: it should hold up when a skeptical
 traffic engineer pushes back. Every property that carries a risk claim is defined so that the
 [five hard rules](../README.md#hard-rules-enforced-not-aspirational) (referenced below as

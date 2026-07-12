@@ -51,7 +51,12 @@ therefore not a pile of pins. It is:
    structure — plus
 4. a **self-describing top-level `metadata` member** embedded in the GeoJSON itself, plus a
    machine-readable **metadata sidecar** (`<city-slug>.metadata.json`) recording sources,
-   dates, methods, thresholds, totals, and the content hash for reproducibility.
+   dates, methods, thresholds, totals, and the content hash for reproducibility, plus
+5. an optional **null-calibration artifact** (`<city-slug>.calibration.json`, written by
+   `nearmiss analyze --calibrate`) — "we attacked our own dataset": the hotspot method run
+   against many seeded label-shuffles of this city's own report counts, exposure and geometry
+   held fixed, publishing the method's *empirical false-positive rate on this city's actual
+   network* (`docs/METHODOLOGY.md` §9.4), not just on an invented test fixture.
 
 The dataset is the product, not an app. The accessible web map and table are just two views
 of these published artifacts.
