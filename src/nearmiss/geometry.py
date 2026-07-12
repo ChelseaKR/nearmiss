@@ -5,31 +5,30 @@ about a reference latitude. For a single city this is accurate to well within
 the precision the analysis needs, and it avoids any native geospatial
 dependency, so the pipeline runs anywhere Python runs. The approximation and its
 limits are documented in ``docs/METHODOLOGY.md``.
+
+``project``, ``haversine_m``, and ``projection_margin_m`` are generic (no
+street, segment, or nearmiss-specific concept in them) and now live in the
+standalone `honest_rates
+<https://github.com/ChelseaKR/nearmiss/tree/main/src/honest_rates>`_ library
+(roadmap item EXP-08); they are re-exported here under nearmiss's historical
+import path. ``point_to_polyline_m`` and ``polyline_centroid`` are
+street-segment-specific (they operate on a polyline of street-segment
+vertices) and stay local to nearmiss.
 """
 
 from __future__ import annotations
 
 import math
 
-_M_PER_DEG_LAT = 110_540.0
-_M_PER_DEG_LON_EQ = 111_320.0
+from honest_rates.geometry import haversine_m, project, projection_margin_m
 
-
-def project(lat: float, lon: float, lat0: float, lon0: float) -> tuple[float, float]:
-    """Project (lat, lon) to local metres (x east, y north) about (lat0, lon0)."""
-    x = (lon - lon0) * _M_PER_DEG_LON_EQ * math.cos(math.radians(lat0))
-    y = (lat - lat0) * _M_PER_DEG_LAT
-    return x, y
-
-
-def haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Great-circle distance in metres (used for reference / sanity checks)."""
-    r = 6_371_000.0
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    dp = math.radians(lat2 - lat1)
-    dl = math.radians(lon2 - lon1)
-    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
-    return 2 * r * math.asin(min(1.0, math.sqrt(a)))
+__all__ = [
+    "haversine_m",
+    "point_to_polyline_m",
+    "polyline_centroid",
+    "project",
+    "projection_margin_m",
+]
 
 
 def _point_seg_dist_xy(px: float, py: float, ax: float, ay: float, bx: float, by: float) -> float:
@@ -60,23 +59,6 @@ def point_to_polyline_m(
         if d < best:
             best = d
     return best
-
-
-def projection_margin_m(radius_m: float) -> float:
-    """Safety margin (metres) to pad a metric search radius built on ``project()``.
-
-    ``project()`` scales longitude by ``cos(lat0)`` at a single reference latitude,
-    not each point's own latitude, so distances between points far from ``lat0``
-    are systematically over- or under-stated relative to the true great-circle
-    (haversine) distance. For any real deployment (a single city, spanning at
-    most a couple of degrees of latitude from its reference point) that residual
-    error is well under 1%, but a fixed spatial-index search radius must still be
-    padded by more than the worst case so it can never under-count true
-    candidates — the earlier "raw degrees, fixed 3x3 window" bug in dedupe.py is
-    exactly what under-counting looks like. 10% plus a flat floor comfortably
-    covers city-scale deployments while costing only a few extra candidates.
-    """
-    return radius_m * 0.10 + 5.0
 
 
 def polyline_centroid(coords: tuple[tuple[float, float], ...]) -> tuple[float, float]:

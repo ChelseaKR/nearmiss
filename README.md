@@ -467,7 +467,11 @@ exposure sources, and statistics via adapters and config. **Adaptability** — p
 city with a config and an exposure layer. **Modularity**, **composability**, **orthogonality** —
 intake, pipeline, exposure, statistics, publish, and brief are independent stages. **Simplicity** —
 plain data between stages; no hidden state. **Reusability** — the exposure-normalization and hotspot
-code are usable on any point dataset. **Analyzability** — typed, documented, with a methodology doc.
+code are extracted as [`honest_rates`](src/honest_rates/README.md), a standalone, dependency-free
+library with no nearmiss import anywhere in it, usable on any point-event dataset (nearmiss is its
+first consumer — see [`src/nearmiss/stats/rates.py`](src/nearmiss/stats/rates.py) and
+[`src/nearmiss/stats/getis_ord.py`](src/nearmiss/stats/getis_ord.py)). **Analyzability** — typed,
+documented, with a methodology doc.
 **Configurability**, **customizability**, **tailorability** — config-over-code is implemented:
 [`config/davis-demo.toml`](config/davis-demo.toml), loaded by
 [`src/nearmiss/config.py`](src/nearmiss/config.py), controls the city, the three input paths, every

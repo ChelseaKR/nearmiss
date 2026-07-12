@@ -20,9 +20,19 @@ Deliberately narrow, aimed at the highest-stakes numerical routines:
 
 | Module | What it computes | Why it is in scope |
 | --- | --- | --- |
-| `src/nearmiss/stats/getis_ord.py` | Getis-Ord Gi\* local hotspot z-score + Benjamini-Hochberg FDR control | The hotspot verdict itself. A sign flip or off-by-one here corrupts a published hotspot without failing a coarse test. |
-| `src/nearmiss/stats/rates.py` | Byar Poisson and Wilson confidence intervals | Produces the exposure-normalized rate the hotspot runs on. |
+| `src/honest_rates/hotspot.py` | Getis-Ord Gi\* local hotspot z-score + Benjamini-Hochberg FDR control | The hotspot verdict itself. A sign flip or off-by-one here corrupts a published hotspot without failing a coarse test. |
+| `src/honest_rates/rates.py` | Byar Poisson and Wilson confidence intervals + quasi-Poisson dispersion/widening | Produces the exposure-normalized rate the hotspot runs on. |
+| `src/nearmiss/stats/maup.py` | MAUP rank-stability re-segmentation (RR-05) | A dropped sign or a `<`/`<=` slip in the coarse-unit ranking or survives/overlap logic would silently misreport robustness. |
 | `src/nearmiss/network.py` | Street-network adjacency graph + band-bounded Dijkstra deciding Gi\*'s neighbor map (FIX-02) | An off-by-one in the node-snap tolerance or the network-distance band cutoff silently redraws which segments count as neighbors, without failing a coarse test. |
+
+As of roadmap item EXP-08, the rate/hotspot numerical core was extracted into
+the standalone `src/honest_rates/` library (see `src/honest_rates/README.md`);
+`src/nearmiss/stats/getis_ord.py` and `src/nearmiss/stats/rates.py` are now
+thin re-export shims with no logic of their own left to mutate, so mutation
+targets the extracted library directly (the MAUP and network modules remain
+nearmiss-domain code, mutated in place). The existing nearmiss test suite
+still serves as the kill oracle, since it exercises this code through
+nearmiss's re-exported import paths.
 
 Configuration lives in `[tool.mutmut]` in `pyproject.toml`. mutmut reuses the
 existing pytest suite (`test_hotspot.py`, `test_fdr.py`, `test_rates.py`,
