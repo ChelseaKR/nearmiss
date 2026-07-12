@@ -1,0 +1,750 @@
+{
+  "$id": "https://nearmiss.dev/schema/private-fars-context.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Private, k-suppressed fatal-crash co-location context. This is not a public dataset and contains only eligible segment/time/involved-mode count cells.",
+  "properties": {
+    "accounting": {
+      "additionalProperties": false,
+      "properties": {
+        "ambiguous_crashes": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "crash_contribution_total": {
+          "maximum": 217782,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "eligible_cell_count": {
+          "maximum": 217782,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "eligible_crash_contribution_total": {
+          "maximum": 217782,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "positive_candidate_cell_count": {
+          "maximum": 217782,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "records_in_window": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "records_outside_window": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "records_received": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "suppressed_crash_contribution_total": {
+          "maximum": 217782,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "suppressed_positive_cell_count": {
+          "maximum": 217782,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "uniquely_snapped_crashes": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "uniquely_snapped_timed_crashes": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "uniquely_snapped_unknown_time_crashes": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unsnapped_crashes": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "records_received",
+        "records_outside_window",
+        "records_in_window",
+        "uniquely_snapped_crashes",
+        "ambiguous_crashes",
+        "unsnapped_crashes",
+        "uniquely_snapped_timed_crashes",
+        "uniquely_snapped_unknown_time_crashes",
+        "positive_candidate_cell_count",
+        "eligible_cell_count",
+        "suppressed_positive_cell_count",
+        "crash_contribution_total",
+        "eligible_crash_contribution_total",
+        "suppressed_crash_contribution_total"
+      ],
+      "type": "object"
+    },
+    "artifact_type": {
+      "const": "nearmiss.private.fars_context"
+    },
+    "caveat": {
+      "const": "Fatal-crash co-location context only. It is not record linkage, not outcome validation, not causal evidence, not a measure of nonfatal risk, not a location ranking, not an intervention effect estimate, and not exposure-normalized risk. Involved-mode cells overlap and are non-additive; snapping and exclusions can bias coverage."
+    },
+    "cells": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "crash_count": {
+            "maximum": 36297,
+            "minimum": 5,
+            "type": "integer"
+          },
+          "involved_mode": {
+            "enum": [
+              "motor_vehicle_occupant",
+              "motorcyclist",
+              "pedalcyclist",
+              "pedestrian",
+              "other_road_user",
+              "unknown_mode"
+            ],
+            "type": "string"
+          },
+          "part_of_day": {
+            "enum": [
+              "overnight",
+              "am_peak",
+              "midday",
+              "pm_peak",
+              "evening",
+              "unknown_time"
+            ],
+            "type": "string"
+          },
+          "segment_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^(?!.*[\\x00-\\x1f\\x7f\\ud800-\\udfff])\\S(?:.*\\S)?$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "segment_id",
+          "part_of_day",
+          "involved_mode",
+          "crash_count"
+        ],
+        "type": "object"
+      },
+      "maxItems": 217782,
+      "type": "array"
+    },
+    "city_key": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^(?!.*[\\x00-\\x1f\\x7f\\ud800-\\udfff])\\S(?:.*\\S)?$",
+      "type": "string"
+    },
+    "input_lineage": {
+      "additionalProperties": false,
+      "properties": {
+        "config_raw_byte_count": {
+          "maximum": 1048576,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "config_raw_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "network_canonical_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "network_coordinate_count": {
+          "maximum": 2000000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "network_raw_byte_count": {
+          "maximum": 67108864,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "network_raw_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "network_segment_count": {
+          "maximum": 250000,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "config_raw_sha256",
+        "config_raw_byte_count",
+        "network_raw_sha256",
+        "network_raw_byte_count",
+        "network_canonical_sha256",
+        "network_segment_count",
+        "network_coordinate_count"
+      ],
+      "type": "object"
+    },
+    "method": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "additionalProperties": false,
+          "properties": {
+            "algorithm": {
+              "const": "segment_part_of_day_involved_mode_fatal_crash_colocation"
+            },
+            "algorithm_version": {
+              "const": "1.0.0"
+            },
+            "artifact_schema_version": {
+              "const": "1.0.0"
+            }
+          },
+          "required": [
+            "algorithm",
+            "algorithm_version",
+            "artifact_schema_version"
+          ],
+          "type": "object"
+        },
+        "limitation_codes": {
+          "const": [
+            "fatal_crash_colocation_only",
+            "not_record_linkage",
+            "not_outcome_validation",
+            "not_causal_attribution",
+            "not_nonfatal_risk",
+            "not_location_ranking",
+            "not_intervention_effect",
+            "not_exposure_normalized_risk",
+            "involved_mode_strata_non_additive",
+            "snapping_and_exclusions_bias_coverage"
+          ]
+        },
+        "mode": {
+          "additionalProperties": false,
+          "properties": {
+            "crash_basis": {
+              "const": "one_contribution_per_crash_per_distinct_involved_mode"
+            },
+            "mapping_version": {
+              "const": "1.0.0"
+            },
+            "output_order": {
+              "const": [
+                "motor_vehicle_occupant",
+                "motorcyclist",
+                "pedalcyclist",
+                "pedestrian",
+                "other_road_user",
+                "unknown_mode"
+              ]
+            },
+            "source_order": {
+              "const": [
+                "motor_vehicle_occupant",
+                "motorcyclist",
+                "pedalcyclist",
+                "pedestrian",
+                "other_road_user",
+                "unknown"
+              ]
+            },
+            "strata_additive": {
+              "const": false
+            },
+            "unknown_policy": {
+              "const": "source_unknown_and_empty_mode_set_to_unknown_mode"
+            },
+            "unknown_preserved_alongside_known_modes": {
+              "const": true
+            }
+          },
+          "required": [
+            "mapping_version",
+            "source_order",
+            "output_order",
+            "crash_basis",
+            "unknown_policy",
+            "unknown_preserved_alongside_known_modes",
+            "strata_additive"
+          ],
+          "type": "object"
+        },
+        "privacy": {
+          "additionalProperties": false,
+          "properties": {
+            "candidate_definition": {
+              "const": "positive_observed_segment_time_mode_cell"
+            },
+            "cell_key_order": {
+              "const": [
+                "segment_id",
+                "part_of_day",
+                "involved_mode"
+              ]
+            },
+            "effective_k": {
+              "maximum": 36297,
+              "minimum": 5,
+              "type": "integer"
+            },
+            "eligibility_rule": {
+              "const": "crash_count_greater_than_or_equal_to_effective_k"
+            },
+            "minimum_k": {
+              "const": 5
+            },
+            "requested_k": {
+              "maximum": 36297,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "serialization_order": {
+              "const": [
+                "segment_id_lexical",
+                "part_of_day_declared_order",
+                "involved_mode_declared_order"
+              ]
+            },
+            "suppressed_output": {
+              "const": "global_positive_cell_count_and_contribution_total_only"
+            }
+          },
+          "required": [
+            "requested_k",
+            "minimum_k",
+            "effective_k",
+            "candidate_definition",
+            "eligibility_rule",
+            "suppressed_output",
+            "cell_key_order",
+            "serialization_order"
+          ],
+          "type": "object"
+        },
+        "snap": {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "reference_policy": {
+                    "const": "canonical_network_vertex_mean"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "reference_lat": {
+                    "type": "null"
+                  },
+                  "reference_lon": {
+                    "type": "null"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "reference_policy": {
+                    "const": "configured_reference_pair"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "reference_lat": {
+                    "maximum": 90,
+                    "minimum": -90,
+                    "type": "number"
+                  },
+                  "reference_lon": {
+                    "maximum": 180,
+                    "minimum": -180,
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "ambiguity_margin_m": {
+              "maximum": 100000.0,
+              "minimum": 0,
+              "type": "number"
+            },
+            "assignment_rule": {
+              "const": "unique_nearest_within_max_distance_only"
+            },
+            "max_distance_m": {
+              "exclusiveMinimum": 0,
+              "maximum": 100000.0,
+              "type": "number"
+            },
+            "point_snap": {
+              "additionalProperties": false,
+              "properties": {
+                "ambiguity_rule": {
+                  "const": "runner_up_minus_nearest_lte_ambiguity_margin_plus_decision_tolerance"
+                },
+                "caps": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "max_distance_m": {
+                      "const": 100000.0
+                    },
+                    "max_id_length": {
+                      "const": 512
+                    },
+                    "max_index_samples": {
+                      "const": 2000000
+                    },
+                    "max_points": {
+                      "const": 100000
+                    },
+                    "max_projected_edge_m": {
+                      "const": 100000.0
+                    },
+                    "max_segments": {
+                      "const": 250000
+                    },
+                    "max_total_coordinates": {
+                      "const": 2000000
+                    }
+                  },
+                  "required": [
+                    "max_distance_m",
+                    "max_id_length",
+                    "max_points",
+                    "max_segments",
+                    "max_total_coordinates",
+                    "max_projected_edge_m",
+                    "max_index_samples"
+                  ],
+                  "type": "object"
+                },
+                "decision_radius_rule": {
+                  "const": "max_distance_plus_ambiguity_margin_plus_decision_tolerance"
+                },
+                "decision_tolerance_m": {
+                  "const": 1e-06
+                },
+                "densification_step_m": {
+                  "const": 200.0
+                },
+                "distance_rule": {
+                  "const": "nearest_distance_lte_max_distance_plus_decision_tolerance"
+                },
+                "index_epsilon_m": {
+                  "const": 1e-06
+                },
+                "index_padding_rule": {
+                  "const": "half_densification_step_plus_index_epsilon"
+                },
+                "version": {
+                  "const": "1.0.0"
+                }
+              },
+              "required": [
+                "version",
+                "decision_tolerance_m",
+                "densification_step_m",
+                "index_epsilon_m",
+                "index_padding_rule",
+                "decision_radius_rule",
+                "distance_rule",
+                "ambiguity_rule",
+                "caps"
+              ],
+              "type": "object"
+            },
+            "projection": {
+              "const": "local_equirectangular_metres"
+            },
+            "reference_lat": {
+              "oneOf": [
+                {
+                  "maximum": 90,
+                  "minimum": -90,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reference_lon": {
+              "oneOf": [
+                {
+                  "maximum": 180,
+                  "minimum": -180,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reference_policy": {
+              "enum": [
+                "canonical_network_vertex_mean",
+                "configured_reference_pair"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "max_distance_m",
+            "ambiguity_margin_m",
+            "assignment_rule",
+            "projection",
+            "reference_policy",
+            "reference_lat",
+            "reference_lon",
+            "point_snap"
+          ],
+          "type": "object"
+        },
+        "time": {
+          "additionalProperties": false,
+          "properties": {
+            "bands": {
+              "const": [
+                {
+                  "end_hour_exclusive": 6,
+                  "key": "overnight",
+                  "start_hour_inclusive": 0
+                },
+                {
+                  "end_hour_exclusive": 10,
+                  "key": "am_peak",
+                  "start_hour_inclusive": 6
+                },
+                {
+                  "end_hour_exclusive": 16,
+                  "key": "midday",
+                  "start_hour_inclusive": 10
+                },
+                {
+                  "end_hour_exclusive": 20,
+                  "key": "pm_peak",
+                  "start_hour_inclusive": 16
+                },
+                {
+                  "end_hour_exclusive": 24,
+                  "key": "evening",
+                  "start_hour_inclusive": 20
+                }
+              ]
+            },
+            "order": {
+              "const": [
+                "overnight",
+                "am_peak",
+                "midday",
+                "pm_peak",
+                "evening",
+                "unknown_time"
+              ]
+            },
+            "unknown_policy": {
+              "const": "missing_clock_value_to_unknown_time"
+            }
+          },
+          "required": [
+            "bands",
+            "order",
+            "unknown_policy"
+          ],
+          "type": "object"
+        },
+        "window": {
+          "additionalProperties": false,
+          "properties": {
+            "dataset_year": {
+              "const": 2024
+            },
+            "effective_end_inclusive": {
+              "format": "date",
+              "pattern": "^2024-[0-9]{2}-[0-9]{2}$",
+              "type": "string"
+            },
+            "effective_start_inclusive": {
+              "format": "date",
+              "pattern": "^2024-[0-9]{2}-[0-9]{2}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "dataset_year",
+            "effective_start_inclusive",
+            "effective_end_inclusive"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "context",
+        "window",
+        "snap",
+        "time",
+        "mode",
+        "privacy",
+        "limitation_codes"
+      ],
+      "type": "object"
+    },
+    "method_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "source_lineage": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "attempt_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        "cases_excluded": {
+          "maximum": 100000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "cases_joined": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "crash_mapping_version": {
+          "const": "1.0.0"
+        },
+        "crash_records_accepted": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "crash_records_read": {
+          "maximum": 100000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "crash_records_rejected": {
+          "maximum": 100000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dataset_year": {
+          "const": 2024
+        },
+        "normalized_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "person_mapping_version": {
+          "const": "1.0.0"
+        },
+        "person_records_accepted": {
+          "maximum": 100000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "person_records_excluded": {
+          "maximum": 100000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "person_records_read": {
+          "maximum": 100000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "person_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "raw_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "release_status": {
+          "enum": [
+            "preliminary",
+            "final"
+          ],
+          "type": "string"
+        },
+        "source_id": {
+          "const": "fars-joined"
+        }
+      },
+      "required": [
+        "source_id",
+        "dataset_year",
+        "release_status",
+        "attempt_id",
+        "raw_sha256",
+        "normalized_sha256",
+        "accident_sha256",
+        "person_sha256",
+        "crash_mapping_version",
+        "person_mapping_version",
+        "crash_records_read",
+        "crash_records_accepted",
+        "crash_records_rejected",
+        "person_records_read",
+        "person_records_accepted",
+        "person_records_excluded",
+        "cases_joined",
+        "cases_excluded"
+      ],
+      "type": "object"
+    },
+    "visibility": {
+      "const": "private"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "visibility",
+    "city_key",
+    "source_lineage",
+    "input_lineage",
+    "method",
+    "method_sha256",
+    "accounting",
+    "caveat",
+    "cells"
+  ],
+  "title": "Private NearMiss FARS context artifact",
+  "type": "object"
+}
