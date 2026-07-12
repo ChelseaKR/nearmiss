@@ -4,7 +4,11 @@
   "title": "nearmiss.published.dataset",
   "description": "Machine-checkable contract for the published, open nearmiss GeoJSON (data/published/<city-slug>.geojson). This JSON Schema is the authoritative, validator-runnable form of schema/dataset.schema.md and is versioned in lockstep with it (metadata.schema_version). A FeatureCollection of aggregated, exposure-normalized, privacy-protected street-segment features carrying a self-describing metadata foreign member. See schema/dataset.schema.md for the full prose contract and the five hard rules (HR1-HR5).",
   "type": "object",
-  "required": ["type", "features", "metadata"],
+  "required": [
+    "type",
+    "features",
+    "metadata"
+  ],
   "additionalProperties": true,
   "properties": {
     "type": {
@@ -16,7 +20,9 @@
     },
     "features": {
       "type": "array",
-      "items": { "$ref": "#/$defs/feature" }
+      "items": {
+        "$ref": "#/$defs/feature"
+      }
     }
   },
   "$defs": {
@@ -57,7 +63,10 @@
         },
         "dataset_note": {
           "description": "Provenance / demo label from config; null when no note is configured.",
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "exposure_unit": {
           "description": "Human-readable denominator unit the rates are expressed against.",
@@ -100,43 +109,69 @@
       "type": "array",
       "minItems": 2,
       "maxItems": 3,
-      "items": { "type": "number" }
+      "items": {
+        "type": "number"
+      }
     },
     "geometry": {
       "description": "Exactly one geometry per feature: a LineString street-segment centerline (the default aggregation unit) or a Point aggregation-unit representative. No raw or per-report coordinate.",
       "oneOf": [
         {
           "type": "object",
-          "required": ["type", "coordinates"],
+          "required": [
+            "type",
+            "coordinates"
+          ],
           "additionalProperties": true,
           "properties": {
-            "type": { "const": "LineString" },
+            "type": {
+              "const": "LineString"
+            },
             "coordinates": {
               "type": "array",
               "minItems": 2,
-              "items": { "$ref": "#/$defs/position" }
+              "items": {
+                "$ref": "#/$defs/position"
+              }
             }
           }
         },
         {
           "type": "object",
-          "required": ["type", "coordinates"],
+          "required": [
+            "type",
+            "coordinates"
+          ],
           "additionalProperties": true,
           "properties": {
-            "type": { "const": "Point" },
-            "coordinates": { "$ref": "#/$defs/position" }
+            "type": {
+              "const": "Point"
+            },
+            "coordinates": {
+              "$ref": "#/$defs/position"
+            }
           }
         }
       ]
     },
     "feature": {
       "type": "object",
-      "required": ["type", "geometry", "properties"],
+      "required": [
+        "type",
+        "geometry",
+        "properties"
+      ],
       "additionalProperties": true,
       "properties": {
-        "type": { "const": "Feature" },
-        "geometry": { "$ref": "#/$defs/geometry" },
-        "properties": { "$ref": "#/$defs/properties" }
+        "type": {
+          "const": "Feature"
+        },
+        "geometry": {
+          "$ref": "#/$defs/geometry"
+        },
+        "properties": {
+          "$ref": "#/$defs/properties"
+        }
       }
     },
     "properties": {
@@ -157,7 +192,9 @@
         "getis_ord_significant",
         "confidence_label",
         "hazard_breakdown",
-        "quality_flags"
+        "quality_flags",
+        "rates_by_type",
+        "rate_sensitivity_delta"
       ],
       "additionalProperties": true,
       "properties": {
@@ -182,45 +219,73 @@
         },
         "exposure_estimate": {
           "description": "The exposure denominator (> 0) attached to this feature; null means exposure unknown, in which case rate/rate_ci_low/rate_ci_high are also null (HR1, degradability).",
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "exclusiveMinimum": 0
         },
         "exposure_source": {
           "description": "Versioned identifier of the exposure source used; null only when exposure_estimate is null. Not enumerated: source identifiers are additive per dataset.schema.md section 7.",
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "exposure_date": {
           "description": "ISO-8601 date / vintage of the exposure data; null only when exposure_estimate is null.",
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date"
         },
         "rate": {
           "description": "The exposure-normalized risk estimate (reports per unit of exposure); the danger estimate, not report_count (HR2). null when exposure_estimate is null. >= 0.",
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0
         },
         "rate_ci_low": {
           "description": "Lower bound of the confidence interval on rate. null when rate is null. >= 0.",
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0
         },
         "rate_ci_high": {
           "description": "Upper bound of the confidence interval on rate. null when rate is null. >= 0.",
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0
         },
         "getis_ord_z": {
           "description": "Getis-Ord Gi* z-score computed on the exposure-normalized rate. null when the feature has no rate (exposure unknown).",
-          "type": ["number", "null"]
+          "type": [
+            "number",
+            "null"
+          ]
         },
         "getis_ord_significant": {
           "description": "Significance flag: true when getis_ord_z clears the project threshold after multiple-comparison (FDR) correction. false means \"not significant at our threshold\", NOT \"safe\". null when getis_ord_z is null.",
-          "type": ["boolean", "null"]
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "confidence_label": {
           "description": "Plain-language weight a reader should put on this feature's rate (HR2). Closed vocabulary; additive across MINOR versions.",
           "type": "string",
-          "enum": ["certain", "uncertain", "exposure_unknown"]
+          "enum": [
+            "certain",
+            "uncertain",
+            "exposure_unknown"
+          ]
         },
         "hazard_breakdown": {
           "description": "Counts of reports at this feature by hazard type, keyed by the closed intake vocabulary; values are integers >= 0 that sum to report_count. Suppressed to {} for small-sample features. An absent key means 0.",
@@ -247,8 +312,51 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "enum": ["low_sample", "geocode_low_confidence", "exposure_unknown"]
+            "enum": [
+              "low_sample",
+              "geocode_low_confidence",
+              "exposure_unknown"
+            ]
           }
+        },
+        "rates_by_type": {
+          "description": "Per-hazard-type exposure-normalized rate layers. The top-level `rate` is the pooled union across ALL hazard types; each entry here maps a hazard type whose own count clears the small-sample threshold to its aggregate rate + confidence interval (types below the threshold are suppressed entirely). Aggregate-only: values are counts and rates, never any per-report datum.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "count",
+              "rate",
+              "rate_ci_low",
+              "rate_ci_high"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "number",
+                "minimum": 0
+              },
+              "rate": {
+                "type": "number",
+                "minimum": 0
+              },
+              "rate_ci_low": {
+                "type": "number",
+                "minimum": 0
+              },
+              "rate_ci_high": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "rate_sensitivity_delta": {
+          "description": "Signed difference (all-records rate minus primary rate, in rate units), reported only when the all-records rate falls outside the primary rate's confidence interval — i.e. when excluding low-confidence records materially moves the rate. Null when the two agree within the interval (the common case).",
+          "type": [
+            "number",
+            "null"
+          ]
         }
       }
     }
