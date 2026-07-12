@@ -80,6 +80,7 @@ def _estimate_dispersion(
             usable_exposures.append(exp.estimate)
     return pearson_dispersion(usable_counts, usable_exposures)
 
+
 def _rates_by_type(
     usable: bool,
     count: int,
