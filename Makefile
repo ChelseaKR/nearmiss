@@ -32,7 +32,7 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lint type test accessibility axe security verify \
-        i18n i18n-compile claims \
+        conformance i18n i18n-compile claims \
         reproduce sensitivity demo teach publish serve bench bikemaps osm-streets real clean mutation
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
@@ -130,6 +130,11 @@ i18n-compile: ## Compile the committed PO catalogs to MO (run after editing a .p
 	$(PYTHON) tools/po2json.py
 	@echo "i18n-compile: refreshed messages.mo (en, es) and web/locales/*.json."
 
+conformance: ## EXP-10: audit every published dataset against the five hard rules (HR1-HR5)
+	$(PYTHON) tools/verify_dataset.py data/published/davis.geojson >/dev/null
+	$(PYTHON) tools/verify_dataset.py data/published/riverside.geojson >/dev/null
+	@echo "conformance: all published datasets pass HR1-HR5 (see tools/verify_dataset.py; forks run it too)."
+
 claims: ## Claims-parity gate: docs/CLAIMS.md manifest <-> doc claim tags <-> witnesses
 	# Every load-bearing accuracy claim in the prose docs is a matched
 	# <!-- claim:ID --> pair listed in docs/CLAIMS.md with a witness file/test;
@@ -137,8 +142,8 @@ claims: ## Claims-parity gate: docs/CLAIMS.md manifest <-> doc claim tags <-> wi
 	# claim whose tag/witness went missing). Local == CI.
 	$(PYTHON) tools/check_claims.py
 
-verify: lint type test accessibility security i18n claims ## Full merge gate: lint + type + test + accessibility + security + i18n + claims
-	@echo "verify: all merge gates green (lint, type, test, accessibility, security, i18n, claims)."
+verify: lint type test accessibility security i18n claims conformance ## Full merge gate: lint + type + test + accessibility + security + i18n + claims + conformance
+	@echo "verify: all merge gates green (lint, type, test, accessibility, security, i18n, claims, conformance)."
 
 mutation: ## ADVISORY (never a merge gate): mutation-test the spatial-stats core with mutmut
 	@echo "mutation: ADVISORY ONLY — this is NOT part of 'make verify' and never gates a PR"
