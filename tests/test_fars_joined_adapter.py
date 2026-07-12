@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import io
 import json
 import zipfile
+import zlib
 from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
 from nearmiss.adapters import fars_joined
-from nearmiss.adapters.fars_joined import collect_joined, read_joined_export_bytes
+from nearmiss.adapters.fars_joined import (
+    collect_joined,
+    read_joined_export_bytes,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 ACCIDENT = (
@@ -39,11 +44,13 @@ def _archive(
     *,
     duplicate: str | None = None,
     accident: bytes = ACCIDENT,
+    accident_name: str = "FARS/accident.csv",
+    person_name: str = "FARS/person.csv",
 ) -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr("FARS/accident.csv", accident)
-        archive.writestr("FARS/person.csv", _person() if person is None else person)
+        archive.writestr(accident_name, accident)
+        archive.writestr(person_name, _person() if person is None else person)
         if duplicate == "person":
             archive.writestr("other/PERSON.CSV", _person())
         if duplicate == "accident":
@@ -60,6 +67,20 @@ def test_reads_hashes_and_joins_deterministic_mode_summaries() -> None:
     assert batch.input_sha256 == hashlib.sha256(payload).hexdigest()
     assert batch.accident_sha256 == hashlib.sha256(ACCIDENT).hexdigest()
     assert batch.person_sha256 == hashlib.sha256(_person()).hexdigest()
+    assert batch.accident_member.as_dict() == {
+        "archive_path": "FARS/accident.csv",
+        "name": "accident.csv",
+        "uncompressed_size": len(ACCIDENT),
+        "crc32": f"{zlib.crc32(ACCIDENT):08x}",
+        "sha256": hashlib.sha256(ACCIDENT).hexdigest(),
+    }
+    assert batch.person_member.as_dict() == {
+        "archive_path": "FARS/person.csv",
+        "name": "person.csv",
+        "uncompressed_size": len(_person()),
+        "crc32": f"{zlib.crc32(_person()):08x}",
+        "sha256": hashlib.sha256(_person()).hexdigest(),
+    }
     assert crash_provenance.input_sha256 == batch.input_sha256
     assert join_provenance.records_read == 5
     assert join_provenance.records_accepted == 4
@@ -68,6 +89,9 @@ def test_reads_hashes_and_joins_deterministic_mode_summaries() -> None:
     assert join_provenance.records_excluded_with_rejected_crash == 1
     assert join_provenance.cases_excluded_with_rejected_crash == 1
     assert join_provenance.rejection_reasons == {"parent_crash_rejected": 1}
+    assert join_provenance.accident_member == batch.accident_member
+    assert join_provenance.person_member == batch.person_member
+    assert join_provenance.as_dict()["person_member"] == batch.person_member.as_dict()
 
     first, second = summaries
     assert first.involved_modes == ("motor_vehicle_occupant", "pedestrian")
@@ -125,6 +149,56 @@ def test_requires_zip_with_exactly_one_of_each_table() -> None:
     for duplicate in ("accident", "person"):
         with pytest.raises(ValueError, match="exactly one"):
             read_joined_export_bytes(_archive(duplicate=duplicate))
+
+
+def test_case_insensitive_table_names_preserve_exact_canonical_member_paths() -> None:
+    batch = read_joined_export_bytes(
+        _archive(
+            accident_name="National/ACCIDENT.CSV",
+            person_name="National/Person.CsV",
+        )
+    )
+    assert batch.accident_member.archive_path == "National/ACCIDENT.CSV"
+    assert batch.accident_member.name == "ACCIDENT.CSV"
+    assert batch.person_member.archive_path == "National/Person.CsV"
+    assert batch.person_member.name == "Person.CsV"
+
+
+@pytest.mark.parametrize(
+    "member_path",
+    [
+        "/FARS/person.csv",
+        "C:/FARS/person.csv",
+        "FARS\\person.csv",
+        "FARS/../person.csv",
+        "FARS/./person.csv",
+        "FARS//person.csv",
+        "FARS/%70erson.csv",
+        "FARS/\x01person.csv",
+    ],
+)
+def test_unsafe_or_ambiguous_member_paths_are_rejected(member_path: str) -> None:
+    with pytest.raises(ValueError, match="unsafe or noncanonical"):
+        read_joined_export_bytes(_archive(person_name=member_path))
+
+
+def test_member_descriptors_and_batch_digest_binding_are_fail_closed() -> None:
+    batch = read_joined_export_bytes(_archive())
+    with pytest.raises(ValueError, match="descriptors do not match"):
+        dataclasses.replace(batch, person_sha256="a" * 64)
+    with pytest.raises(ValueError, match="CRC32"):
+        dataclasses.replace(batch.person_member, crc32="ABCDEF00")
+    with pytest.raises(ValueError, match="size"):
+        dataclasses.replace(batch.accident_member, uncompressed_size=0)
+
+
+def test_person_provenance_validates_descriptor_and_rejection_accounting() -> None:
+    batch = read_joined_export_bytes(_archive())
+    provenance = collect_joined(batch)[3]
+    with pytest.raises(ValueError, match="member digests are inconsistent"):
+        dataclasses.replace(provenance, person_sha256="a" * 64)
+    with pytest.raises(ValueError, match="rejection reasons must cover"):
+        dataclasses.replace(provenance, rejection_reasons={})
 
 
 def test_missing_columns_and_compression_bombs_are_rejected() -> None:

@@ -8,6 +8,7 @@ import hashlib
 import io
 import re
 import zipfile
+import zlib
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
@@ -45,12 +46,67 @@ _MAX_COMPRESSION_RATIO = 200
 # row objects inside an ingestion worker.
 _MAX_PERSON_ROWS = 100_000
 _DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
+_CRC32_RE = re.compile(r"^[0-9a-f]{8}$")
 _DIGITS_RE = re.compile(r"^[0-9]+$")
 _MAPPING_PROXY_TYPE: type[Any] = type(MappingProxyType({}))
 
 
 def _frozen_row(row: Mapping[str, str]) -> Mapping[str, str]:
     return row if isinstance(row, _MAPPING_PROXY_TYPE) else MappingProxyType(dict(row))
+
+
+def _canonical_archive_path(value: str) -> str:
+    if (
+        not value
+        or not value.isascii()
+        or value.startswith("/")
+        or re.match(r"^[A-Za-z]:", value) is not None
+        or "\\" in value
+        or "%" in value
+        or any(ord(character) < 32 or ord(character) == 127 for character in value)
+    ):
+        raise ValueError("joined FARS member path is unsafe or noncanonical")
+    parts = value.split("/")
+    if any(part in {"", ".", ".."} for part in parts):
+        raise ValueError("joined FARS member path is unsafe or noncanonical")
+    return value
+
+
+@dataclass(frozen=True)
+class FarsMemberDescriptor:
+    """Exact identity of one selected CSV member in the official ZIP."""
+
+    archive_path: str
+    name: str
+    uncompressed_size: int
+    crc32: str
+    sha256: str
+
+    def __post_init__(self) -> None:
+        path = _canonical_archive_path(self.archive_path)
+        if self.name != path.rsplit("/", 1)[-1]:
+            raise ValueError("joined FARS member name must match its canonical archive path")
+        if self.name.casefold() not in {"accident.csv", "person.csv"}:
+            raise ValueError("joined FARS member name is not a supported table")
+        if (
+            isinstance(self.uncompressed_size, bool)
+            or not isinstance(self.uncompressed_size, int)
+            or not 0 < self.uncompressed_size <= _MAX_MEMBER_BYTES
+        ):
+            raise ValueError("joined FARS member size is invalid")
+        if _CRC32_RE.fullmatch(self.crc32) is None:
+            raise ValueError("joined FARS member CRC32 must be eight lowercase hexadecimal digits")
+        if _DIGEST_RE.fullmatch(self.sha256) is None:
+            raise ValueError("joined FARS member SHA-256 must be lowercase hexadecimal")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "archive_path": self.archive_path,
+            "name": self.name,
+            "uncompressed_size": self.uncompressed_size,
+            "crc32": self.crc32,
+            "sha256": self.sha256,
+        }
 
 
 @dataclass(frozen=True)
@@ -60,6 +116,8 @@ class FarsJoinedRawBatch:
     input_sha256: str
     accident_sha256: str
     person_sha256: str
+    accident_member: FarsMemberDescriptor
+    person_member: FarsMemberDescriptor
 
     def __post_init__(self) -> None:
         if any(
@@ -67,6 +125,21 @@ class FarsJoinedRawBatch:
             for value in (self.input_sha256, self.accident_sha256, self.person_sha256)
         ):
             raise ValueError("joined FARS digests must be lowercase SHA-256 values")
+        if not isinstance(self.accident_member, FarsMemberDescriptor) or not isinstance(
+            self.person_member, FarsMemberDescriptor
+        ):
+            raise TypeError("joined FARS members must have verified descriptors")
+        if self.accident_member.name.casefold() != "accident.csv":
+            raise ValueError("joined FARS accident descriptor names the wrong table")
+        if self.person_member.name.casefold() != "person.csv":
+            raise ValueError("joined FARS person descriptor names the wrong table")
+        if self.accident_member.archive_path == self.person_member.archive_path:
+            raise ValueError("joined FARS table descriptors must identify distinct members")
+        if (
+            self.accident_sha256 != self.accident_member.sha256
+            or self.person_sha256 != self.person_member.sha256
+        ):
+            raise ValueError("joined FARS member descriptors do not match table digests")
         object.__setattr__(
             self,
             "accident_rows",
@@ -86,6 +159,8 @@ class PersonJoinProvenance:
     input_sha256: str
     accident_sha256: str
     person_sha256: str
+    accident_member: FarsMemberDescriptor
+    person_member: FarsMemberDescriptor
     records_read: int
     records_accepted: int
     cases_joined: int
@@ -95,10 +170,52 @@ class PersonJoinProvenance:
 
     def __post_init__(self) -> None:
         reasons = MappingProxyType(dict(sorted(self.rejection_reasons.items())))
+        if any(
+            _DIGEST_RE.fullmatch(value) is None
+            for value in (self.input_sha256, self.accident_sha256, self.person_sha256)
+        ):
+            raise ValueError("joined FARS provenance digests must be lowercase SHA-256 values")
+        if not isinstance(self.accident_member, FarsMemberDescriptor) or not isinstance(
+            self.person_member, FarsMemberDescriptor
+        ):
+            raise TypeError("joined FARS provenance requires member descriptors")
+        if (
+            self.accident_member.name.casefold() != "accident.csv"
+            or self.person_member.name.casefold() != "person.csv"
+            or self.accident_member.archive_path == self.person_member.archive_path
+        ):
+            raise ValueError("joined FARS provenance member identities are invalid")
+        if (
+            self.accident_sha256 != self.accident_member.sha256
+            or self.person_sha256 != self.person_member.sha256
+        ):
+            raise ValueError("joined FARS provenance member digests are inconsistent")
         if self.dataset_year != 2024:
             raise ValueError("joined FARS person mapping supports dataset year 2024 only")
+        counts = (
+            self.records_read,
+            self.records_accepted,
+            self.cases_joined,
+            self.records_excluded_with_rejected_crash,
+            self.cases_excluded_with_rejected_crash,
+        )
+        if any(
+            isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in counts
+        ):
+            raise ValueError("joined FARS person accounting values must be nonnegative integers")
         if self.records_accepted + self.records_excluded_with_rejected_crash != self.records_read:
             raise ValueError("joined FARS person accounting must cover every record")
+        if any(
+            not isinstance(key, str)
+            or not key
+            or isinstance(value, bool)
+            or not isinstance(value, int)
+            or value < 1
+            for key, value in reasons.items()
+        ):
+            raise ValueError("joined FARS person rejection accounting is invalid")
+        if sum(reasons.values()) != self.records_excluded_with_rejected_crash:
+            raise ValueError("joined FARS person rejection reasons must cover excluded records")
         object.__setattr__(self, "rejection_reasons", reasons)
 
     def as_dict(self) -> dict[str, object]:
@@ -108,6 +225,8 @@ class PersonJoinProvenance:
             "input_sha256": self.input_sha256,
             "accident_sha256": self.accident_sha256,
             "person_sha256": self.person_sha256,
+            "accident_member": self.accident_member.as_dict(),
+            "person_member": self.person_member.as_dict(),
             "records_read": self.records_read,
             "records_accepted": self.records_accepted,
             "cases_joined": self.cases_joined,
@@ -148,11 +267,19 @@ class FarsModeSummary:
 
 
 def _member(archive: zipfile.ZipFile, basename: str) -> zipfile.ZipInfo:
-    matches = [
-        member
-        for member in archive.infolist()
-        if not member.is_dir() and member.filename.rsplit("/", 1)[-1].casefold() == basename
-    ]
+    matches: list[zipfile.ZipInfo] = []
+    for member in archive.infolist():
+        original = getattr(member, "orig_filename", member.filename)
+        if original != member.filename:
+            raise ValueError("joined FARS member path is unsafe or noncanonical")
+        if member.is_dir():
+            if not member.filename.endswith("/"):
+                raise ValueError("joined FARS member path is unsafe or noncanonical")
+            _canonical_archive_path(member.filename[:-1])
+            continue
+        path = _canonical_archive_path(member.filename)
+        if path.rsplit("/", 1)[-1].casefold() == basename:
+            matches.append(member)
     if len(matches) != 1:
         raise ValueError(f"joined FARS ZIP must contain exactly one {basename}")
     member = matches[0]
@@ -168,18 +295,44 @@ def _member(archive: zipfile.ZipFile, basename: str) -> zipfile.ZipInfo:
     return member
 
 
-def _hash_member(archive: zipfile.ZipFile, member: zipfile.ZipInfo) -> str:
+def _descriptor(
+    member: zipfile.ZipInfo, *, size: int, crc32: int, sha256: str
+) -> FarsMemberDescriptor:
+    if size != member.file_size or crc32 != member.CRC:
+        raise ValueError("joined FARS member content does not match ZIP metadata")
+    return FarsMemberDescriptor(
+        archive_path=member.filename,
+        name=member.filename.rsplit("/", 1)[-1],
+        uncompressed_size=size,
+        crc32=f"{crc32:08x}",
+        sha256=sha256,
+    )
+
+
+def _hash_member(archive: zipfile.ZipFile, member: zipfile.ZipInfo) -> FarsMemberDescriptor:
     digest = hashlib.sha256()
+    crc32 = 0
+    total = 0
     with archive.open(member) as stream:
         while block := stream.read(1024 * 1024):
+            total += len(block)
+            if total > _MAX_MEMBER_BYTES:
+                raise ValueError("joined FARS accident.csv exceeds its safety limit")
             digest.update(block)
-    return digest.hexdigest()
+            crc32 = zlib.crc32(block, crc32)
+    return _descriptor(
+        member,
+        size=total,
+        crc32=crc32 & 0xFFFFFFFF,
+        sha256=digest.hexdigest(),
+    )
 
 
 class _HashingReader(io.RawIOBase):
     def __init__(self, stream: Any) -> None:
         self._stream = stream
         self.digest = hashlib.sha256()
+        self.crc32 = 0
         self.total = 0
 
     def readable(self) -> bool:
@@ -189,6 +342,7 @@ class _HashingReader(io.RawIOBase):
         count = cast(int, self._stream.readinto(buffer))
         if count:
             self.digest.update(memoryview(buffer)[:count])
+            self.crc32 = zlib.crc32(memoryview(buffer)[:count], self.crc32)
             self.total += count
             if self.total > _MAX_MEMBER_BYTES:
                 raise ValueError("joined FARS person.csv exceeds its safety limit")
@@ -225,7 +379,7 @@ def _person_rows(stream: io.TextIOBase) -> tuple[Mapping[str, str], ...]:
 
 def _read_person_member(
     archive: zipfile.ZipFile, member: zipfile.ZipInfo
-) -> tuple[tuple[Mapping[str, str], ...], str]:
+) -> tuple[tuple[Mapping[str, str], ...], FarsMemberDescriptor]:
     with archive.open(member) as compressed:
         hashing = _HashingReader(compressed)
         with (
@@ -233,9 +387,13 @@ def _read_person_member(
             io.TextIOWrapper(buffered, encoding="utf-8-sig", newline="") as text,
         ):
             rows = _person_rows(text)
-        if hashing.total != member.file_size:
-            raise ValueError("joined FARS person.csv size does not match ZIP metadata")
-        return rows, hashing.digest.hexdigest()
+        descriptor = _descriptor(
+            member,
+            size=hashing.total,
+            crc32=hashing.crc32 & 0xFFFFFFFF,
+            sha256=hashing.digest.hexdigest(),
+        )
+        return rows, descriptor
 
 
 def read_joined_export_bytes(payload: bytes) -> FarsJoinedRawBatch:
@@ -253,15 +411,17 @@ def read_joined_export_bytes(payload: bytes) -> FarsJoinedRawBatch:
         person_member = _member(archive, "person.csv")
         if accident_member.file_size + person_member.file_size > _MAX_EXPANDED_BYTES:
             raise ValueError("joined FARS selected members exceed the expansion safety limit")
-        accident_sha256 = _hash_member(archive, accident_member)
-        person_rows, person_sha256 = _read_person_member(archive, person_member)
+        accident_descriptor = _hash_member(archive, accident_member)
+        person_rows, person_descriptor = _read_person_member(archive, person_member)
     crash_batch = read_export_bytes(payload)
     return FarsJoinedRawBatch(
         accident_rows=crash_batch.rows,
         person_rows=person_rows,
         input_sha256=hashlib.sha256(payload).hexdigest(),
-        accident_sha256=accident_sha256,
-        person_sha256=person_sha256,
+        accident_sha256=accident_descriptor.sha256,
+        person_sha256=person_descriptor.sha256,
+        accident_member=accident_descriptor,
+        person_member=person_descriptor,
     )
 
 
@@ -405,6 +565,8 @@ def collect_joined(
         input_sha256=batch.input_sha256,
         accident_sha256=batch.accident_sha256,
         person_sha256=batch.person_sha256,
+        accident_member=batch.accident_member,
+        person_member=batch.person_member,
         records_read=len(batch.person_rows),
         records_accepted=accepted_person_records,
         cases_joined=len(emitted_cases),
