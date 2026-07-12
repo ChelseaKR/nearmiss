@@ -145,6 +145,9 @@ msgstr "Confidence"
 msgid "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
 msgstr "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
 
+msgid "Exposure tier"
+msgstr "Exposure tier"
+
 msgid "Friday"
 msgstr "Friday"
 
@@ -238,17 +241,26 @@ msgstr "exposure unknown"
 msgid "midday (10–16)"
 msgstr "midday (10–16)"
 
+msgid "modeled"
+msgstr "modeled"
+
 msgid "morning commute (06–10)"
 msgstr "morning commute (06–10)"
 
 msgid "n"
 msgstr "n"
 
+msgid "observed"
+msgstr "observed"
+
 msgid "other"
 msgstr "other"
 
 msgid "overnight (00–06)"
 msgstr "overnight (00–06)"
+
+msgid "proxy"
+msgstr "proxy"
 
 msgid "signal conflict"
 msgstr "signal conflict"
@@ -258,6 +270,9 @@ msgstr "surface hazard"
 
 msgid "uncertain"
 msgstr "uncertain"
+
+msgid "unknown"
+msgstr "unknown"
 
 msgid "web.app.asc"
 msgstr "ascending"
@@ -369,6 +384,9 @@ msgstr "Showing {shown} of {n} segments"
 
 msgid "web.app.filter_label"
 msgstr "Filter segments by name"
+
+msgid "web.app.flag_exposure_stale"
+msgstr "exposure vintage may be stale"
 
 msgid "web.app.flag_exposure_unknown"
 msgstr "exposure unknown"
@@ -538,6 +556,21 @@ msgstr "Rate /1000"
 msgid "web.app.th_segment"
 msgstr "Segment"
 
+msgid "web.app.th_tier"
+msgstr "Exposure tier"
+
+msgid "web.app.tier_modeled"
+msgstr "modeled"
+
+msgid "web.app.tier_observed"
+msgstr "observed"
+
+msgid "web.app.tier_proxy"
+msgstr "proxy"
+
+msgid "web.app.tier_unknown"
+msgstr "unknown"
+
 msgid "web.app.tipRate"
 msgstr "{name}: rate {rate}/1000"
 
@@ -570,6 +603,9 @@ msgstr "Number of reports on this segment (the sample size)."
 
 msgid "web.app.tt_rate"
 msgstr "Reports per 1000 units of exposure — risk per rider, not a raw count."
+
+msgid "web.app.tt_tier"
+msgstr "How much to trust this segment's exposure denominator: observed (direct count), modeled (demand model), proxy (third-party activity layer), or unknown."
 
 msgid "web.submit.geo_denied"
 msgstr "Couldn't get your location — type a place instead."

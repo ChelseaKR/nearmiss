@@ -34,7 +34,7 @@
   "city": "Riverside",
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports.",
-  "geojson_sha256": "6ecf0c4a9b6575b90771a3579aa0a6f6f3a826c52a6093ae56fcd702103eda41",
+  "geojson_sha256": "ad1d9ad253ffa95c87b9b54de1f08ac00693d5674c088e8667e86112acb1158c",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -54,6 +54,8 @@
       "model": "quasi-Poisson (Pearson) on the rate/offset model",
       "phi": 15.2193
     },
+    "exposure_floor": 0.0,
+    "exposure_stale_days": 365.0,
     "fdr_alpha": 0.05,
     "getis_ord_band_m": 300.0,
     "kde_bandwidth_m": 150.0,
@@ -67,7 +69,7 @@
   "report_intensity_peak_segment": "rs-3",
   "schema": "schema/dataset.schema.md",
   "schema_json": "schema/dataset.schema.json",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "summary": {
     "duplicates_removed": 0,
     "excluded_low_confidence_fraction": 0.0,

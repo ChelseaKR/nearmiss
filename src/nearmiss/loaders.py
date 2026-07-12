@@ -12,7 +12,9 @@ import json
 from pathlib import Path
 
 from .errors import NearmissError
-from .models import Exposure, Report, Segment
+from .models import Exposure, ExposureReading, ExposureTier, Report, Segment
+
+_EXPOSURE_TIERS: frozenset[str] = frozenset(("observed", "modeled", "proxy", "unknown"))
 
 
 def _read_json(path: Path) -> object:
@@ -52,8 +54,46 @@ def load_streets(path: Path) -> list[Segment]:
     return segments
 
 
+def _tier(path: Path, row: dict[str, object]) -> ExposureTier:
+    """Parse an exposure row's trust tier, defaulting to ``"unknown"`` for rows
+    written before this field existed (honest default, never fabricated)."""
+    raw = row.get("tier", "unknown")
+    value = str(raw) if raw is not None else "unknown"
+    if value not in _EXPOSURE_TIERS:
+        raise NearmissError(
+            f"{path}: unknown exposure tier {value!r}; expected one of {sorted(_EXPOSURE_TIERS)}"
+        )
+    return value  # type: ignore[return-value]
+
+
+def _sources(path: Path, row: dict[str, object]) -> tuple[ExposureReading, ...]:
+    """Parse optional corroborating readings (multi-source exposure; FIX-04)."""
+    raw = row.get("sources")
+    if raw is None:
+        return ()
+    if not isinstance(raw, list):
+        raise NearmissError(f"{path}: exposure row 'sources' must be a list")
+    readings = []
+    for entry in raw:
+        readings.append(
+            ExposureReading(
+                estimate=float(entry["estimate"]),
+                source=str(entry["source"]),
+                date=str(entry["date"]),
+                tier=_tier(path, entry),
+            )
+        )
+    return tuple(readings)
+
+
 def load_exposure(path: Path) -> dict[str, Exposure]:
-    """Load per-segment exposure denominators keyed by segment id."""
+    """Load per-segment exposure denominators keyed by segment id.
+
+    Accepts the optional ``tier`` (observed/modeled/proxy/unknown) and ``sources``
+    (additional corroborating readings) fields; both are backward compatible —
+    older exposure files with neither field load with ``tier="unknown"`` and no
+    corroborating sources, honestly rather than silently promoted to "observed".
+    """
     data = _read_json(path)
     rows = data.get("segments", []) if isinstance(data, dict) else data
     if not isinstance(rows, list):
@@ -67,6 +107,8 @@ def load_exposure(path: Path) -> dict[str, Exposure]:
                 estimate=float(row["estimate"]),
                 source=str(row["source"]),
                 date=str(row["date"]),
+                tier=_tier(path, row),
+                sources=_sources(path, row),
             )
     except (KeyError, TypeError, ValueError) as exc:
         raise NearmissError(f"{path}: malformed exposure row ({exc})") from exc

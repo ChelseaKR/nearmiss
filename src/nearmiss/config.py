@@ -59,6 +59,8 @@ _THRESHOLD_KEYS = frozenset(
         "kde_bandwidth_m",
         "kde_grid",
         "retention_days",
+        "exposure_floor",
+        "exposure_stale_days",
         "overdispersion_adjust",
     }
 )
@@ -97,6 +99,15 @@ class Config:
     gi_band_m: float = 300.0
     kde_bandwidth_m: float = 150.0
     kde_grid: int = 24
+    # METHODOLOGY §3.3: exposure at/below this is treated as "exposure unknown"
+    # rather than producing a giant, meaningless rate as exposure -> 0. Default 0.0
+    # preserves the original "any positive estimate is usable" behavior.
+    exposure_floor: float = 0.0
+    # METHODOLOGY §3.2: a rate whose exposure vintage is more than this many days
+    # from the report reference date gets the published "exposure_stale" flag
+    # (temporal-alignment caveat). Pending FIX-05's first-class analysis window,
+    # the reference date is the latest report date the pipeline actually retained.
+    exposure_stale_days: float = 365.0
     # Contributor data-rights: retention window (days) for the PRIVATE raw store.
     # `nearmiss contributor purge-expired` tombstone-deletes raw records whose
     # event time is older than this window. 0 disables retention (keep forever).
@@ -242,6 +253,8 @@ def load_config(path: str | Path) -> Config:
     kde_bandwidth_m = thr("kde_bandwidth_m", 150.0)
     kde_grid = int(thr("kde_grid", 24))
     retention_days = int(thr("retention_days", 0))
+    exposure_floor = thr("exposure_floor", 0.0)
+    exposure_stale_days = thr("exposure_stale_days", 365.0)
 
     _check_range(cfg_path, 0 < fdr_alpha < 1, "fdr_alpha", fdr_alpha, "0 < fdr_alpha < 1")
     _check_range(cfg_path, min_publish_n >= 2, "min_publish_n", min_publish_n, "min_publish_n >= 2")
@@ -250,6 +263,16 @@ def load_config(path: str | Path) -> Config:
     _check_range(cfg_path, kde_grid >= 2, "kde_grid", kde_grid, "kde_grid >= 2")
     _check_range(
         cfg_path, retention_days >= 0, "retention_days", retention_days, "retention_days >= 0"
+    )
+    _check_range(
+        cfg_path, exposure_floor >= 0, "exposure_floor", exposure_floor, "exposure_floor >= 0"
+    )
+    _check_range(
+        cfg_path,
+        exposure_stale_days >= 0,
+        "exposure_stale_days",
+        exposure_stale_days,
+        "exposure_stale_days >= 0",
     )
     _check_range(cfg_path, snap_max_m > 0, "snap_max_m", snap_max_m, "snap_max_m > 0")
     _check_range(
@@ -298,6 +321,8 @@ def load_config(path: str | Path) -> Config:
         kde_grid=kde_grid,
         retention_days=retention_days,
         overdispersion_adjust=flag("overdispersion_adjust", False),
+        exposure_floor=exposure_floor,
+        exposure_stale_days=exposure_stale_days,
         dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),
         window_start=window_start,
         window_end=window_end,

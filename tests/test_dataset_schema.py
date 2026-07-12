@@ -127,7 +127,7 @@ def test_pristine_copy_still_validates() -> None:
 def test_schema_version_matches_published() -> None:
     schema = _load_schema()
     const = schema["$defs"]["metadata"]["properties"]["schema_version"]["const"]
-    assert const == "1.0.0", f"schema pins schema_version {const!r}"
+    assert const == "1.1.0", f"schema pins schema_version {const!r}"
     # And it must equal what publish.py actually wrote into the committed files.
     for path in PUBLISHED_GEOJSON:
         meta = _load(path)["metadata"]

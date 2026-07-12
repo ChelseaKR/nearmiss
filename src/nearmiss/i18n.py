@@ -105,6 +105,18 @@ def confidence_label(translation: gettext.NullTranslations, key: str) -> str:
     return labels.get(key, key.replace("_", " "))
 
 
+def exposure_tier_label(translation: gettext.NullTranslations, key: str) -> str:
+    """Localized name for a segment's exposure trust tier (FIX-04)."""
+    _ = translation.gettext
+    labels: dict[str, str] = {
+        "observed": _("observed"),
+        "modeled": _("modeled"),
+        "proxy": _("proxy"),
+        "unknown": _("unknown"),
+    }
+    return labels.get(key, key)
+
+
 def hazard_type_label(translation: gettext.NullTranslations, key: str) -> str:
     """Localized name for a hazard type from the intake schema's closed vocabulary."""
     _ = translation.gettext

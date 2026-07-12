@@ -169,7 +169,7 @@ def test_published_geojson_is_self_describing(config: Config, tmp_path: object) 
     gj = json.loads(result.geojson_path.read_text(encoding="utf-8"))
     meta = gj["metadata"]
     assert meta["dataset_version"] == "0.1.0"
-    assert meta["schema_version"] == "1.0.0"
+    assert meta["schema_version"] == "1.1.0"  # FIX-04: MINOR bump (exposure_tier, etc.)
     assert meta["license"] == "Apache-2.0"
     # The embedded metadata must also be privacy-clean.
     assert_metadata_clean(meta, load_city(config).reports)

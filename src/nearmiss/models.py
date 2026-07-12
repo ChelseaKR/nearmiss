@@ -18,6 +18,11 @@ HazardType = Literal[
 ]
 Severity = Literal["near_miss", "minor", "serious"]
 ConfidenceLabel = Literal["certain", "uncertain", "exposure_unknown"]
+# METHODOLOGY §3.1's trust ordering, most to least trusted: a direct count station,
+# a calibrated demand model, or a third-party activity proxy (e.g. a fitness-app
+# heatmap). "unknown" is the honest default for exposure rows that predate this
+# field or omit it — never fabricated, never silently promoted to "observed".
+ExposureTier = Literal["observed", "modeled", "proxy", "unknown"]
 
 # Ordinal weight used only for summaries; never used to fabricate a rate.
 SEVERITY_WEIGHT: dict[str, int] = {"near_miss": 1, "minor": 2, "serious": 3}
@@ -93,13 +98,36 @@ class Segment:
 
 
 @dataclass(frozen=True)
+class ExposureReading:
+    """One contributing denominator reading, used to corroborate a segment's primary
+    exposure (METHODOLOGY §3.1: "when two or more sources cover the same segment they
+    can corroborate the denominator; a large disagreement ... is itself a finding").
+    """
+
+    estimate: float
+    source: str
+    date: str  # ISO date the exposure figure is as-of
+    tier: ExposureTier = "unknown"
+
+
+@dataclass(frozen=True)
 class Exposure:
-    """A per-segment denominator. Always carries its source and date (hard rule #1)."""
+    """A per-segment denominator. Always carries its source and date (hard rule #1).
+
+    ``tier`` records how much the estimate should be trusted (METHODOLOGY §3.1):
+    a direct count is trusted more than a demand model, which is trusted more than
+    a proxy layer. ``sources`` optionally carries additional corroborating readings
+    for the same segment beyond the primary (estimate, source, date, tier) above;
+    :func:`nearmiss.exposure.corroboration` compares them and a large disagreement
+    is surfaced, not averaged away.
+    """
 
     segment_id: str
     estimate: float
     source: str
     date: str  # ISO date the exposure figure is as-of
+    tier: ExposureTier = "unknown"
+    sources: tuple[ExposureReading, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -148,6 +176,11 @@ class SegmentStats:
     # "rate_ci_high"} — never any per-report datum.
     rates_by_type: dict[str, dict[str, float]] = field(default_factory=dict)
     quality_flags: tuple[str, ...] = ()
+    # Trust tier of exposure_estimate ("observed"/"modeled"/"proxy"/"unknown"; FIX-04).
+    exposure_tier: ExposureTier = "unknown"
+    # Cross-source disagreement in [0, 1] (1 - min/max of all corroborating readings);
+    # None when the segment has only a single exposure reading (nothing to corroborate).
+    exposure_disagreement: float | None = None
     # Signed difference (all-records rate minus primary rate, in rate units) reported
     # only when the all-records rate falls outside the primary rate's confidence
     # interval — i.e. when excluding low-confidence reports materially moves the rate.

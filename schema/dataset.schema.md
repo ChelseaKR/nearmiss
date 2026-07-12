@@ -1,12 +1,12 @@
 # Published dataset schema (open GeoJSON)
 
 **Schema name:** `nearmiss.published.dataset`
-**Schema version:** 1.0.0 (semantic; see [Versioning and deprecation](#versioning-and-deprecation-policy))
+**Schema version:** 1.1.0 (semantic; see [Versioning and deprecation](#versioning-and-deprecation-policy))
 **Artifact:** `data/published/<city-slug>.geojson` (e.g. `davis.geojson`), with a sidecar
 `data/published/<city-slug>.metadata.json` (e.g. `davis.metadata.json`) and the data card at
 [`docs/DATA-CARD.md`](../docs/DATA-CARD.md)
 **CRS:** WGS84 (EPSG:4326), longitude/latitude decimal degrees, per RFC 7946
-**Last reviewed:** 2026-06-17
+**Last reviewed:** 2026-07-07
 **Maintainer:** Chelsea Kelly-Reif (GitHub [@ChelseaKR](https://github.com/ChelseaKR))
 
 This document is the contract for the **published, open** dataset that `publish.py` emits — the
@@ -37,7 +37,8 @@ traffic engineer pushes back. Every property that carries a risk claim is define
 **HR1**–**HR5**) are visible in the data itself, not just promised in prose.
 
 - **HR1** — No rate without a denominator. Every rate carries its `exposure_estimate`,
-  `exposure_source`, and `exposure_date`. A raw count is labeled `report_count`, never danger.
+  `exposure_source`, `exposure_date`, and `exposure_tier`. A raw count is labeled `report_count`,
+  never danger.
 - **HR2** — No estimate without an interval. Every `rate` carries `rate_ci_low`, `rate_ci_high`,
   and `n`. Small-sample features are marked uncertain, not ranked as certain.
 - **HR3** — Reporting bias is named, not hidden. Per-feature `quality_flags` and the dataset-level
@@ -94,7 +95,7 @@ parameters that govern interpretation.
 {
   "type": "FeatureCollection",
   "metadata": {
-    "schema_version": "1.0.0",
+    "schema_version": "1.1.0",
     "dataset_version": "0.1.0",
     "city": "Davis",
     "license": "Apache-2.0",
@@ -184,17 +185,30 @@ inventing a number, so that "unknown" is a first-class, machine-readable state (
 ### 4.2 Exposure / the denominator (HR1)
 
 A rate is meaningless without the denominator it was computed against, and the denominator is only
-honest if its provenance travels with it. All three exposure fields move together.
+honest if its provenance — including how much to trust it — travels with it. All five exposure fields
+move together.
 
 | Property | Type | Nullable | Description |
 |---|---|---|---|
-| `exposure_estimate` | number > 0 | yes | The exposure denominator attached to this feature by `exposure.py`: an estimate of travel volume / opportunity for a hazard, in the unit named by `exposure_source` (e.g. annual bike+ped trips, or person-km on the segment). `null` means **exposure unknown** for this feature; when `null`, `rate`, `rate_ci_low`, and `rate_ci_high` are also `null` and the feature is labeled "exposure unknown" rather than rated (degradability — a segment is never silently dropped or falsely rated). |
+| `exposure_estimate` | number > 0 | yes | The exposure denominator attached to this feature by `exposure.py`: an estimate of travel volume / opportunity for a hazard, in the unit named by `exposure_source` (e.g. annual bike+ped trips, or person-km on the segment). `null` means **exposure unknown** for this feature; when `null`, `rate`, `rate_ci_low`, and `rate_ci_high` are also `null` and the feature is labeled "exposure unknown" rather than rated (degradability — a segment is never silently dropped or falsely rated). An estimate at or below the configured **exposure floor** (METHODOLOGY §3.3) is treated the same as `null` — rates blow up as exposure approaches zero, so a floor-violating segment is published "exposure unknown" rather than a giant, meaningless rate. |
 | `exposure_source` | string | yes | Identifier of the exposure source used for this feature (e.g. `city-bike-ped-counts-2024`, `demand-model-v2`, `streetlight-import-2025q1`). Sources are the same versioned identifiers used in the checked-in config; a swap or a stale layer is therefore visible per-feature, not silent. `null` only when `exposure_estimate` is `null`. |
 | `exposure_date` | string (ISO-8601 date) | yes | The date (or vintage) of the exposure data used, so a consumer can see how current the denominator is. `null` only when `exposure_estimate` is `null`. |
+| `exposure_tier` | string | no | The trust tier of `exposure_estimate` (METHODOLOGY §3.1), one of `"observed"` (a direct count station or manual count), `"modeled"` (a demand model, ideally calibrated against observed counts), `"proxy"` (a third-party activity layer, e.g. a fitness-app heatmap, used only when nothing better exists and carrying real representativeness caveats), or `"unknown"` (no tier recorded — the honest default for exposure rows written before this field existed; never silently promoted to `"observed"`). A rate on an `"observed"` denominator and a rate on a `"proxy"` denominator are different measurements and should never be compared as equals. |
+| `exposure_disagreement` | number in [0, 1] | yes | Published only when the segment's exposure was corroborated by two or more sources (see below). `1 - min(estimate) / max(estimate)` across all corroborating readings: `0` is perfect agreement, values near `1` flag a large cross-source disagreement — itself a finding (METHODOLOGY §3.1), surfaced rather than averaged away into a false consensus. `null` when the segment has only a single exposure reading (nothing to corroborate). |
 
 > A feature may use a different exposure source from its neighbors (e.g. a counted corridor next to a
-> modeled side street). That is why the source and date are **per-feature**, not only in `metadata`.
-> The data card discusses the implications of mixing sources.
+> modeled side street). That is why the source, date, and tier are **per-feature**, not only in
+> `metadata`. The data card discusses the implications of mixing sources.
+
+**Corroboration (multi-source exposure).** A segment's exposure may be backed by more than one
+reading — for example a count station and a demand model both covering the same block. When it is,
+`exposure_disagreement` reports how well they agree, computed by `nearmiss.exposure.corroboration`.
+`exposure_estimate`/`exposure_source`/`exposure_date`/`exposure_tier` always describe the single
+**primary** reading actually used for `rate`; the additional corroborating readings are not
+separately published (they carry no report-level detail, only another aggregate estimate), but their
+disagreement with the primary is. A high `exposure_disagreement` is a caveat on the rate, not a
+reason to distrust `rate` outright — it means the *denominator* is contested, and the interval and
+tier should be read accordingly.
 
 The exposure layer joins to the street network by **exact `segment_id`**. A *total* mismatch (no
 exposure id matches any street id — almost always two id schemes wired together by mistake) is a hard
@@ -267,9 +281,10 @@ vocabulary, so a consumer never has to know the internal flag names:
 |---|---|
 | `low_sample` | `report_count` is non-zero but below the project's small-sample threshold (`small_n`); the rate and any ranking are uncertain (**HR2**). Pair with the wide interval; the `hazard_breakdown` is also suppressed for such features. |
 | `geocode_low_confidence` | Aggregated reports here include low-positional-accuracy or far-snap locations (the internal `low_accuracy`/`far_snap` flags); placement is less certain. Address-only reports resolved by the geocoder can also raise this when the resolved location is uncertain. |
-| `exposure_unknown` | No exposure denominator was available; `exposure_estimate`/`rate`/`rate_ci_low`/`rate_ci_high` are `null` and `confidence_label` is `"exposure_unknown"`. Shown as "exposure unknown," not rated (**HR1**, degradability). |
+| `exposure_unknown` | No exposure denominator was available (including a denominator at or below the configured exposure floor); `exposure_estimate`/`rate`/`rate_ci_low`/`rate_ci_high` are `null` and `confidence_label` is `"exposure_unknown"`. Shown as "exposure unknown," not rated (**HR1**, degradability). |
+| `exposure_stale` | The exposure vintage (`exposure_date`) and the reports this feature's rate is built from are more than the configured threshold apart — a temporal-alignment caveat (METHODOLOGY §3.2: "a rate whose exposure was measured in a different period than its reports has a temporal mismatch"). Never set on a feature with `exposure_unknown` — a rate has to exist before its temporal alignment is meaningful. |
 
-These three are the **published** flags emitted by `publish.py`. Flags are intentionally conservative:
+These four are the **published** flags emitted by `publish.py`. Flags are intentionally conservative:
 it is better to over-mark a feature as uncertain than to present a thin or biased estimate as solid. The
 full definitions, thresholds, and the config values behind each flag are in the data card so the
 flagging is reproducible and auditable. Wider caveats that apply to the dataset as a whole — notably
@@ -340,6 +355,8 @@ and withholding reduce that risk; they do not erase it. That limitation is named
     "exposure_estimate": 184000,
     "exposure_source": "city-bike-ped-counts-2024",
     "exposure_date": "2024-09-30",
+    "exposure_tier": "observed",
+    "exposure_disagreement": null,
     "rate": 6.52e-05,
     "rate_ci_low": 3.37e-05,
     "rate_ci_high": 1.14e-04,
@@ -365,15 +382,51 @@ and withholding reduce that risk; they do not erase it. That limitation is named
 ```
 
 How to read it honestly: `report_count` (12) is *volume*; the danger estimate is `rate` with its
-interval (`rate_ci_low`..`rate_ci_high`), computed against an observed 2024 count denominator. The Gi\*
-flag (`getis_ord_significant: true`) marks a statistically significant cluster — but the dataset-level
-bias account still applies, so the cluster should be read with the caveat that this corridor may be
+interval (`rate_ci_low`..`rate_ci_high`), computed against an `"observed"`-tier 2024 count denominator
+— the most trusted class (METHODOLOGY §3.1). `exposure_disagreement` is `null` because this segment has
+only the one reading; there is nothing to corroborate it against. The Gi\* flag
+(`getis_ord_significant: true`) marks a statistically significant cluster — but the dataset-level bias
+account still applies, so the cluster should be read with the caveat that this corridor may be
 over-represented by commuter reporters, exactly as the brief and data card state it. An empty
 `quality_flags` array means no per-feature caveat was raised, **not** that the feature is unconditionally
 trustworthy. The top-level `rate` is the **pooled union** of all 12 reports; `rates_by_type` decomposes
 it, here publishing only `close_pass` (7 reports) because `dooring` (3) and `surface_hazard` (2) each
 fall below `small_n` and are suppressed — so a place-plus-type rate is never built from a handful of
 reports.
+
+A segment corroborated by a second, disagreeing source carries that disagreement, not a false consensus:
+
+```jsonc
+{
+  "type": "Feature",
+  "geometry": { "type": "LineString", "coordinates": [[-117.396, 33.953], [-117.395, 33.954]] },
+  "properties": {
+    "segment_id": "seg-riverside-00042",
+    "name": "Main St (5th–6th)",
+    "report_count": 3,
+    "n": 3,
+    "exposure_estimate": 1500,
+    "exposure_source": "count-station-12",
+    "exposure_date": "2026-05-01",
+    "exposure_tier": "observed",
+    "exposure_disagreement": 0.2,
+    "rate": 2.0,
+    "rate_ci_low": 0.41,
+    "rate_ci_high": 5.85,
+    "getis_ord_z": -0.98,
+    "getis_ord_significant": false,
+    "confidence_label": "uncertain",
+    "hazard_breakdown": {},
+    "quality_flags": []
+  }
+}
+```
+
+`rate` here is computed against the `"observed"` primary reading (1500), same as any single-source
+feature — corroboration does not change the rate. But a demand model covering the same block estimated
+only 1200, a 20% disagreement (`exposure_disagreement: 0.2`), which METHODOLOGY §3.1 calls "itself a
+finding": the count and the model disagree on how busy this block is, and a reader deciding how much to
+trust `rate` should know that, not just the interval.
 
 A feature with no usable denominator looks different and says so:
 
@@ -389,6 +442,8 @@ A feature with no usable denominator looks different and says so:
     "exposure_estimate": null,
     "exposure_source": null,
     "exposure_date": null,
+    "exposure_tier": "unknown",
+    "exposure_disagreement": null,
     "rate": null,
     "rate_ci_low": null,
     "rate_ci_high": null,
@@ -438,7 +493,7 @@ What each bump means for this published artifact:
    (**HR5**).
 4. `$schema`/machine-validation: the published GeoJSON is validated in CI against the JSON Schema
    [`schema/dataset.schema.json`](dataset.schema.json), which mirrors this document; that validator is
-   versioned in lockstep (`const` `schema_version` `1.0.0`) and is the authoritative, machine-checkable
+   versioned in lockstep (`const` `schema_version` `1.1.0`) and is the authoritative, machine-checkable
    form of this contract. `publish.py` runs the same validation before writing any file, so a build that
    would violate the contract fails instead of shipping.
 

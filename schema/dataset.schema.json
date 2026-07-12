@@ -47,7 +47,7 @@
       "properties": {
         "schema_version": {
           "description": "The version of THIS published-dataset schema the file conforms to. Pinned to the version this JSON Schema encodes; publish.py writes the same string.",
-          "const": "1.0.0"
+          "const": "1.1.0"
         },
         "dataset_version": {
           "description": "The version of the data (the city release), independent of the schema version.",
@@ -194,7 +194,9 @@
         "hazard_breakdown",
         "quality_flags",
         "rates_by_type",
-        "rate_sensitivity_delta"
+        "rate_sensitivity_delta",
+        "exposure_tier",
+        "exposure_disagreement"
       ],
       "additionalProperties": true,
       "properties": {
@@ -315,7 +317,8 @@
             "enum": [
               "low_sample",
               "geocode_low_confidence",
-              "exposure_unknown"
+              "exposure_unknown",
+              "exposure_stale"
             ]
           }
         },
@@ -357,6 +360,25 @@
             "number",
             "null"
           ]
+        },
+        "exposure_tier": {
+          "description": "Trust tier of exposure_estimate: observed (direct count), modeled (demand model), proxy (third-party activity layer), or unknown. Added in schema 1.1.0 (FIX-04).",
+          "type": "string",
+          "enum": [
+            "observed",
+            "modeled",
+            "proxy",
+            "unknown"
+          ]
+        },
+        "exposure_disagreement": {
+          "description": "Cross-source disagreement in [0,1] (1 - min/max across corroborating exposure readings); null when only a single reading exists. Added in schema 1.1.0 (FIX-04).",
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
         }
       }
     }

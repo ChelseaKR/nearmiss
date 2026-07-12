@@ -22,6 +22,7 @@ from .config import Config
 from .engine import AnalysisBundle, build_analysis
 from .i18n import (
     confidence_label,
+    exposure_tier_label,
     get_translation,
     hazard_type_label,
     part_of_day_label,
@@ -184,20 +185,25 @@ def _render_top_table(
     th_ci = _("95% CI")
     th_n = _("n")
     th_confidence = _("Confidence")
+    # FIX-04: the exposure trust tier travels with the rate so a reader never
+    # silently compares an observed count against a proxy layer (METHODOLOGY §3.1).
+    th_tier = _("Exposure tier")
     th_hotspot = _("Hotspot")
     out.append(
         f"| {th_rank} | {th_segment} | {th_rate} | {th_ci} | {th_n} | {th_confidence} | "
-        f"{th_hotspot} |"
+        f"{th_tier} | {th_hotspot} |"
     )
-    out.append("| ---: | --- | ---: | --- | ---: | --- | --- |")
+    out.append("| ---: | --- | ---: | --- | ---: | --- | --- | --- |")
     for i, s in enumerate(ranked[:10], start=1):
         ci = f"{_fmt(s.rate_ci_low)}-{_fmt(s.rate_ci_high)}"
         hotspot = (
             f"★ Gi* z={s.getis_ord_z:.2f}" if (s.significant and s.getis_ord_z is not None) else ""
         )
+        tier = exposure_tier_label(translation, s.exposure_tier)
         out.append(
             f"| {i} | {name_of(s.segment_id)} | {_fmt(s.rate)} | "
-            f"{ci} | {s.n} | {confidence_label(translation, s.confidence_label)} | {hotspot} |"
+            f"{ci} | {s.n} | {confidence_label(translation, s.confidence_label)} | "
+            f"{tier} | {hotspot} |"
         )
     out.append("")
 

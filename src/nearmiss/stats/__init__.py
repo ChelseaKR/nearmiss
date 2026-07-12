@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ..config import Config
-from ..exposure import attach_exposure, coverage, is_usable
+from ..exposure import attach_exposure, corroboration, coverage, is_stale, is_usable
 from ..geometry import haversine_m, polyline_centroid
 from ..models import CleanRecord, ConfidenceLabel, Exposure, Report, Segment, SegmentStats
 from ..util import round_stable
@@ -50,7 +50,7 @@ class AnalysisResult:
 
 
 def _published_quality_flags(
-    usable: bool, count: int, small_n: int, raw_flags: set[str]
+    usable: bool, count: int, small_n: int, raw_flags: set[str], stale: bool
 ) -> tuple[str, ...]:
     """Map internal pipeline flags + sample size to the published flag vocabulary."""
     flags: list[str] = []
@@ -60,7 +60,18 @@ def _published_quality_flags(
         flags.append("low_sample")
     if raw_flags & _LOW_CONFIDENCE_RAW:
         flags.append("geocode_low_confidence")
+    if usable and stale:
+        flags.append("exposure_stale")
     return tuple(sorted(set(flags)))
+
+
+def _reference_date(records: list[CleanRecord], report_points: list[Report]) -> str | None:
+    """The latest report date the pipeline retained — the temporary stand-in for a
+    first-class analysis window (FIX-05), used only to detect a stale exposure
+    vintage (METHODOLOGY §3.2). ``None`` when there is nothing to compare against.
+    """
+    dates = [r.occurred_at for r in records] or [r.occurred_at for r in report_points]
+    return max(dates) if dates else None
 
 
 def _estimate_dispersion(
@@ -144,6 +155,10 @@ def analyze(
     seg_ids = [s.id for s in segments]
     attached = attach_exposure(seg_ids, exposure_map)
     centroids = {s.id: polyline_centroid(s.coords) for s in segments}
+    # corroboration() returns an AGREEMENT ratio (1.0 = perfect agreement); the
+    # published exposure_disagreement is its complement so higher = more disagreement.
+    agreement = corroboration(exposure_map)
+    reference_date = _reference_date(records, report_points)
 
     # RR-02: estimate the quasi-Poisson dispersion of the report counts against
     # exposure. Clustered reporting makes counts more variable than Poisson, which
@@ -162,7 +177,7 @@ def analyze(
         count = a.count if a else 0
         count_primary = a.count_primary if a else 0
         exp = attached.get(s.id)
-        usable = is_usable(exp)
+        usable = is_usable(exp, config.exposure_floor)
         rate: float | None
         lo: float | None
         hi: float | None
@@ -199,6 +214,12 @@ def analyze(
             config,
         )
         raw_flags = set(a.quality_flags) if a else set()
+        stale = (
+            usable
+            and exp is not None
+            and reference_date is not None
+            and is_stale(exp.date, reference_date, config.exposure_stale_days)
+        )
         stats.append(
             SegmentStats(
                 segment_id=s.id,
@@ -217,8 +238,14 @@ def analyze(
                 publishable=not (0 < count < config.min_publish_n),
                 hazard_breakdown=breakdown,
                 rates_by_type=rates_by_type,
-                quality_flags=_published_quality_flags(usable, count, config.small_n, raw_flags),
+                quality_flags=_published_quality_flags(
+                    usable, count, config.small_n, raw_flags, stale
+                ),
                 rate_sensitivity_delta=sensitivity_delta,
+                exposure_tier=(exp.tier if exp else "unknown"),
+                exposure_disagreement=(
+                    round_stable(1.0 - agreement[s.id], 4) if s.id in agreement else None
+                ),
             )
         )
 
@@ -265,7 +292,7 @@ def analyze(
         segments=stats,
         bias=bias,
         kde=surface,
-        exposure_coverage=coverage(attached),
+        exposure_coverage=coverage(attached, config.exposure_floor),
         kde_peak_segment=peak_segment,
         temporal=temporal,
         dispersion=round(dispersion, 4),

@@ -15,7 +15,7 @@ release so a schema change is never buried in a code change:
 - **Intake report schema** — `schema/report.schema.json`, currently `1.0.0`. The intake contract for
   precise, pre-aggregation reports. Carried per payload in the `schema_version` field.
 <!-- claim:dataset-schema-prose -->
-- **Published dataset schema** — `schema/dataset.schema.md`, currently `1.0.0`. The contract for the
+- **Published dataset schema** — `schema/dataset.schema.md`, currently `1.1.0`. The contract for the
   open per-city `data/published/<city-slug>.geojson` artifact (e.g. `davis.geojson`).
   Carried per file in `metadata.schema_version`. This contract is **prose only**
   (`schema/dataset.schema.md`); a machine-readable JSON Schema mirror validated in CI is **planned,
@@ -70,7 +70,22 @@ each will move here under its own `### Added` entry as it lands.
 
 ### Published dataset schema (`schema/dataset.schema.md`)
 
-- No changes since `1.0.0`.
+- **`1.1.0` (MINOR, backward-compatible additive)** — Exposure trust tiers, corroboration, an
+  exposure floor, and a staleness flag (FIX-04, `docs/ideation/02-large-scale-fixes.md`).
+  `models.Exposure` gained `tier` (`observed`/`modeled`/`proxy`/`unknown`) and optional
+  corroborating `sources`; `loaders.load_exposure` accepts both, defaulting older exposure rows to
+  `tier="unknown"` rather than silently promoting them. Published GeoJSON features gained
+  `exposure_tier` and `exposure_disagreement` (null unless corroborated by 2+ sources); the
+  `quality_flags` vocabulary gained `exposure_stale`, raised when a feature's `exposure_date` is
+  more than a configured threshold (`exposure_stale_days`) from the reports its rate is built
+  from. A new `exposure_floor` config threshold treats a denominator at or below the floor as
+  `exposure_unknown` rather than a giant, meaningless rate. All additions are optional/nullable;
+  no existing field changed name, type, or meaning. See `schema/dataset.schema.md` §4.2/§4.6 and
+  `docs/DATA-CARD.md`.
+  The same `1.1.0` version also carries the other backward-compatible feature-property additions
+  that landed alongside it: `rates_by_type` (per-hazard-type rate layers, FIX-06) and
+  `rate_sensitivity_delta` (quality-tier sensitivity split, FIX-07), both required, aggregate-only,
+  and additive.
 
 ## [0.1.0] - 2026-06-16 (versioned milestone — not yet tagged or published)
 
