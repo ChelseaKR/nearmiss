@@ -484,6 +484,31 @@ jobs:
             exit 1
           fi
 
+  build-pages:
+    name: build minimal public artifact
+    # Exercise the exact Pages assembly and packaging path on PRs as well as
+    # main. Nightly runs are security-only and intentionally skip this job.
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout the candidate commit
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Configure Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+
+      - name: Assemble minimal public artifact
+        run: python tools/build_site.py --out _site --sha "$GITHUB_SHA"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: _site
+
   deploy-pages:
     name: deploy minimal public artifact
     if: github.event_name == 'push'
@@ -499,6 +524,7 @@ jobs:
       - security
       - zizmor
       - reproducibility
+      - build-pages
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -508,21 +534,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout the CI-verified commit
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          persist-credentials: false
-
-      - name: Configure Pages
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-
-      - name: Assemble minimal public artifact
-        run: python tools/build_site.py --out _site --sha "$GITHUB_SHA"
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
-        with:
-          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
