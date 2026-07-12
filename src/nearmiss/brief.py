@@ -15,6 +15,7 @@ requested ``lang`` is loaded via :mod:`nearmiss.i18n`.
 from __future__ import annotations
 
 import gettext
+import json
 from collections.abc import Callable
 
 from .config import Config
@@ -27,6 +28,7 @@ from .i18n import (
     weekday_label,
 )
 from .models import Segment, SegmentStats
+from .publish import _slug
 from .stats.bias import BiasFinding
 
 
@@ -446,6 +448,36 @@ def _render_bias_section(
         out.append("")
 
 
+def _render_calibration(
+    out: list[str], config: Config, translation: gettext.NullTranslations
+) -> None:
+    """Append one sentence pointing at the published null-calibration artifact, if
+    ``nearmiss analyze --calibrate`` has been run for this city (EXP-01: "we attacked
+    our own dataset"). Silently omitted when the artifact hasn't been generated yet —
+    the brief must never claim a calibration that wasn't actually run.
+    """
+    _ = translation.gettext
+    calibration_path = config.out_dir / f"{_slug(config.city)}.calibration.json"
+    if not calibration_path.is_file():
+        return
+    try:
+        calib = json.loads(calibration_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    rate = calib.get("false_positive_rate")
+    n_shuffles = calib.get("n_shuffles")
+    if not isinstance(rate, int | float) or not isinstance(n_shuffles, int):
+        return
+    out.append(
+        _(
+            "**Null calibration (we attacked our own dataset):** on {n} seeded label-shuffles "
+            "of this city's own reports, with exposure and geometry held fixed, the hotspot "
+            "method's empirical false-positive rate was {pct}% — see `{file}`."
+        ).format(n=n_shuffles, pct=f"{rate * 100:.2f}", file=calibration_path.name)
+    )
+    out.append("")
+
+
 def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> str:
     translation = get_translation(lang)
     _ = translation.gettext
@@ -474,6 +506,7 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     _render_robustness(out, bundle, translation, name_of)
     _render_bias_section(out, bundle, publishable, name_of, translation)
     _render_temporal(out, bundle, translation)
+    _render_calibration(out, config, translation)
 
     out.append("---")
     out.append("")
