@@ -514,8 +514,9 @@ yet a track record (v0.1.0).
 
 ### Operability, serviceability, sustainability
 
-**Operability** and **manageability** — a maintainer runbook (run a rebuild, rotate an exposure
-source, publish a brief); a pipeline status output. **Administrability** — config-over-code is
+**Operability** and **manageability** — maintainer runbooks, including the
+[live-integrity response procedure](docs/LIVE-INTEGRITY.md), and pipeline status output.
+**Administrability** — config-over-code is
 implemented; [`src/nearmiss/config.py`](src/nearmiss/config.py) loads
 [`config/davis-demo.toml`](config/davis-demo.toml), so thresholds and sources are versioned rather than
 coded. **Observability** — Tier C, declared with its rationale and gates in its own
@@ -621,7 +622,7 @@ If you believe a published artifact leaks identifying precision, treat it as a s
 | [`web/`](web/) | framework-free WCAG 2.2 AA map UI with list/table equivalent; public submission form (`submit.html`); embeddable hotspot widget (`embed.html` + `nearmiss-embed.js`) |
 | [`data/`](data/) | `raw/` (private, gitignored) and `published/` (open GeoJSON + data card) |
 | [`tests/`](tests/) | pytest suites and planted-hotspot fixtures with known answers |
-| [`docs/`](docs/) | [METHODOLOGY](docs/METHODOLOGY.md), [DATA-CARD](docs/DATA-CARD.md), [COVERAGE-TIERS](docs/COVERAGE-TIERS.md), [ADAPTING](docs/ADAPTING.md), [THREAT-MODEL](docs/THREAT-MODEL.md), [SUBMISSIONS](docs/SUBMISSIONS.md), [INTAKE-AND-ABUSE](docs/INTAKE-AND-ABUSE.md), [ACCESSIBILITY](docs/ACCESSIBILITY.md), [ADRs](docs/adr/), [audits](docs/audits/), [accessibility ACR](docs/accessibility/ACR.md) |
+| [`docs/`](docs/) | [METHODOLOGY](docs/METHODOLOGY.md), [DATA-CARD](docs/DATA-CARD.md), [LIVE-INTEGRITY](docs/LIVE-INTEGRITY.md), [COVERAGE-TIERS](docs/COVERAGE-TIERS.md), [ADAPTING](docs/ADAPTING.md), [THREAT-MODEL](docs/THREAT-MODEL.md), [SUBMISSIONS](docs/SUBMISSIONS.md), [INTAKE-AND-ABUSE](docs/INTAKE-AND-ABUSE.md), [ACCESSIBILITY](docs/ACCESSIBILITY.md), [ADRs](docs/adr/), [audits](docs/audits/), [accessibility ACR](docs/accessibility/ACR.md) |
 | [`infra/`](infra/) | optional serverless intake + scheduled rebuild; scale-to-zero |
 | [`.github/`](.github/) | [CI](.github/workflows/ci.yml), Dependabot, CodeQL, issue/PR templates, CODEOWNERS |
 
