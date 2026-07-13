@@ -24,8 +24,9 @@ A change is not done until every applicable merge gate is green:
 5. Dependency, secret, code, and workflow scans pass: blocking `pip-audit`,
    gitleaks, CodeQL, and high-severity zizmor; workflow actions remain SHA
    pinned. The tag workflow generates an SBOM, signature, and provenance.
-6. All four authored web pages pass the structural WCAG gate, axe-core,
-   consumer-contract checks, and the RTL layout smoke test.
+6. All four authored web pages pass the structural WCAG gate, axe-core, and
+   RTL layout smoke. Dataset and nationwide-ledger consumers additionally pass
+   their behavioral contract checks.
 7. EN/ES extraction, catalog/placeholder parity, `msgfmt`, web-catalog parity,
    BCP-47, and pseudolocale checks pass.
 8. The public Pages artifact is built from the explicit allowlist and contains

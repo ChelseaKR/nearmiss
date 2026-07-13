@@ -420,6 +420,27 @@ jobs:
 
       - name: Analyze with CodeQL
         uses: github/codeql-action/analyze@99df26d4f13ea111d4ec1a7dddef6063f76b97e9  # v4.37.0
+        with:
+          # Keep the normal code-scanning upload and also retain local SARIF so
+          # this required job makes its own merge-blocking pass/fail decision.
+          upload: always
+          output: codeql-results
+
+      - name: Enforce zero CodeQL findings
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          sarif=(codeql-results/*.sarif)
+          if (( ${#sarif[@]} == 0 )); then
+            echo "CodeQL produced no SARIF output" >&2
+            exit 1
+          fi
+          count=$(jq -s '[.[] | .runs[]?.results[]?] | length' "${sarif[@]}")
+          if (( count > 0 )); then
+            echo "CodeQL reported ${count} finding(s)" >&2
+            exit 1
+          fi
 
   zizmor:
     name: zizmor (GitHub Actions workflow SAST)

@@ -79,6 +79,31 @@ def _redact_path(path: str) -> str:
     return _clean_path(path)
 
 
+def _has_symlink_component(path: Path, root: Path) -> bool:
+    """Fail closed when ``path`` reaches the served tree through a symlink.
+
+    Lexical URL checks cannot see that a seemingly public alias points into the
+    private raw store.  Refusing every symlink component keeps the authorization
+    decision independent of the alias target and applies equally to files and
+    directories.
+    """
+    try:
+        absolute_root = root.absolute()
+        absolute_path = path.absolute()
+        relative = absolute_path.relative_to(absolute_root)
+        current = absolute_root
+        if current.is_symlink():
+            return True
+        for part in relative.parts:
+            current /= part
+            if current.is_symlink():
+                return True
+    except (OSError, RuntimeError, ValueError):
+        # An uninspectable or out-of-root path is not safe to serve.
+        return True
+    return False
+
+
 def check_readiness(directory: str | Path) -> tuple[bool, dict[str, str]]:
     """Readiness of the served static store — the server's one hard dependency.
 
@@ -118,7 +143,8 @@ class _RestrictedHandler(SimpleHTTPRequestHandler):
         request_id = uuid.uuid4().hex
         start = time.perf_counter()
         self._status = 0
-        if is_blocked_path(self.path):
+        blocked = self._is_blocked_request(self.path)
+        if blocked:
             # Hard rule #4 guard, preserved exactly: 403, no body/metadata leak.
             self.send_error(403, "Forbidden: not a public artifact")
         elif method == "HEAD":
@@ -131,10 +157,20 @@ class _RestrictedHandler(SimpleHTTPRequestHandler):
             "request",
             request_id=request_id,
             method=method,
-            path=_redact_path(self.path),  # protected paths -> "<blocked>"
+            path="<blocked>" if blocked else _redact_path(self.path),
             status=self._status,
             latency_ms=latency_ms,
         )
+
+    def _is_blocked_request(self, path: str) -> bool:
+        """Apply both URL-level and filesystem-level publication boundaries."""
+        if is_blocked_path(path):
+            return True
+        try:
+            translated = Path(self.translate_path(path))
+        except (OSError, RuntimeError, ValueError):
+            return True
+        return _has_symlink_component(translated, Path(self.directory))
 
     def _health(self, path: str, *, write_body: bool) -> None:
         """Serve ``/livez`` (cheap, always 200) or ``/readyz`` (dependency-checked)."""

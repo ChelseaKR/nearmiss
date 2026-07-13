@@ -86,6 +86,23 @@ def test_public_served_but_private_store_and_dotfiles_forbidden(tmp_path: Path) 
         assert _fetch(f"{base}/data/raw/davis/reports.json", method="HEAD")[0] == 403
 
 
+def test_symlink_aliases_to_private_store_are_forbidden_for_get_and_head(tmp_path: Path) -> None:
+    """A public-looking file or directory alias must not bypass hard rule #4."""
+    root = _make_root(tmp_path)
+    (root / "public-report.json").symlink_to(Path("data/raw/davis/reports.json"))
+    (root / "public-reports").symlink_to(Path("data/raw"), target_is_directory=True)
+
+    with _running_server(root) as base:
+        for path in ("/public-report.json", "/public-reports/davis/reports.json"):
+            get_status, get_body = _fetch(f"{base}{path}")
+            assert get_status == 403
+            assert b"SECRET" not in get_body
+
+            head_status, head_body = _fetch(f"{base}{path}", method="HEAD")
+            assert head_status == 403
+            assert head_body == b""
+
+
 def test_is_blocked_path_normalizes_and_bounds_prefixes() -> None:
     cases = [
         ("/data/raw/davis/reports.json", True),
