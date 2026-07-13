@@ -94,6 +94,10 @@ test: ## Run pytest (synthetic fixtures, KNOWN answers) under a branch-coverage 
 	$(PYTHON) -m pytest -q \
 		--cov=src/nearmiss --cov=src/honest_rates --cov-branch \
 		--cov-report=term-missing --cov-fail-under=90
+	# Defense in depth: independently re-evaluate pytest-cov's written data. This
+	# keeps a coverage-floor failure merge-blocking even if another pytest hook
+	# overwrites the session exit status. Precision=2 prevents 89.75% rounding to 90%.
+	$(PYTHON) -m coverage report --fail-under=90 --precision=2
 
 qgis-plugin-test: ## Test the QGIS plugin's honest-symbology rules (EXP-11, no QGIS install needed)
 	cd integrations/qgis && $(PYTHON) -m pytest tests/ -q

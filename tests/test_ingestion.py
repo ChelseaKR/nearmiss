@@ -528,9 +528,447 @@ def test_limits_and_source_aware_validator_reject_suspicious_payloads(
             attempt_id="oversized",
         )
     assert _receipt(oversized.value.receipt_path)["error"] == {
-        "message": "fetch failed",
+        "message": "active artifact preflight failed",
+        "type": "IngestionError",
+    }
+
+
+def test_history_validator_runs_under_lock_after_preservation_before_commit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root = tmp_path / "source"
+    candidate = b"normalized-with-history"
+    candidate_digest = hashlib.sha256(candidate).hexdigest()
+    candidate_path = source_root / "normalized" / "sha256" / f"{candidate_digest}.bin"
+    events: list[str] = []
+    original_require_unchanged = ingestion._require_active_marker_unchanged
+    original_replace = ingestion._atomic_replace
+
+    def track_require_unchanged(
+        actual_source_root: Path, current_path: Path, expected: bytes | None
+    ) -> None:
+        events.append("marker-reread")
+        original_require_unchanged(actual_source_root, current_path, expected)
+
+    def track_replace(root: Path, destination: Path, payload: bytes) -> None:
+        events.append("replace")
+        original_replace(root, destination, payload)
+
+    def validate_history(
+        actual_source_root: Path, actual_candidate: bytes, actual_started_at: str
+    ) -> None:
+        assert actual_source_root == source_root
+        assert actual_candidate == candidate
+        assert actual_started_at == "2026-07-12T18:30:00Z"
+        assert candidate_path.read_bytes() == candidate
+        assert (source_root / ".ingestion.lock").is_dir()
+        events.append("history-validation")
+
+    def validate_candidate(actual_candidate: bytes, previous: bytes | None) -> None:
+        assert actual_candidate == candidate
+        assert previous is None
+        assert not candidate_path.exists()
+        assert (source_root / ".ingestion.lock").is_dir()
+        events.append("candidate-validation")
+
+    monkeypatch.setattr(ingestion, "_require_active_marker_unchanged", track_require_unchanged)
+    monkeypatch.setattr(ingestion, "_atomic_replace", track_replace)
+    result = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-with-history",
+        normalize=lambda _raw: candidate,
+        validate_normalized=validate_candidate,
+        validate_history=validate_history,
+        clock=_clock,
+        attempt_id="history-success",
+    )
+
+    assert events == [
+        "candidate-validation",
+        "history-validation",
+        "marker-reread",
+        "replace",
+    ]
+    assert result.normalized_path == candidate_path
+    assert not (source_root / ".ingestion.lock").exists()
+
+
+def test_history_validator_failure_preserves_current_and_prevents_replace(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    initial = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-initial",
+        normalize=lambda _raw: b"normalized-initial",
+        clock=_clock,
+        attempt_id="history-initial",
+    )
+    marker_before = initial.current_path.read_bytes()
+    candidate = b"private-candidate-payload"
+    candidate_digest = hashlib.sha256(candidate).hexdigest()
+    candidate_path = tmp_path / "source" / "normalized" / "sha256" / f"{candidate_digest}.bin"
+    replace_calls = 0
+    secret = f"{tmp_path}/private-candidate-payload"
+    original_replace = ingestion._atomic_replace
+
+    def track_replace(root: Path, destination: Path, payload: bytes) -> None:
+        nonlocal replace_calls
+        replace_calls += 1
+        original_replace(root, destination, payload)
+
+    def reject_history(source_root: Path, actual_candidate: bytes, actual_started_at: str) -> None:
+        assert source_root == tmp_path / "source"
+        assert actual_candidate == candidate
+        assert actual_started_at == "2026-07-12T18:30:00Z"
+        assert candidate_path.read_bytes() == candidate
+        assert (source_root / ".ingestion.lock").is_dir()
+        raise ValueError(secret)
+
+    monkeypatch.setattr(ingestion, "_atomic_replace", track_replace)
+    with pytest.raises(IngestionRunError) as raised:
+        run_ingestion(
+            root=tmp_path,
+            source_id="source",
+            fetch=lambda: b"raw-candidate",
+            normalize=lambda _raw: candidate,
+            validate_history=reject_history,
+            clock=_clock,
+            attempt_id="history-rejected",
+        )
+
+    assert replace_calls == 0
+    assert initial.current_path.read_bytes() == marker_before
+    assert candidate_path.read_bytes() == candidate
+    receipt_text = raised.value.receipt_path.read_text(encoding="utf-8")
+    assert _receipt(raised.value.receipt_path)["error"] == {
+        "message": "normalized artifact validation failed",
         "type": "ValueError",
     }
+    assert secret not in receipt_text
+    assert secret not in str(raised.value)
+    assert secret not in "".join(traceback.format_exception(raised.value))
+    assert not (tmp_path / "source" / ".ingestion.lock").exists()
+
+
+@pytest.mark.parametrize("target_kind", ["raw", "normalized"])
+def test_history_validator_cannot_mutate_preserved_candidate_before_commit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, target_kind: str
+) -> None:
+    initial = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-initial",
+        normalize=lambda _raw: b"normalized-initial",
+        clock=_clock,
+        attempt_id=f"candidate-{target_kind}-initial",
+    )
+    marker_before = initial.current_path.read_bytes()
+    raw = b"private-candidate-raw"
+    normalized = b"private-candidate-normalized"
+    target_payload = raw if target_kind == "raw" else normalized
+    target_digest = hashlib.sha256(target_payload).hexdigest()
+    target_directory = "raw" if target_kind == "raw" else "normalized"
+    replace_calls = 0
+    original_replace = ingestion._atomic_replace
+
+    def track_replace(root: Path, destination: Path, payload: bytes) -> None:
+        nonlocal replace_calls
+        replace_calls += 1
+        original_replace(root, destination, payload)
+
+    def mutate_candidate(
+        source_root: Path, actual_candidate: bytes, actual_started_at: str
+    ) -> None:
+        assert actual_candidate == normalized
+        assert actual_started_at == "2026-07-12T18:30:00Z"
+        target = source_root / target_directory / "sha256" / f"{target_digest}.bin"
+        target.chmod(0o600)
+        target.write_bytes(b"x" * len(target_payload))
+        target.chmod(0o400)
+
+    monkeypatch.setattr(ingestion, "_atomic_replace", track_replace)
+    with pytest.raises(IngestionRunError) as raised:
+        run_ingestion(
+            root=tmp_path,
+            source_id="source",
+            fetch=lambda: raw,
+            normalize=lambda _raw: normalized,
+            validate_history=mutate_candidate,
+            clock=_clock,
+            attempt_id=f"candidate-{target_kind}-mutated",
+        )
+
+    assert replace_calls == 0
+    assert initial.current_path.read_bytes() == marker_before
+    failure = _receipt(raised.value.receipt_path)
+    assert failure["error"] == {
+        "message": "active marker commit failed",
+        "type": "IngestionError",
+    }
+    assert failure["raw_sha256"] is None
+    assert failure["raw_snapshot"] is None
+    assert failure["normalized_sha256"] is None
+    assert failure["normalized_path"] is None
+    assert "private-candidate" not in raised.value.receipt_path.read_text(encoding="utf-8")
+    assert not (tmp_path / "source" / ".ingestion.lock").exists()
+
+
+@pytest.mark.parametrize("target_kind", ["raw", "normalized", "current"])
+def test_history_validator_cannot_mutate_prior_active_state_before_commit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, target_kind: str
+) -> None:
+    initial = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-initial",
+        normalize=lambda _raw: b"normalized-initial",
+        clock=_clock,
+        attempt_id=f"prior-{target_kind}-initial",
+    )
+    marker_before = initial.current_path.read_bytes()
+    target = {
+        "raw": initial.raw_snapshot,
+        "normalized": initial.normalized_path,
+        "current": initial.current_path,
+    }[target_kind]
+    original_payload = target.read_bytes()
+    changed_payload = b"x" * len(original_payload)
+    replace_calls = 0
+    original_replace = ingestion._atomic_replace
+
+    def track_replace(root: Path, destination: Path, payload: bytes) -> None:
+        nonlocal replace_calls
+        replace_calls += 1
+        original_replace(root, destination, payload)
+
+    def mutate_prior(_source_root: Path, _candidate: bytes, actual_started_at: str) -> None:
+        assert actual_started_at == "2026-07-12T18:30:00Z"
+        target.chmod(0o600)
+        target.write_bytes(changed_payload)
+        target.chmod(0o400)
+
+    monkeypatch.setattr(ingestion, "_atomic_replace", track_replace)
+    with pytest.raises(IngestionRunError) as raised:
+        run_ingestion(
+            root=tmp_path,
+            source_id="source",
+            fetch=lambda: b"raw-candidate",
+            normalize=lambda _raw: b"normalized-candidate",
+            validate_history=mutate_prior,
+            clock=_clock,
+            attempt_id=f"prior-{target_kind}-mutated",
+        )
+
+    assert replace_calls == 0
+    expected_marker = changed_payload if target_kind == "current" else marker_before
+    assert initial.current_path.read_bytes() == expected_marker
+    assert _receipt(raised.value.receipt_path)["error"] == {
+        "message": "active marker commit failed",
+        "type": "IngestionError",
+    }
+    assert not (tmp_path / "source" / ".ingestion.lock").exists()
+
+
+def test_history_validator_is_optional_for_backward_compatible_calls(
+    tmp_path: Path,
+) -> None:
+    result = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-without-history-validator",
+        normalize=lambda raw: raw,
+        clock=_clock,
+        attempt_id="history-optional",
+    )
+
+    assert result.current_path.read_bytes() == result.receipt_path.read_bytes()
+
+
+def test_activated_validator_runs_under_lock_after_replace_before_success_receipt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root = tmp_path / "source"
+    candidate = b"normalized-activated-candidate"
+    expected_receipt = source_root / "receipts" / "activated-order.json"
+    events: list[str] = []
+    original_replace = ingestion._atomic_replace
+    original_install = ingestion._install_immutable
+
+    def track_replace(root: Path, destination: Path, payload: bytes) -> None:
+        original_replace(root, destination, payload)
+        events.append("replace")
+
+    def track_install(root: Path, destination: Path, payload: bytes) -> None:
+        if destination == expected_receipt:
+            events.append("receipt")
+        original_install(root, destination, payload)
+
+    def validate_activated(
+        actual_source_root: Path, actual_candidate: bytes, success_marker: bytes
+    ) -> None:
+        assert actual_source_root == source_root
+        assert actual_candidate == candidate
+        assert (source_root / ".ingestion.lock").is_dir()
+        assert (source_root / "normalized" / "current.json").read_bytes() == success_marker
+        assert not expected_receipt.exists()
+        marker = json.loads(success_marker)
+        assert marker["status"] == "success"
+        assert marker["attempt_id"] == "activated-order"
+        events.append("activated-validation")
+
+    monkeypatch.setattr(ingestion, "_atomic_replace", track_replace)
+    monkeypatch.setattr(ingestion, "_install_immutable", track_install)
+    result = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-activated-candidate",
+        normalize=lambda _raw: candidate,
+        validate_activated=validate_activated,
+        clock=_clock,
+        attempt_id="activated-order",
+    )
+
+    assert events == ["replace", "activated-validation", "receipt"]
+    assert result.current_path.read_bytes() == result.receipt_path.read_bytes()
+    assert not (source_root / ".ingestion.lock").exists()
+
+
+def test_first_activated_validator_failure_removes_current_and_is_redacted(
+    tmp_path: Path,
+) -> None:
+    secret = f"{tmp_path}/private-activated-validator-secret"
+
+    def reject_activated(source_root: Path, candidate: bytes, success_marker: bytes) -> None:
+        assert candidate == b"normalized-candidate"
+        assert (source_root / "normalized" / "current.json").read_bytes() == success_marker
+        assert (source_root / ".ingestion.lock").is_dir()
+        raise ValueError(secret)
+
+    with pytest.raises(IngestionRunError) as raised:
+        run_ingestion(
+            root=tmp_path,
+            source_id="source",
+            fetch=lambda: b"raw-candidate",
+            normalize=lambda _raw: b"normalized-candidate",
+            validate_activated=reject_activated,
+            clock=_clock,
+            attempt_id="activated-first-failure",
+        )
+
+    source_root = tmp_path / "source"
+    assert not (source_root / "normalized" / "current.json").exists()
+    failure = _receipt(raised.value.receipt_path)
+    assert failure["status"] == "failure"
+    assert failure["activated"] is False
+    assert failure["error"] == {
+        "message": "activated artifact validation failed",
+        "type": "ValueError",
+    }
+    assert raised.value.receipt_path.name == "activated-first-failure.json"
+    assert secret not in raised.value.receipt_path.read_text(encoding="utf-8")
+    assert secret not in str(raised.value)
+    assert secret not in "".join(traceback.format_exception(raised.value))
+    assert not (source_root / ".ingestion.lock").exists()
+
+
+def test_later_activated_validator_failure_restores_exact_prior_marker(
+    tmp_path: Path,
+) -> None:
+    initial = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-initial",
+        normalize=lambda _raw: b"normalized-initial",
+        clock=_clock,
+        attempt_id="activated-prior",
+    )
+    marker_before = initial.current_path.read_bytes()
+
+    def reject_activated(_source_root: Path, _candidate: bytes, _marker: bytes) -> None:
+        raise RuntimeError("private post-activation detail")
+
+    with pytest.raises(IngestionRunError) as raised:
+        run_ingestion(
+            root=tmp_path,
+            source_id="source",
+            fetch=lambda: b"raw-replacement",
+            normalize=lambda _raw: b"normalized-replacement",
+            validate_activated=reject_activated,
+            clock=_clock,
+            attempt_id="activated-later-failure",
+        )
+
+    assert initial.current_path.read_bytes() == marker_before
+    failure = _receipt(raised.value.receipt_path)
+    assert failure["status"] == "failure"
+    assert failure["activated"] is False
+    assert failure["error"] == {
+        "message": "activated artifact validation failed",
+        "type": "Exception",
+    }
+    assert not (tmp_path / "source" / "receipts" / "activated-later-failure.failure.json").exists()
+    assert not (tmp_path / "source" / ".ingestion.lock").exists()
+
+
+def test_activated_validator_mutation_is_detected_and_candidate_refs_are_cleared(
+    tmp_path: Path,
+) -> None:
+    initial = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-initial",
+        normalize=lambda _raw: b"normalized-initial",
+        clock=_clock,
+        attempt_id="activated-mutation-prior",
+    )
+    marker_before = initial.current_path.read_bytes()
+
+    def mutate_candidate(source_root: Path, candidate: bytes, _success_marker: bytes) -> None:
+        digest = hashlib.sha256(candidate).hexdigest()
+        target = source_root / "normalized" / "sha256" / f"{digest}.bin"
+        target.chmod(0o600)
+        target.write_bytes(b"x" * len(candidate))
+        target.chmod(0o400)
+
+    with pytest.raises(IngestionRunError) as raised:
+        run_ingestion(
+            root=tmp_path,
+            source_id="source",
+            fetch=lambda: b"raw-candidate",
+            normalize=lambda _raw: b"normalized-candidate",
+            validate_activated=mutate_candidate,
+            clock=_clock,
+            attempt_id="activated-mutation",
+        )
+
+    assert initial.current_path.read_bytes() == marker_before
+    failure = _receipt(raised.value.receipt_path)
+    assert failure["error"] == {
+        "message": "activated artifact validation failed",
+        "type": "IngestionError",
+    }
+    assert failure["raw_sha256"] is None
+    assert failure["raw_snapshot"] is None
+    assert failure["normalized_sha256"] is None
+    assert failure["normalized_path"] is None
+    assert not (tmp_path / "source" / ".ingestion.lock").exists()
+
+
+def test_activated_validator_is_optional_for_backward_compatible_calls(
+    tmp_path: Path,
+) -> None:
+    result = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-without-activated-validator",
+        normalize=lambda raw: raw,
+        clock=_clock,
+        attempt_id="activated-optional",
+    )
+
+    assert result.current_path.read_bytes() == result.receipt_path.read_bytes()
 
 
 def test_invalid_payload_limits_fail_before_lock_or_fetch(tmp_path: Path) -> None:

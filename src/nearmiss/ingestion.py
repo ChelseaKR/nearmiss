@@ -41,6 +41,8 @@ from typing import Literal, TypedDict, cast
 from jsonschema import Draft202012Validator, FormatChecker
 
 RECEIPT_SCHEMA_VERSION = "1.0.0"
+_MAX_ACTIVE_RECEIPT_BYTES = 1024 * 1024
+_MAX_ACTIVE_ARTIFACT_BYTES = 512 * 1024 * 1024
 _SAFE_SOURCE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _RECEIPT_ERROR_TYPES = (
     "Exception",
@@ -99,6 +101,7 @@ RECEIPT_SCHEMA: dict[str, object] = {
                 "message": {
                     "type": "string",
                     "enum": [
+                        "active artifact preflight failed",
                         "fetch failed",
                         "raw snapshot preservation failed",
                         "normalization failed",
@@ -106,6 +109,8 @@ RECEIPT_SCHEMA: dict[str, object] = {
                         "normalized artifact preservation failed",
                         "active marker commit failed",
                         "active marker commit failed; rollback also failed",
+                        "activated artifact validation failed",
+                        "activated artifact validation failed; rollback also failed",
                         "success receipt finalization failed",
                         "success receipt finalization failed; rollback also failed",
                     ],
@@ -203,6 +208,7 @@ RECEIPT_SCHEMA: dict[str, object] = {
                             "message": {
                                 "enum": [
                                     "active marker commit failed; rollback also failed",
+                                    "activated artifact validation failed; rollback also failed",
                                     "success receipt finalization failed; rollback also failed",
                                 ]
                             },
@@ -229,6 +235,8 @@ RECEIPT_SCHEMA: dict[str, object] = {
                                 "not": {
                                     "enum": [
                                         "active marker commit failed; rollback also failed",
+                                        "activated artifact validation failed; "
+                                        "rollback also failed",
                                         "success receipt finalization failed; rollback also failed",
                                     ]
                                 }
@@ -271,6 +279,8 @@ _RECEIPT_VALIDATOR = Draft202012Validator(RECEIPT_SCHEMA, format_checker=FormatC
 Fetch = Callable[[], bytes]
 Normalize = Callable[[bytes], bytes]
 ValidateNormalized = Callable[[bytes, bytes | None], None]
+ValidateHistory = Callable[[Path, bytes, str], None]
+ValidateActivated = Callable[[Path, bytes, bytes], None]
 Clock = Callable[[], dt.datetime]
 LockIdentity = tuple[int, int]
 
@@ -289,6 +299,22 @@ class IngestionRunError(IngestionError):
     def __init__(self, message: str, receipt_path: Path) -> None:
         super().__init__(message)
         self.receipt_path = receipt_path
+
+
+class _ActiveArtifactLimitError(IngestionError):
+    """A configured cap is smaller than an existing active artifact."""
+
+
+class _ActiveMarkerChangedError(IngestionError):
+    """The active marker changed after preflight and before commit."""
+
+
+class _ActivatedIntegrityError(IngestionError):
+    """The newly activated marker or its artifacts failed re-authentication."""
+
+
+class _DuplicateJSONKeyError(ValueError):
+    """An active marker JSON object contains an ambiguous duplicate key."""
 
 
 class ReceiptError(TypedDict):
@@ -423,33 +449,143 @@ def _write_temp(parent: Path, payload: bytes) -> Path:
     return path
 
 
-def _read_regular(path: Path) -> bytes:
-    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+def _validate_regular_metadata(
+    path: Path, metadata: os.stat_result, maximum_bytes: int | None
+) -> None:
+    if not stat.S_ISREG(metadata.st_mode):
+        raise IngestionError(f"ingestion artifact is not a regular file: {path}")
+    if metadata.st_uid != os.geteuid():
+        raise IngestionError(f"ingestion artifact is not owned by the effective user: {path}")
+    if metadata.st_nlink != 1:
+        raise IngestionError(f"ingestion artifact has an unsafe link count: {path}")
+    if stat.S_IMODE(metadata.st_mode) != 0o400:
+        raise IngestionError(f"ingestion artifact permissions are unsafe: {path}")
+    if metadata.st_size <= 0:
+        raise IngestionError(f"ingestion artifact is empty: {path}")
+    if maximum_bytes is not None and metadata.st_size > maximum_bytes:
+        raise _ActiveArtifactLimitError(
+            f"ingestion artifact exceeds its configured byte limit: {path}"
+        )
+
+
+def _validate_directory_metadata(path: Path, metadata: os.stat_result) -> None:
+    if (
+        not stat.S_ISDIR(metadata.st_mode)
+        or metadata.st_uid != os.geteuid()
+        or stat.S_IMODE(metadata.st_mode) != 0o700
+    ):
+        raise IngestionError(f"ingestion directory is unsafe: {path}")
+
+
+def _relative_parts(source_root: Path, path: Path) -> tuple[str, ...]:
     try:
-        descriptor = os.open(path, flags)
+        relative = path.relative_to(source_root)
+    except ValueError:
+        raise IngestionError("ingestion artifact escapes its source root") from None
+    if relative.is_absolute() or not relative.parts or ".." in relative.parts:
+        raise IngestionError("ingestion artifact escapes its source root")
+    return relative.parts
+
+
+def _required_open_flag(name: str) -> int:
+    value = getattr(os, name, None)
+    if not isinstance(value, int) or value == 0:
+        raise IngestionError("platform does not support secure ingestion artifact reads")
+    return value
+
+
+def _open_regular_beneath(source_root: Path, path: Path, *, optional: bool) -> int | None:
+    """Open a file through owned private directories without following symlinks."""
+    parts = _relative_parts(source_root, path)
+    if os.open not in os.supports_dir_fd:
+        raise IngestionError("platform does not support secure ingestion artifact reads")
+    directory_flags = (
+        os.O_RDONLY | _required_open_flag("O_DIRECTORY") | _required_open_flag("O_NOFOLLOW")
+    )
+    file_flags = os.O_RDONLY | _required_open_flag("O_NOFOLLOW") | _required_open_flag("O_NONBLOCK")
+    try:
+        directory_descriptor = os.open(source_root, directory_flags)
     except OSError:
-        raise IngestionError(f"ingestion artifact is not safely readable: {path}") from None
+        raise IngestionError("ingestion source directory is not safely readable") from None
+    try:
+        _validate_directory_metadata(source_root, os.fstat(directory_descriptor))
+        current = source_root
+        for part in parts[:-1]:
+            current /= part
+            try:
+                child_descriptor = os.open(part, directory_flags, dir_fd=directory_descriptor)
+            except FileNotFoundError:
+                if optional:
+                    return None
+                raise IngestionError(f"ingestion artifact is not safely readable: {path}") from None
+            except OSError:
+                raise IngestionError(f"ingestion directory is unsafe: {current}") from None
+            os.close(directory_descriptor)
+            directory_descriptor = child_descriptor
+            _validate_directory_metadata(current, os.fstat(directory_descriptor))
+        try:
+            return os.open(parts[-1], file_flags, dir_fd=directory_descriptor)
+        except FileNotFoundError:
+            if optional:
+                return None
+            raise IngestionError(f"ingestion artifact is not safely readable: {path}") from None
+        except OSError:
+            raise IngestionError(f"ingestion artifact is not safely readable: {path}") from None
+    finally:
+        os.close(directory_descriptor)
+
+
+def _stable_file_metadata(metadata: os.stat_result) -> tuple[int, ...]:
+    return (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_size,
+        metadata.st_mode,
+        metadata.st_uid,
+        metadata.st_nlink,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+    )
+
+
+def _read_open_regular(descriptor: int, path: Path, maximum_bytes: int | None) -> bytes:
     try:
         metadata = os.fstat(descriptor)
-        if not stat.S_ISREG(metadata.st_mode):
-            raise IngestionError(f"ingestion artifact is not a regular file: {path}")
-        if metadata.st_uid != os.geteuid():
-            raise IngestionError(f"ingestion artifact is not owned by the effective user: {path}")
-        os.fchmod(descriptor, 0o400)
+        _validate_regular_metadata(path, metadata, maximum_bytes)
         with os.fdopen(descriptor, "rb") as handle:
             descriptor = -1
-            return handle.read()
+            payload = handle.read() if maximum_bytes is None else handle.read(maximum_bytes + 1)
+            final_metadata = os.fstat(handle.fileno())
+        if not payload:
+            raise IngestionError(f"ingestion artifact is empty: {path}")
+        if maximum_bytes is not None and len(payload) > maximum_bytes:
+            raise _ActiveArtifactLimitError(
+                f"ingestion artifact exceeds its configured byte limit: {path}"
+            )
+        if len(payload) != metadata.st_size or _stable_file_metadata(
+            final_metadata
+        ) != _stable_file_metadata(metadata):
+            raise IngestionError(f"ingestion artifact changed while it was read: {path}")
+        return payload
     finally:
         if descriptor >= 0:
             os.close(descriptor)
 
 
-def _read_optional_regular(path: Path) -> bytes | None:
-    try:
-        path.stat(follow_symlinks=False)
-    except FileNotFoundError:
+def _read_regular(source_root: Path, path: Path, *, maximum_bytes: int | None = None) -> bytes:
+    descriptor = _open_regular_beneath(source_root, path, optional=False)
+    if descriptor is None:  # pragma: no cover - non-optional opens never return None
+        raise IngestionError(f"ingestion artifact is not safely readable: {path}") from None
+    return _read_open_regular(descriptor, path, maximum_bytes)
+
+
+def _read_optional_regular(
+    source_root: Path, path: Path, *, maximum_bytes: int | None = None
+) -> bytes | None:
+    descriptor = _open_regular_beneath(source_root, path, optional=True)
+    if descriptor is None:
         return None
-    return _read_regular(path)
+    return _read_open_regular(descriptor, path, maximum_bytes)
 
 
 def _install_immutable(source_root: Path, destination: Path, payload: bytes) -> None:
@@ -460,7 +596,7 @@ def _install_immutable(source_root: Path, destination: Path, payload: bytes) -> 
         try:
             os.link(temporary, destination)
         except FileExistsError:
-            if _read_regular(destination) != payload:
+            if _read_regular(source_root, destination, maximum_bytes=len(payload)) != payload:
                 raise IngestionError(f"immutable artifact collision at {destination}") from None
         else:
             _fsync_directory(destination.parent)
@@ -503,15 +639,26 @@ def _receipt_bytes(receipt: IngestionReceipt) -> bytes:
     return (json.dumps(receipt, indent=2, sort_keys=True) + "\n").encode()
 
 
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    value: dict[str, object] = {}
+    for key, item in pairs:
+        if key in value:
+            raise _DuplicateJSONKeyError
+        value[key] = item
+    return value
+
+
 def _parse_receipt(payload: bytes) -> IngestionReceipt:
     try:
-        value = json.loads(payload)
-    except (UnicodeDecodeError, json.JSONDecodeError):
+        value = json.loads(payload, object_pairs_hook=_unique_json_object)
+    except (UnicodeDecodeError, json.JSONDecodeError, _DuplicateJSONKeyError):
         raise IngestionError("active ingestion marker is not valid JSON") from None
     if not isinstance(value, dict):
         raise IngestionError("active ingestion marker is not a JSON object")
     receipt = cast(IngestionReceipt, value)
     _validate_receipt(receipt)
+    if _receipt_bytes(receipt) != payload:
+        raise IngestionError("active ingestion marker is not canonical JSON")
     return receipt
 
 
@@ -523,9 +670,16 @@ def _artifact_from_relative(source_root: Path, relative: str) -> Path:
 
 
 def _load_active_marker(
-    source_root: Path, current_path: Path, source_id: str
+    source_root: Path,
+    current_path: Path,
+    source_id: str,
+    *,
+    max_raw_bytes: int | None = None,
+    max_normalized_bytes: int | None = None,
 ) -> _ActiveMarker | None:
-    marker_bytes = _read_optional_regular(current_path)
+    marker_bytes = _read_optional_regular(
+        source_root, current_path, maximum_bytes=_MAX_ACTIVE_RECEIPT_BYTES
+    )
     if marker_bytes is None:
         return None
     receipt = _parse_receipt(marker_bytes)
@@ -540,8 +694,18 @@ def _load_active_marker(
     normalized_path_value = receipt["normalized_path"]
     if raw_path_value is None or normalized_path_value is None:
         raise IngestionError("active ingestion marker does not reference immutable artifacts")
-    raw = _read_regular(_artifact_from_relative(source_root, raw_path_value))
-    normalized = _read_regular(_artifact_from_relative(source_root, normalized_path_value))
+    raw = _read_regular(
+        source_root,
+        _artifact_from_relative(source_root, raw_path_value),
+        maximum_bytes=(max_raw_bytes if max_raw_bytes is not None else _MAX_ACTIVE_ARTIFACT_BYTES),
+    )
+    normalized = _read_regular(
+        source_root,
+        _artifact_from_relative(source_root, normalized_path_value),
+        maximum_bytes=(
+            max_normalized_bytes if max_normalized_bytes is not None else _MAX_ACTIVE_ARTIFACT_BYTES
+        ),
+    )
     if _digest(raw) != receipt["raw_sha256"]:
         raise IngestionError("active ingestion marker raw snapshot hash mismatch")
     if _digest(normalized) != receipt["normalized_sha256"]:
@@ -625,10 +789,15 @@ def _rollback_activation(source_root: Path, current_path: Path, previous: bytes 
 
 
 def _marker_state(
-    current_path: Path, previous: bytes | None, candidate: bytes | None
+    source_root: Path,
+    current_path: Path,
+    previous: bytes | None,
+    candidate: bytes | None,
 ) -> Literal["previous", "candidate", "ambiguous"]:
     try:
-        active = _read_optional_regular(current_path)
+        active = _read_optional_regular(
+            source_root, current_path, maximum_bytes=_MAX_ACTIVE_RECEIPT_BYTES
+        )
     except Exception:
         return "ambiguous"
     if candidate is not None and active == candidate:
@@ -636,6 +805,140 @@ def _marker_state(
     if active == previous:
         return "previous"
     return "ambiguous"
+
+
+def _require_active_marker_unchanged(
+    source_root: Path, current_path: Path, expected: bytes | None
+) -> None:
+    try:
+        observed = _read_optional_regular(
+            source_root, current_path, maximum_bytes=_MAX_ACTIVE_RECEIPT_BYTES
+        )
+    except Exception:
+        raise _ActiveMarkerChangedError(
+            "active ingestion marker changed during ingestion"
+        ) from None
+    if observed != expected:
+        raise _ActiveMarkerChangedError("active ingestion marker changed during ingestion")
+
+
+def _require_precommit_integrity(
+    *,
+    source_root: Path,
+    source_id: str,
+    current_path: Path,
+    previous: _ActiveMarker | None,
+    raw_snapshot: Path,
+    raw: bytes,
+    raw_digest: str,
+    normalized_path: Path,
+    normalized: bytes,
+    normalized_digest: str,
+    max_raw_bytes: int | None,
+    max_normalized_bytes: int | None,
+) -> None:
+    """Re-authenticate preserved and prior active state immediately before commit."""
+
+    try:
+        observed_raw = _read_regular(source_root, raw_snapshot, maximum_bytes=len(raw))
+        observed_normalized = _read_regular(
+            source_root, normalized_path, maximum_bytes=len(normalized)
+        )
+        if (
+            observed_raw != raw
+            or _digest(observed_raw) != raw_digest
+            or observed_normalized != normalized
+            or _digest(observed_normalized) != normalized_digest
+        ):
+            raise _ActiveMarkerChangedError("preserved ingestion artifacts changed before commit")
+        observed_previous = _load_active_marker(
+            source_root,
+            current_path,
+            source_id,
+            max_raw_bytes=max_raw_bytes,
+            max_normalized_bytes=max_normalized_bytes,
+        )
+    except _ActiveMarkerChangedError:
+        raise
+    except IngestionError:
+        raise _ActiveMarkerChangedError("active ingestion state changed before commit") from None
+
+    expected_marker = previous.marker_bytes if previous is not None else None
+    observed_marker = observed_previous.marker_bytes if observed_previous is not None else None
+    if observed_marker != expected_marker:
+        raise _ActiveMarkerChangedError("active ingestion state changed before commit")
+    _require_active_marker_unchanged(source_root, current_path, expected_marker)
+
+
+def _candidate_artifacts_authenticated(
+    *,
+    source_root: Path,
+    raw_snapshot: Path,
+    raw: bytes,
+    raw_digest: str,
+    normalized_path: Path,
+    normalized: bytes,
+    normalized_digest: str,
+) -> bool:
+    try:
+        observed_raw = _read_regular(source_root, raw_snapshot, maximum_bytes=len(raw))
+        observed_normalized = _read_regular(
+            source_root, normalized_path, maximum_bytes=len(normalized)
+        )
+    except IngestionError:
+        return False
+    return (
+        observed_raw == raw
+        and _digest(observed_raw) == raw_digest
+        and observed_normalized == normalized
+        and _digest(observed_normalized) == normalized_digest
+    )
+
+
+def _require_activated_integrity(
+    *,
+    source_root: Path,
+    source_id: str,
+    current_path: Path,
+    success_marker: bytes,
+    raw_snapshot: Path,
+    raw: bytes,
+    raw_digest: str,
+    normalized_path: Path,
+    normalized: bytes,
+    normalized_digest: str,
+    max_raw_bytes: int | None,
+    max_normalized_bytes: int | None,
+) -> None:
+    """Re-authenticate the activated marker and exact candidate artifacts."""
+
+    if not _candidate_artifacts_authenticated(
+        source_root=source_root,
+        raw_snapshot=raw_snapshot,
+        raw=raw,
+        raw_digest=raw_digest,
+        normalized_path=normalized_path,
+        normalized=normalized,
+        normalized_digest=normalized_digest,
+    ):
+        raise _ActivatedIntegrityError("activated ingestion artifacts changed during validation")
+    try:
+        active = _load_active_marker(
+            source_root,
+            current_path,
+            source_id,
+            max_raw_bytes=max_raw_bytes,
+            max_normalized_bytes=max_normalized_bytes,
+        )
+        if active is None or active.marker_bytes != success_marker:
+            raise _ActivatedIntegrityError("activated ingestion marker changed during validation")
+        _require_active_marker_unchanged(source_root, current_path, success_marker)
+    except _ActivatedIntegrityError:
+        raise
+    except IngestionError:
+        raise _ActivatedIntegrityError(
+            "activated ingestion state changed during validation"
+        ) from None
 
 
 def _failure_timestamp(clock: Clock) -> str | None:
@@ -667,9 +970,21 @@ def _validate_maximum(value: int | None, name: str) -> None:
 
 
 def _preflight_attempt(
-    receipt_path: Path, source_root: Path, current_path: Path, source_id: str
+    receipt_path: Path,
+    source_root: Path,
+    current_path: Path,
+    source_id: str,
+    *,
+    max_raw_bytes: int | None,
+    max_normalized_bytes: int | None,
 ) -> _ActiveMarker | None:
-    active = _load_active_marker(source_root, current_path, source_id)
+    active = _load_active_marker(
+        source_root,
+        current_path,
+        source_id,
+        max_raw_bytes=max_raw_bytes,
+        max_normalized_bytes=max_normalized_bytes,
+    )
     if active is not None:
         active_receipt_path = source_root / "receipts" / f"{active.receipt['attempt_id']}.json"
         _install_immutable(source_root, active_receipt_path, active.marker_bytes)
@@ -682,6 +997,36 @@ def _preflight_attempt(
     return active
 
 
+def _write_preflight_limit_failure(
+    *,
+    source_root: Path,
+    receipt_path: Path,
+    source_id: str,
+    attempt_id: str,
+    started_at: str,
+    clock: Clock,
+) -> None:
+    failure: IngestionReceipt = {
+        "schema_version": RECEIPT_SCHEMA_VERSION,
+        "attempt_id": attempt_id,
+        "source_id": source_id,
+        "status": "failure",
+        "started_at": started_at,
+        "completed_at": _failure_timestamp(clock),
+        "raw_sha256": None,
+        "raw_snapshot": None,
+        "normalized_sha256": None,
+        "normalized_path": None,
+        "previous_normalized_sha256": None,
+        "activated": False,
+        "error": {
+            "type": "IngestionError",
+            "message": "active artifact preflight failed",
+        },
+    }
+    _install_immutable(source_root, receipt_path, _receipt_bytes(failure))
+
+
 def run_ingestion(  # noqa: C901 - keep crash-state transitions together and auditable
     *,
     root: Path,
@@ -689,6 +1034,8 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
     fetch: Fetch,
     normalize: Normalize,
     validate_normalized: ValidateNormalized | None = None,
+    validate_history: ValidateHistory | None = None,
+    validate_activated: ValidateActivated | None = None,
     clock: Clock = _utc_now,
     attempt_id: str | None = None,
     max_raw_bytes: int | None = None,
@@ -697,8 +1044,12 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
     """Fetch, snapshot, normalize, and atomically activate one source.
 
     ``fetch`` and ``normalize`` must return non-empty bytes. The optional
-    validator receives the candidate and previous normalized bytes, allowing
-    source-aware regression checks before activation. Any exception
+    candidate validator receives the candidate and previous normalized bytes.
+    The optional history validator receives the owned source root, preserved
+    candidate bytes, and exact canonical attempt start timestamp immediately
+    before activation. The optional activated validator receives the owned source
+    root, exact normalized candidate, and exact canonical success marker after
+    activation but before success receipt finalization. Any exception
     after successful preflight produces a failure receipt and raises
     :class:`IngestionRunError`; the prior normalized artifact remains active.
     """
@@ -726,7 +1077,35 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
     lock_identity = _acquire_lock(lock_path, source_id)
 
     try:
-        previous = _preflight_attempt(receipt_path, source_root, current_path, source_id)
+        previous = _preflight_attempt(
+            receipt_path,
+            source_root,
+            current_path,
+            source_id,
+            max_raw_bytes=max_raw_bytes,
+            max_normalized_bytes=max_normalized_bytes,
+        )
+    except _ActiveArtifactLimitError:
+        try:
+            _write_preflight_limit_failure(
+                source_root=source_root,
+                receipt_path=receipt_path,
+                source_id=source_id,
+                attempt_id=run_id,
+                started_at=started_at,
+                clock=clock,
+            )
+        except BaseException as receipt_exc:
+            _release_lock(lock_path, lock_identity)
+            if not isinstance(receipt_exc, Exception):
+                raise
+            raise IngestionError(
+                "ingestion failed and its failure receipt could not be written"
+            ) from None
+        _release_lock(lock_path, lock_identity)
+        raise IngestionRunError(
+            f"ingestion failed for source {source_id!r}", receipt_path
+        ) from None
     except BaseException:
         _release_lock(lock_path, lock_identity)
         raise
@@ -758,6 +1137,10 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
         normalized_digest = normalized_candidate_digest
         normalized_path = normalized_candidate_path
 
+        if validate_history is not None:
+            failure_stage = "normalized artifact validation"
+            validate_history(source_root, normalized, started_at)
+            failure_stage = "normalized artifact preservation"
         completed_at = _timestamp(clock())
         receipt: IngestionReceipt = {
             "schema_version": RECEIPT_SCHEMA_VERSION,
@@ -776,8 +1159,40 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
         }
         success_marker = _receipt_bytes(receipt)
         failure_stage = "active marker commit"
+        _require_precommit_integrity(
+            source_root=source_root,
+            source_id=source_id,
+            current_path=current_path,
+            previous=previous,
+            raw_snapshot=raw_snapshot,
+            raw=raw,
+            raw_digest=raw_digest,
+            normalized_path=normalized_path,
+            normalized=normalized,
+            normalized_digest=normalized_digest,
+            max_raw_bytes=max_raw_bytes,
+            max_normalized_bytes=max_normalized_bytes,
+        )
         _atomic_replace(source_root, current_path, success_marker)
         activated = True
+
+        if validate_activated is not None:
+            failure_stage = "activated artifact validation"
+            validate_activated(source_root, normalized, success_marker)
+            _require_activated_integrity(
+                source_root=source_root,
+                source_id=source_id,
+                current_path=current_path,
+                success_marker=success_marker,
+                raw_snapshot=raw_snapshot,
+                raw=raw,
+                raw_digest=raw_digest,
+                normalized_path=normalized_path,
+                normalized=normalized,
+                normalized_digest=normalized_digest,
+                max_raw_bytes=max_raw_bytes,
+                max_normalized_bytes=max_normalized_bytes,
+            )
 
         failure_stage = "success receipt finalization"
         _install_immutable(source_root, receipt_path, success_marker)
@@ -791,17 +1206,45 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
             normalized_sha256=normalized_digest,
         )
     except BaseException as exc:
-        state = _marker_state(current_path, previous_marker, success_marker)
-        if state == "candidate":
-            activated = True
-        elif state == "previous":
+        marker_changed = isinstance(exc, _ActiveMarkerChangedError)
+        if failure_stage == "activated artifact validation" and (
+            raw_snapshot is None
+            or raw_digest is None
+            or normalized_path is None
+            or normalized_digest is None
+            or not _candidate_artifacts_authenticated(
+                source_root=source_root,
+                raw_snapshot=raw_snapshot,
+                raw=raw,
+                raw_digest=raw_digest,
+                normalized_path=normalized_path,
+                normalized=normalized,
+                normalized_digest=normalized_digest,
+            )
+        ):
+            raw_digest = None
+            raw_snapshot = None
+            normalized_digest = None
+            normalized_path = None
+        if marker_changed:
+            raw_digest = None
+            raw_snapshot = None
+            normalized_digest = None
+            normalized_path = None
+            state = "ambiguous"
             activated = False
         else:
-            retain_lock = True
+            state = _marker_state(source_root, current_path, previous_marker, success_marker)
+            if state == "candidate":
+                activated = True
+            elif state == "previous":
+                activated = False
+            else:
+                retain_lock = True
 
         if not isinstance(exc, Exception):
             raise
-        if state == "ambiguous":
+        if state == "ambiguous" and not marker_changed:
             raise IngestionError(
                 "ingestion failed and active marker state could not be determined; "
                 "operator intervention is required"
@@ -812,7 +1255,9 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
             try:
                 _rollback_activation(source_root, current_path, previous_marker)
             except BaseException as rollback_exc:
-                rollback_state = _marker_state(current_path, previous_marker, success_marker)
+                rollback_state = _marker_state(
+                    source_root, current_path, previous_marker, success_marker
+                )
                 if rollback_state == "previous":
                     activated = False
                 elif rollback_state == "ambiguous":

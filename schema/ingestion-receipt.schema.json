@@ -53,6 +53,7 @@
         "message": {
           "type": "string",
           "enum": [
+            "active artifact preflight failed",
             "fetch failed",
             "raw snapshot preservation failed",
             "normalization failed",
@@ -60,6 +61,8 @@
             "normalized artifact preservation failed",
             "active marker commit failed",
             "active marker commit failed; rollback also failed",
+            "activated artifact validation failed",
+            "activated artifact validation failed; rollback also failed",
             "success receipt finalization failed",
             "success receipt finalization failed; rollback also failed"
           ]
@@ -176,6 +179,7 @@
               "message": {
                 "enum": [
                   "active marker commit failed; rollback also failed",
+                  "activated artifact validation failed; rollback also failed",
                   "success receipt finalization failed; rollback also failed"
                 ]
               }
@@ -202,6 +206,7 @@
                 "not": {
                   "enum": [
                     "active marker commit failed; rollback also failed",
+                    "activated artifact validation failed; rollback also failed",
                     "success receipt finalization failed; rollback also failed"
                   ]
                 }

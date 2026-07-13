@@ -9,7 +9,7 @@ import json
 import os
 import re
 import stat
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
@@ -272,6 +272,16 @@ class _VerifiedJoinedSnapshot:
             raise VerificationError("verified joined snapshot invariants are invalid")
         object.__setattr__(self, "evidence", evidence)
         object.__setattr__(self, "normalized_bytes", normalized_bytes)
+
+
+@dataclass(frozen=True)
+class _VerifiedJoinedActivationState:
+    """Exact active joined marker and proof captured in one secure transaction."""
+
+    snapshot: _VerifiedJoinedSnapshot
+    completed_at: dt.datetime
+    current_bytes: bytes
+    current_digest: str
 
 
 def _fail(message: str) -> NoReturn:
@@ -847,7 +857,11 @@ def _verify_joined_generation(
 
 
 def _verify_joined_chain(
-    receipts: list[_ReceiptRecord], raw_hashes: int, normalized_hashes: int
+    receipts: list[_ReceiptRecord],
+    raw_hashes: int,
+    normalized_hashes: int,
+    *,
+    observe_generation: Callable[[_VerifiedGeneration], None] | None = None,
 ) -> _VerifiedGeneration:
     previous: _VerifiedGeneration | None = None
     seen_normalized: set[str] = set()
@@ -871,6 +885,8 @@ def _verify_joined_chain(
             generation = _verify_joined_generation(receipt, raw_hashes, normalized_hashes)
         if previous is not None:
             _validate_joined_regression(generation.artifact, previous.artifact)
+        if observe_generation is not None:
+            observe_generation(generation)
         seen_normalized.add(normalized_digest)
         previous = generation
     if previous is None:
@@ -906,7 +922,9 @@ def _joined_evidence_from(
     )
 
 
-def _load_verified_active_fars_joined_snapshot(root: str | Path) -> _VerifiedJoinedSnapshot:
+def _load_verified_active_fars_joined_activation_state(
+    root: str | Path,
+) -> _VerifiedJoinedActivationState:
     """Return the exact immutable joined bytes authenticated through secure descriptors.
 
     This is an intentionally private derivation seam.  Public callers must use
@@ -952,11 +970,32 @@ def _load_verified_active_fars_joined_snapshot(root: str | Path) -> _VerifiedJoi
         _lock_absent(source_fd)
         if active.normalized_bytes is None:  # pragma: no cover - joined verifier invariant
             _fail("joined FARS verified generation lost its normalized snapshot")
-        return _VerifiedJoinedSnapshot(
-            evidence=_joined_evidence_from(current, active.artifact),
-            normalized_bytes=active.normalized_bytes,
-            _proof_token=_JOINED_SNAPSHOT_PROOF_TOKEN,
+        if current.completed_at is None:  # pragma: no cover - active-success invariant
+            _fail("joined FARS active receipt completion time is invalid")
+        return _VerifiedJoinedActivationState(
+            snapshot=_VerifiedJoinedSnapshot(
+                evidence=_joined_evidence_from(current, active.artifact),
+                normalized_bytes=active.normalized_bytes,
+                _proof_token=_JOINED_SNAPSHOT_PROOF_TOKEN,
+            ),
+            completed_at=current.completed_at,
+            current_bytes=current_bytes,
+            current_digest=current_digest,
         )
+
+
+def _load_verified_active_fars_joined_snapshot_with_completion(
+    root: str | Path,
+) -> tuple[_VerifiedJoinedSnapshot, dt.datetime]:
+    state = _load_verified_active_fars_joined_activation_state(root)
+    return state.snapshot, state.completed_at
+
+
+def _load_verified_active_fars_joined_snapshot(root: str | Path) -> _VerifiedJoinedSnapshot:
+    """Return exact joined bytes from one descriptor-held full-history transaction."""
+
+    snapshot, _completed_at = _load_verified_active_fars_joined_snapshot_with_completion(root)
+    return snapshot
 
 
 def verify_active_fars_joined(root: str | Path) -> VerifiedJoinedOutcomeEvidence:

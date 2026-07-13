@@ -93,6 +93,27 @@ _MAX_NETWORK_BYTES = 64 * 1024 * 1024
 _MAX_JOINED_BYTES = 64 * 1024 * 1024
 _MAX_DISTANCE_M = 100_000.0
 
+
+def fars_context_contract_descriptor() -> dict[str, object]:
+    """Return the closed caps shared by runtime and machine schema contracts."""
+
+    return {
+        "caps": {
+            "max_records": _MAX_RECORDS,
+            "max_crash_source_records": _MAX_CRASH_SOURCE_RECORDS,
+            "max_person_source_records": _MAX_PERSON_SOURCE_RECORDS,
+            "max_segments": _MAX_SEGMENTS,
+            "max_coordinates": _MAX_COORDINATES,
+            "max_cells": _MAX_CELLS,
+            "max_contributions": _MAX_CELLS,
+            "max_config_bytes": _MAX_CONFIG_BYTES,
+            "max_network_bytes": _MAX_NETWORK_BYTES,
+            "max_joined_bytes": _MAX_JOINED_BYTES,
+            "max_distance_m": _MAX_DISTANCE_M,
+        }
+    }
+
+
 _SOURCE_LINEAGE_KEYS = frozenset(
     {
         "source_id",
@@ -999,5 +1020,6 @@ __all__ = [
     "build_verified_fars_context",
     "canonical_fars_context_bytes",
     "canonical_parsed_network_sha256",
+    "fars_context_contract_descriptor",
     "validate_fars_context_artifact",
 ]
