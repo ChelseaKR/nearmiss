@@ -96,6 +96,28 @@ These distinct controls prevent a valid-looking truncated or stale file from sil
 national last-known-good artifact. When an override is used, that policy choice is stored in the
 normalized artifact.
 
+For the reviewed annual accident/person path, `nearmiss ingest-fars-year` accepts only the exact
+National ZIP registered for an explicit year and append-only contract revision. The current registry
+covers 2020–2024 at revision 1. Archive size and SHA-256, CSV members and encodings, release stage,
+mapping versions, row ceilings, and permitted regression categories all come from that immutable
+contract; the CLI has no flags that can replace them.
+
+```bash
+nearmiss ingest-fars-year /private/downloads/FARS2024NationalCSV.zip \
+  --root "$HOME/.local/share/nearmiss/ingestion" \
+  --year 2024 \
+  --contract-revision 1
+```
+
+The command performs the registered `accident.csv`/`person.csv` join, activates the canonical private
+annual artifact under source ID `fars-joined-<year>`, and prints one JSON line of verified aggregate
+lineage evidence. That line contains contract/mapping identities, hashes, and crash/person/case
+accounting—not private paths, coordinates, or normalized records. Run the command from inside the
+nearmiss checkout or assembled public site: even under pipx/wheel installation, the CLI rejects a
+private root inside that real operator-visible boundary and fails closed when it cannot identify one.
+Keep the private root outside every other served tree as an explicit operator control. Acquisition
+remains a separate reviewed step; a stable NHTSA URL alone is not accepted as proof of the bytes.
+
 After the city registry explicitly declares `id = "fars"` with
 `kind = "official_outcomes"`, an operator can verify the private lineage without publishing it:
 
@@ -109,9 +131,11 @@ lineage metadata. A declaration without verified bytes and verified bytes withou
 declaration both grant no capability. The matched state grants only `verified_official_outcomes`, not
 mode involvement, segment/time comparison, or triangulation.
 
-This is still crash-table context, not outcome triangulation. A later slice must join `person.csv` for
-road-user modes, link outcomes to street segments and time windows, and make coverage trust only the
-artifact/receipt/raw hash chain before any comparative capability appears.
+The legacy `ingest-fars`/`coverage --fars-root` flow is still crash-table context, not outcome
+triangulation. The annual command now performs the exact `person.csv` join for road-user modes, but
+those annual lineages are private and are not yet consumed by coverage, street-segment/time-window
+comparison, or publication. Those consumers require a separate reviewed methodology and privacy
+boundary before any comparative capability appears.
 
 ## 1. Incidents — real, and available today (BikeMaps.org)
 

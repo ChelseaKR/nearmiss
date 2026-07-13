@@ -15,6 +15,7 @@ nearmiss score-preregistration --registration F --config C [--out DIR]  # EXP-16
 nearmiss coverage  --config C [--registry R] [--fars-root R]  # evidence + verified gaps
 nearmiss ingest-fars EXPORT --root R --year Y # preserve + validate a private FARS artifact
 nearmiss ingest-fars-joined EXPORT --root R    # private 2024 crash/person join
+nearmiss ingest-fars-year RAW_ARCHIVE --root R --year Y --contract-revision N  # exact annual join
 nearmiss serve     [--dir D] [--port P]         # accessible map + data view (read-only)
 nearmiss version
 """
@@ -67,6 +68,111 @@ from .private_paths import (
 from .publish import _slug, publish
 from .server import serve
 from .stats.calibration import DEFAULT_N_SHUFFLES, DEFAULT_SEED, run_null_calibration
+
+_FARS_YEAR_CLI_EVIDENCE_KEYS = frozenset(
+    {
+        "source_id",
+        "dataset_year",
+        "contract_revision",
+        "source_revision_id",
+        "contract_sha256",
+        "crash_mapping_version",
+        "person_mapping_version",
+        "release_status",
+        "crash_records_read",
+        "crash_records_accepted",
+        "crash_records_rejected",
+        "person_records_read",
+        "person_records_accepted",
+        "person_records_excluded",
+        "cases_joined",
+        "cases_excluded",
+        "raw_sha256",
+        "accident_sha256",
+        "person_sha256",
+        "normalized_sha256",
+        "attempt_id",
+    }
+)
+
+
+def _is_nearmiss_checkout(root: Path) -> bool:
+    """Return whether ``root`` has the closed source-checkout identity markers."""
+
+    try:
+        return (
+            (root / "pyproject.toml").is_file()
+            and (root / "src" / "nearmiss" / "__main__.py").is_file()
+            and (root / "index.html").is_file()
+            and (root / "web").is_dir()
+            and (root / "data" / "published").is_dir()
+        )
+    except OSError:
+        return False
+
+
+def _is_nearmiss_public_site(root: Path) -> bool:
+    """Return whether ``root`` is an assembled, manifest-bound public site."""
+
+    try:
+        return (
+            (root / "site-manifest.json").is_file()
+            and (root / "index.html").is_file()
+            and (root / "web").is_dir()
+            and (root / "data" / "published").is_dir()
+        )
+    except OSError:
+        return False
+
+
+def _annual_fars_repository_boundaries() -> tuple[Path, ...]:
+    """Find invocation/source boundaries without trusting an installed-package prefix.
+
+    A wheel or pipx layout contains no operator checkout or served-tree identity, so
+    ``__file__`` alone is never an authority.  The invocation must be within a
+    recognizable nearmiss checkout or assembled public site.  An editable source
+    checkout is added as a second boundary when it differs from the invocation tree.
+    """
+
+    try:
+        working_directory = Path.cwd().resolve(strict=True)
+        module_path = Path(__file__).resolve(strict=True)
+    except (OSError, RuntimeError):
+        raise RepositoryRootPreflightError("repository root preflight failed") from None
+
+    boundaries: list[Path] = []
+
+    def add(root: Path) -> None:
+        if root not in boundaries:
+            boundaries.append(root)
+
+    for candidate in (working_directory, *working_directory.parents):
+        if _is_nearmiss_checkout(candidate) or _is_nearmiss_public_site(candidate):
+            add(candidate)
+
+    for candidate in module_path.parents:
+        if _is_nearmiss_checkout(candidate):
+            add(candidate)
+            break
+
+    if not boundaries:
+        raise RepositoryRootPreflightError("repository root preflight failed")
+    return tuple(boundaries)
+
+
+def _preflight_annual_fars_private_root(root: str | Path) -> tuple[Path, Path]:
+    """Reject a private root inside every discovered operator-visible boundary."""
+
+    boundaries = _annual_fars_repository_boundaries()
+    private_root: Path | None = None
+    for boundary in boundaries:
+        checked = require_private_root_outside_repository(root, boundary)
+        if private_root is not None and checked != private_root:
+            raise PrivateRootPreflightError("private storage root preflight failed")
+        private_root = checked
+    if private_root is None:  # pragma: no cover - boundary discovery fails closed above
+        raise RepositoryRootPreflightError("repository root preflight failed")
+    return private_root, boundaries[0]
 
 
 def _warn_unmatched(unmatched: list[str]) -> None:
@@ -540,6 +646,15 @@ def _fars_joined_year(value: str) -> int:
     return year
 
 
+def _fars_contract_year(value: str) -> int:
+    from .fars_year_contracts import SUPPORTED_FARS_YEARS
+
+    year = _fars_year(value)
+    if year not in SUPPORTED_FARS_YEARS:
+        raise argparse.ArgumentTypeError("must select a registered fixed FARS year")
+    return year
+
+
 def _invalid_fraction(value: str) -> float:
     try:
         fraction = float(value)
@@ -864,6 +979,34 @@ def _cmd_ingest_fars(args: argparse.Namespace) -> int:
         "release_status": provenance.get("release_status"),
     }
     print(json.dumps(output, ensure_ascii=False, sort_keys=True))
+    return 0
+
+
+def _cmd_ingest_fars_year(args: argparse.Namespace) -> int:
+    """Activate one exact reviewed annual FARS accident/person archive."""
+    try:
+        from .fars_year_activation import activate_fars_year
+
+        private_root, repository_root = _preflight_annual_fars_private_root(args.root)
+        evidence = activate_fars_year(
+            root=private_root,
+            repository_root=repository_root,
+            raw_archive_path=args.raw_archive,
+            year=args.year,
+            contract_revision=args.contract_revision,
+        )
+        projection = evidence.as_dict()
+        if set(projection) != _FARS_YEAR_CLI_EVIDENCE_KEYS:
+            raise ValueError("annual FARS evidence projection changed")
+        output = json.dumps(
+            projection,
+            ensure_ascii=False,
+            sort_keys=True,
+            allow_nan=False,
+        )
+    except Exception:
+        raise NearmissError("annual FARS activation failed") from None
+    print(output)
     return 0
 
 
@@ -1211,6 +1354,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="activate an older dataset year than current only after operator review",
     )
     p_fars.set_defaults(func=_cmd_ingest_fars)
+
+    p_fars_year = sub.add_parser(
+        "ingest-fars-year",
+        help="activate one exact reviewed annual FARS accident/person archive",
+    )
+    p_fars_year.add_argument(
+        "raw_archive",
+        metavar="RAW_ARCHIVE",
+        help="local reviewed NHTSA National ZIP containing accident.csv and person.csv",
+    )
+    p_fars_year.add_argument(
+        "--root",
+        required=True,
+        metavar="PRIVATE_ROOT",
+        help="private ingestion artifact root outside this repository",
+    )
+    p_fars_year.add_argument(
+        "--year",
+        required=True,
+        type=_fars_contract_year,
+        metavar="YEAR",
+        help="registered fixed FARS dataset year",
+    )
+    p_fars_year.add_argument(
+        "--contract-revision",
+        required=True,
+        type=_positive_int,
+        metavar="REVISION",
+        help="exact registered append-only source-contract revision",
+    )
+    p_fars_year.set_defaults(func=_cmd_ingest_fars_year)
 
     p_fars_joined = sub.add_parser(
         "ingest-fars-joined",

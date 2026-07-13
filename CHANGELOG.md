@@ -58,6 +58,11 @@ every entry.
 
 ### Added
 
+- An additive `nearmiss ingest-fars-year` operator command for exact reviewed 2020–2024 National
+  FARS accident/person archives. It requires an explicit registered year and contract revision,
+  derives every source, mapping, bound, release, and regression decision from that immutable
+  contract, activates an independently replay-verifiable private annual lineage, prints one sorted
+  aggregate-evidence JSON line, and exposes no latest, URL, size, attempt-ID, or policy override.
 - Read-only FARS lineage verification for `nearmiss coverage --fars-root`. Coverage now separates a
   source declaration from a verified active receipt/history/raw/artifact chain, deterministically
   replays normalization, and grants only `verified_official_outcomes` when source `fars` is also
