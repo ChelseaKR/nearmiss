@@ -82,7 +82,7 @@ mutation = [
 # `mutation` above: it never touches the `make verify` / pip-audit-scanned
 # surface that runs on every PR. Install on demand:  pip install -e ".[release]"
 release = [
-  "build>=1.2",
+  "build>=1.5.1",
 ]
 # EXP-12 "How to lie with heat maps" teaching module (docs/teaching/). Kept in
 # its OWN optional group, NOT in `dev`, for the same reason as `mutation`: the
