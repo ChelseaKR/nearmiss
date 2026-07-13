@@ -8,6 +8,7 @@ import hashlib
 import inspect
 import io
 import json
+import time
 import zipfile
 from dataclasses import replace
 from pathlib import Path
@@ -50,6 +51,7 @@ PERSON = b"""STATE,ST_CASE,VEH_NO,PER_NO,PER_TYP,INJ_SEV,BODY_TYP
 6,100002,1,1,1,4,80
 6,100002,0,1,6,4,
 """
+FIXED_ZIP_TIMESTAMP = (2020, 1, 1, 0, 0, 0)
 
 
 def _accident(year: int) -> bytes:
@@ -65,9 +67,35 @@ def _accident(year: int) -> bytes:
 def _archive(year: int) -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr("National/accident.csv", _accident(year))
-        archive.writestr("National/person.csv", PERSON)
+        for name, payload in (
+            ("National/accident.csv", _accident(year)),
+            ("National/person.csv", PERSON),
+        ):
+            member = zipfile.ZipInfo(name, date_time=FIXED_ZIP_TIMESTAMP)
+            member.compress_type = zipfile.ZIP_DEFLATED
+            archive.writestr(member, payload)
     return buffer.getvalue()
+
+
+def test_archive_fixture_bytes_do_not_depend_on_wall_clock(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        time,
+        "localtime",
+        lambda *_args: (2026, 7, 12, 23, 59, 58, 6, 193, 0),
+    )
+    before = _archive(2024)
+    monkeypatch.setattr(
+        time,
+        "localtime",
+        lambda *_args: (2026, 7, 13, 0, 0, 2, 0, 194, 0),
+    )
+    after = _archive(2024)
+
+    assert before == after
+    with zipfile.ZipFile(io.BytesIO(before)) as archive:
+        assert {member.date_time for member in archive.infolist()} == {FIXED_ZIP_TIMESTAMP}
 
 
 @pytest.fixture(autouse=True)
