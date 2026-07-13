@@ -73,9 +73,34 @@ def test_public_served_but_private_store_and_dotfiles_forbidden(tmp_path: Path) 
         # Dotfiles (.env, .git, ...) are refused too.
         assert _fetch(f"{base}/.env")[0] == 403
 
+        # Percent-encoding the slash/dot must NOT smuggle the private store or a
+        # dotfile past the guard: the resolver decodes before serving, so the
+        # guard must decode before checking (hard rule #4 bypass regression).
+        enc_status, enc_body = _fetch(f"{base}/data%2Fraw/davis/reports.json")
+        assert enc_status == 403
+        assert b"SECRET" not in enc_body
+        assert _fetch(f"{base}/%2eenv")[0] == 403
+
         # HEAD enforces the same authorization as GET (no metadata leak either).
         assert _fetch(f"{base}/web/index.html", method="HEAD")[0] == 200
         assert _fetch(f"{base}/data/raw/davis/reports.json", method="HEAD")[0] == 403
+
+
+def test_symlink_aliases_to_private_store_are_forbidden_for_get_and_head(tmp_path: Path) -> None:
+    """A public-looking file or directory alias must not bypass hard rule #4."""
+    root = _make_root(tmp_path)
+    (root / "public-report.json").symlink_to(Path("data/raw/davis/reports.json"))
+    (root / "public-reports").symlink_to(Path("data/raw"), target_is_directory=True)
+
+    with _running_server(root) as base:
+        for path in ("/public-report.json", "/public-reports/davis/reports.json"):
+            get_status, get_body = _fetch(f"{base}{path}")
+            assert get_status == 403
+            assert b"SECRET" not in get_body
+
+            head_status, head_body = _fetch(f"{base}{path}", method="HEAD")
+            assert head_status == 403
+            assert head_body == b""
 
 
 def test_is_blocked_path_normalizes_and_bounds_prefixes() -> None:
@@ -90,6 +115,14 @@ def test_is_blocked_path_normalizes_and_bounds_prefixes() -> None:
         ("/data/rawish/ok.json", False),  # prefix must be a path boundary, not a substring
         ("/web/index.html", False),
         ("/data/published/davis.geojson", False),
+        # Percent-encoding must be decoded before the check — the file resolver
+        # (SimpleHTTPRequestHandler.translate_path) unquotes first, so an encoded
+        # slash or dot must not slip a blocked path past the guard.
+        ("/data%2Fraw/davis/reports.json", True),  # encoded slash
+        ("/data%2fraw%2freports.json", True),  # lowercase encoded slash
+        ("/data/%72aw/reports.json", True),  # encoded 'r' inside "raw"
+        ("/%2eenv", True),  # encoded leading dot -> ".env"
+        ("/web/%2e%2e/data/raw/x", True),  # encoded ".." traversal
     ]
     for path, blocked in cases:
         assert is_blocked_path(path) is blocked, path

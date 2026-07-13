@@ -40,7 +40,8 @@ community-owned evidence base.
 > address-or-coordinate intake with an offline gazetteer geocoder **and** an opt-in networked
 > (Nominatim) adapter, a reproducible analysis notebook, a second demo city (Riverside) proving
 > config-over-code, a committed hashed lockfile, and a performance benchmark all exist and pass the
-> gates: `make demo`, `make verify`, and `make reproduce` run, 193 tests pass, and ruff + mypy
+> gates: `make demo`, `make verify`, and `make reproduce` run, the full test suite passes, and
+> ruff + mypy
 > `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
 > accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
 > pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
@@ -84,24 +85,22 @@ named plainly rather than implied away.
 
 | Standard | Applies? | Current state |
 |---|---|---|
-| QUALITY-AND-METRICS | Applies | AUTO gates strong (90% branch-coverage floor, advisory mutation testing on the stats core); REVIEW-gate artifacts (metrics ledger, `DEFINITION_OF_DONE.md`) not yet committed. |
+| QUALITY-AND-METRICS | Applies | AUTO gates strong (90% branch-coverage floor, advisory mutation testing on the stats core); the committed [`DEFINITION_OF_DONE.md`](DEFINITION_OF_DONE.md) and [`docs/ROADMAP.md`](docs/ROADMAP.md) metrics ledger name every AUTO/REVIEW/N/A gate. |
 | CODE-QUALITY | Applies | Lint/type/test are merge-blocking and green (ruff, `mypy --strict`, pytest); a few config/floor gaps are open (see [Contributing](#contributing)). |
-| SECURITY-AND-SUPPLY-CHAIN | Applies | `pip-audit --strict` (blocking, no mute) + gitleaks + CodeQL run in CI, from a hashed dev-toolchain lock (`requirements-dev.lock`, `--require-hashes`); an SBOM/signing/SLSA pipeline exists (`.github/workflows/release.yml`) but is **not yet exercised** — no tag has been pushed. An ASVS level is not yet declared (see [Security](#security) and [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md)). |
-| CI-CD | Applies | The core pipeline (lint/type/test/i18n/accessibility/security/reproducibility) is merge-blocking; `zizmor`, CodeQL for GitHub Actions and web JS, and a committed branch-ruleset artifact are open gaps (branch protection is a live GitHub setting with no committed evidence yet). |
+| SECURITY-AND-SUPPLY-CHAIN | Applies | `pip-audit --strict` (blocking, no mute) + gitleaks + locally enforced CodeQL run in CI, from a hashed dev-toolchain lock (`requirements-dev.lock`, `--require-hashes`); an SBOM/signing/SLSA pipeline exists (`.github/workflows/release.yml`) but is **not yet exercised** — no tag has been pushed. ASVS 5.0 L2 is declared; the control-by-control checklist remains open (see [Security](#security) and [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md)). |
+| CI-CD | Applies | The core pipeline (lint/type/test/i18n/accessibility/security/reproducibility) is merge-blocking; high-severity `zizmor` and CodeQL for GitHub Actions and web JS are enabled. A committed branch-ruleset artifact remains open (branch protection is a live GitHub setting with no committed evidence yet). |
 | RELEASE-AND-VERSIONING | Applies | SemVer + [`CHANGELOG.md`](CHANGELOG.md) are maintained; a tag-triggered release pipeline now exists (`.github/workflows/release.yml`) but **no version has ever been git-tagged and PyPI Trusted Publishing is not yet registered** — see the dated correction at the top of the CHANGELOG and the NOTE at the top of `release.yml`. |
 | ACCESSIBILITY | Applies | WCAG 2.2 AA target; the structural gate and an automated axe-core (jsdom) run are both merge-blocking; manual NVDA/VoiceOver review and browser-rendered gates (Lighthouse, pa11y) are still pending — see [Accessibility and Section 508 conformance](#accessibility-and-section-508-conformance). |
 | OBSERVABILITY | Applies (Tier C) | Structured JSON logs + `/livez`/`/readyz`; Tier C is a local-only CLI/library tier (OTel tracing/metrics/SLOs out of scope) — see [Operability, serviceability, sustainability](#operability-serviceability-sustainability). |
 | INTERNATIONALIZATION | Applies | The strongest area: gettext catalogs with four blocking CI gates (POT drift, `msgfmt --check`, EN/ES parity, BCP-47 validity) — see [`docs/I18N.md`](docs/I18N.md). |
 | AI-EVALUATION | **N/A** | No LLM/AI SDK usage anywhere in the codebase (verified: a grep for `anthropic`/`openai`/`langchain`/`bedrock`/generic LLM-client imports across `src/` and `tools/` is clean). See [`docs/adr/0004-standards-applicability.md`](docs/adr/0004-standards-applicability.md) — this flips to **Applies** immediately, per the standard's own AIEV-01, the moment any LLM-backed feature is added (e.g. an AI-assisted moderation triage or an auto-summarized brief). |
 | DOCUMENTATION | Applies | CHANGELOG, ADRs, `CITATION.cff`, `SECURITY.md` are all present and current; this table itself closes the prior gap (the README declared no standards before 2026-07-05). |
-| RESPONSIBLE-TECH | Applies | The threat model and mechanical misuse-resistance tests (k-anonymity floor, privacy leak tests, reproducibility tripwire) are strong; a DPIA, an ASVS-level declaration, and a residual-risk register are new or being added — see [Data, privacy, and ethics](#data-privacy-and-ethics) and [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md). |
+| RESPONSIBLE-TECH | Applies | The threat model, initial DPIA, ASVS L2 declaration, residual-risk register, and mechanical misuse-resistance tests (k-anonymity floor, privacy leak tests, reproducibility tripwire) are committed and reviewed. The DPIA's retention-policy gap and the ASVS control-by-control checklist remain open — see [Data, privacy, and ethics](#data-privacy-and-ethics) and [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md). |
 
-Portfolio practice links each open gap above to a GitHub tracking issue. **That issue-linking step is
-not done as of this table's creation (2026-07-05)** — opening tracking issues is a live-repository
-action for the maintainer to take, not a file edit, so it is named here rather than silently skipped.
-Until issues exist, treat this table itself, plus [`CHANGELOG.md`](CHANGELOG.md) and
-[`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md), as the source of truth for gap
-status.
+The enforceable values and current review/owner actions are tracked in
+[`docs/ROADMAP.md`](docs/ROADMAP.md); [`CHANGELOG.md`](CHANGELOG.md) and
+[`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md) remain the sources of truth for
+behavior changes and responsible-tech evidence.
 
 ---
 
@@ -531,7 +530,8 @@ CI smoke suite on every PR. **Autonomy** (operational), **self-sustainability**,
 open data and zero-cost hosting mean the dataset survives without a grant or a city's goodwill.
 **Testability**, **inspectability**, **demonstrability** — the planted-hotspot fixtures with known
 answers (documented in [`tests/README.md`](tests/README.md)) are committed under
-[`tests/fixtures/davis/`](tests/fixtures/davis/), 193 pytest tests pass against them, and `make demo`
+[`tests/fixtures/davis/`](tests/fixtures/davis/), the full pytest suite passes against them, and
+`make demo`
 runs the full pipeline to make the statistics verifiable.
 
 > Each attribute above maps to a documented decision and, where the implementation exists, a

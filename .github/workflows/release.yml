@@ -166,14 +166,16 @@ jobs:
       - name: Create the GitHub Release (attaches dist, SBOM, signatures, certs, provenance)
         env:
           GH_TOKEN: ${{ github.token }}
+          ATTESTATION_BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
         run: |
           set -euo pipefail
+          test -n "$ATTESTATION_BUNDLE_PATH"
           gh release create "${GITHUB_REF_NAME}" \
             --title "${GITHUB_REF_NAME}" \
             --notes-file release-notes.md \
             dist/*.whl dist/*.tar.gz \
             sbom.cdx.json ./*.sigstore.json dist/*.sigstore.json data/published/*.sigstore.json \
-            "${{ steps.attest.outputs.bundle-path }}"
+            "$ATTESTATION_BUNDLE_PATH"
 
   publish-pypi:
     name: publish to PyPI (Trusted Publishing, OIDC)

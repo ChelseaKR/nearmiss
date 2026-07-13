@@ -20,17 +20,21 @@ on:
     # satisfied a fortiori by a weekly run).
     - cron: "30 1 * * 6"
 
-permissions: read-all
+permissions:
+  contents: read
+
+concurrency:
+  group: scorecard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   analysis:
     name: Scorecard analysis
     runs-on: ubuntu-24.04
     permissions:
-      # Needed for Code Scanning upload.
-      security-events: write
-      # Needed for the GitHub OIDC token used by `publish_results: true`.
-      id-token: write
+      contents: read # Check out and analyze this public repository.
+      security-events: write # Upload the generated SARIF to code scanning.
+      id-token: write # Publish authenticated results with short-lived GitHub OIDC.
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0

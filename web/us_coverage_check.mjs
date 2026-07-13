@@ -782,6 +782,10 @@ async function main() {
     "unknown requested year"
   );
   assertError(
+    await boot({ url: "https://example.test/web/us-coverage.html?year=2024&year=2020" }),
+    "ambiguous requested year"
+  );
+  assertError(
     await boot({ url: "https://example.test/web/us-coverage.html?state=ca" }),
     "malformed requested state"
   );
@@ -792,6 +796,10 @@ async function main() {
   assertError(
     await boot({ url: "https://example.test/web/us-coverage.html?state=CA&state=NY" }),
     "ambiguous requested state"
+  );
+  assertError(
+    await boot({ url: "https://example.test/web/us-coverage.html?lang=en&lang=es" }),
+    "ambiguous requested language"
   );
   const oneYearIndex = releaseSubsetIndex([2024]);
   assertError(
@@ -829,13 +837,10 @@ async function main() {
   assertError(await boot({ disableCrypto: true }), "missing Web Crypto digest support");
   assertError(await boot({ failFetch: true }), "release-index fetch failure");
 
-  const unsupportedLocale = await boot({
-    url: "https://example.test/web/us-coverage.html?lang=ar",
-  });
-  if (unsupportedLocale.doc.documentElement.lang !== "en") {
-    die("unsupported locale mislabeled English fallback content");
-  }
-  unsupportedLocale.dom.window.close();
+  assertError(
+    await boot({ url: "https://example.test/web/us-coverage.html?lang=ar" }),
+    "unsupported requested language"
+  );
   console.log("us-coverage contract: unknown years, drift, private fields, fetch, locale, and crypto fail closed.");
 }
 
