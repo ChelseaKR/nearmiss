@@ -1,0 +1,1658 @@
+{
+  "$defs": {
+    "join_policy": {
+      "additionalProperties": false,
+      "properties": {
+        "allow_mode_regression": {
+          "const": false
+        },
+        "allow_record_regression": {
+          "const": false
+        },
+        "allow_release_regression": {
+          "const": false
+        },
+        "allow_year_regression": {
+          "const": false
+        }
+      },
+      "required": [
+        "allow_record_regression",
+        "allow_mode_regression",
+        "allow_release_regression",
+        "allow_year_regression"
+      ],
+      "type": "object"
+    },
+    "joined_record": {
+      "additionalProperties": false,
+      "properties": {
+        "jurisdiction": {
+          "$ref": "#/$defs/jurisdiction"
+        },
+        "mode_summary": {
+          "$ref": "#/$defs/mode_summary"
+        },
+        "outcome": {
+          "$ref": "#/$defs/outcome"
+        }
+      },
+      "required": [
+        "outcome",
+        "mode_summary",
+        "jurisdiction"
+      ],
+      "type": "object"
+    },
+    "jurisdiction": {
+      "additionalProperties": false,
+      "properties": {
+        "county_code": {
+          "pattern": "^[0-9]{3}$",
+          "type": "string"
+        },
+        "county_code_system": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "county_status": {
+          "enum": [
+            "reported",
+            "not_applicable",
+            "other",
+            "not_reported",
+            "unknown"
+          ],
+          "type": "string"
+        },
+        "source_record_id": {
+          "pattern": "^202[0-4]:[1-9][0-9]*$",
+          "type": "string"
+        },
+        "state_code": {
+          "enum": [
+            "1",
+            "2",
+            "4",
+            "5",
+            "6",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26",
+            "27",
+            "28",
+            "29",
+            "30",
+            "31",
+            "32",
+            "33",
+            "34",
+            "35",
+            "36",
+            "37",
+            "38",
+            "39",
+            "40",
+            "41",
+            "42",
+            "43",
+            "44",
+            "45",
+            "46",
+            "47",
+            "48",
+            "49",
+            "50",
+            "51",
+            "53",
+            "54",
+            "55",
+            "56"
+          ],
+          "type": "string"
+        },
+        "state_code_system": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_record_id",
+        "state_code",
+        "state_code_system",
+        "county_code",
+        "county_status",
+        "county_code_system"
+      ],
+      "type": "object"
+    },
+    "location": {
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "maximum": 90,
+          "minimum": -90,
+          "type": "number"
+        },
+        "lon": {
+          "maximum": 180,
+          "minimum": -180,
+          "type": "number"
+        }
+      },
+      "required": [
+        "lat",
+        "lon"
+      ],
+      "type": "object"
+    },
+    "member_descriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "archive_path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "crc32": {
+          "pattern": "^[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 12,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "uncompressed_size": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "archive_path",
+        "name",
+        "uncompressed_size",
+        "crc32",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "mode_array": {
+      "items": {
+        "enum": [
+          "motor_vehicle_occupant",
+          "motorcyclist",
+          "pedalcyclist",
+          "pedestrian",
+          "other_road_user",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "mode_counts": {
+      "additionalProperties": false,
+      "properties": {
+        "motor_vehicle_occupant": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "motorcyclist": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "other_road_user": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pedalcyclist": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pedestrian": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unknown": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "motor_vehicle_occupant",
+        "motorcyclist",
+        "pedalcyclist",
+        "pedestrian",
+        "other_road_user",
+        "unknown"
+      ],
+      "type": "object"
+    },
+    "mode_summary": {
+      "additionalProperties": false,
+      "properties": {
+        "fatality_count_by_mode": {
+          "$ref": "#/$defs/mode_counts"
+        },
+        "fatality_modes": {
+          "$ref": "#/$defs/mode_array"
+        },
+        "involved_modes": {
+          "$ref": "#/$defs/mode_array"
+        },
+        "involved_person_count_by_mode": {
+          "$ref": "#/$defs/mode_counts"
+        },
+        "source_record_id": {
+          "pattern": "^202[0-4]:[1-9][0-9]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_record_id",
+        "involved_modes",
+        "fatality_modes",
+        "involved_person_count_by_mode",
+        "fatality_count_by_mode"
+      ],
+      "type": "object"
+    },
+    "normalization": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "const": "fars"
+        },
+        "adapter_version": {
+          "enum": [
+            "1.0.0"
+          ],
+          "type": "string"
+        },
+        "allow_record_regression": {
+          "const": false
+        },
+        "allow_year_regression": {
+          "const": false
+        },
+        "distribution_url": {
+          "format": "uri",
+          "pattern": "^https://static\\.nhtsa\\.gov/nhtsa/downloads/FARS/[0-9]{4}/.+\\.(?:[zZ][iI][pP]|[cC][sS][vV])$",
+          "type": "string"
+        },
+        "expected_year": {
+          "maximum": 9999,
+          "minimum": 1975,
+          "type": "integer"
+        },
+        "max_invalid_fraction": {
+          "const": 0.05
+        }
+      },
+      "required": [
+        "adapter_id",
+        "adapter_version",
+        "expected_year",
+        "distribution_url",
+        "max_invalid_fraction",
+        "allow_record_regression",
+        "allow_year_regression"
+      ],
+      "type": "object"
+    },
+    "outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "fatality_count": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "id": {
+          "format": "uuid",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/$defs/location"
+        },
+        "maximum_injury_severity": {
+          "const": "fatal"
+        },
+        "occurred_on": {
+          "format": "date",
+          "pattern": "^202[0-4]-",
+          "type": "string"
+        },
+        "occurred_time_local": {
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$",
+          "type": "string"
+        },
+        "outcome_type": {
+          "const": "motor_vehicle_traffic_crash"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "source_record_id": {
+          "pattern": "^202[0-4]:[1-9][0-9]*$",
+          "type": "string"
+        },
+        "state_code": {
+          "enum": [
+            "1",
+            "2",
+            "4",
+            "5",
+            "6",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26",
+            "27",
+            "28",
+            "29",
+            "30",
+            "31",
+            "32",
+            "33",
+            "34",
+            "35",
+            "36",
+            "37",
+            "38",
+            "39",
+            "40",
+            "41",
+            "42",
+            "43",
+            "44",
+            "45",
+            "46",
+            "47",
+            "48",
+            "49",
+            "50",
+            "51",
+            "53",
+            "54",
+            "55",
+            "56"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "source_record_id",
+        "occurred_on",
+        "location",
+        "outcome_type",
+        "maximum_injury_severity",
+        "fatality_count",
+        "state_code"
+      ],
+      "type": "object"
+    },
+    "person_join": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_member": {
+          "$ref": "#/$defs/member_descriptor"
+        },
+        "accident_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "cases_excluded_with_rejected_crash": {
+          "maximum": 45000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "cases_joined": {
+          "maximum": 45000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "dataset_year": {
+          "enum": [
+            2020,
+            2021,
+            2022,
+            2023,
+            2024
+          ],
+          "type": "integer"
+        },
+        "input_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mapping_version": {
+          "enum": [
+            "1.0.0"
+          ],
+          "type": "string"
+        },
+        "person_member": {
+          "$ref": "#/$defs/member_descriptor"
+        },
+        "person_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "records_accepted": {
+          "maximum": 110000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "records_excluded_with_rejected_crash": {
+          "maximum": 110000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "records_read": {
+          "maximum": 110000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "rejection_reasons": {
+          "additionalProperties": false,
+          "properties": {
+            "parent_crash_rejected": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "semantic_regime_id": {
+          "enum": [
+            "fars_per_typ_2020_2021_v1",
+            "fars_per_typ_2022_2024_v1"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "mapping_version",
+        "semantic_regime_id",
+        "dataset_year",
+        "input_sha256",
+        "accident_sha256",
+        "person_sha256",
+        "accident_member",
+        "person_member",
+        "records_read",
+        "records_accepted",
+        "cases_joined",
+        "records_excluded_with_rejected_crash",
+        "cases_excluded_with_rejected_crash",
+        "rejection_reasons"
+      ],
+      "type": "object"
+    },
+    "provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "dataset_years": {
+          "items": {
+            "maximum": 9999,
+            "minimum": 1975,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "input_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "license": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "records_accepted": {
+          "maximum": 45000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "records_read": {
+          "maximum": 45000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rejection_reasons": {
+          "additionalProperties": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "type": "object"
+        },
+        "release_status": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[^\\x00-\\x1f\\x7f]+$",
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_name",
+        "source_url",
+        "license",
+        "dataset_years",
+        "release_status",
+        "scope",
+        "limitations",
+        "records_read",
+        "records_accepted",
+        "rejection_reasons",
+        "input_sha256"
+      ],
+      "type": "object"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "source_contract": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/source_contract_2020_r1"
+        },
+        {
+          "$ref": "#/$defs/source_contract_2021_r1"
+        },
+        {
+          "$ref": "#/$defs/source_contract_2022_r1"
+        },
+        {
+          "$ref": "#/$defs/source_contract_2023_r1"
+        },
+        {
+          "$ref": "#/$defs/source_contract_2024_r1"
+        }
+      ]
+    },
+    "source_contract_2020_r1": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_encoding": {
+          "const": "cp1252"
+        },
+        "accident_member": {
+          "const": "accident.csv"
+        },
+        "accident_row_cap": {
+          "const": 45000
+        },
+        "allowed_regressions": {
+          "const": []
+        },
+        "contract_schema_version": {
+          "const": "1.0.0"
+        },
+        "county_code_system": {
+          "const": "nhtsa_fars_gsa_2020"
+        },
+        "crash_mapping_version": {
+          "const": "1.0.0"
+        },
+        "distribution_url": {
+          "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2020/National/FARS2020NationalCSV.zip"
+        },
+        "person_encoding": {
+          "const": "utf-8-sig"
+        },
+        "person_mapping_version": {
+          "const": "1.0.0"
+        },
+        "person_member": {
+          "const": "person.csv"
+        },
+        "person_row_cap": {
+          "const": 110000
+        },
+        "predecessor_contract_sha256": {
+          "const": null
+        },
+        "raw_sha256": {
+          "const": "b2806902b3da9b45c632499f82e1c74fd108238ae7f67e108ebf40360ee4c9c3"
+        },
+        "raw_size_bytes": {
+          "const": 31016385
+        },
+        "release_stage": {
+          "const": "final"
+        },
+        "revision": {
+          "const": 1
+        },
+        "semantic_regime_id": {
+          "const": "fars_per_typ_2020_2021_v1"
+        },
+        "source_id": {
+          "const": "fars-joined-2020"
+        },
+        "source_record_id_scheme": {
+          "const": "fars_year_st_case_v1"
+        },
+        "source_revision_id": {
+          "const": "reviewed-20260712-b2806902b3da"
+        },
+        "state_code_system": {
+          "const": "nhtsa_fars_state_2020"
+        },
+        "table_encoding_profile": {
+          "const": "fars_2020_mixed_text_v1"
+        },
+        "transition_review_reference": {
+          "const": "nearmiss-fars-source-audit-20260712"
+        },
+        "year": {
+          "const": 2020
+        }
+      },
+      "required": [
+        "contract_schema_version",
+        "year",
+        "revision",
+        "predecessor_contract_sha256",
+        "transition_review_reference",
+        "allowed_regressions",
+        "source_id",
+        "source_revision_id",
+        "distribution_url",
+        "release_stage",
+        "raw_size_bytes",
+        "raw_sha256",
+        "accident_member",
+        "accident_encoding",
+        "person_member",
+        "person_encoding",
+        "semantic_regime_id",
+        "table_encoding_profile",
+        "crash_mapping_version",
+        "person_mapping_version",
+        "source_record_id_scheme",
+        "state_code_system",
+        "county_code_system",
+        "accident_row_cap",
+        "person_row_cap"
+      ],
+      "type": "object"
+    },
+    "source_contract_2021_r1": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_encoding": {
+          "const": "utf-8-sig"
+        },
+        "accident_member": {
+          "const": "accident.csv"
+        },
+        "accident_row_cap": {
+          "const": 45000
+        },
+        "allowed_regressions": {
+          "const": []
+        },
+        "contract_schema_version": {
+          "const": "1.0.0"
+        },
+        "county_code_system": {
+          "const": "nhtsa_fars_gsa_2021"
+        },
+        "crash_mapping_version": {
+          "const": "1.0.0"
+        },
+        "distribution_url": {
+          "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2021/National/FARS2021NationalCSV.zip"
+        },
+        "person_encoding": {
+          "const": "utf-8-sig"
+        },
+        "person_mapping_version": {
+          "const": "1.0.0"
+        },
+        "person_member": {
+          "const": "person.csv"
+        },
+        "person_row_cap": {
+          "const": 110000
+        },
+        "predecessor_contract_sha256": {
+          "const": null
+        },
+        "raw_sha256": {
+          "const": "743c19a13884614430d295289e655c5ad32b0a025a11e5b2149dfb57acae389b"
+        },
+        "raw_size_bytes": {
+          "const": 35190858
+        },
+        "release_stage": {
+          "const": "final"
+        },
+        "revision": {
+          "const": 1
+        },
+        "semantic_regime_id": {
+          "const": "fars_per_typ_2020_2021_v1"
+        },
+        "source_id": {
+          "const": "fars-joined-2021"
+        },
+        "source_record_id_scheme": {
+          "const": "fars_year_st_case_v1"
+        },
+        "source_revision_id": {
+          "const": "reviewed-20260712-743c19a13884"
+        },
+        "state_code_system": {
+          "const": "nhtsa_fars_state_2021"
+        },
+        "table_encoding_profile": {
+          "const": "fars_utf8_sig_2021_2024_v1"
+        },
+        "transition_review_reference": {
+          "const": "nearmiss-fars-source-audit-20260712"
+        },
+        "year": {
+          "const": 2021
+        }
+      },
+      "required": [
+        "contract_schema_version",
+        "year",
+        "revision",
+        "predecessor_contract_sha256",
+        "transition_review_reference",
+        "allowed_regressions",
+        "source_id",
+        "source_revision_id",
+        "distribution_url",
+        "release_stage",
+        "raw_size_bytes",
+        "raw_sha256",
+        "accident_member",
+        "accident_encoding",
+        "person_member",
+        "person_encoding",
+        "semantic_regime_id",
+        "table_encoding_profile",
+        "crash_mapping_version",
+        "person_mapping_version",
+        "source_record_id_scheme",
+        "state_code_system",
+        "county_code_system",
+        "accident_row_cap",
+        "person_row_cap"
+      ],
+      "type": "object"
+    },
+    "source_contract_2022_r1": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_encoding": {
+          "const": "utf-8-sig"
+        },
+        "accident_member": {
+          "const": "accident.csv"
+        },
+        "accident_row_cap": {
+          "const": 45000
+        },
+        "allowed_regressions": {
+          "const": []
+        },
+        "contract_schema_version": {
+          "const": "1.0.0"
+        },
+        "county_code_system": {
+          "const": "nhtsa_fars_gsa_2022"
+        },
+        "crash_mapping_version": {
+          "const": "1.0.0"
+        },
+        "distribution_url": {
+          "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2022/National/FARS2022NationalCSV.zip"
+        },
+        "person_encoding": {
+          "const": "utf-8-sig"
+        },
+        "person_mapping_version": {
+          "const": "1.0.0"
+        },
+        "person_member": {
+          "const": "person.csv"
+        },
+        "person_row_cap": {
+          "const": 110000
+        },
+        "predecessor_contract_sha256": {
+          "const": null
+        },
+        "raw_sha256": {
+          "const": "989448d7a2f3964264c96a3cdb220f6c413c782a33eb759781f520c5acb5f744"
+        },
+        "raw_size_bytes": {
+          "const": 34689724
+        },
+        "release_stage": {
+          "const": "final"
+        },
+        "revision": {
+          "const": 1
+        },
+        "semantic_regime_id": {
+          "const": "fars_per_typ_2022_2024_v1"
+        },
+        "source_id": {
+          "const": "fars-joined-2022"
+        },
+        "source_record_id_scheme": {
+          "const": "fars_year_st_case_v1"
+        },
+        "source_revision_id": {
+          "const": "reviewed-20260712-989448d7a2f3"
+        },
+        "state_code_system": {
+          "const": "nhtsa_fars_state_2022"
+        },
+        "table_encoding_profile": {
+          "const": "fars_utf8_sig_2021_2024_v1"
+        },
+        "transition_review_reference": {
+          "const": "nearmiss-fars-source-audit-20260712"
+        },
+        "year": {
+          "const": 2022
+        }
+      },
+      "required": [
+        "contract_schema_version",
+        "year",
+        "revision",
+        "predecessor_contract_sha256",
+        "transition_review_reference",
+        "allowed_regressions",
+        "source_id",
+        "source_revision_id",
+        "distribution_url",
+        "release_stage",
+        "raw_size_bytes",
+        "raw_sha256",
+        "accident_member",
+        "accident_encoding",
+        "person_member",
+        "person_encoding",
+        "semantic_regime_id",
+        "table_encoding_profile",
+        "crash_mapping_version",
+        "person_mapping_version",
+        "source_record_id_scheme",
+        "state_code_system",
+        "county_code_system",
+        "accident_row_cap",
+        "person_row_cap"
+      ],
+      "type": "object"
+    },
+    "source_contract_2023_r1": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_encoding": {
+          "const": "utf-8-sig"
+        },
+        "accident_member": {
+          "const": "accident.csv"
+        },
+        "accident_row_cap": {
+          "const": 45000
+        },
+        "allowed_regressions": {
+          "const": []
+        },
+        "contract_schema_version": {
+          "const": "1.0.0"
+        },
+        "county_code_system": {
+          "const": "nhtsa_fars_gsa_2023"
+        },
+        "crash_mapping_version": {
+          "const": "1.0.0"
+        },
+        "distribution_url": {
+          "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/National/FARS2023NationalCSV.zip"
+        },
+        "person_encoding": {
+          "const": "utf-8-sig"
+        },
+        "person_mapping_version": {
+          "const": "1.0.0"
+        },
+        "person_member": {
+          "const": "person.csv"
+        },
+        "person_row_cap": {
+          "const": 110000
+        },
+        "predecessor_contract_sha256": {
+          "const": null
+        },
+        "raw_sha256": {
+          "const": "edde841eb493e55751961b36bac2d1ce8750f601cb8e6e183a525723bb62bab0"
+        },
+        "raw_size_bytes": {
+          "const": 34174899
+        },
+        "release_stage": {
+          "const": "final"
+        },
+        "revision": {
+          "const": 1
+        },
+        "semantic_regime_id": {
+          "const": "fars_per_typ_2022_2024_v1"
+        },
+        "source_id": {
+          "const": "fars-joined-2023"
+        },
+        "source_record_id_scheme": {
+          "const": "fars_year_st_case_v1"
+        },
+        "source_revision_id": {
+          "const": "reviewed-20260712-edde841eb493"
+        },
+        "state_code_system": {
+          "const": "nhtsa_fars_state_2023"
+        },
+        "table_encoding_profile": {
+          "const": "fars_utf8_sig_2021_2024_v1"
+        },
+        "transition_review_reference": {
+          "const": "nearmiss-fars-source-audit-20260712"
+        },
+        "year": {
+          "const": 2023
+        }
+      },
+      "required": [
+        "contract_schema_version",
+        "year",
+        "revision",
+        "predecessor_contract_sha256",
+        "transition_review_reference",
+        "allowed_regressions",
+        "source_id",
+        "source_revision_id",
+        "distribution_url",
+        "release_stage",
+        "raw_size_bytes",
+        "raw_sha256",
+        "accident_member",
+        "accident_encoding",
+        "person_member",
+        "person_encoding",
+        "semantic_regime_id",
+        "table_encoding_profile",
+        "crash_mapping_version",
+        "person_mapping_version",
+        "source_record_id_scheme",
+        "state_code_system",
+        "county_code_system",
+        "accident_row_cap",
+        "person_row_cap"
+      ],
+      "type": "object"
+    },
+    "source_contract_2024_r1": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_encoding": {
+          "const": "utf-8-sig"
+        },
+        "accident_member": {
+          "const": "accident.csv"
+        },
+        "accident_row_cap": {
+          "const": 45000
+        },
+        "allowed_regressions": {
+          "const": []
+        },
+        "contract_schema_version": {
+          "const": "1.0.0"
+        },
+        "county_code_system": {
+          "const": "nhtsa_fars_gsa_2024"
+        },
+        "crash_mapping_version": {
+          "const": "1.0.0"
+        },
+        "distribution_url": {
+          "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip"
+        },
+        "person_encoding": {
+          "const": "utf-8-sig"
+        },
+        "person_mapping_version": {
+          "const": "1.0.0"
+        },
+        "person_member": {
+          "const": "person.csv"
+        },
+        "person_row_cap": {
+          "const": 110000
+        },
+        "predecessor_contract_sha256": {
+          "const": null
+        },
+        "raw_sha256": {
+          "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+        },
+        "raw_size_bytes": {
+          "const": 32672161
+        },
+        "release_stage": {
+          "const": "final"
+        },
+        "revision": {
+          "const": 1
+        },
+        "semantic_regime_id": {
+          "const": "fars_per_typ_2022_2024_v1"
+        },
+        "source_id": {
+          "const": "fars-joined-2024"
+        },
+        "source_record_id_scheme": {
+          "const": "fars_year_st_case_v1"
+        },
+        "source_revision_id": {
+          "const": "reviewed-20260712-5112727a8c0d"
+        },
+        "state_code_system": {
+          "const": "nhtsa_fars_state_2024"
+        },
+        "table_encoding_profile": {
+          "const": "fars_utf8_sig_2021_2024_v1"
+        },
+        "transition_review_reference": {
+          "const": "nearmiss-fars-source-audit-20260712"
+        },
+        "year": {
+          "const": 2024
+        }
+      },
+      "required": [
+        "contract_schema_version",
+        "year",
+        "revision",
+        "predecessor_contract_sha256",
+        "transition_review_reference",
+        "allowed_regressions",
+        "source_id",
+        "source_revision_id",
+        "distribution_url",
+        "release_stage",
+        "raw_size_bytes",
+        "raw_sha256",
+        "accident_member",
+        "accident_encoding",
+        "person_member",
+        "person_encoding",
+        "semantic_regime_id",
+        "table_encoding_profile",
+        "crash_mapping_version",
+        "person_mapping_version",
+        "source_record_id_scheme",
+        "state_code_system",
+        "county_code_system",
+        "accident_row_cap",
+        "person_row_cap"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://nearmiss.dev/schema/private-fars-joined-outcomes-v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "crash_normalization": {
+          "properties": {
+            "adapter_version": {
+              "const": "1.0.0"
+            },
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2020/National/FARS2020NationalCSV.zip"
+            },
+            "expected_year": {
+              "const": 2020
+            }
+          }
+        },
+        "crash_provenance": {
+          "properties": {
+            "dataset_years": {
+              "const": [
+                2020
+              ]
+            },
+            "input_sha256": {
+              "const": "b2806902b3da9b45c632499f82e1c74fd108238ae7f67e108ebf40360ee4c9c3"
+            },
+            "release_status": {
+              "const": "final"
+            }
+          }
+        },
+        "person_join": {
+          "properties": {
+            "dataset_year": {
+              "const": 2020
+            },
+            "input_sha256": {
+              "const": "b2806902b3da9b45c632499f82e1c74fd108238ae7f67e108ebf40360ee4c9c3"
+            },
+            "mapping_version": {
+              "const": "1.0.0"
+            },
+            "semantic_regime_id": {
+              "const": "fars_per_typ_2020_2021_v1"
+            }
+          }
+        },
+        "records": {
+          "items": {
+            "properties": {
+              "jurisdiction": {
+                "properties": {
+                  "county_code_system": {
+                    "const": "nhtsa_fars_gsa_2020"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2020:[1-9][0-9]*$"
+                  },
+                  "state_code_system": {
+                    "const": "nhtsa_fars_state_2020"
+                  }
+                }
+              },
+              "mode_summary": {
+                "properties": {
+                  "source_record_id": {
+                    "pattern": "^2020:[1-9][0-9]*$"
+                  }
+                }
+              },
+              "outcome": {
+                "properties": {
+                  "occurred_on": {
+                    "pattern": "^2020-"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2020:[1-9][0-9]*$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "source_contract": {
+          "$ref": "#/$defs/source_contract_2020_r1"
+        }
+      }
+    },
+    {
+      "properties": {
+        "crash_normalization": {
+          "properties": {
+            "adapter_version": {
+              "const": "1.0.0"
+            },
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2021/National/FARS2021NationalCSV.zip"
+            },
+            "expected_year": {
+              "const": 2021
+            }
+          }
+        },
+        "crash_provenance": {
+          "properties": {
+            "dataset_years": {
+              "const": [
+                2021
+              ]
+            },
+            "input_sha256": {
+              "const": "743c19a13884614430d295289e655c5ad32b0a025a11e5b2149dfb57acae389b"
+            },
+            "release_status": {
+              "const": "final"
+            }
+          }
+        },
+        "person_join": {
+          "properties": {
+            "dataset_year": {
+              "const": 2021
+            },
+            "input_sha256": {
+              "const": "743c19a13884614430d295289e655c5ad32b0a025a11e5b2149dfb57acae389b"
+            },
+            "mapping_version": {
+              "const": "1.0.0"
+            },
+            "semantic_regime_id": {
+              "const": "fars_per_typ_2020_2021_v1"
+            }
+          }
+        },
+        "records": {
+          "items": {
+            "properties": {
+              "jurisdiction": {
+                "properties": {
+                  "county_code_system": {
+                    "const": "nhtsa_fars_gsa_2021"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2021:[1-9][0-9]*$"
+                  },
+                  "state_code_system": {
+                    "const": "nhtsa_fars_state_2021"
+                  }
+                }
+              },
+              "mode_summary": {
+                "properties": {
+                  "source_record_id": {
+                    "pattern": "^2021:[1-9][0-9]*$"
+                  }
+                }
+              },
+              "outcome": {
+                "properties": {
+                  "occurred_on": {
+                    "pattern": "^2021-"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2021:[1-9][0-9]*$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "source_contract": {
+          "$ref": "#/$defs/source_contract_2021_r1"
+        }
+      }
+    },
+    {
+      "properties": {
+        "crash_normalization": {
+          "properties": {
+            "adapter_version": {
+              "const": "1.0.0"
+            },
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2022/National/FARS2022NationalCSV.zip"
+            },
+            "expected_year": {
+              "const": 2022
+            }
+          }
+        },
+        "crash_provenance": {
+          "properties": {
+            "dataset_years": {
+              "const": [
+                2022
+              ]
+            },
+            "input_sha256": {
+              "const": "989448d7a2f3964264c96a3cdb220f6c413c782a33eb759781f520c5acb5f744"
+            },
+            "release_status": {
+              "const": "final"
+            }
+          }
+        },
+        "person_join": {
+          "properties": {
+            "dataset_year": {
+              "const": 2022
+            },
+            "input_sha256": {
+              "const": "989448d7a2f3964264c96a3cdb220f6c413c782a33eb759781f520c5acb5f744"
+            },
+            "mapping_version": {
+              "const": "1.0.0"
+            },
+            "semantic_regime_id": {
+              "const": "fars_per_typ_2022_2024_v1"
+            }
+          }
+        },
+        "records": {
+          "items": {
+            "properties": {
+              "jurisdiction": {
+                "properties": {
+                  "county_code_system": {
+                    "const": "nhtsa_fars_gsa_2022"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2022:[1-9][0-9]*$"
+                  },
+                  "state_code_system": {
+                    "const": "nhtsa_fars_state_2022"
+                  }
+                }
+              },
+              "mode_summary": {
+                "properties": {
+                  "source_record_id": {
+                    "pattern": "^2022:[1-9][0-9]*$"
+                  }
+                }
+              },
+              "outcome": {
+                "properties": {
+                  "occurred_on": {
+                    "pattern": "^2022-"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2022:[1-9][0-9]*$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "source_contract": {
+          "$ref": "#/$defs/source_contract_2022_r1"
+        }
+      }
+    },
+    {
+      "properties": {
+        "crash_normalization": {
+          "properties": {
+            "adapter_version": {
+              "const": "1.0.0"
+            },
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/National/FARS2023NationalCSV.zip"
+            },
+            "expected_year": {
+              "const": 2023
+            }
+          }
+        },
+        "crash_provenance": {
+          "properties": {
+            "dataset_years": {
+              "const": [
+                2023
+              ]
+            },
+            "input_sha256": {
+              "const": "edde841eb493e55751961b36bac2d1ce8750f601cb8e6e183a525723bb62bab0"
+            },
+            "release_status": {
+              "const": "final"
+            }
+          }
+        },
+        "person_join": {
+          "properties": {
+            "dataset_year": {
+              "const": 2023
+            },
+            "input_sha256": {
+              "const": "edde841eb493e55751961b36bac2d1ce8750f601cb8e6e183a525723bb62bab0"
+            },
+            "mapping_version": {
+              "const": "1.0.0"
+            },
+            "semantic_regime_id": {
+              "const": "fars_per_typ_2022_2024_v1"
+            }
+          }
+        },
+        "records": {
+          "items": {
+            "properties": {
+              "jurisdiction": {
+                "properties": {
+                  "county_code_system": {
+                    "const": "nhtsa_fars_gsa_2023"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2023:[1-9][0-9]*$"
+                  },
+                  "state_code_system": {
+                    "const": "nhtsa_fars_state_2023"
+                  }
+                }
+              },
+              "mode_summary": {
+                "properties": {
+                  "source_record_id": {
+                    "pattern": "^2023:[1-9][0-9]*$"
+                  }
+                }
+              },
+              "outcome": {
+                "properties": {
+                  "occurred_on": {
+                    "pattern": "^2023-"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2023:[1-9][0-9]*$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "source_contract": {
+          "$ref": "#/$defs/source_contract_2023_r1"
+        }
+      }
+    },
+    {
+      "properties": {
+        "crash_normalization": {
+          "properties": {
+            "adapter_version": {
+              "const": "1.0.0"
+            },
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip"
+            },
+            "expected_year": {
+              "const": 2024
+            }
+          }
+        },
+        "crash_provenance": {
+          "properties": {
+            "dataset_years": {
+              "const": [
+                2024
+              ]
+            },
+            "input_sha256": {
+              "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+            },
+            "release_status": {
+              "const": "final"
+            }
+          }
+        },
+        "person_join": {
+          "properties": {
+            "dataset_year": {
+              "const": 2024
+            },
+            "input_sha256": {
+              "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+            },
+            "mapping_version": {
+              "const": "1.0.0"
+            },
+            "semantic_regime_id": {
+              "const": "fars_per_typ_2022_2024_v1"
+            }
+          }
+        },
+        "records": {
+          "items": {
+            "properties": {
+              "jurisdiction": {
+                "properties": {
+                  "county_code_system": {
+                    "const": "nhtsa_fars_gsa_2024"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2024:[1-9][0-9]*$"
+                  },
+                  "state_code_system": {
+                    "const": "nhtsa_fars_state_2024"
+                  }
+                }
+              },
+              "mode_summary": {
+                "properties": {
+                  "source_record_id": {
+                    "pattern": "^2024:[1-9][0-9]*$"
+                  }
+                }
+              },
+              "outcome": {
+                "properties": {
+                  "occurred_on": {
+                    "pattern": "^2024-"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2024:[1-9][0-9]*$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "source_contract": {
+          "$ref": "#/$defs/source_contract_2024_r1"
+        }
+      }
+    }
+  ],
+  "properties": {
+    "artifact_type": {
+      "const": "nearmiss.private.fars_joined_outcomes.v2"
+    },
+    "crash_normalization": {
+      "$ref": "#/$defs/normalization"
+    },
+    "crash_provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "join_policy": {
+      "$ref": "#/$defs/join_policy"
+    },
+    "person_join": {
+      "$ref": "#/$defs/person_join"
+    },
+    "records": {
+      "items": {
+        "$ref": "#/$defs/joined_record"
+      },
+      "maxItems": 45000,
+      "minItems": 1,
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "source_contract": {
+      "$ref": "#/$defs/source_contract"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "source_contract",
+    "crash_normalization",
+    "crash_provenance",
+    "join_policy",
+    "person_join",
+    "records"
+  ],
+  "title": "Private NearMiss fixed-year FARS joined-outcome artifact v2",
+  "type": "object"
+}
