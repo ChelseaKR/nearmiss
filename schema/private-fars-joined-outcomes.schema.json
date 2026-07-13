@@ -1,413 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://nearmiss.dev/schema/private-fars-joined-outcomes.schema.json",
-  "title": "Private NearMiss FARS joined-outcome artifact",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "artifact_type",
-    "crash_normalization",
-    "crash_provenance",
-    "join_policy",
-    "person_join",
-    "records"
-  ],
   "$defs": {
-    "semver": {
-      "type": "string",
-      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
-    },
-    "sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "normalization": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "adapter_id",
-        "adapter_version",
-        "expected_year",
-        "distribution_url",
-        "max_invalid_fraction",
-        "allow_record_regression",
-        "allow_year_regression"
-      ],
-      "properties": {
-        "adapter_id": {
-          "const": "fars"
-        },
-        "adapter_version": {
-          "const": "1.0.0"
-        },
-        "expected_year": {
-          "type": "integer",
-          "minimum": 1975,
-          "maximum": 9999
-        },
-        "distribution_url": {
-          "type": "string",
-          "format": "uri",
-          "pattern": "^https://static\\.nhtsa\\.gov/nhtsa/downloads/FARS/[0-9]{4}/.+\\.(?:[zZ][iI][pP]|[cC][sS][vV])$"
-        },
-        "max_invalid_fraction": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "allow_record_regression": {
-          "type": "boolean"
-        },
-        "allow_year_regression": {
-          "type": "boolean"
-        }
-      }
-    },
-    "provenance": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "source_id",
-        "source_name",
-        "source_url",
-        "license",
-        "dataset_years",
-        "release_status",
-        "scope",
-        "limitations",
-        "records_read",
-        "records_accepted",
-        "rejection_reasons",
-        "input_sha256"
-      ],
-      "properties": {
-        "source_id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "source_name": {
-          "type": "string",
-          "minLength": 1
-        },
-        "source_url": {
-          "type": "string",
-          "format": "uri"
-        },
-        "license": {
-          "type": "string",
-          "minLength": 1
-        },
-        "dataset_years": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "integer",
-            "minimum": 1975,
-            "maximum": 9999
-          }
-        },
-        "release_status": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64,
-          "pattern": "^[^\\x00-\\x1f\\x7f]+$"
-        },
-        "scope": {
-          "type": "string",
-          "minLength": 1
-        },
-        "limitations": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "records_read": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "records_accepted": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "rejection_reasons": {
-          "type": "object",
-          "propertyNames": {
-            "minLength": 1
-          },
-          "additionalProperties": {
-            "type": "integer",
-            "minimum": 1
-          }
-        },
-        "input_sha256": {
-          "$ref": "#/$defs/sha256"
-        }
-      }
-    },
-    "location": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "lat",
-        "lon"
-      ],
-      "properties": {
-        "lat": {
-          "type": "number",
-          "minimum": -90,
-          "maximum": 90
-        },
-        "lon": {
-          "type": "number",
-          "minimum": -180,
-          "maximum": 180
-        }
-      }
-    },
-    "outcome": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema_version",
-        "id",
-        "source_record_id",
-        "occurred_on",
-        "location",
-        "outcome_type",
-        "maximum_injury_severity",
-        "fatality_count"
-      ],
-      "properties": {
-        "schema_version": {
-          "const": "1.0.0"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-        },
-        "source_record_id": {
-          "type": "string",
-          "pattern": "^[0-9]{4}:[1-9][0-9]*$"
-        },
-        "occurred_on": {
-          "type": "string",
-          "format": "date"
-        },
-        "occurred_time_local": {
-          "type": "string",
-          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
-        },
-        "location": {
-          "$ref": "#/$defs/location"
-        },
-        "outcome_type": {
-          "const": "motor_vehicle_traffic_crash"
-        },
-        "maximum_injury_severity": {
-          "const": "fatal"
-        },
-        "fatality_count": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "state_code": {
-          "type": "string",
-          "minLength": 1
-        }
-      }
-    },
-    "mode_array": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "enum": [
-          "motor_vehicle_occupant",
-          "motorcyclist",
-          "pedalcyclist",
-          "pedestrian",
-          "other_road_user",
-          "unknown"
-        ]
-      }
-    },
-    "mode_counts": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "motor_vehicle_occupant",
-        "motorcyclist",
-        "pedalcyclist",
-        "pedestrian",
-        "other_road_user",
-        "unknown"
-      ],
-      "properties": {
-        "motor_vehicle_occupant": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "motorcyclist": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "pedalcyclist": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "pedestrian": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "other_road_user": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "unknown": {
-          "type": "integer",
-          "minimum": 0
-        }
-      }
-    },
-    "mode_summary": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "source_record_id",
-        "involved_modes",
-        "fatality_modes",
-        "involved_person_count_by_mode",
-        "fatality_count_by_mode"
-      ],
-      "properties": {
-        "source_record_id": {
-          "type": "string",
-          "pattern": "^2024:[1-9][0-9]*$"
-        },
-        "involved_modes": {
-          "$ref": "#/$defs/mode_array"
-        },
-        "fatality_modes": {
-          "$ref": "#/$defs/mode_array"
-        },
-        "involved_person_count_by_mode": {
-          "$ref": "#/$defs/mode_counts"
-        },
-        "fatality_count_by_mode": {
-          "$ref": "#/$defs/mode_counts"
-        }
-      }
-    },
-    "person_join": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "mapping_version",
-        "dataset_year",
-        "input_sha256",
-        "accident_sha256",
-        "person_sha256",
-        "accident_member",
-        "person_member",
-        "records_read",
-        "records_accepted",
-        "cases_joined",
-        "records_excluded_with_rejected_crash",
-        "cases_excluded_with_rejected_crash",
-        "rejection_reasons"
-      ],
-      "properties": {
-        "mapping_version": {
-          "const": "1.0.0"
-        },
-        "dataset_year": {
-          "const": 2024
-        },
-        "input_sha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "accident_sha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "person_sha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "accident_member": {
-          "$ref": "#/$defs/member_descriptor"
-        },
-        "person_member": {
-          "$ref": "#/$defs/member_descriptor"
-        },
-        "records_read": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "records_accepted": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "cases_joined": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "records_excluded_with_rejected_crash": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "cases_excluded_with_rejected_crash": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "rejection_reasons": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "parent_crash_rejected": {
-              "type": "integer",
-              "minimum": 1
-            }
-          }
-        }
-      }
-    },
-    "member_descriptor": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "archive_path",
-        "name",
-        "uncompressed_size",
-        "crc32",
-        "sha256"
-      ],
-      "properties": {
-        "archive_path": {
-          "type": "string",
-          "minLength": 1
-        },
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 12
-        },
-        "uncompressed_size": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "crc32": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{8}$"
-        },
-        "sha256": {
-          "$ref": "#/$defs/sha256"
-        }
-      }
-    },
     "join_policy": {
       "additionalProperties": false,
       "properties": {
@@ -425,26 +17,511 @@
       "type": "object"
     },
     "joined_record": {
-      "type": "object",
       "additionalProperties": false,
+      "properties": {
+        "jurisdiction": {
+          "$ref": "#/$defs/jurisdiction"
+        },
+        "mode_summary": {
+          "$ref": "#/$defs/mode_summary"
+        },
+        "outcome": {
+          "$ref": "#/$defs/outcome"
+        }
+      },
       "required": [
         "outcome",
         "mode_summary"
       ],
+      "type": "object"
+    },
+    "jurisdiction": {
+      "additionalProperties": false,
       "properties": {
-        "outcome": {
-          "$ref": "#/$defs/outcome"
+        "county_code": {
+          "pattern": "^[0-9]{3}$",
+          "type": "string"
         },
-        "mode_summary": {
-          "$ref": "#/$defs/mode_summary"
+        "county_code_system": {
+          "const": "nhtsa_fars_gsa_2024"
+        },
+        "county_status": {
+          "enum": [
+            "reported",
+            "not_applicable",
+            "other",
+            "not_reported",
+            "unknown"
+          ],
+          "type": "string"
+        },
+        "source_record_id": {
+          "pattern": "^2024:[1-9][0-9]*$",
+          "type": "string"
+        },
+        "state_code": {
+          "pattern": "^[1-9][0-9]?$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_record_id",
+        "state_code",
+        "county_code",
+        "county_status",
+        "county_code_system"
+      ],
+      "type": "object"
+    },
+    "location": {
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "maximum": 90,
+          "minimum": -90,
+          "type": "number"
+        },
+        "lon": {
+          "maximum": 180,
+          "minimum": -180,
+          "type": "number"
+        }
+      },
+      "required": [
+        "lat",
+        "lon"
+      ],
+      "type": "object"
+    },
+    "member_descriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "archive_path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "crc32": {
+          "pattern": "^[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 12,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "uncompressed_size": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "archive_path",
+        "name",
+        "uncompressed_size",
+        "crc32",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "mode_array": {
+      "items": {
+        "enum": [
+          "motor_vehicle_occupant",
+          "motorcyclist",
+          "pedalcyclist",
+          "pedestrian",
+          "other_road_user",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "mode_counts": {
+      "additionalProperties": false,
+      "properties": {
+        "motor_vehicle_occupant": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "motorcyclist": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "other_road_user": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pedalcyclist": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pedestrian": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unknown": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "motor_vehicle_occupant",
+        "motorcyclist",
+        "pedalcyclist",
+        "pedestrian",
+        "other_road_user",
+        "unknown"
+      ],
+      "type": "object"
+    },
+    "mode_summary": {
+      "additionalProperties": false,
+      "properties": {
+        "fatality_count_by_mode": {
+          "$ref": "#/$defs/mode_counts"
+        },
+        "fatality_modes": {
+          "$ref": "#/$defs/mode_array"
+        },
+        "involved_modes": {
+          "$ref": "#/$defs/mode_array"
+        },
+        "involved_person_count_by_mode": {
+          "$ref": "#/$defs/mode_counts"
+        },
+        "source_record_id": {
+          "pattern": "^2024:[1-9][0-9]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_record_id",
+        "involved_modes",
+        "fatality_modes",
+        "involved_person_count_by_mode",
+        "fatality_count_by_mode"
+      ],
+      "type": "object"
+    },
+    "normalization": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "const": "fars"
+        },
+        "adapter_version": {
+          "const": "1.0.0"
+        },
+        "allow_record_regression": {
+          "type": "boolean"
+        },
+        "allow_year_regression": {
+          "type": "boolean"
+        },
+        "distribution_url": {
+          "format": "uri",
+          "pattern": "^https://static\\.nhtsa\\.gov/nhtsa/downloads/FARS/[0-9]{4}/.+\\.(?:[zZ][iI][pP]|[cC][sS][vV])$",
+          "type": "string"
+        },
+        "expected_year": {
+          "maximum": 9999,
+          "minimum": 1975,
+          "type": "integer"
+        },
+        "max_invalid_fraction": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "adapter_id",
+        "adapter_version",
+        "expected_year",
+        "distribution_url",
+        "max_invalid_fraction",
+        "allow_record_regression",
+        "allow_year_regression"
+      ],
+      "type": "object"
+    },
+    "outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "fatality_count": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "id": {
+          "format": "uuid",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/$defs/location"
+        },
+        "maximum_injury_severity": {
+          "const": "fatal"
+        },
+        "occurred_on": {
+          "format": "date",
+          "type": "string"
+        },
+        "occurred_time_local": {
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$",
+          "type": "string"
+        },
+        "outcome_type": {
+          "const": "motor_vehicle_traffic_crash"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "source_record_id": {
+          "pattern": "^[0-9]{4}:[1-9][0-9]*$",
+          "type": "string"
+        },
+        "state_code": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "source_record_id",
+        "occurred_on",
+        "location",
+        "outcome_type",
+        "maximum_injury_severity",
+        "fatality_count"
+      ],
+      "type": "object"
+    },
+    "person_join": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_member": {
+          "$ref": "#/$defs/member_descriptor"
+        },
+        "accident_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "cases_excluded_with_rejected_crash": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "cases_joined": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "dataset_year": {
+          "const": 2024
+        },
+        "input_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mapping_version": {
+          "const": "1.0.0"
+        },
+        "person_member": {
+          "$ref": "#/$defs/member_descriptor"
+        },
+        "person_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "records_accepted": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "records_excluded_with_rejected_crash": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "records_read": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "rejection_reasons": {
+          "additionalProperties": false,
+          "properties": {
+            "parent_crash_rejected": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "mapping_version",
+        "dataset_year",
+        "input_sha256",
+        "accident_sha256",
+        "person_sha256",
+        "accident_member",
+        "person_member",
+        "records_read",
+        "records_accepted",
+        "cases_joined",
+        "records_excluded_with_rejected_crash",
+        "cases_excluded_with_rejected_crash",
+        "rejection_reasons"
+      ],
+      "type": "object"
+    },
+    "provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "dataset_years": {
+          "items": {
+            "maximum": 9999,
+            "minimum": 1975,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "input_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "license": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "records_accepted": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "records_read": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rejection_reasons": {
+          "additionalProperties": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "type": "object"
+        },
+        "release_status": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[^\\x00-\\x1f\\x7f]+$",
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_name",
+        "source_url",
+        "license",
+        "dataset_years",
+        "release_status",
+        "scope",
+        "limitations",
+        "records_read",
+        "records_accepted",
+        "rejection_reasons",
+        "input_sha256"
+      ],
+      "type": "object"
+    },
+    "semver": {
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://nearmiss.dev/schema/private-fars-joined-outcomes.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "1.1.0"
+          }
+        },
+        "required": [
+          "schema_version"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "required": [
+                "jurisdiction"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "schema_version"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "not": {
+                "required": [
+                  "jurisdiction"
+                ]
+              }
+            }
+          }
         }
       }
     }
-  },
+  ],
   "properties": {
-    "schema_version": {
-      "const": "1.0.0"
-    },
     "artifact_type": {
       "const": "nearmiss.private.fars_joined_outcomes"
     },
@@ -461,12 +538,30 @@
       "$ref": "#/$defs/person_join"
     },
     "records": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 36297,
       "items": {
         "$ref": "#/$defs/joined_record"
-      }
+      },
+      "maxItems": 36297,
+      "minItems": 1,
+      "type": "array"
+    },
+    "schema_version": {
+      "enum": [
+        "1.0.0",
+        "1.1.0"
+      ],
+      "type": "string"
     }
-  }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "crash_normalization",
+    "crash_provenance",
+    "join_policy",
+    "person_join",
+    "records"
+  ],
+  "title": "Private NearMiss FARS joined-outcome artifact",
+  "type": "object"
 }

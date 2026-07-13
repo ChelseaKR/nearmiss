@@ -868,6 +868,7 @@ def _cmd_ingest_fars_joined(args: argparse.Namespace) -> int:
     from .adapters.fars_joined import collect_joined, read_joined_export_bytes
     from .ingestion import IngestionError, run_ingestion
     from .joined_outcome_artifacts import (
+        JOINED_ARTIFACT_SCHEMA_VERSION,
         build_joined_outcome_artifact,
         canonical_joined_outcome_artifact_bytes,
     )
@@ -909,6 +910,7 @@ def _cmd_ingest_fars_joined(args: argparse.Namespace) -> int:
             allow_record_regression=args.allow_record_regression,
             allow_mode_regression=args.allow_mode_regression,
             allow_release_regression=args.allow_release_regression,
+            schema_version=JOINED_ARTIFACT_SCHEMA_VERSION,
         )
         return canonical_joined_outcome_artifact_bytes(artifact)
 

@@ -55,6 +55,7 @@ def _normalized(
     raw: bytes,
     *,
     release_status: str,
+    schema_version: str | None = None,
     allow_record_regression: bool = False,
     allow_mode_regression: bool = False,
     allow_release_regression: bool = False,
@@ -72,6 +73,7 @@ def _normalized(
         allow_record_regression=allow_record_regression,
         allow_mode_regression=allow_mode_regression,
         allow_release_regression=allow_release_regression,
+        schema_version=schema_version,
     )
     return canonical_joined_outcome_artifact_bytes(artifact)
 
@@ -86,6 +88,7 @@ def _ingest(
     allow_record_regression: bool = False,
     allow_mode_regression: bool = False,
     allow_release_regression: bool = False,
+    schema_version: str | None = None,
 ) -> tuple[Path, Any]:
     payload = _raw() if raw is None else raw
     normalized = _normalized(
@@ -94,6 +97,7 @@ def _ingest(
         allow_record_regression=allow_record_regression,
         allow_mode_regression=allow_mode_regression,
         allow_release_regression=allow_release_regression,
+        schema_version=schema_version,
     )
     root = tmp_path / "store"
     result = run_ingestion(
@@ -105,6 +109,16 @@ def _ingest(
         clock=lambda: now,
     )
     return root, result
+
+
+def _accident_with_county() -> bytes:
+    lines = ACCIDENT.decode().splitlines()
+    output = [lines[0].replace(",FATALS", ",COUNTY,FATALS")]
+    for line in lines[1:]:
+        values = line.split(",")
+        values.insert(-1, "113")
+        output.append(",".join(values))
+    return ("\n".join(output) + "\n").encode()
 
 
 def _replace(path: Path, payload: bytes) -> None:
@@ -137,6 +151,14 @@ def test_verifies_joined_transaction_and_returns_only_safe_aggregates(tmp_path: 
     assert not hasattr(evidence, "records")
     assert not hasattr(evidence, "coordinates")
     assert all("proof" not in key for key in evidence.as_dict())
+
+
+def test_replay_preserves_legacy_schema_when_raw_now_supports_v11(tmp_path: Path) -> None:
+    raw = _raw(accident=_accident_with_county())
+    root, result = _ingest(tmp_path, raw=raw, schema_version="1.0.0")
+    artifact = cast(dict[str, Any], json.loads(result.normalized_path.read_bytes()))
+    assert artifact["schema_version"] == "1.0.0"
+    assert verify_active_fars_joined(root).normalized_sha256 == result.normalized_sha256
 
 
 def test_tampering_lock_and_unsafe_mode_fail_closed(tmp_path: Path) -> None:

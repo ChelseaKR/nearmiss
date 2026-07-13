@@ -11,6 +11,7 @@ from typing import cast
 from jsonschema import Draft202012Validator, FormatChecker
 
 from .adapters.fars_joined import (
+    FARS_COUNTY_CODE_SYSTEM,
     MODE_ORDER,
     PERSON_MODE_MAPPING_VERSION,
     FarsMemberDescriptor,
@@ -24,7 +25,8 @@ from .outcome_artifacts import (
     validate_outcome_artifact,
 )
 
-JOINED_ARTIFACT_SCHEMA_VERSION = "1.0.0"
+JOINED_ARTIFACT_SCHEMA_VERSION = "1.1.0"
+SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS = ("1.0.0", JOINED_ARTIFACT_SCHEMA_VERSION)
 JOINED_ARTIFACT_TYPE = "nearmiss.private.fars_joined_outcomes"
 
 _OUTCOME_DEFS = cast(Mapping[str, object], OUTCOME_ARTIFACT_SCHEMA["$defs"])
@@ -45,6 +47,30 @@ JOINED_ARTIFACT_SCHEMA: dict[str, object] = {
         "join_policy",
         "person_join",
         "records",
+    ],
+    "allOf": [
+        {
+            "if": {
+                "properties": {"schema_version": {"const": JOINED_ARTIFACT_SCHEMA_VERSION}},
+                "required": ["schema_version"],
+            },
+            "then": {
+                "properties": {
+                    "records": {"items": {"required": ["jurisdiction"]}},
+                }
+            },
+        },
+        {
+            "if": {
+                "properties": {"schema_version": {"const": "1.0.0"}},
+                "required": ["schema_version"],
+            },
+            "then": {
+                "properties": {
+                    "records": {"items": {"not": {"required": ["jurisdiction"]}}},
+                }
+            },
+        },
     ],
     "$defs": {
         **_OUTCOME_DEFS,
@@ -78,6 +104,36 @@ JOINED_ARTIFACT_SCHEMA: dict[str, object] = {
                 "fatality_modes": {"$ref": "#/$defs/mode_array"},
                 "involved_person_count_by_mode": {"$ref": "#/$defs/mode_counts"},
                 "fatality_count_by_mode": {"$ref": "#/$defs/mode_counts"},
+            },
+        },
+        "jurisdiction": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": [
+                "source_record_id",
+                "state_code",
+                "county_code",
+                "county_status",
+                "county_code_system",
+            ],
+            "properties": {
+                "source_record_id": {
+                    "type": "string",
+                    "pattern": "^2024:[1-9][0-9]*$",
+                },
+                "state_code": {"type": "string", "pattern": "^[1-9][0-9]?$"},
+                "county_code": {"type": "string", "pattern": "^[0-9]{3}$"},
+                "county_status": {
+                    "type": "string",
+                    "enum": [
+                        "reported",
+                        "not_applicable",
+                        "other",
+                        "not_reported",
+                        "unknown",
+                    ],
+                },
+                "county_code_system": {"const": FARS_COUNTY_CODE_SYSTEM},
             },
         },
         "person_join": {
@@ -152,11 +208,15 @@ JOINED_ARTIFACT_SCHEMA: dict[str, object] = {
             "properties": {
                 "outcome": {"$ref": "#/$defs/outcome"},
                 "mode_summary": {"$ref": "#/$defs/mode_summary"},
+                "jurisdiction": {"$ref": "#/$defs/jurisdiction"},
             },
         },
     },
     "properties": {
-        "schema_version": {"const": JOINED_ARTIFACT_SCHEMA_VERSION},
+        "schema_version": {
+            "type": "string",
+            "enum": list(SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS),
+        },
         "artifact_type": {"const": JOINED_ARTIFACT_TYPE},
         "crash_normalization": {"$ref": "#/$defs/normalization"},
         "crash_provenance": {"$ref": "#/$defs/provenance"},
@@ -199,6 +259,24 @@ def _validate_summary(summary: Mapping[str, object], outcome: Mapping[str, objec
     if sum(fatal.values()) != outcome["fatality_count"]:
         raise ValueError("private joined artifact fatal mode counts do not match outcome")
     return involved_total
+
+
+def _validate_jurisdiction(
+    jurisdiction: Mapping[str, object], outcome: Mapping[str, object], source_id: str
+) -> None:
+    county_code = cast(str, jurisdiction["county_code"])
+    expected_status = {
+        "000": "not_applicable",
+        "997": "other",
+        "998": "not_reported",
+        "999": "unknown",
+    }.get(county_code, "reported")
+    if (
+        jurisdiction["source_record_id"] != source_id
+        or jurisdiction["state_code"] != outcome.get("state_code")
+        or jurisdiction["county_status"] != expected_status
+    ):
+        raise ValueError("private joined artifact jurisdiction is inconsistent")
 
 
 def _validate_crash_contract(
@@ -299,6 +377,7 @@ def validate_joined_outcome_artifact(artifact: Mapping[str, object]) -> None:
     outcome_ids: set[str] = set()
     accepted_people = 0
     order: list[tuple[str, str]] = []
+    schema_version = artifact["schema_version"]
     for record in records:
         outcome = cast(Mapping[str, object], record["outcome"])
         summary = cast(Mapping[str, object], record["mode_summary"])
@@ -311,6 +390,14 @@ def validate_joined_outcome_artifact(artifact: Mapping[str, object]) -> None:
         source_ids.add(source_id)
         outcome_ids.add(outcome_id)
         accepted_people += _validate_summary(summary, outcome)
+        jurisdiction = record.get("jurisdiction")
+        if schema_version == "1.0.0":
+            if jurisdiction is not None:
+                raise ValueError("private joined artifact v1.0 must not contain jurisdiction")
+        else:
+            if not isinstance(jurisdiction, Mapping):
+                raise ValueError("private joined artifact v1.1 requires jurisdiction")
+            _validate_jurisdiction(jurisdiction, outcome, source_id)
         order.append((cast(str, outcome["occurred_on"]), source_id))
     if order != sorted(order):
         raise ValueError("private joined artifact records are not canonically ordered")
@@ -320,6 +407,17 @@ def validate_joined_outcome_artifact(artifact: Mapping[str, object]) -> None:
         record_count=len(records),
         accepted_people=accepted_people,
     )
+
+
+def _target_schema_version(*, has_jurisdiction: bool, requested: str | None) -> str:
+    target = requested
+    if target is None:
+        target = JOINED_ARTIFACT_SCHEMA_VERSION if has_jurisdiction else "1.0.0"
+    if target not in SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS:
+        raise ValueError("private joined artifact schema version is unsupported")
+    if target == JOINED_ARTIFACT_SCHEMA_VERSION and not has_jurisdiction:
+        raise ValueError("private joined artifact v1.1 requires jurisdiction coverage")
+    return target
 
 
 def build_joined_outcome_artifact(
@@ -334,6 +432,7 @@ def build_joined_outcome_artifact(
     allow_mode_regression: bool = False,
     allow_release_regression: bool = False,
     allow_year_regression: bool = False,
+    schema_version: str | None = None,
 ) -> dict[str, object]:
     """Pair canonical outcomes and mode summaries in a deterministic private artifact."""
     outcome_values = list(outcomes)
@@ -362,6 +461,21 @@ def build_joined_outcome_artifact(
         str(outcome["source_record_id"]): copy.deepcopy(dict(outcome)) for outcome in outcome_values
     }
     summary_by_id = {summary.source_record_id: summary.as_dict() for summary in summary_values}
+    jurisdiction_values = [summary.jurisdiction for summary in summary_values]
+    if any(value is not None for value in jurisdiction_values) and not all(
+        value is not None for value in jurisdiction_values
+    ):
+        raise ValueError("private joined artifact jurisdiction coverage must be all or none")
+    has_jurisdiction = bool(jurisdiction_values) and jurisdiction_values[0] is not None
+    target_schema_version = _target_schema_version(
+        has_jurisdiction=has_jurisdiction,
+        requested=schema_version,
+    )
+    jurisdiction_by_id = {
+        summary.source_record_id: summary.jurisdiction.as_dict()
+        for summary in summary_values
+        if summary.jurisdiction is not None
+    }
     if (
         len(outcome_by_id) != len(outcome_values)
         or len(summary_by_id) != len(summary_values)
@@ -369,10 +483,15 @@ def build_joined_outcome_artifact(
         or set(outcome_by_id) != set(summary_by_id)
     ):
         raise ValueError("private joined artifact requires one mode summary per outcome")
-    records = [
-        {"outcome": outcome_by_id[source_id], "mode_summary": summary_by_id[source_id]}
-        for source_id in outcome_by_id
-    ]
+    records: list[dict[str, object]] = []
+    for source_id in outcome_by_id:
+        record: dict[str, object] = {
+            "outcome": outcome_by_id[source_id],
+            "mode_summary": summary_by_id[source_id],
+        }
+        if target_schema_version == JOINED_ARTIFACT_SCHEMA_VERSION:
+            record["jurisdiction"] = jurisdiction_by_id[source_id]
+        records.append(record)
     records.sort(
         key=lambda record: (
             cast(Mapping[str, object], record["outcome"])["occurred_on"],
@@ -380,7 +499,7 @@ def build_joined_outcome_artifact(
         )
     )
     artifact: dict[str, object] = {
-        "schema_version": JOINED_ARTIFACT_SCHEMA_VERSION,
+        "schema_version": target_schema_version,
         "artifact_type": JOINED_ARTIFACT_TYPE,
         "crash_normalization": base_artifact["normalization"],
         "crash_provenance": base_artifact["provenance"],

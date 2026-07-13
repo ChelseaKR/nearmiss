@@ -813,6 +813,7 @@ def _replay_joined(raw: bytes, normalized: bytes, artifact: Mapping[str, object]
             allow_mode_regression=cast(bool, join_policy["allow_mode_regression"]),
             allow_release_regression=cast(bool, join_policy["allow_release_regression"]),
             allow_year_regression=cast(bool, policy["allow_year_regression"]),
+            schema_version=cast(str, artifact["schema_version"]),
         )
         replayed = canonical_joined_outcome_artifact_bytes(rebuilt)
     except (OSError, TypeError, ValueError):

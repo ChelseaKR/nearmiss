@@ -20,6 +20,7 @@ from .adapters.fars_joined import MODE_ORDER
 from .joined_outcome_artifacts import (
     JOINED_ARTIFACT_SCHEMA_VERSION,
     JOINED_ARTIFACT_TYPE,
+    SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS,
     canonical_joined_outcome_artifact_bytes,
     validate_joined_outcome_artifact,
 )
@@ -143,6 +144,7 @@ def fars_national_context_contract_descriptor() -> dict[str, object]:
         "state_codebook_version": FARS_STATE_CODEBOOK_VERSION,
         "state_codebook_sha256": fars_state_codebook_sha256(),
         "joined_schema_version": JOINED_ARTIFACT_SCHEMA_VERSION,
+        "supported_joined_schema_versions": list(SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS),
         "joined_artifact_type": JOINED_ARTIFACT_TYPE,
         "caps": {
             "max_joined_bytes": _MAX_JOINED_BYTES,
