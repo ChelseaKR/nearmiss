@@ -7,6 +7,8 @@
   --audit-amber: #744300;
   --audit-amber-bg: #fff4e5;
   --ledger: #eef3f9;
+  --regime-early: #e8f0f8;
+  --regime-late: #e7f4ea;
   padding-block-end: 4rem;
 }
 
@@ -163,13 +165,26 @@
 
 .coverage-filters {
   display: grid;
-  grid-template-columns: 0.65fr 1fr 1.4fr 1fr auto;
+  grid-template-columns: 1.35fr 0.65fr 1.25fr 1fr auto;
   align-items: end;
   gap: 0.8rem;
   margin-block: 1.25rem;
   padding: 1rem;
   border: 1px solid var(--line);
   background: var(--ledger);
+}
+
+.coverage-filters .state-filter-control select {
+  border-width: 2px;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.filter-scope {
+  max-width: 52rem;
+  margin-block: -0.65rem 1.25rem;
+  color: var(--muted);
+  font-size: 0.88rem;
 }
 
 .coverage-filters label {
@@ -217,6 +232,136 @@
   background: #fff0f0;
   color: #651515;
   font-weight: 700;
+}
+
+.coverage-page .state-profile {
+  margin-block: 1.75rem 2.25rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-block-start: 5px solid var(--accent);
+  background: #fbfcfe;
+}
+
+.state-profile > .section-kicker {
+  margin-block-start: 0;
+}
+
+.state-profile h3,
+.selected-year-ledger h3 {
+  margin-block: 0.15rem 0.45rem;
+  font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+}
+
+.state-profile > p:not(.state-profile-status) {
+  max-width: 52rem;
+}
+
+.state-profile-status {
+  margin-block: 1rem 0;
+  padding: 0.85rem 1rem;
+  border: 1px dashed var(--muted);
+  background: var(--ledger);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.state-profile-status.is-loading {
+  border-style: solid;
+  color: var(--fg);
+}
+
+.state-profile-status.is-ready {
+  border-style: solid;
+  border-color: var(--audit-green);
+  background: var(--audit-green-bg);
+  color: #173e24;
+}
+
+.state-profile-status.is-error {
+  border-color: var(--hot);
+  border-inline-start: 5px solid var(--hot);
+  background: #fff0f0;
+  color: #651515;
+}
+
+.state-profile-wrap {
+  margin-block-start: 1rem;
+  border: 1px solid var(--line);
+  overflow: auto;
+}
+
+#state-profile-table {
+  inline-size: 100%;
+  min-inline-size: 62rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+#state-profile-table caption {
+  padding: 0.65rem 0.75rem;
+  background: var(--ledger);
+  text-align: start;
+  font-weight: 700;
+}
+
+#state-profile-table th,
+#state-profile-table td {
+  padding: 0.65rem 0.75rem;
+  border-block-end: 1px solid var(--line);
+  text-align: start;
+  vertical-align: middle;
+}
+
+#state-profile-table thead th {
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 0.84rem;
+  line-height: 1.3;
+}
+
+#state-profile-table tr:not(.profile-regime-label) > th[scope="row"] {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  background: var(--bg);
+  font: 700 0.92rem/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+#state-profile-table .profile-regime-label th {
+  padding-block: 0.55rem;
+  background: var(--regime-early);
+  color: #24445f;
+  font-size: 0.86rem;
+  letter-spacing: 0.015em;
+}
+
+#state-profile-table .profile-regime-later .profile-regime-label th {
+  border-block-start: 5px solid var(--accent);
+  background: var(--regime-late);
+  color: #173e24;
+}
+
+#state-profile-table .profile-year-row:nth-child(odd) {
+  background: #f7f9fb;
+}
+
+.profile-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+}
+
+.profile-withheld {
+  color: #633900;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.selected-year-ledger {
+  margin-block-start: 2.25rem;
+}
+
+.selected-year-ledger .section-kicker {
+  margin-block-start: 0;
 }
 
 .coverage-table-wrap {
@@ -348,6 +493,10 @@
   .coverage-filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .state-filter-control {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 42rem) {
@@ -383,6 +532,14 @@
   .coverage-filters,
   .interpretation-grid {
     grid-template-columns: 1fr;
+  }
+
+  .state-filter-control {
+    grid-column: auto;
+  }
+
+  .coverage-page .state-profile {
+    padding-inline: 0.8rem;
   }
 
   .provenance-list div {

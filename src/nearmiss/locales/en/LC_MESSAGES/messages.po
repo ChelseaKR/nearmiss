@@ -679,8 +679,8 @@ msgstr "Annual contract"
 msgid "web.coverage.all_modes"
 msgstr "All modes"
 
-msgid "web.coverage.all_states"
-msgstr "All states + DC"
+msgid "web.coverage.choose_state"
+msgstr "Choose a state or DC"
 
 msgid "web.coverage.all_statuses"
 msgstr "All statuses"
@@ -708,6 +708,9 @@ msgstr "State evidence is unavailable."
 
 msgid "web.coverage.caption_loading"
 msgstr "Loading state evidence…"
+
+msgid "web.coverage.caption_state"
+msgstr "{state}, {year}: showing {shown} of {total} involved-mode cells."
 
 msgid "web.coverage.caveat"
 msgstr "<strong>Counts are not risk.</strong> They do not account for population, trips, miles, or exposure. Modes can overlap in one crash, so mode counts are not additive and do not imply fault or causation."
@@ -742,11 +745,20 @@ msgstr "US evidence ledger · official source"
 msgid "web.coverage.footer"
 msgstr "Official fatal-crash context, published with explicit limits. nearmiss remains an exposure-normalized near-miss product; these counts are a separate national context layer."
 
+msgid "web.coverage.filter_scope"
+msgstr "State loads the five-year profile. Year, mode, and publication status refine the selected-year detail below."
+
 msgid "web.coverage.h1"
 msgstr "Fatal-crash burden, state by state"
 
 msgid "web.coverage.lede"
-msgstr "Choose a published FARS year and explore fatal-crash counts involving each road-user mode across all 50 states and DC. Every row remains tied to its exact release, small-cell publication rule, and source."
+msgstr "Choose a state or DC to inspect its reviewed 2020–2024 FARS profile, then refine the selected-year detail. Every value remains tied to its exact release, small-cell publication rule, and source."
+
+msgid "web.coverage.ledger_caption_empty"
+msgstr "Selected-year state evidence"
+
+msgid "web.coverage.ledger_empty"
+msgstr "Choose a state above to show its selected-year evidence."
 
 msgid "web.coverage.load_error"
 msgstr "The reviewed release index or selected public artifact could not be loaded or did not pass its contract. No counts are shown."
@@ -787,6 +799,39 @@ msgstr "Unknown mode"
 msgid "web.coverage.no_results"
 msgstr "No cells match these filters."
 
+msgid "web.coverage.profile_caption"
+msgstr "{state} fatal-crash burden by involved mode, 2020–2024, grouped by the reviewed FARS person-type coding regimes."
+
+msgid "web.coverage.profile_caption_empty"
+msgstr "Five-year state profile not loaded."
+
+msgid "web.coverage.profile_empty"
+msgstr "Choose a state above to load its five-year profile."
+
+msgid "web.coverage.profile_error"
+msgstr "The five-year profile could not be loaded from all five reviewed artifacts. No profile values are shown. The selected-year ledger below has a separate verification state."
+
+msgid "web.coverage.profile_h"
+msgstr "Selected-state profile, 2020–2024"
+
+msgid "web.coverage.profile_intro"
+msgstr "Each year is kept separate. The coding seam marks two reviewed FARS person-type regimes, so values on opposite sides should not be read as one continuous series."
+
+msgid "web.coverage.profile_kicker"
+msgstr "Five-year view"
+
+msgid "web.coverage.profile_loading"
+msgstr "Loading and verifying all five annual artifacts…"
+
+msgid "web.coverage.profile_ready"
+msgstr "{state} profile loaded from five reviewed annual artifacts."
+
+msgid "web.coverage.profile_regime_early"
+msgstr "2020–2021 · earlier reviewed person-type coding"
+
+msgid "web.coverage.profile_regime_late"
+msgstr "2022–2024 · later reviewed person-type coding"
+
 msgid "web.coverage.proof_h"
 msgstr "Five years, with publication status made explicit"
 
@@ -823,6 +868,9 @@ msgstr "State counts published"
 msgid "web.coverage.result_summary"
 msgstr "Showing {shown} of {total} state-by-mode cells."
 
+msgid "web.coverage.result_summary_state"
+msgstr "Showing {shown} of {total} involved-mode cells for {state} in {year}."
+
 msgid "web.coverage.retention_value"
 msgstr "{published} / {total}"
 
@@ -831,6 +879,12 @@ msgstr "Source revision"
 
 msgid "web.coverage.scope_value"
 msgstr "50 states + DC"
+
+msgid "web.coverage.selected_year_h"
+msgstr "Mode-by-mode evidence for the selected year"
+
+msgid "web.coverage.selected_year_kicker"
+msgstr "Selected-year detail"
 
 msgid "web.coverage.semantic_regime_label"
 msgstr "Semantic regime"

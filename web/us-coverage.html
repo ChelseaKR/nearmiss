@@ -26,9 +26,9 @@
       <p class="coverage-eyebrow" data-i18n="eyebrow">US evidence ledger · official source</p>
       <h1 data-i18n="h1">Fatal-crash burden, state by state</h1>
       <p class="lede" data-i18n="lede">
-        Choose a published FARS year and explore fatal-crash counts involving each road-user mode
-        across all 50 states and DC. Every row remains tied to its exact release, small-cell
-        publication rule, and source.
+        Choose a state or DC to inspect its reviewed 2020–2024 FARS profile, then refine the
+        selected-year detail. Every value remains tied to its exact release, small-cell publication
+        rule, and source.
       </p>
       <p class="coverage-caveat" data-i18n="caveat">
         <strong>Counts are not risk.</strong> They do not account for population, trips, miles, or
@@ -38,6 +38,120 @@
     </header>
 
     <main id="main">
+      <section aria-labelledby="data-heading">
+        <div class="section-kicker" data-i18n="table_kicker">Auditable counts</div>
+        <h2 id="data-heading" data-i18n="data_h">State × involved-mode evidence</h2>
+        <p data-i18n="data_intro">
+          A published count is the number of distinct fatal crashes with at least one person in that
+          mode. A missing public cell is labeled “Not published (suppressed or zero)”—never zero.
+        </p>
+
+        <form id="coverage-filters" class="coverage-filters">
+          <div class="state-filter-control">
+            <label for="state-filter" data-i18n="state_label">State</label>
+            <select id="state-filter" name="state">
+              <option value="" data-i18n="choose_state">Choose a state or DC</option>
+            </select>
+          </div>
+          <div>
+            <label for="year-filter" data-i18n="year_label">Year</label>
+            <select id="year-filter" name="year">
+              <option value="">—</option>
+            </select>
+          </div>
+          <div>
+            <label for="mode-filter" data-i18n="mode_label">Involved road-user mode</label>
+            <select id="mode-filter" name="mode">
+              <option value="" data-i18n="all_modes">All modes</option>
+            </select>
+          </div>
+          <div>
+            <label for="status-filter" data-i18n="status_label">Publication status</label>
+            <select id="status-filter" name="status">
+              <option value="" data-i18n="all_statuses">All statuses</option>
+              <option value="published" data-i18n="status_published">Published</option>
+              <option value="suppressed_or_zero" data-i18n="status_not_published">Not published</option>
+            </select>
+          </div>
+          <button type="reset" data-i18n="reset">Reset filters</button>
+        </form>
+        <p class="filter-scope" data-i18n="filter_scope">
+          State loads the five-year profile. Year, mode, and publication status refine the
+          selected-year detail below.
+        </p>
+
+        <section id="state-profile" class="state-profile" aria-labelledby="profile-heading" aria-busy="false">
+          <div class="section-kicker" data-i18n="profile_kicker">Five-year view</div>
+          <h3 id="profile-heading" data-i18n="profile_h">Selected-state profile, 2020–2024</h3>
+          <p id="profile-intro" data-i18n="profile_intro">
+            Each year is kept separate. The coding seam marks two reviewed FARS person-type
+            regimes, so values on opposite sides should not be read as one continuous series.
+          </p>
+          <p id="state-profile-status" class="state-profile-status" aria-live="polite" data-i18n="profile_empty">
+            Choose a state above to load its five-year profile.
+          </p>
+          <div
+            id="state-profile-wrap"
+            class="table-wrap state-profile-wrap"
+            tabindex="0"
+            role="region"
+            aria-labelledby="profile-heading profile-caption"
+            aria-describedby="profile-intro"
+            hidden
+          >
+            <table id="state-profile-table">
+              <caption id="profile-caption" data-i18n="profile_caption_empty">Five-year state profile not loaded.</caption>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="th_year">Year</th>
+                  <th scope="col" data-i18n="mode_motor_vehicle_occupant">Motor-vehicle occupant</th>
+                  <th scope="col" data-i18n="mode_motorcyclist">Motorcyclist</th>
+                  <th scope="col" data-i18n="mode_pedalcyclist">Pedalcyclist</th>
+                  <th scope="col" data-i18n="mode_pedestrian">Pedestrian</th>
+                  <th scope="col" data-i18n="mode_other_road_user">Other road user</th>
+                  <th scope="col" data-i18n="mode_unknown">Unknown mode</th>
+                </tr>
+              </thead>
+              <tbody id="profile-early-body" class="profile-regime-group"></tbody>
+              <tbody id="profile-late-body" class="profile-regime-group profile-regime-later"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="selected-year-ledger">
+          <div class="section-kicker" data-i18n="selected_year_kicker">Selected-year detail</div>
+          <h3 id="selected-year-heading" data-i18n="selected_year_h">Mode-by-mode evidence for the selected year</h3>
+        </div>
+
+        <p id="coverage-status" class="coverage-status" aria-live="polite" data-i18n="loading">
+          Loading the published artifact…
+        </p>
+        <div
+          class="table-wrap coverage-table-wrap"
+          tabindex="0"
+          role="region"
+          aria-labelledby="selected-year-heading coverage-caption"
+        >
+          <table id="coverage-table">
+            <caption id="coverage-caption" data-i18n="caption_loading">Loading state evidence…</caption>
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="th_year">Year</th>
+                <th scope="col" data-i18n="th_state">State</th>
+                <th scope="col" data-i18n="th_mode">Involved road-user mode</th>
+                <th scope="col" data-i18n="th_status">Publication status</th>
+                <th scope="col" data-i18n="th_count">Fatal-crash count</th>
+              </tr>
+            </thead>
+            <tbody id="coverage-body">
+              <tr>
+                <td colspan="5" data-i18n="loading">Loading the published artifact…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="proof-section" aria-labelledby="proof-heading">
         <div class="section-kicker" data-i18n="proof_kicker">Release proof</div>
         <h2 id="proof-heading" data-i18n="proof_h">Five years, with publication status made explicit</h2>
@@ -100,73 +214,6 @@
             <dd id="summary-retention">—</dd>
           </div>
         </dl>
-      </section>
-
-      <section aria-labelledby="data-heading">
-        <div class="section-kicker" data-i18n="table_kicker">Auditable counts</div>
-        <h2 id="data-heading" data-i18n="data_h">State × involved-mode evidence</h2>
-        <p data-i18n="data_intro">
-          A published count is the number of distinct fatal crashes with at least one person in that
-          mode. A missing public cell is labeled “Not published (suppressed or zero)”—never zero.
-        </p>
-
-        <form id="coverage-filters" class="coverage-filters">
-          <div>
-            <label for="year-filter" data-i18n="year_label">Year</label>
-            <select id="year-filter" name="year">
-              <option value="">—</option>
-            </select>
-          </div>
-          <div>
-            <label for="state-filter" data-i18n="state_label">State</label>
-            <select id="state-filter" name="state">
-              <option value="" data-i18n="all_states">All states + DC</option>
-            </select>
-          </div>
-          <div>
-            <label for="mode-filter" data-i18n="mode_label">Involved road-user mode</label>
-            <select id="mode-filter" name="mode">
-              <option value="" data-i18n="all_modes">All modes</option>
-            </select>
-          </div>
-          <div>
-            <label for="status-filter" data-i18n="status_label">Publication status</label>
-            <select id="status-filter" name="status">
-              <option value="" data-i18n="all_statuses">All statuses</option>
-              <option value="published" data-i18n="status_published">Published</option>
-              <option value="suppressed_or_zero" data-i18n="status_not_published">Not published</option>
-            </select>
-          </div>
-          <button type="reset" data-i18n="reset">Reset filters</button>
-        </form>
-
-        <p id="coverage-status" class="coverage-status" aria-live="polite" data-i18n="loading">
-          Loading the published artifact…
-        </p>
-        <div
-          class="table-wrap coverage-table-wrap"
-          tabindex="0"
-          role="region"
-          aria-labelledby="data-heading coverage-caption"
-        >
-          <table id="coverage-table">
-            <caption id="coverage-caption" data-i18n="caption_loading">Loading state evidence…</caption>
-            <thead>
-              <tr>
-                <th scope="col" data-i18n="th_year">Year</th>
-                <th scope="col" data-i18n="th_state">State</th>
-                <th scope="col" data-i18n="th_mode">Involved road-user mode</th>
-                <th scope="col" data-i18n="th_status">Publication status</th>
-                <th scope="col" data-i18n="th_count">Fatal-crash count</th>
-              </tr>
-            </thead>
-            <tbody id="coverage-body">
-              <tr>
-                <td colspan="5" data-i18n="loading">Loading the published artifact…</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </section>
 
       <section class="interpretation-grid">

@@ -731,9 +731,6 @@ msgstr ""
 msgid "web.coverage.all_modes"
 msgstr ""
 
-msgid "web.coverage.all_states"
-msgstr ""
-
 msgid "web.coverage.all_statuses"
 msgstr ""
 
@@ -764,6 +761,9 @@ msgstr ""
 msgid "web.coverage.caption_loading"
 msgstr ""
 
+msgid "web.coverage.caption_state"
+msgstr ""
+
 msgid "web.coverage.caveat"
 msgstr ""
 
@@ -771,6 +771,9 @@ msgid "web.coverage.cell_not_published"
 msgstr ""
 
 msgid "web.coverage.cell_published"
+msgstr ""
+
+msgid "web.coverage.choose_state"
 msgstr ""
 
 msgid "web.coverage.contract"
@@ -794,6 +797,9 @@ msgstr ""
 msgid "web.coverage.eyebrow"
 msgstr ""
 
+msgid "web.coverage.filter_scope"
+msgstr ""
+
 msgid "web.coverage.footer"
 msgstr ""
 
@@ -801,6 +807,12 @@ msgid "web.coverage.h1"
 msgstr ""
 
 msgid "web.coverage.lede"
+msgstr ""
+
+msgid "web.coverage.ledger_caption_empty"
+msgstr ""
+
+msgid "web.coverage.ledger_empty"
 msgstr ""
 
 msgid "web.coverage.load_error"
@@ -842,6 +854,39 @@ msgstr ""
 msgid "web.coverage.no_results"
 msgstr ""
 
+msgid "web.coverage.profile_caption"
+msgstr ""
+
+msgid "web.coverage.profile_caption_empty"
+msgstr ""
+
+msgid "web.coverage.profile_empty"
+msgstr ""
+
+msgid "web.coverage.profile_error"
+msgstr ""
+
+msgid "web.coverage.profile_h"
+msgstr ""
+
+msgid "web.coverage.profile_intro"
+msgstr ""
+
+msgid "web.coverage.profile_kicker"
+msgstr ""
+
+msgid "web.coverage.profile_loading"
+msgstr ""
+
+msgid "web.coverage.profile_ready"
+msgstr ""
+
+msgid "web.coverage.profile_regime_early"
+msgstr ""
+
+msgid "web.coverage.profile_regime_late"
+msgstr ""
+
 msgid "web.coverage.proof_h"
 msgstr ""
 
@@ -878,6 +923,9 @@ msgstr ""
 msgid "web.coverage.result_summary"
 msgstr ""
 
+msgid "web.coverage.result_summary_state"
+msgstr ""
+
 msgid "web.coverage.retention_value"
 msgstr ""
 
@@ -885,6 +933,12 @@ msgid "web.coverage.revision_label"
 msgstr ""
 
 msgid "web.coverage.scope_value"
+msgstr ""
+
+msgid "web.coverage.selected_year_h"
+msgstr ""
+
+msgid "web.coverage.selected_year_kicker"
 msgstr ""
 
 msgid "web.coverage.semantic_regime_label"

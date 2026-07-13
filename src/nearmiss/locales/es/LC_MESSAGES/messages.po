@@ -679,8 +679,8 @@ msgstr "Contrato anual"
 msgid "web.coverage.all_modes"
 msgstr "Todos los modos"
 
-msgid "web.coverage.all_states"
-msgstr "Todos los estados + DC"
+msgid "web.coverage.choose_state"
+msgstr "Elija un estado o DC"
 
 msgid "web.coverage.all_statuses"
 msgstr "Todos los estados de publicación"
@@ -708,6 +708,9 @@ msgstr "La evidencia estatal no está disponible."
 
 msgid "web.coverage.caption_loading"
 msgstr "Cargando la evidencia estatal…"
+
+msgid "web.coverage.caption_state"
+msgstr "{state}, {year}: se muestran {shown} de {total} celdas de modo involucrado."
 
 msgid "web.coverage.caveat"
 msgstr "<strong>Los conteos no son riesgo.</strong> No consideran población, viajes, millas ni exposición. Los modos pueden superponerse en un choque, por lo que sus conteos no son aditivos ni implican culpa o causalidad."
@@ -742,11 +745,20 @@ msgstr "Registro de evidencia de EE. UU. · fuente oficial"
 msgid "web.coverage.footer"
 msgstr "Contexto oficial de choques fatales, publicado con límites explícitos. nearmiss sigue siendo un producto de cuasi-accidentes normalizado por exposición; estos conteos son una capa separada de contexto nacional."
 
+msgid "web.coverage.filter_scope"
+msgstr "El estado carga el perfil de cinco años. El año, el modo y el estado de publicación refinan el detalle del año seleccionado de abajo."
+
 msgid "web.coverage.h1"
 msgstr "Carga de choques fatales, estado por estado"
 
 msgid "web.coverage.lede"
-msgstr "Elija un año FARS publicado y explore los conteos de choques fatales que involucraron cada modo de usuario vial en los 50 estados y DC. Cada fila permanece vinculada a su versión exacta, regla de publicación para celdas pequeñas y fuente."
+msgstr "Elija un estado o DC para consultar su perfil FARS revisado de 2020–2024 y luego refine el detalle del año seleccionado. Cada valor permanece vinculado a su versión exacta, regla de publicación para celdas pequeñas y fuente."
+
+msgid "web.coverage.ledger_caption_empty"
+msgstr "Evidencia estatal del año seleccionado"
+
+msgid "web.coverage.ledger_empty"
+msgstr "Elija un estado arriba para mostrar su evidencia del año seleccionado."
 
 msgid "web.coverage.load_error"
 msgstr "El índice de versiones revisado o el artefacto público seleccionado no se pudo cargar o no aprobó su contrato. No se muestran conteos."
@@ -787,6 +799,39 @@ msgstr "Modo desconocido"
 msgid "web.coverage.no_results"
 msgstr "Ninguna celda coincide con estos filtros."
 
+msgid "web.coverage.profile_caption"
+msgstr "Carga de choques fatales de {state} por modo involucrado, 2020–2024, agrupada según los regímenes revisados de codificación del tipo de persona de FARS."
+
+msgid "web.coverage.profile_caption_empty"
+msgstr "El perfil estatal de cinco años no se ha cargado."
+
+msgid "web.coverage.profile_empty"
+msgstr "Elija un estado arriba para cargar su perfil de cinco años."
+
+msgid "web.coverage.profile_error"
+msgstr "No se pudo cargar el perfil de cinco años desde los cinco artefactos revisados. No se muestran valores del perfil. El registro del año seleccionado de abajo tiene un estado de verificación independiente."
+
+msgid "web.coverage.profile_h"
+msgstr "Perfil del estado seleccionado, 2020–2024"
+
+msgid "web.coverage.profile_intro"
+msgstr "Cada año se mantiene separado. La división de codificación marca dos regímenes revisados de tipo de persona de FARS, por lo que los valores en lados opuestos no deben leerse como una sola serie continua."
+
+msgid "web.coverage.profile_kicker"
+msgstr "Vista de cinco años"
+
+msgid "web.coverage.profile_loading"
+msgstr "Cargando y verificando los cinco artefactos anuales…"
+
+msgid "web.coverage.profile_ready"
+msgstr "El perfil de {state} se cargó desde cinco artefactos anuales revisados."
+
+msgid "web.coverage.profile_regime_early"
+msgstr "2020–2021 · codificación anterior revisada del tipo de persona"
+
+msgid "web.coverage.profile_regime_late"
+msgstr "2022–2024 · codificación posterior revisada del tipo de persona"
+
 msgid "web.coverage.proof_h"
 msgstr "Cinco años, con el estado de publicación explícito"
 
@@ -823,6 +868,9 @@ msgstr "Conteos estatales publicados"
 msgid "web.coverage.result_summary"
 msgstr "Se muestran {shown} de {total} celdas de estado por modo."
 
+msgid "web.coverage.result_summary_state"
+msgstr "Se muestran {shown} de {total} celdas de modo involucrado para {state} en {year}."
+
 msgid "web.coverage.retention_value"
 msgstr "{published} / {total}"
 
@@ -831,6 +879,12 @@ msgstr "Revisión de la fuente"
 
 msgid "web.coverage.scope_value"
 msgstr "50 estados + DC"
+
+msgid "web.coverage.selected_year_h"
+msgstr "Evidencia por modo para el año seleccionado"
+
+msgid "web.coverage.selected_year_kicker"
+msgstr "Detalle del año seleccionado"
 
 msgid "web.coverage.semantic_regime_label"
 msgstr "Régimen semántico"

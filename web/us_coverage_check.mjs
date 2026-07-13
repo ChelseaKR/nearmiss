@@ -3,6 +3,7 @@ import { createHash, webcrypto } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import axe from "axe-core";
 import { JSDOM, VirtualConsole } from "jsdom";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -92,6 +93,8 @@ async function boot({
   failFetch = false,
   disableCrypto = false,
   deferredLocales = [],
+  deferredArtifacts = [],
+  failArtifactYears = [],
   url = "https://example.test/web/us-coverage.html",
 } = {}) {
   const dom = new JSDOM(readFileSync(PAGE, "utf-8"), {
@@ -102,6 +105,8 @@ async function boot({
   });
   const { window } = dom;
   const localeResolvers = {};
+  const artifactResolvers = {};
+  const artifactFetchCounts = {};
   Object.defineProperty(window, "crypto", { value: disableCrypto ? {} : webcrypto, configurable: true });
   window.TextDecoder = TextDecoder;
   window.fetch = (requested) => {
@@ -123,7 +128,19 @@ async function boot({
       bytes = indexBytes;
     } else {
       const match = target.match(/fars-([0-9]{4})-state-mode\.json$/);
-      bytes = match ? artifacts[Number(match[1])] : undefined;
+      const year = match ? Number(match[1]) : null;
+      if (year !== null) artifactFetchCounts[year] = (artifactFetchCounts[year] || 0) + 1;
+      if (year !== null && failArtifactYears.includes(year)) {
+        return Promise.resolve({ ok: false, status: 503 });
+      }
+      bytes = year !== null ? artifacts[year] : undefined;
+      if (bytes && deferredArtifacts.includes(year)) {
+        const exact = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+        return new Promise((resolve) => {
+          artifactResolvers[year] = () =>
+            resolve({ ok: true, status: 200, arrayBuffer: () => Promise.resolve(exact) });
+        });
+      }
     }
     if (!bytes) return Promise.resolve({ ok: false, status: 404 });
     const exact = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
@@ -140,11 +157,24 @@ async function boot({
       if (!localeResolvers[locale]) die(`no deferred ${locale} locale request is pending`);
       localeResolvers[locale]();
     },
+    resolveArtifact: (year) => {
+      if (!artifactResolvers[year]) die(`no deferred ${year} artifact request is pending`);
+      artifactResolvers[year]();
+    },
+    artifactFetchCounts,
   };
 }
 
 function renderedRows(doc) {
   return Array.from(doc.querySelectorAll("#coverage-body tr[data-status]"));
+}
+
+function profileRows(doc) {
+  return Array.from(doc.querySelectorAll("#state-profile-table .profile-year-row"));
+}
+
+function profileCells(doc, status) {
+  return Array.from(doc.querySelectorAll(`#state-profile-table td[data-status="${status}"]`));
 }
 
 function select(doc, id, value) {
@@ -163,6 +193,9 @@ function assertError(rendered, label) {
   if (rendered.doc.getElementById("artifact-download").hasAttribute("href")) {
     die(`${label} left a stale annual download link visible`);
   }
+  if (profileRows(rendered.doc).length !== 0 || !rendered.doc.getElementById("state-profile-wrap").hidden) {
+    die(`${label} left five-year profile values visible`);
+  }
   rendered.dom.window.close();
 }
 
@@ -173,6 +206,17 @@ function assertThrows(label, callback) {
     return;
   }
   die(`${label} was accepted by the closed validator`);
+}
+
+async function assertNoAxeViolations(rendered, label) {
+  rendered.window.eval(axe.source);
+  const results = await rendered.window.axe.run(rendered.doc, {
+    resultTypes: ["violations"],
+    rules: { "color-contrast": { enabled: false } },
+  });
+  if (results.violations.length) {
+    die(`${label} has axe violations: ${results.violations.map((violation) => violation.id).join(", ")}`);
+  }
 }
 
 async function main() {
@@ -236,8 +280,21 @@ async function main() {
   if (doc.getElementById("coverage-status").classList.contains("is-error")) {
     die("reviewed 2024 release entered the error state");
   }
-  if (renderedRows(doc).length !== 306) {
-    die(`reviewed 2024 release rendered ${renderedRows(doc).length} rows, expected 306`);
+  if (renderedRows(doc).length !== 0 || !doc.getElementById("state-profile-wrap").hidden) {
+    die("the state-first empty state exposed annual or profile values before selection");
+  }
+  if (!doc.getElementById("coverage-status").textContent.includes("Choose a state")) {
+    die("the empty selected-year ledger does not direct the reader to state selection");
+  }
+  if (doc.querySelector("#coverage-filters select")?.id !== "state-filter") {
+    die("state selection is not the primary filter control");
+  }
+  if (doc.querySelector("main > section") !== doc.getElementById("coverage-filters").closest("section")) {
+    die("state selection and profile are not the first main-content workflow");
+  }
+  const stateOptions = Array.from(doc.getElementById("state-filter").options, (option) => option.value);
+  if (stateOptions.length !== 52 || stateOptions[0] !== "" || !stateOptions.includes("CA")) {
+    die("state selector does not expose one directional option plus 50 states and DC");
   }
   const yearOptions = Array.from(doc.getElementById("year-filter").options, (option) => option.value);
   if (JSON.stringify(yearOptions) !== JSON.stringify(YEARS.map(String))) {
@@ -261,28 +318,80 @@ async function main() {
   if (!doc.querySelector('.proof-rail li[data-year="2024"].is-current .proof-result:not(.is-pending)')) {
     die("proof rail did not mark the selected published year");
   }
-  if (doc.querySelectorAll('#coverage-body tr[data-status="published"]').length !== 206) {
-    die("reviewed release did not render exactly 206 published cells");
-  }
-  const withheld = Array.from(doc.querySelectorAll('#coverage-body tr[data-status="suppressed_or_zero"]'));
-  if (withheld.length !== 100) die("reviewed release did not render exactly 100 withheld cells");
-  for (const row of withheld) {
-    if (row.querySelectorAll("th, td")[4].textContent.trim() !== "—") {
-      die("a withheld cell rendered a numeric count");
-    }
-  }
   if (doc.getElementById("summary-retention").textContent !== "48,154 / 48,524") {
     die("published/total contribution accounting was not rendered from the artifact");
   }
 
-  select(doc, "status-filter", "published");
-  if (renderedRows(doc).length !== 206) die("published-status filter did not render 206 rows");
-  select(doc, "status-filter", "");
   select(doc, "state-filter", "CA");
+  await settle();
   if (renderedRows(doc).length !== 6) die("California filter did not render six canonical modes");
-  select(doc, "state-filter", "");
+  if (
+    !window.location.search.includes("state=CA") ||
+    !window.location.search.includes("year=2024") ||
+    !window.location.search.includes("lang=en")
+  ) {
+    die("state selection was not persisted with its year and language in the URL");
+  }
+  if (profileRows(doc).length !== 5 || doc.getElementById("state-profile-wrap").hidden) {
+    die("California selection did not render all five exact annual profile rows");
+  }
+  for (const year of YEARS) {
+    if (rendered.artifactFetchCounts[year] !== 1) {
+      die(`${year} artifact was fetched ${rendered.artifactFetchCounts[year] || 0} times instead of once`);
+    }
+    const source = JSON.parse(CHECKED_ARTIFACT_BYTES_BY_YEAR[year].toString("utf-8"));
+    const california = source.states.find((state) => state.state_abbreviation === "CA");
+    const renderedYear = doc.querySelector(`#state-profile-table tr[data-year="${year}"]`);
+    const cells = Array.from(renderedYear.querySelectorAll("td[data-status]"));
+    if (cells.length !== 6) die(`${year} profile row did not preserve six canonical modes`);
+    california.cells.forEach((result, index) => {
+      if (cells[index].dataset.status !== result.status) die(`${year} profile status drifted from the artifact`);
+      if (result.status === "published" && cells[index].textContent.trim() !== result.crash_count.toLocaleString("en-US")) {
+        die(`${year} profile count drifted from the exact artifact`);
+      }
+    });
+  }
+  const earlyLabel = doc.querySelector("#profile-early-body .profile-regime-label").textContent;
+  const lateLabel = doc.querySelector("#profile-late-body .profile-regime-label").textContent;
+  if (!earlyLabel.includes("2020–2021") || !lateLabel.includes("2022–2024")) {
+    die("profile did not explicitly label both semantic-regime groups");
+  }
+  for (const body of doc.querySelectorAll("#state-profile-table tbody")) {
+    const groupLabel = body.querySelector('th[scope="rowgroup"]');
+    if (!groupLabel || body.getAttribute("aria-labelledby") !== groupLabel.id) {
+      die("semantic-regime row group is not explicitly labeled for assistive technology");
+    }
+  }
+  const profileText = doc.getElementById("state-profile").textContent.toLowerCase();
+  if (
+    doc.querySelector("#state-profile svg, #state-profile canvas, #state-profile tfoot") ||
+    /\b(risk|rate|rank|ranking|total|change)\b|%/.test(profileText)
+  ) {
+    die("profile introduced a chart, aggregation, comparison, or risk framing outside scope");
+  }
+  await assertNoAxeViolations(rendered, "rendered five-year profile");
+
+  select(doc, "status-filter", "published");
+  if (renderedRows(doc).length !== 6) die("California published-status filter did not retain six rows");
+  select(doc, "status-filter", "");
   select(doc, "mode-filter", "pedestrian");
-  if (renderedRows(doc).length !== 51) die("pedestrian filter did not render all jurisdictions");
+  if (renderedRows(doc).length !== 1) die("pedestrian filter escaped the selected state");
+  select(doc, "mode-filter", "");
+
+  select(doc, "state-filter", "VT");
+  await settle();
+  const withheldAnnual = renderedRows(doc).filter((row) => row.dataset.status === "suppressed_or_zero");
+  if (!withheldAnnual.length) die("Vermont fixture no longer exercises selected-year suppression");
+  for (const row of withheldAnnual) {
+    if (row.querySelectorAll("th, td")[4].textContent.trim() !== "—") {
+      die("a selected-year withheld cell rendered a numeric count");
+    }
+  }
+  const withheldProfile = profileCells(doc, "suppressed_or_zero");
+  if (!withheldProfile.length) die("five-year profile fixture no longer exercises suppression");
+  for (const withheld of withheldProfile) {
+    if (/\d/.test(withheld.textContent)) die("a five-year withheld cell rendered a numeric value");
+  }
 
   const form = doc.getElementById("coverage-filters");
   if (form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }))) {
@@ -297,6 +406,12 @@ async function main() {
   if (!doc.querySelector(".coverage-regime-caution").textContent.includes("régimen semántico")) {
     die("Spanish catalog omitted the semantic-regime caution");
   }
+  if (
+    !doc.querySelector("#profile-early-body .profile-regime-label").textContent.includes("codificación anterior") ||
+    !doc.getElementById("profile-caption").textContent.includes("Vermont")
+  ) {
+    die("Spanish locale rerender did not update the loaded profile and seam labels");
+  }
 
   const currentRelease = CHECKED_RELEASE_2024;
   assertThrows("unexpected private cell field", () => {
@@ -309,14 +424,21 @@ async function main() {
     changed.metric.effective_k = 11;
     window.NearmissUSCoverage.validateArtifact(changed, currentRelease, CHECKED_INDEX.contract);
   });
+  doc.getElementById("coverage-filters").dispatchEvent(new window.Event("reset", { bubbles: true }));
+  await settle();
+  if (window.location.search.includes("state=") || renderedRows(doc).length || !doc.getElementById("state-profile-wrap").hidden) {
+    die("reset did not return to the state-first empty state and remove the URL state");
+  }
   rendered.dom.window.close();
-  console.log("us-coverage contract: reviewed 2024 index, artifact, filters, accounting, and EN/ES passed.");
+  console.log("us-coverage contract: state-first exact five-year profile, suppression, seam, and EN/ES passed.");
 
   const multiyear = await boot();
   const multiyearOptions = Array.from(multiyear.doc.getElementById("year-filter").options, (option) => option.value);
   if (JSON.stringify(multiyearOptions) !== JSON.stringify(YEARS.map(String))) {
     die("production release index did not populate all five years in ascending order");
   }
+  select(multiyear.doc, "state-filter", "CA");
+  await settle();
   for (const year of YEARS) {
     select(multiyear.doc, "year-filter", String(year));
     await settle();
@@ -326,7 +448,10 @@ async function main() {
     if (multiyear.doc.getElementById("summary-year").textContent !== String(year)) {
       die(`year selector left stale metadata while loading ${year}`);
     }
-    if (renderedRows(multiyear.doc).some((row) => row.firstElementChild.textContent !== String(year))) {
+    if (
+      renderedRows(multiyear.doc).length !== 6 ||
+      renderedRows(multiyear.doc).some((row) => row.firstElementChild.textContent !== String(year))
+    ) {
       die(`year selector mixed rows while loading ${year}`);
     }
   }
@@ -357,22 +482,24 @@ async function main() {
   multiyear.doc.querySelector('[data-lang="es"]').click();
   await settle();
   const shareUrl = multiyear.window.location.href;
-  if (!shareUrl.includes("year=2021") || !shareUrl.includes("lang=es")) {
-    die("locale switch did not preserve both whitelisted language and selected year in the URL");
+  if (!shareUrl.includes("year=2021") || !shareUrl.includes("lang=es") || !shareUrl.includes("state=CA")) {
+    die("locale switch did not preserve language, selected year, and validated state in the URL");
   }
   multiyear.dom.window.close();
   const reloaded = await boot({ url: shareUrl });
   if (
     reloaded.doc.documentElement.lang !== "es" ||
-    reloaded.doc.getElementById("summary-year").textContent !== "2021"
+    reloaded.doc.getElementById("summary-year").textContent !== "2021" ||
+    reloaded.doc.getElementById("state-filter").value !== "CA" ||
+    profileRows(reloaded.doc).length !== 5
   ) {
-    die("shared year/language URL did not survive reload");
+    die("shared year/language/state URL did not survive reload");
   }
   reloaded.dom.window.close();
 
   const localeRace = await boot({
     deferredLocales: ["es"],
-    url: "https://example.test/web/us-coverage.html?year=2023",
+    url: "https://example.test/web/us-coverage.html?year=2023&state=TX",
   });
   localeRace.doc.querySelector('[data-lang="es"]').click();
   localeRace.doc.querySelector('[data-lang="en"]').click();
@@ -380,6 +507,7 @@ async function main() {
   if (
     localeRace.doc.documentElement.lang !== "en" ||
     !localeRace.window.location.search.includes("year=2023") ||
+    !localeRace.window.location.search.includes("state=TX") ||
     !localeRace.window.location.search.includes("lang=en")
   ) {
     die("latest locale click did not win while preserving the selected year");
@@ -390,11 +518,122 @@ async function main() {
     die("late Spanish response overwrote the newer English locale selection");
   }
   localeRace.dom.window.close();
-  console.log("us-coverage contract: five real years, URL sharing, and latest-click locale ordering passed.");
+  console.log("us-coverage contract: five real years, state URL sharing, and latest-click locale ordering passed.");
+
+  const yearRace = await boot({ deferredArtifacts: [2020] });
+  select(yearRace.doc, "year-filter", "2020");
+  select(yearRace.doc, "year-filter", "2021");
+  await settle();
+  if (yearRace.doc.getElementById("summary-year").textContent !== "2021") {
+    die("latest selected year did not render while an older artifact was pending");
+  }
+  yearRace.resolveArtifact(2020);
+  await settle();
+  if (
+    yearRace.doc.getElementById("summary-year").textContent !== "2021" ||
+    !yearRace.window.location.search.includes("year=2021")
+  ) {
+    die("late annual completion overwrote the latest selected year");
+  }
+  yearRace.dom.window.close();
+
+  const parallelBoot = await boot({
+    deferredArtifacts: [2020, 2024],
+    url: "https://example.test/web/us-coverage.html?state=CA",
+  });
+  for (const year of YEARS) {
+    if (parallelBoot.artifactFetchCounts[year] !== 1) {
+      die("state URL did not start all five deduplicated annual loads in parallel");
+    }
+  }
+  parallelBoot.resolveArtifact(2020);
+  parallelBoot.resolveArtifact(2024);
+  await settle();
+  if (renderedRows(parallelBoot.doc).length !== 6 || profileRows(parallelBoot.doc).length !== 5) {
+    die("parallel state URL boot did not converge on both verified views");
+  }
+  parallelBoot.dom.window.close();
+
+  const stateRace = await boot({ deferredArtifacts: [2020] });
+  select(stateRace.doc, "state-filter", "CA");
+  select(stateRace.doc, "state-filter", "NY");
+  await settle();
+  if (
+    !stateRace.doc.getElementById("state-profile-wrap").hidden ||
+    stateRace.doc.getElementById("state-profile").getAttribute("aria-busy") !== "true"
+  ) {
+    die("state profile exposed a stale state while an annual artifact was pending");
+  }
+  stateRace.resolveArtifact(2020);
+  await settle();
+  if (
+    !stateRace.doc.getElementById("profile-caption").textContent.includes("New York") ||
+    stateRace.doc.getElementById("profile-caption").textContent.includes("California") ||
+    !stateRace.window.location.search.includes("state=NY") ||
+    stateRace.doc.getElementById("state-profile").getAttribute("aria-busy") !== "false"
+  ) {
+    die("late profile completion overwrote the latest selected state");
+  }
+  for (const year of YEARS) {
+    if (stateRace.artifactFetchCounts[year] !== 1) {
+      die(`state race fetched the shared ${year} artifact more than once`);
+    }
+  }
+  stateRace.dom.window.close();
+
+  const transientFailureYears = [2020];
+  const retryableProfile = await boot({
+    failArtifactYears: transientFailureYears,
+    url: "https://example.test/web/us-coverage.html?year=2024&state=CA",
+  });
+  if (!retryableProfile.doc.getElementById("state-profile-status").classList.contains("is-error")) {
+    die("transient historical failure did not clear the profile");
+  }
+  transientFailureYears.length = 0;
+  select(retryableProfile.doc, "state-filter", "NY");
+  await settle();
+  if (
+    !retryableProfile.doc.getElementById("profile-caption").textContent.includes("New York") ||
+    retryableProfile.artifactFetchCounts[2020] !== 2
+  ) {
+    die("a rejected historical fetch promise was not safely retryable");
+  }
+  retryableProfile.dom.window.close();
+
+  const changedHistorical = Buffer.from(CHECKED_ARTIFACT_BYTES_BY_YEAR[2020]);
+  const historicalDigit = changedHistorical.indexOf(Buffer.from('"case_count":'));
+  if (historicalDigit < 0) die("could not construct historical artifact drift fixture");
+  changedHistorical[historicalDigit + '"case_count":'.length] = "9".charCodeAt(0);
+  const isolatedProfileFailure = await boot({
+    artifacts: { ...CHECKED_ARTIFACT_BYTES_BY_YEAR, 2020: changedHistorical },
+    url: "https://example.test/web/us-coverage.html?year=2024&state=CA",
+  });
+  if (
+    isolatedProfileFailure.doc.getElementById("coverage-status").classList.contains("is-error") ||
+    renderedRows(isolatedProfileFailure.doc).length !== 6 ||
+    !isolatedProfileFailure.doc.getElementById("state-profile-status").classList.contains("is-error") ||
+    !isolatedProfileFailure.doc.getElementById("state-profile-wrap").hidden
+  ) {
+    die("historical artifact drift did not fail closed only within the five-year profile");
+  }
+  isolatedProfileFailure.dom.window.close();
+  console.log("us-coverage contract: deduplicated profile promises, latest-state ordering, and isolated historical failure passed.");
 
   assertError(
     await boot({ url: "https://example.test/web/us-coverage.html?year=2019" }),
     "unknown requested year"
+  );
+  assertError(
+    await boot({ url: "https://example.test/web/us-coverage.html?state=ca" }),
+    "malformed requested state"
+  );
+  assertError(
+    await boot({ url: "https://example.test/web/us-coverage.html?state=ZZ" }),
+    "unknown requested state"
+  );
+  assertError(
+    await boot({ url: "https://example.test/web/us-coverage.html?state=CA&state=NY" }),
+    "ambiguous requested state"
   );
   const oneYearIndex = releaseSubsetIndex([2024]);
   assertError(
