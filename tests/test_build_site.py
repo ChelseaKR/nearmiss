@@ -73,8 +73,9 @@ def _assert_national_apex(html: str) -> None:
     assert NATIONAL_ROUTE in document.links
     assert f"{NATIONAL_ROUTE}?lang=es" in document.links
     assert "/web/index.html" in document.links
-    assert "/data/published/fars-state-mode-index.json" in document.links
-    assert "/data/published/fars-2024-state-mode.json" in document.links
+    assert "/data/published/fars-state-mode-index-v2.json" in document.links
+    assert "/data/published/fars-2024-state-mode-r2.json" in document.links
+    assert "/data/published/fars-release-corrections.json" in document.links
     assert "/data/published/" not in document.links
     assert document.links.index(NATIONAL_ROUTE) < document.links.index("/web/index.html")
 
@@ -94,8 +95,11 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     assert "web/vendor/leaflet/leaflet.js" in files
     assert "data/published/davis.geojson" in files
     assert "data/published/fars-state-mode-index.json" in files
+    assert "data/published/fars-state-mode-index-v2.json" in files
+    assert "data/published/fars-release-corrections.json" in files
     for year in range(2020, 2025):
         assert f"data/published/fars-{year}-state-mode.json" in files
+    assert "data/published/fars-2024-state-mode-r2.json" in files
     assert "deployment.json" in files
     assert not any(path.startswith("data/raw/") for path in files)
     assert not any(path.startswith("config/") for path in files)
@@ -135,8 +139,9 @@ def test_canonical_national_route_is_a_byte_identical_real_page(tmp_path: Path) 
         "web/us-coverage.css",
         "web/i18n.js",
         "web/us-coverage.js",
-        "data/published/fars-2024-state-mode.json",
-        "data/published/fars-state-mode-index.json",
+        "data/published/fars-2024-state-mode-r2.json",
+        "data/published/fars-state-mode-index-v2.json",
+        "data/published/fars-release-corrections.json",
         "deployment.json",
     }
     assert dependencies <= set(manifest["files"])
@@ -175,6 +180,9 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
         "web/style.css|web/style.css",
         "data/published/davis.geojson|data/published/davis.geojson",
         "data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json",
+        "data/published/fars-2024-state-mode.json|data/published/fars-2024-state-mode.json",
+        "data/published/fars-state-mode-index-v2.json|data/published/fars-state-mode-index-v2.json",
+        "data/published/fars-release-corrections.json|data/published/fars-release-corrections.json",
     }
     for spec in required_specs:
         assert f"'{spec}'" in workflow
@@ -230,11 +238,15 @@ def _minimal_site_source(root: Path) -> None:
 
 def _copy_current_fars_release_set(destination: Path) -> None:
     source = PROJECT_ROOT / "data" / "published"
-    index_path = source / "fars-state-mode-index.json"
-    index = json.loads(index_path.read_text(encoding="utf-8"))
-    (destination / index_path.name).write_bytes(index_path.read_bytes())
-    for release in index["releases"]:
-        name = release["artifact_path"]
+    names = {
+        "fars-state-mode-index.json",
+        "fars-state-mode-index-v2.json",
+        "fars-release-corrections.json",
+    }
+    for index_name in ("fars-state-mode-index.json", "fars-state-mode-index-v2.json"):
+        index = json.loads((source / index_name).read_text(encoding="utf-8"))
+        names.update(release["artifact_path"] for release in index["releases"])
+    for name in names:
         (destination / name).write_bytes((source / name).read_bytes())
 
 

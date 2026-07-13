@@ -782,6 +782,9 @@ msgstr ""
 msgid "web.coverage.contract_value"
 msgstr ""
 
+msgid "web.coverage.correction_ledger"
+msgstr ""
+
 msgid "web.coverage.data_h"
 msgstr ""
 
@@ -909,6 +912,15 @@ msgid "web.coverage.regime_caution"
 msgstr ""
 
 msgid "web.coverage.release_index"
+msgstr ""
+
+msgid "web.coverage.release_stage_annual_report_file"
+msgstr ""
+
+msgid "web.coverage.release_stage_final"
+msgstr ""
+
+msgid "web.coverage.release_stage_label"
 msgstr ""
 
 msgid "web.coverage.reset"

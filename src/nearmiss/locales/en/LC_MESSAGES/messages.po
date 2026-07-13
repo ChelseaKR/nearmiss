@@ -727,6 +727,9 @@ msgstr "Projection contract"
 msgid "web.coverage.contract_value"
 msgstr "Revision {revision} · SHA-256 {sha}"
 
+msgid "web.coverage.correction_ledger"
+msgstr "Release correction ledger"
+
 msgid "web.coverage.data_h"
 msgstr "State × involved-mode evidence"
 
@@ -855,6 +858,15 @@ msgstr "<strong>Compare years with care.</strong> FARS person-type coding uses o
 
 msgid "web.coverage.release_index"
 msgstr "Download release index"
+
+msgid "web.coverage.release_stage_annual_report_file"
+msgstr "Annual Report File (ARF)"
+
+msgid "web.coverage.release_stage_final"
+msgstr "Final File"
+
+msgid "web.coverage.release_stage_label"
+msgstr "Release status"
 
 msgid "web.coverage.reset"
 msgstr "Reset filters"

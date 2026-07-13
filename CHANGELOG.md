@@ -58,6 +58,10 @@ every entry.
 
 ### Added
 
+- An immutable 2024 FARS provenance correction: contract revision 2 classifies the exact pinned
+  archive as NHTSA's `annual_report_file`, while the revision-1 artifact and release-index URLs remain
+  byte-identical. A versioned artifact/index pair and machine-readable correction ledger bind both
+  generations, and the public page now displays the selected year's release status explicitly.
 - A stable `/fars/national/` public route for the nationwide 2020–2024 evidence ledger. It is a
   byte-identical copy of the retained legacy page, uses root-absolute reviewed dependencies, carries
   one canonical URL, is promoted from the synthetic Davis demo, and is checked by both deploy and

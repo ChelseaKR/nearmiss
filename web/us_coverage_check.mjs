@@ -16,13 +16,25 @@ const NATIONAL_CANONICAL = "https://nearmiss.report/fars/national/";
 const APP = join(here, "us-coverage.js");
 const I18N = join(here, "i18n.js");
 const LOCALES = join(here, "locales");
-const INDEX = join(repoRoot, "data", "published", "fars-state-mode-index.json");
+const INDEX = join(repoRoot, "data", "published", "fars-state-mode-index-v2.json");
+const LEGACY_INDEX = join(repoRoot, "data", "published", "fars-state-mode-index.json");
+const CORRECTIONS = join(repoRoot, "data", "published", "fars-release-corrections.json");
 const YEARS = [2020, 2021, 2022, 2023, 2024];
 const ARTIFACTS = Object.fromEntries(
-  YEARS.map((year) => [year, join(repoRoot, "data", "published", `fars-${year}-state-mode.json`)])
+  YEARS.map((year) => [
+    year,
+    join(
+      repoRoot,
+      "data",
+      "published",
+      `fars-${year}-state-mode${year === 2024 ? "-r2" : ""}.json`
+    ),
+  ])
 );
 
 const CHECKED_INDEX_BYTES = readFileSync(INDEX);
+const LEGACY_INDEX_BYTES = readFileSync(LEGACY_INDEX);
+const CORRECTION_BYTES = readFileSync(CORRECTIONS);
 const CHECKED_ARTIFACT_BYTES_BY_YEAR = Object.fromEntries(
   YEARS.map((year) => [year, readFileSync(ARTIFACTS[year])])
 );
@@ -35,7 +47,7 @@ const EXPECTED_ARTIFACT_PINS = {
   2021: [27630, "de7406ca0980e9d092eb25a230fe17fb2500f07b3b36f781dc3e4b35b7983168"],
   2022: [27622, "39f8e39fd52cc17abf07377dc460bc9545e05b82525740d8718c57e0f6fc4af8"],
   2023: [27636, "a0ddddc47f7c9ca70b823083f9f13831844b23fc45113321a3408a894eb98ade"],
-  2024: [27590, "29b5dc2673987cc7bedd0a83b2147e724e1fb2a2cb1458053af3d017ac8d6578"],
+  2024: [27603, "79cf34d3af696c9e487adb9a8d3897d9c90cdf55dbe0c9b6eaf16ef634a98b79"],
 };
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -135,10 +147,10 @@ async function boot({
     }
     if (failFetch) return Promise.resolve({ ok: false, status: 503 });
     let bytes;
-    if (target.endsWith("fars-state-mode-index.json")) {
+    if (target.endsWith("fars-state-mode-index-v2.json")) {
       bytes = indexBytes;
     } else {
-      const match = target.match(/fars-([0-9]{4})-state-mode\.json$/);
+      const match = target.match(/fars-([0-9]{4})-state-mode(?:-r[2-9][0-9]*)?\.json$/);
       const year = match ? Number(match[1]) : null;
       if (year !== null) artifactFetchCounts[year] = (artifactFetchCounts[year] || 0) + 1;
       if (year !== null && failArtifactYears.includes(year)) {
@@ -261,11 +273,14 @@ async function main() {
   if (!refresh || refresh.getAttribute("content") !== "0; url=/fars/national/") {
     die("apex does not immediately redirect to the nationwide evidence ledger");
   }
-  if (!apex.querySelector('a[href="/data/published/fars-state-mode-index.json"]')) {
+  if (!apex.querySelector('a[href="/data/published/fars-state-mode-index-v2.json"]')) {
     die("apex has no direct national release-index link");
   }
-  if (!apex.querySelector('a[href="/data/published/fars-2024-state-mode.json"]')) {
-    die("apex lost the backward-compatible 2024 evidence link");
+  if (!apex.querySelector('a[href="/data/published/fars-2024-state-mode-r2.json"]')) {
+    die("apex has no direct corrected 2024 evidence link");
+  }
+  if (!apex.querySelector('a[href="/data/published/fars-release-corrections.json"]')) {
+    die("apex has no release-correction ledger link");
   }
   if (!apex.querySelector('a[href="/fars/national/"]')) {
     die("apex fallback does not target the canonical national route");
@@ -317,11 +332,14 @@ async function main() {
       die(`nationwide page dependency ${dependency} is not root-absolute`);
     }
   }
-  if (!coverageSource.querySelector('#artifact-download[href$="fars-2024-state-mode.json"]')) {
+  if (!coverageSource.querySelector('#artifact-download[href$="fars-2024-state-mode-r2.json"]')) {
     die("nationwide page lost the no-script 2024 artifact fallback");
   }
-  if (!coverageSource.querySelector('a[href$="fars-state-mode-index.json"]')) {
+  if (!coverageSource.querySelector('a[href$="fars-state-mode-index-v2.json"]')) {
     die("nationwide page has no release-index download");
+  }
+  if (!coverageSource.querySelector('a[href$="fars-release-corrections.json"]')) {
+    die("nationwide page has no correction-ledger download");
   }
 
   const home = new JSDOM(readFileSync(DAVIS_HOME, "utf-8")).window.document;
@@ -337,8 +355,20 @@ async function main() {
     die("Davis CTA does not distinguish synthetic local data from nationwide reviewed evidence");
   }
 
-  if (CHECKED_INDEX_BYTES.byteLength !== 5270 || digest(CHECKED_INDEX_BYTES) !== "64d73ea4f25de4ef1321e6f8bed56215b9585fdc7ee74bc05bf47ec74bedaa48") {
+  if (CHECKED_INDEX_BYTES.byteLength !== 5273 || digest(CHECKED_INDEX_BYTES) !== "594b13a65f5b88661db8acb21c73fc55ddc61ba94e5a659cdd27463c178f50f5") {
     die("checked release index drifted from its reviewed bytes");
+  }
+  if (
+    LEGACY_INDEX_BYTES.byteLength !== 5270 ||
+    digest(LEGACY_INDEX_BYTES) !== "64d73ea4f25de4ef1321e6f8bed56215b9585fdc7ee74bc05bf47ec74bedaa48"
+  ) {
+    die("retained release index drifted from its immutable published bytes");
+  }
+  if (
+    CORRECTION_BYTES.byteLength !== 1078 ||
+    digest(CORRECTION_BYTES) !== "783e238ae6eab3404dfcee4b5323c536d6653ac59ea9e6a6beb36fe8d91fb4f6"
+  ) {
+    die("release correction ledger drifted from its reviewed bytes");
   }
   if (
     CHECKED_INDEX.releases.length !== YEARS.length ||
@@ -396,19 +426,21 @@ async function main() {
   const expectedFetchTargets = new Set([
     "https://example.test/web/locales/en.json",
     "https://example.test/web/locales/es.json",
-    "/data/published/fars-state-mode-index.json",
-    ...YEARS.map((year) => `/data/published/fars-${year}-state-mode.json`),
+    "/data/published/fars-state-mode-index-v2.json",
+    ...YEARS.map((year) =>
+      `/data/published/fars-${year}-state-mode${year === 2024 ? "-r2" : ""}.json`
+    ),
   ]);
   if (!sameRawTargetSet(canonicalFetchTargets, expectedFetchTargets)) {
     die(
       `canonical route used unexpected, off-origin, or route-relative fetches: ${Array.from(canonicalFetchTargets).join(", ")}`
     );
   }
-  const indexTarget = "/data/published/fars-state-mode-index.json";
+  const indexTarget = "/data/published/fars-state-mode-index-v2.json";
   for (const forbidden of [
-    "../data/published/fars-state-mode-index.json",
-    "data/published/fars-state-mode-index.json",
-    "https://evil.test/data/published/fars-state-mode-index.json",
+    "../data/published/fars-state-mode-index-v2.json",
+    "data/published/fars-state-mode-index-v2.json",
+    "https://evil.test/data/published/fars-state-mode-index-v2.json",
   ]) {
     const mutated = Array.from(expectedFetchTargets, (target) =>
       target === indexTarget ? forbidden : target
@@ -428,8 +460,8 @@ async function main() {
   const legacyFetchTargets = new Set(rendered.fetchTargets);
   const expectedLegacyFetchTargets = new Set([
     "https://example.test/web/locales/en.json",
-    "/data/published/fars-state-mode-index.json",
-    "/data/published/fars-2024-state-mode.json",
+    "/data/published/fars-state-mode-index-v2.json",
+    "/data/published/fars-2024-state-mode-r2.json",
   ]);
   if (
     window.location.pathname !== "/web/us-coverage.html" ||
@@ -463,13 +495,16 @@ async function main() {
   if (doc.getElementById("semantic-regime").textContent !== "fars_per_typ_2022_2024_v1") {
     die("reviewed release did not surface its exact semantic regime");
   }
+  if (doc.getElementById("release-stage").textContent !== "Annual Report File (ARF)") {
+    die("reviewed 2024 release did not surface its exact ARF status");
+  }
   if (!doc.getElementById("annual-contract").textContent.includes(CHECKED_RELEASE_2024.contract.contract_sha256)) {
     die("reviewed release did not surface its exact annual contract digest");
   }
   if (!doc.querySelector(".coverage-regime-caution").textContent.includes("2020–2021")) {
     die("page omitted the cross-regime comparison caution");
   }
-  if (!doc.getElementById("artifact-download").href.endsWith("fars-2024-state-mode.json")) {
+  if (!doc.getElementById("artifact-download").href.endsWith("fars-2024-state-mode-r2.json")) {
     die("reviewed release did not bind its annual download link");
   }
   if (!doc.querySelector('.proof-rail li[data-year="2024"].is-current .proof-result:not(.is-pending)')) {
@@ -558,6 +593,9 @@ async function main() {
   doc.querySelector('[data-lang="es"]').click();
   await settle();
   if (doc.documentElement.lang !== "es") die("Spanish control did not update document language");
+  if (doc.getElementById("release-stage").textContent !== "Archivo del informe anual (ARF)") {
+    die("Spanish locale rerender did not surface the exact ARF status");
+  }
   if (!doc.getElementById("coverage-caption").textContent.includes("celdas")) {
     die("Spanish result did not use the gettext-backed catalog");
   }
@@ -832,6 +870,28 @@ async function main() {
       artifacts: { 2024: leakedBytes },
     }),
     "hash-bound artifact with a private field"
+  );
+
+  const wrongStage = clone(CHECKED_ARTIFACT);
+  wrongStage.source.release_stage = "final";
+  const wrongStageBytes = canonical(wrongStage);
+  const wrongStageIndex = rebindArtifact(2024, wrongStageBytes);
+  assertError(
+    await boot({
+      indexBytes: wrongStageIndex,
+      trustedIndexBytes: wrongStageIndex,
+      artifacts: { 2024: wrongStageBytes },
+    }),
+    "hash-bound artifact with the superseded release stage"
+  );
+
+  const wrongRevision = clone(CHECKED_INDEX);
+  const wrongRevision2024 = wrongRevision.releases.find((release) => release.dataset_year === 2024);
+  wrongRevision2024.contract.contract_revision = 1;
+  const wrongRevisionBytes = canonical(wrongRevision);
+  assertError(
+    await boot({ indexBytes: wrongRevisionBytes, trustedIndexBytes: wrongRevisionBytes }),
+    "current index with the superseded contract revision"
   );
 
   assertError(await boot({ disableCrypto: true }), "missing Web Crypto digest support");

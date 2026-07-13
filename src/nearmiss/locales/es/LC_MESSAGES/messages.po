@@ -727,6 +727,9 @@ msgstr "Contrato de proyección"
 msgid "web.coverage.contract_value"
 msgstr "Revisión {revision} · SHA-256 {sha}"
 
+msgid "web.coverage.correction_ledger"
+msgstr "Registro de correcciones de publicación"
+
 msgid "web.coverage.data_h"
 msgstr "Evidencia de estado × modo involucrado"
 
@@ -855,6 +858,15 @@ msgstr "<strong>Compare los años con cautela.</strong> La codificación del tip
 
 msgid "web.coverage.release_index"
 msgstr "Descargar índice de versiones"
+
+msgid "web.coverage.release_stage_annual_report_file"
+msgstr "Archivo del informe anual (ARF)"
+
+msgid "web.coverage.release_stage_final"
+msgstr "Archivo final"
+
+msgid "web.coverage.release_stage_label"
+msgstr "Estado de la publicación"
 
 msgid "web.coverage.reset"
 msgstr "Restablecer filtros"

@@ -13,6 +13,7 @@ from nearmiss.fars_public_context import (
     build_verified_fars_public_release,
     canonical_fars_public_context_bytes,
 )
+from nearmiss.fars_public_index import fars_public_artifact_filename
 from nearmiss.fars_year_contracts import fars_year_contract_revision
 from nearmiss.verified_fars_years import _load_verified_active_fars_year_snapshot
 from nearmiss.verified_outcomes import _load_verified_active_fars_joined_activation_state
@@ -26,16 +27,18 @@ def build_public_context(joined_root: str | Path) -> bytes:
     )
 
 
-def canonical_public_release_filename(year: int) -> str:
+def canonical_public_release_filename(year: int, contract_revision: int = 1) -> str:
     """Return the only supported public filename for an annual release."""
-    fars_year_contract_revision(year, 1)
-    return f"fars-{year}-state-mode.json"
+    fars_year_contract_revision(year, contract_revision)
+    return fars_public_artifact_filename(year, contract_revision)
 
 
-def require_public_release_output_path(path: str | Path, *, year: int) -> Path:
+def require_public_release_output_path(
+    path: str | Path, *, year: int, contract_revision: int = 1
+) -> Path:
     """Prevent a valid annual payload from being published under the wrong year."""
     output = Path(path)
-    expected = canonical_public_release_filename(year)
+    expected = canonical_public_release_filename(year, contract_revision)
     if output.name != expected:
         raise ValueError(f"annual public FARS output filename must be {expected}")
     return output
@@ -111,7 +114,11 @@ def main() -> int:
         output = args.out
         payload = build_public_context(args.joined_root)
     else:
-        output = require_public_release_output_path(args.out, year=args.year)
+        output = require_public_release_output_path(
+            args.out,
+            year=args.year,
+            contract_revision=args.contract_revision,
+        )
         payload = build_public_release(
             args.joined_root,
             year=args.year,

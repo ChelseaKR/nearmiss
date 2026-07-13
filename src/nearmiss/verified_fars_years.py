@@ -16,9 +16,11 @@ from . import verified_outcomes as lineage
 from .fars_year_contracts import (
     FARS_RAW_ARCHIVE_MAX_BYTES,
     FarsYearContract,
+    fars_release_stage_rank,
     fars_year_contract_from_descriptor,
     fars_year_contract_revision,
     fars_year_contract_sha256,
+    is_fars_provenance_only_same_archive_correction,
 )
 from .joined_outcome_artifacts_v2 import (
     canonical_joined_outcome_artifact_v2_bytes,
@@ -281,6 +283,13 @@ def _validate_transition(current: _VerifiedGeneration, previous: _VerifiedGenera
         and current.contract.revision != previous.contract.revision + 1
     ):
         _fail("fixed-year FARS contract revision skipped recorded history")
+    if fars_release_stage_rank(current.contract.release_stage) < fars_release_stage_rank(
+        previous.contract.release_stage
+    ) and not is_fars_provenance_only_same_archive_correction(
+        current.contract,
+        previous.contract,
+    ):
+        _fail("fixed-year FARS release stage regressed without a provenance-only correction")
     current_crash = cast(Mapping[str, int], current.artifact["crash_provenance"])
     previous_crash = cast(Mapping[str, int], previous.artifact["crash_provenance"])
     current_person = cast(Mapping[str, int], current.artifact["person_join"])

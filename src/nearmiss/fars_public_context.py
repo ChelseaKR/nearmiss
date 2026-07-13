@@ -30,6 +30,7 @@ from .fars_national_context import (
     validate_fars_national_context_artifact,
 )
 from .fars_year_contracts import (
+    FARS_RELEASE_STAGES,
     FARS_YEAR_CONTRACT_HISTORY,
     FarsYearContract,
     fars_year_contract_revision,
@@ -264,7 +265,7 @@ FARS_PUBLIC_CONTEXT_ARTIFACT_SCHEMA: dict[str, object] = {
         "source": _closed(
             {
                 "name": {"const": "NHTSA Fatality Analysis Reporting System (FARS)"},
-                "release_stage": {"const": "final"},
+                "release_stage": {"enum": list(FARS_RELEASE_STAGES)},
                 "distribution_url": {"type": "string", "format": "uri"},
                 "source_revision_id": {"type": "string"},
                 "raw_size_bytes": {"type": "integer", "minimum": 1},
@@ -585,7 +586,7 @@ def _require_annual_public_source(
         and source["dataset_year"] == contract.year
         and source["contract_revision"] == contract.revision
         and source["source_revision_id"] == contract.source_revision_id
-        and source["release_status"] == contract.release_stage == "final"
+        and source["release_status"] == contract.release_stage
         and source["raw_sha256"] == contract.raw_sha256
         and method["coverage"] == f"official_{contract.year}_national_50_states_and_dc"
         and method["effective_k"] == FARS_PUBLIC_CONTEXT_EFFECTIVE_K

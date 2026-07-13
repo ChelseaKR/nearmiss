@@ -134,10 +134,10 @@ def _private_context() -> dict[str, object]:
     }
 
 
-def _annual_private_context(year: int) -> dict[str, object]:
+def _annual_private_context(year: int, revision: int = 1) -> dict[str, object]:
     """Adapt the nationally complete aggregate to one exact annual v2 lineage."""
     private = _private_context()
-    contract = fars_year_contract_revision(year, 1)
+    contract = fars_year_contract_revision(year, revision)
     source = cast(dict[str, Any], private["source_lineage"])
     source.update(
         {
@@ -311,6 +311,57 @@ def test_annual_release_projection_is_exact_closed_and_year_bound(
             b'"fatality_count"',
         )
     )
+
+
+def test_2024_r2_arf_public_projection_preserves_r1_data_and_exact_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    private_by_revision = {revision: _annual_private_context(2024, revision) for revision in (1, 2)}
+
+    def annual_builder(
+        _snapshot: object,
+        *,
+        year: int,
+        contract_revision: int,
+        requested_k: int,
+    ) -> dict[str, object]:
+        assert year == 2024
+        assert requested_k == 10
+        return copy.deepcopy(private_by_revision[contract_revision])
+
+    monkeypatch.setattr(
+        public_context,
+        "build_verified_fars_year_national_context",
+        annual_builder,
+    )
+    r1 = build_verified_fars_public_release(object(), year=2024, contract_revision=1)
+    r2 = build_verified_fars_public_release(object(), year=2024, contract_revision=2)
+    r2_contract = fars_year_contract_revision(2024, 2)
+
+    assert cast(dict[str, Any], r1["source"])["release_stage"] == "final"
+    assert cast(dict[str, Any], r2["source"]) == {
+        "name": "NHTSA Fatality Analysis Reporting System (FARS)",
+        "release_stage": "annual_report_file",
+        "distribution_url": r2_contract.distribution_url,
+        "source_revision_id": "reviewed-20260712-d5d9589b5a48",
+        "raw_size_bytes": r2_contract.raw_size_bytes,
+        "raw_sha256": r2_contract.raw_sha256,
+    }
+    assert {key: value for key, value in r1.items() if key != "source"} == {
+        key: value for key, value in r2.items() if key != "source"
+    }
+    validate_fars_public_context_artifact(r2)
+    assert load_fars_public_context_bytes(canonical_fars_public_context_bytes(r2)) == r2
+
+    mismatched = copy.deepcopy(private_by_revision[2])
+    cast(dict[str, Any], mismatched["source_lineage"])["release_status"] = "final"
+    monkeypatch.setattr(
+        public_context,
+        "build_verified_fars_year_national_context",
+        lambda *_args, **_kwargs: mismatched,
+    )
+    with pytest.raises(ValueError):
+        build_verified_fars_public_release(object(), year=2024, contract_revision=2)
 
 
 def test_annual_release_schema_rejects_cross_year_source_splicing(
@@ -574,6 +625,22 @@ def test_export_filename_is_bound_to_dataset_year(tmp_path: Path, year: int) -> 
         require_public_release_output_path(
             tmp_path / f"fars-{year + 1}-state-mode.json",
             year=year,
+        )
+
+
+def test_corrected_export_filename_is_bound_to_contract_revision(tmp_path: Path) -> None:
+    expected = "fars-2024-state-mode-r2.json"
+    assert canonical_public_release_filename(2024, 2) == expected
+    assert require_public_release_output_path(
+        tmp_path / expected,
+        year=2024,
+        contract_revision=2,
+    ) == (tmp_path / expected)
+    with pytest.raises(ValueError, match=expected):
+        require_public_release_output_path(
+            tmp_path / "fars-2024-state-mode.json",
+            year=2024,
+            contract_revision=2,
         )
 
 

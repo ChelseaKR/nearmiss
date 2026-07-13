@@ -594,7 +594,7 @@ jobs:
           base_url="${SITE_URL%/}"
           manifest_file="$(mktemp)"
           critical_dir="$(mktemp -d)"
-          fars_index_file="$critical_dir/data/published/fars-state-mode-index.json"
+          fars_index_file="$critical_dir/data/published/fars-state-mode-index-v2.json"
           fars_release_dir="$(mktemp -d)"
           trap 'rm -f "$manifest_file"; rm -rf "$critical_dir" "$fars_release_dir"' EXIT
           critical_specs=(
@@ -611,6 +611,9 @@ jobs:
             'web/style.css|web/style.css'
             'data/published/davis.geojson|data/published/davis.geojson'
             'data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json'
+            'data/published/fars-2024-state-mode.json|data/published/fars-2024-state-mode.json'
+            'data/published/fars-state-mode-index-v2.json|data/published/fars-state-mode-index-v2.json'
+            'data/published/fars-release-corrections.json|data/published/fars-release-corrections.json'
           )
           for _ in $(seq 1 30); do
             if curl --fail --silent --show-error \
@@ -656,7 +659,7 @@ jobs:
               path=release["artifact_path"]
               size=release["artifact_bytes"]
               digest=release["artifact_sha256"]
-              assert re.fullmatch(r"fars-[0-9]{4}-state-mode[.]json", path)
+              assert re.fullmatch(r"fars-[0-9]{4}-state-mode(?:-r[2-9][0-9]*)?[.]json", path)
               assert type(size) is int and 1 <= size <= 262144
               assert re.fullmatch(r"[0-9a-f]{64}", digest)
               print(f"{path}\t{size}\t{digest}")

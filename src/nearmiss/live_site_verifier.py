@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any, NoReturn, Protocol, cast
 from urllib.parse import urlsplit
 
-from .fars_public_index import load_fars_public_release_index_bytes
+from .fars_public_index import FARS_PUBLIC_INDEX_FILENAME, load_fars_public_release_index_bytes
 
 PRODUCTION_SITE_URL = "https://nearmiss.report"
 PRIVATE_PATH_PROBES = (
@@ -433,7 +433,7 @@ def verify_live_site(
         expected_sha=expected_sha,
     )
 
-    index_path = "data/published/fars-state-mode-index.json"
+    index_path = f"data/published/{FARS_PUBLIC_INDEX_FILENAME}"
     default_year, default_revision = _release_summary(expected_files[index_path], expected_files)
     years = cast(
         list[dict[str, Any]],

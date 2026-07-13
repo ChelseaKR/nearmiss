@@ -11,13 +11,17 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
+import tools.build_fars_correction_ledger as correction_builder
 import tools.build_fars_public_index as index_builder
 from jsonschema import Draft202012Validator, FormatChecker
 from tools.build_fars_public_index import build_index
 
 import nearmiss.fars_public_index as release_index_module
 from nearmiss.fars_public_index import (
+    FARS_PUBLIC_CORRECTIONS_FILENAME,
     FARS_PUBLIC_INDEX_FILENAME,
+    FARS_PUBLIC_LEGACY_INDEX_FILENAME,
+    build_fars_public_correction_ledger_bytes,
     build_fars_public_release_index,
     canonical_fars_public_release_index_bytes,
     load_fars_public_release_bytes,
@@ -29,17 +33,23 @@ from nearmiss.fars_public_index import (
 ROOT = Path(__file__).resolve().parents[1]
 PUBLISHED = ROOT / "data" / "published"
 INDEX_PATH = PUBLISHED / FARS_PUBLIC_INDEX_FILENAME
+LEGACY_INDEX_PATH = PUBLISHED / FARS_PUBLIC_LEGACY_INDEX_FILENAME
+CORRECTIONS_PATH = PUBLISHED / FARS_PUBLIC_CORRECTIONS_FILENAME
 YEARS = tuple(range(2020, 2025))
-ARTIFACTS = {year: PUBLISHED / f"fars-{year}-state-mode.json" for year in YEARS}
-ARTIFACT_2024 = PUBLISHED / "fars-2024-state-mode.json"
+ARTIFACTS = {
+    year: PUBLISHED / f"fars-{year}-state-mode{'-r2' if year == 2024 else ''}.json"
+    for year in YEARS
+}
+ARTIFACT_2024 = PUBLISHED / "fars-2024-state-mode-r2.json"
+LEGACY_ARTIFACT_2024 = PUBLISHED / "fars-2024-state-mode.json"
 SCHEMA_PATH = ROOT / "schema" / "public-fars-state-context-index.schema.json"
-EXPECTED_INDEX_SHA256 = "64d73ea4f25de4ef1321e6f8bed56215b9585fdc7ee74bc05bf47ec74bedaa48"
+EXPECTED_INDEX_SHA256 = "594b13a65f5b88661db8acb21c73fc55ddc61ba94e5a659cdd27463c178f50f5"
 EXPECTED_ARTIFACTS = {
     2020: (27589, "db4c50d998d20bc2f341b1943c883f6d6d3c805db4bb7117564619119499290c"),
     2021: (27630, "de7406ca0980e9d092eb25a230fe17fb2500f07b3b36f781dc3e4b35b7983168"),
     2022: (27622, "39f8e39fd52cc17abf07377dc460bc9545e05b82525740d8718c57e0f6fc4af8"),
     2023: (27636, "a0ddddc47f7c9ca70b823083f9f13831844b23fc45113321a3408a894eb98ade"),
-    2024: (27590, "29b5dc2673987cc7bedd0a83b2147e724e1fb2a2cb1458053af3d017ac8d6578"),
+    2024: (27603, "79cf34d3af696c9e487adb9a8d3897d9c90cdf55dbe0c9b6eaf16ef634a98b79"),
 }
 
 
@@ -68,8 +78,11 @@ def _copy_release_set(tmp_path: Path) -> Path:
     root = tmp_path / "published"
     root.mkdir(parents=True)
     (root / FARS_PUBLIC_INDEX_FILENAME).write_bytes(INDEX_PATH.read_bytes())
+    (root / FARS_PUBLIC_LEGACY_INDEX_FILENAME).write_bytes(LEGACY_INDEX_PATH.read_bytes())
+    (root / FARS_PUBLIC_CORRECTIONS_FILENAME).write_bytes(CORRECTIONS_PATH.read_bytes())
     for artifact in ARTIFACTS.values():
         (root / artifact.name).write_bytes(artifact.read_bytes())
+    (root / LEGACY_ARTIFACT_2024.name).write_bytes(LEGACY_ARTIFACT_2024.read_bytes())
     return root
 
 
@@ -266,7 +279,7 @@ def test_checked_index_is_exact_canonical_five_year_release() -> None:
     actual = INDEX_PATH.read_bytes()
 
     assert actual == expected
-    assert len(actual) == 5270
+    assert len(actual) == 5273
     assert hashlib.sha256(actual).hexdigest() == EXPECTED_INDEX_SHA256
     index = load_fars_public_release_index_bytes(actual)
     assert index["default_year"] == 2024
@@ -278,6 +291,120 @@ def test_checked_index_is_exact_canonical_five_year_release() -> None:
         assert (release["artifact_bytes"], release["artifact_sha256"]) == EXPECTED_ARTIFACTS[year]
 
     assert list(_schema_validator().iter_errors(index)) == []
+
+
+def test_retained_release_bytes_and_correction_ledger_are_exact() -> None:
+    prior_artifact = LEGACY_ARTIFACT_2024.read_bytes()
+    replacement_artifact = ARTIFACT_2024.read_bytes()
+    prior_index = LEGACY_INDEX_PATH.read_bytes()
+    replacement_index = INDEX_PATH.read_bytes()
+    actual = CORRECTIONS_PATH.read_bytes()
+    expected = build_fars_public_correction_ledger_bytes(
+        prior_artifact=prior_artifact,
+        replacement_artifact=replacement_artifact,
+        prior_index=prior_index,
+        replacement_index=replacement_index,
+    )
+
+    assert len(prior_artifact) == 27_590
+    assert hashlib.sha256(prior_artifact).hexdigest() == (
+        "29b5dc2673987cc7bedd0a83b2147e724e1fb2a2cb1458053af3d017ac8d6578"
+    )
+    assert len(prior_index) == 5_270
+    assert hashlib.sha256(prior_index).hexdigest() == (
+        "64d73ea4f25de4ef1321e6f8bed56215b9585fdc7ee74bc05bf47ec74bedaa48"
+    )
+    assert list(_schema_validator().iter_errors(json.loads(prior_index))) == []
+    assert actual == expected
+    assert len(actual) == 1_078
+    assert hashlib.sha256(actual).hexdigest() == (
+        "783e238ae6eab3404dfcee4b5323c536d6653ac59ea9e6a6beb36fe8d91fb4f6"
+    )
+
+
+def test_operator_correction_ledger_builder_is_canonical() -> None:
+    assert (
+        correction_builder.build_ledger(
+            prior_artifact=LEGACY_ARTIFACT_2024,
+            replacement_artifact=ARTIFACT_2024,
+            prior_index=LEGACY_INDEX_PATH,
+            replacement_index=INDEX_PATH,
+        )
+        == CORRECTIONS_PATH.read_bytes()
+    )
+
+
+def _rebind_adversarial_correction(root: Path, artifact: dict[str, Any]) -> None:
+    replacement = _canonical(artifact)
+    replacement_path = root / ARTIFACT_2024.name
+    replacement_path.write_bytes(replacement)
+    index = json.loads((root / FARS_PUBLIC_INDEX_FILENAME).read_bytes())
+    release = next(item for item in index["releases"] if item["dataset_year"] == 2024)
+    release["artifact_bytes"] = len(replacement)
+    release["artifact_sha256"] = hashlib.sha256(replacement).hexdigest()
+    index_payload = _canonical(index)
+    (root / FARS_PUBLIC_INDEX_FILENAME).write_bytes(index_payload)
+    ledger = json.loads((root / FARS_PUBLIC_CORRECTIONS_FILENAME).read_bytes())
+    correction = ledger["corrections"][0]
+    correction["replacement_artifact"]["bytes"] = len(replacement)
+    correction["replacement_artifact"]["sha256"] = hashlib.sha256(replacement).hexdigest()
+    correction["replacement_index"]["bytes"] = len(index_payload)
+    correction["replacement_index"]["sha256"] = hashlib.sha256(index_payload).hexdigest()
+    (root / FARS_PUBLIC_CORRECTIONS_FILENAME).write_bytes(_canonical(ledger))
+
+
+def test_release_directory_rejects_rebound_count_drift(tmp_path: Path) -> None:
+    root = _copy_release_set(tmp_path)
+    artifact = json.loads((root / ARTIFACT_2024.name).read_bytes())
+    published = next(
+        cell
+        for state in artifact["states"]
+        for cell in state["cells"]
+        if cell["status"] == "published"
+    )
+    published["crash_count"] += 1
+    artifact["accounting"]["crash_contribution_total"] += 1
+    artifact["accounting"]["published_crash_contribution_total"] += 1
+    _rebind_adversarial_correction(root, artifact)
+
+    with pytest.raises(ValueError, match="changed non-provenance content"):
+        verify_fars_public_release_directory(root)
+
+
+def test_release_directory_rejects_missing_or_changed_retained_urls(tmp_path: Path) -> None:
+    root = _copy_release_set(tmp_path)
+    (root / LEGACY_ARTIFACT_2024.name).unlink()
+    with pytest.raises(ValueError, match="unavailable"):
+        verify_fars_public_release_directory(root)
+
+    root = _copy_release_set(tmp_path / "changed")
+    prior = root / LEGACY_ARTIFACT_2024.name
+    prior.write_bytes(prior.read_bytes() + b" ")
+    with pytest.raises(ValueError, match=r"correction ledger pin|published identity"):
+        verify_fars_public_release_directory(root)
+
+
+def test_release_directory_rejects_malformed_or_swapped_correction_catalog(
+    tmp_path: Path,
+) -> None:
+    root = _copy_release_set(tmp_path)
+    ledger = json.loads((root / FARS_PUBLIC_CORRECTIONS_FILENAME).read_bytes())
+    ledger["corrections"][0]["corrected_value"] = "final"
+    (root / FARS_PUBLIC_CORRECTIONS_FILENAME).write_bytes(_canonical(ledger))
+    with pytest.raises(ValueError, match="semantics"):
+        verify_fars_public_release_directory(root)
+
+    root = _copy_release_set(tmp_path / "swapped")
+    (root / FARS_PUBLIC_INDEX_FILENAME).write_bytes(
+        (root / FARS_PUBLIC_LEGACY_INDEX_FILENAME).read_bytes()
+    )
+    ledger = json.loads((root / FARS_PUBLIC_CORRECTIONS_FILENAME).read_bytes())
+    current = (root / FARS_PUBLIC_INDEX_FILENAME).read_bytes()
+    ledger["corrections"][0]["replacement_index"]["bytes"] = len(current)
+    ledger["corrections"][0]["replacement_index"]["sha256"] = hashlib.sha256(current).hexdigest()
+    (root / FARS_PUBLIC_CORRECTIONS_FILENAME).write_bytes(_canonical(ledger))
+    with pytest.raises(ValueError, match="revision 2"):
+        verify_fars_public_release_directory(root)
 
 
 def test_multiyear_index_is_sorted_and_newest_defaults() -> None:
@@ -387,7 +514,7 @@ def test_release_directory_verifies_index_artifacts_and_no_orphans(tmp_path: Pat
 
     artifact = root / ARTIFACT_2024.name
     artifact.write_bytes(artifact.read_bytes() + b" ")
-    with pytest.raises(ValueError, match="does not match its index pin"):
+    with pytest.raises(ValueError, match=r"correction ledger pin|index pin"):
         verify_fars_public_release_directory(root)
 
     root = _copy_release_set(tmp_path / "second")
@@ -495,8 +622,8 @@ def test_release_index_builder_rejects_invalid_inventory_types(
             "geography pin",
         ),
         (
-            lambda value: value["releases"][-1].__setitem__(
-                "contract", copy.deepcopy(value["releases"][0]["contract"])
+            lambda value: value["releases"][-1]["contract"].__setitem__(
+                "contract_sha256", "0" * 64
             ),
             "contract provenance",
         ),
@@ -659,6 +786,11 @@ def test_operator_builder_rejects_duplicate_unsupported_and_unsafe_inputs(
     oversized.write_bytes(b" " * (256 * 1024 + 1))
     with pytest.raises(ValueError, match="byte safety limit"):
         build_index([oversized])
+
+    directory = tmp_path / "fars-2020-state-mode.json"
+    directory.mkdir()
+    with pytest.raises(ValueError, match="regular file"):
+        build_index([directory])
 
 
 @pytest.mark.skipif(not hasattr(Path, "symlink_to"), reason="symlinks unavailable")
