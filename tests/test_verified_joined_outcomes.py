@@ -56,12 +56,15 @@ def _normalized(
     *,
     release_status: str,
     schema_version: str | None = None,
+    legacy_mode_semantics: bool = False,
     allow_record_regression: bool = False,
     allow_mode_regression: bool = False,
     allow_release_regression: bool = False,
 ) -> bytes:
     outcomes, summaries, crash, person = collect_joined(
-        read_joined_export_bytes(raw), release_status=release_status
+        read_joined_export_bytes(raw),
+        release_status=release_status,
+        legacy_mode_semantics=legacy_mode_semantics,
     )
     artifact = build_joined_outcome_artifact(
         outcomes,
@@ -89,6 +92,7 @@ def _ingest(
     allow_mode_regression: bool = False,
     allow_release_regression: bool = False,
     schema_version: str | None = None,
+    legacy_mode_semantics: bool = False,
 ) -> tuple[Path, Any]:
     payload = _raw() if raw is None else raw
     normalized = _normalized(
@@ -98,6 +102,7 @@ def _ingest(
         allow_mode_regression=allow_mode_regression,
         allow_release_regression=allow_release_regression,
         schema_version=schema_version,
+        legacy_mode_semantics=legacy_mode_semantics,
     )
     root = tmp_path / "store"
     result = run_ingestion(
@@ -158,6 +163,16 @@ def test_replay_preserves_legacy_schema_when_raw_now_supports_v11(tmp_path: Path
     root, result = _ingest(tmp_path, raw=raw, schema_version="1.0.0")
     artifact = cast(dict[str, Any], json.loads(result.normalized_path.read_bytes()))
     assert artifact["schema_version"] == "1.0.0"
+    assert verify_active_fars_joined(root).normalized_sha256 == result.normalized_sha256
+
+
+def test_replay_preserves_frozen_legacy_person_type_union(tmp_path: Path) -> None:
+    person = PERSON.replace(b"6,100001,0,1,5,2,", b"6,100001,0,1,11,2,")
+    root, result = _ingest(
+        tmp_path,
+        raw=_raw(person=person),
+        legacy_mode_semantics=True,
+    )
     assert verify_active_fars_joined(root).normalized_sha256 == result.normalized_sha256
 
 

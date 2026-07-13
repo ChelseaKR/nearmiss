@@ -179,6 +179,20 @@ def test_read_export_bytes_requires_immutable_bytes() -> None:
         read_export_bytes(bytearray(FIXTURE.read_bytes()))  # type: ignore[arg-type]
 
 
+def test_export_decoder_requires_an_explicit_supported_encoding() -> None:
+    lines = FIXTURE.read_text(encoding="utf-8").splitlines()
+    payload = (
+        "\n".join([f"{lines[0]},CITYNAME", *[f"{line},LA CAÑADA" for line in lines[1:]]]) + "\n"
+    ).encode("cp1252")
+    assert len(read_export_bytes(payload, encoding="cp1252").rows) == 3
+    with pytest.raises(ValueError, match="explicitly supported"):
+        read_export_bytes(payload, encoding="latin-1")
+    with pytest.raises(ValueError, match="row-count safety limit"):
+        read_export_bytes(payload, encoding="cp1252", row_cap=1)
+    with pytest.raises(ValueError, match="positive integer"):
+        read_export_bytes(payload, encoding="cp1252", row_cap=True)
+
+
 def test_validates_canonical_nhtsa_fars_distribution_url() -> None:
     url = "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/National/FARS2023.zip"
     assert validate_fars_distribution_url(url) == url

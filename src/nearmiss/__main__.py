@@ -897,8 +897,9 @@ def _cmd_ingest_fars_joined(args: argparse.Namespace) -> int:
     def normalize(raw: bytes) -> bytes:
         nonlocal artifact
         outcomes, summaries, crash_provenance, person_provenance = collect_joined(
-            read_joined_export_bytes(raw),
+            read_joined_export_bytes(raw, expected_year=args.year),
             release_status=args.release_status,
+            legacy_mode_semantics=True,
         )
         artifact = build_joined_outcome_artifact(
             outcomes,
