@@ -973,11 +973,21 @@
   function requestedYear() {
     var params = new URLSearchParams(window.location.search);
     if (!params.has("year")) return releaseIndex.default_year;
-    var value = params.get("year");
-    assert(value !== null && /^[0-9]{4}$/.test(value), "requested year is invalid");
+    var values = params.getAll("year");
+    assert(values.length === 1, "requested year must be unambiguous");
+    var value = values[0];
+    assert(/^[0-9]{4}$/.test(value), "requested year is invalid");
     var year = Number(value);
     assert(releaseForYear(year), "requested year is not published");
     return year;
+  }
+
+  function validateRequestedLanguage() {
+    var params = new URLSearchParams(window.location.search);
+    if (!params.has("lang")) return;
+    var values = params.getAll("lang");
+    assert(values.length === 1, "requested language must be unambiguous");
+    assert(values[0] === "en" || values[0] === "es", "requested language is unsupported");
   }
 
   function requestedState() {
@@ -1120,6 +1130,7 @@
       releaseIndex = validateIndex(data);
       populateYearControl(releaseIndex.default_year);
       updateProofRail(null);
+      validateRequestedLanguage();
       var year = requestedYear();
       var state = requestedState();
       populateYearControl(year);
