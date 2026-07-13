@@ -18,6 +18,10 @@
 # Catch-all: @ChelseaKR owns everything in the repository.
 *                               @ChelseaKR
 
+# Quality gate definitions and measured targets.
+/DEFINITION_OF_DONE.md          @ChelseaKR
+/docs/ROADMAP.md                @ChelseaKR
+
 # Schema — the near-miss/collision contract enforced by intake.py and CI.
 # Any change here can change what is collected, validated, or published.
 /schema/                        @ChelseaKR
