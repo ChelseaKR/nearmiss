@@ -25,6 +25,7 @@ import uuid
 from collections.abc import Mapping
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path, PurePosixPath
+from urllib.parse import unquote
 
 from .obs import get_logger
 
@@ -37,8 +38,21 @@ _HEALTH_PATHS = ("/livez", "/readyz")
 
 
 def is_blocked_path(path: str) -> bool:
-    """True if a request path must be refused (private raw store or any dotfile)."""
-    rel = PurePosixPath(path.split("?", 1)[0].split("#", 1)[0].lstrip("/"))
+    """True if a request path must be refused (private raw store or any dotfile).
+
+    The check must decode percent-encoding the same way the file resolver
+    (``SimpleHTTPRequestHandler.translate_path``) does — it calls ``unquote``
+    before mapping a request to a file. Without this, ``/data%2Fraw/x`` or
+    ``/%2eenv`` would sail past a guard that only inspects the raw, still-encoded
+    target yet still resolve to the private raw store or a dotfile on disk (hard
+    rule #4 bypass). Decode first, then apply the prefix/dotfile checks.
+    """
+    target = path.split("?", 1)[0].split("#", 1)[0]
+    try:
+        target = unquote(target, errors="surrogatepass")
+    except UnicodeDecodeError:
+        target = unquote(target)
+    rel = PurePosixPath(target.lstrip("/"))
     parts = rel.parts
     if any(part.startswith(".") for part in parts):
         return True
