@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,63 @@ import tools.build_site as build_site_module
 from tools.build_site import build_site
 
 SHA = "a" * 40
+NATIONAL_PATH = "web/us-coverage.html"
+NATIONAL_CANONICAL = "https://nearmiss.report/web/us-coverage.html"
+
+
+class _ApexDocument(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.refreshes: list[str] = []
+        self.canonicals: list[str] = []
+        self.links: list[str] = []
+        self.main_landmarks = 0
+        self.redirect_scripts: list[str] = []
+        self._script_parts: list[str] | None = None
+
+    def handle_starttag(self, tag: str, attrs_list: list[tuple[str, str | None]]) -> None:
+        attrs = {key.casefold(): value or "" for key, value in attrs_list}
+        normalized_tag = tag.casefold()
+        if normalized_tag == "meta" and attrs.get("http-equiv", "").casefold() == "refresh":
+            self.refreshes.append(attrs.get("content", ""))
+        elif normalized_tag == "link" and "canonical" in attrs.get("rel", "").casefold().split():
+            self.canonicals.append(attrs.get("href", ""))
+        elif normalized_tag == "a":
+            self.links.append(attrs.get("href", ""))
+        elif normalized_tag == "main":
+            self.main_landmarks += 1
+        elif normalized_tag == "script" and "data-apex-redirect" in attrs:
+            self._script_parts = []
+
+    def handle_data(self, data: str) -> None:
+        if self._script_parts is not None:
+            self._script_parts.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.casefold() == "script" and self._script_parts is not None:
+            self.redirect_scripts.append("".join(self._script_parts))
+            self._script_parts = None
+
+
+def _assert_national_apex(html: str) -> None:
+    document = _ApexDocument()
+    document.feed(html)
+    document.close()
+
+    assert document.refreshes == [f"0; url={NATIONAL_PATH}"]
+    assert document.canonicals == [NATIONAL_CANONICAL]
+    assert document.main_landmarks == 1
+    assert len(document.redirect_scripts) == 1
+    redirect = document.redirect_scripts[0]
+    assert 'language === "es" ? "?lang=es"' in redirect
+    assert 'language === "en" ? "?lang=en"' in redirect
+    assert "window.location.replace(`web/us-coverage.html${query}`)" in redirect
+    assert NATIONAL_PATH in document.links
+    assert f"{NATIONAL_PATH}?lang=es" in document.links
+    assert "web/index.html" in document.links
+    assert "data/published/fars-2024-state-mode.json" in document.links
+    assert "data/published/" not in document.links
+    assert document.links.index(NATIONAL_PATH) < document.links.index("web/index.html")
 
 
 def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
@@ -34,6 +92,17 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     assert not any(path.startswith("src/") for path in files)
     assert not any("node_modules" in path for path in files)
     assert not any(path.endswith(".run.json") for path in files)
+
+
+def test_source_and_built_apex_promote_national_surface(tmp_path: Path) -> None:
+    out = tmp_path / "site"
+    build_site(out, SHA)
+    source = (build_site_module.ROOT / "index.html").read_text(encoding="utf-8")
+    built = (out / "index.html").read_text(encoding="utf-8")
+
+    assert built == source
+    _assert_national_apex(source)
+    _assert_national_apex(built)
 
 
 def test_deployment_stamp_and_manifest_hashes_are_exact(tmp_path: Path) -> None:
