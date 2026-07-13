@@ -335,6 +335,20 @@ def test_repository_local_private_root_is_rejected_without_creation(
     assert not root.exists()
 
 
+def test_malformed_private_root_fails_legacy_cli_preflight(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    export = tmp_path / "fars-2024.zip"
+    _archive(export)
+    argv = _argv(export, tmp_path / "private")
+    argv[argv.index("--root") + 1] = "bad\0root"
+
+    assert main(argv) == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "joined FARS preflight validation failed" in captured.err
+
+
 def test_joined_validator_strictly_decodes_prior_and_binds_override(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
