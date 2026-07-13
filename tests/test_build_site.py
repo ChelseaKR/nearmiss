@@ -16,8 +16,9 @@ from tools.build_site import build_site
 
 SHA = "a" * 40
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-NATIONAL_PATH = "web/us-coverage.html"
-NATIONAL_CANONICAL = "https://nearmiss.report/web/us-coverage.html"
+NATIONAL_ROUTE = "/fars/national/"
+NATIONAL_MANIFEST_PATH = "fars/national/index.html"
+NATIONAL_CANONICAL = "https://nearmiss.report/fars/national/"
 
 
 class _ApexDocument(HTMLParser):
@@ -59,21 +60,23 @@ def _assert_national_apex(html: str) -> None:
     document.feed(html)
     document.close()
 
-    assert document.refreshes == [f"0; url={NATIONAL_PATH}"]
+    assert document.refreshes == [f"0; url={NATIONAL_ROUTE}"]
     assert document.canonicals == [NATIONAL_CANONICAL]
     assert document.main_landmarks == 1
     assert len(document.redirect_scripts) == 1
     redirect = document.redirect_scripts[0]
+    assert 'const values = new URLSearchParams(window.location.search).getAll("lang")' in redirect
+    assert 'values.length === 1 ? values[0] : ""' in redirect
     assert 'language === "es" ? "?lang=es"' in redirect
     assert 'language === "en" ? "?lang=en"' in redirect
-    assert "window.location.replace(`web/us-coverage.html${query}`)" in redirect
-    assert NATIONAL_PATH in document.links
-    assert f"{NATIONAL_PATH}?lang=es" in document.links
-    assert "web/index.html" in document.links
-    assert "data/published/fars-state-mode-index.json" in document.links
-    assert "data/published/fars-2024-state-mode.json" in document.links
-    assert "data/published/" not in document.links
-    assert document.links.index(NATIONAL_PATH) < document.links.index("web/index.html")
+    assert "window.location.replace(`/fars/national/${query}`)" in redirect
+    assert NATIONAL_ROUTE in document.links
+    assert f"{NATIONAL_ROUTE}?lang=es" in document.links
+    assert "/web/index.html" in document.links
+    assert "/data/published/fars-state-mode-index.json" in document.links
+    assert "/data/published/fars-2024-state-mode.json" in document.links
+    assert "/data/published/" not in document.links
+    assert document.links.index(NATIONAL_ROUTE) < document.links.index("/web/index.html")
 
 
 def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
@@ -85,6 +88,7 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     assert "web/index.html" in files
     assert "web/app.js" in files
     assert "web/us-coverage.html" in files
+    assert NATIONAL_MANIFEST_PATH in files
     assert "web/us-coverage.js" in files
     assert "web/us-coverage.css" in files
     assert "web/vendor/leaflet/leaflet.js" in files
@@ -111,6 +115,35 @@ def test_source_and_built_apex_promote_national_surface(tmp_path: Path) -> None:
     _assert_national_apex(built)
 
 
+def test_canonical_national_route_is_a_byte_identical_real_page(tmp_path: Path) -> None:
+    out = tmp_path / "site"
+    manifest = build_site(out, SHA)
+    legacy = out / "web" / "us-coverage.html"
+    canonical = out / NATIONAL_MANIFEST_PATH
+
+    assert canonical.read_bytes() == legacy.read_bytes()
+    html = canonical.read_text(encoding="utf-8")
+    document = _ApexDocument()
+    document.feed(html)
+    document.close()
+    assert document.canonicals == [NATIONAL_CANONICAL]
+    assert "<base" not in html.casefold()
+    assert 'class="skip-link" href="#main"' in html
+
+    dependencies = {
+        "web/style.css",
+        "web/us-coverage.css",
+        "web/i18n.js",
+        "web/us-coverage.js",
+        "data/published/fars-2024-state-mode.json",
+        "data/published/fars-state-mode-index.json",
+        "deployment.json",
+    }
+    assert dependencies <= set(manifest["files"])
+    for path in dependencies:
+        assert f'="/{path}"' in html
+
+
 def test_deployment_stamp_and_manifest_hashes_are_exact(tmp_path: Path) -> None:
     out = tmp_path / "site"
     manifest = build_site(out, SHA)
@@ -133,6 +166,7 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
         "deployment.json|deployment.json",
         "web/index.html|web/index.html",
         "web/us-coverage.html|web/us-coverage.html",
+        "fars/national/index.html|fars/national/",
         "web/us-coverage.js|web/us-coverage.js",
         "web/i18n.js|web/i18n.js",
         "web/locales/en.json|web/locales/en.json",
@@ -189,6 +223,7 @@ def _minimal_site_source(root: Path) -> None:
     (root / "index.html").write_text("index", encoding="utf-8")
     (root / "CNAME").write_text("example.test\n", encoding="utf-8")
     (root / "web" / "index.html").write_text("web", encoding="utf-8")
+    (root / "web" / "us-coverage.html").write_text("national", encoding="utf-8")
     (root / "web" / "vendor" / "safe.js").write_text("safe", encoding="utf-8")
     (root / "web" / "locales" / "en.json").write_text("{}", encoding="utf-8")
 

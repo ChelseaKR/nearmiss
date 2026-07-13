@@ -30,7 +30,9 @@ or notification authority.
 The verifier rebuilds the exact allowlisted site with Python site packages disabled, then performs
 bounded read-only HTTPS requests to the fixed `nearmiss.report` origin. It requires the live manifest,
 deployment record, apex, every remotely retrievable manifest file, annual FARS release pin and
-localized share shell to match that exact build. The manifest-bound `.nojekyll` hosting control and a
+localized share shell to match that exact build. It also requests the public `/fars/national/`
+directory route and binds that response to its manifest-listed `fars/national/index.html` bytes. The
+manifest-bound `.nojekyll` hosting control and a
 fixed negative inventory must continue returning HTTP 404. Redirects,
 compression, non-public DNS answers, oversized responses, malformed paths and ambiguous JSON fail
 closed.

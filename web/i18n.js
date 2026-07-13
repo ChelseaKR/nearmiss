@@ -18,6 +18,32 @@
   var FALLBACK = "en";
   var SUPPORTED = { en: true, es: true };
 
+  function localeRoot() {
+    var script = document.currentScript;
+    if (!script || !script.src) {
+      // jsdom and other outside-only harnesses do not expose currentScript.
+      // Fall back to the declared loader element rather than the page route.
+      var scripts = document.getElementsByTagName("script");
+      for (var index = scripts.length - 1; index >= 0; index -= 1) {
+        if (/(^|\/)i18n\.js(?:[?#].*)?$/.test(scripts[index].src || "")) {
+          script = scripts[index];
+          break;
+        }
+      }
+    }
+    try {
+      var scriptUrl =
+        script && script.src
+          ? script.src
+          : new URL("/web/i18n.js", window.location.href).href;
+      return new URL("locales/", scriptUrl).href;
+    } catch (_error) {
+      return "/web/locales/";
+    }
+  }
+
+  var LOCALE_ROOT = localeRoot();
+
   function isSupported(lang) {
     return Object.prototype.hasOwnProperty.call(SUPPORTED, lang);
   }
@@ -42,7 +68,7 @@
       // catalog), so the caller transparently falls back to English.
       load: function (lang) {
         if (catalogs[lang]) return Promise.resolve();
-        return fetch("locales/" + lang + ".json")
+        return fetch(LOCALE_ROOT + lang + ".json")
           .then(function (r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();

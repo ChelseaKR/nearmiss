@@ -110,7 +110,7 @@
   "web.app.tt_n": "Número de reportes en este segmento (el tamaño de muestra).",
   "web.app.tt_rate": "Reportes por 1000 unidades de exposición — riesgo por persona, no un conteo crudo.",
   "web.app.tt_tier": "Cuánto confiar en el denominador de exposición de este segmento: observado (conteo directo), modelado (modelo de demanda), indicador indirecto (capa de actividad de terceros), o desconocido.",
-  "web.app.us_coverage_cta": "<strong>Nuevo: contexto verificado de choques fatales en EE. UU.</strong> <a href=\"us-coverage.html\">Explore los conteos anuales publicados por estado y modo, las celdas no publicadas y la procedencia de la fuente →</a>",
+  "web.app.us_coverage_cta": "<strong>Esta página de Davis es una demostración sintética.</strong> <a href=\"/fars/national/\">Explore por separado evidencia nacional de EE. UU. de registros revisados de choques fatales de 2020–2024 →</a>",
   "web.coverage.all_modes": "Todos los modos",
   "web.coverage.all_statuses": "Todos los estados de publicación",
   "web.coverage.annual_contract_label": "Contrato anual",

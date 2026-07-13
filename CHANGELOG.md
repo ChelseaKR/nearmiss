@@ -58,6 +58,10 @@ every entry.
 
 ### Added
 
+- A stable `/fars/national/` public route for the nationwide 2020–2024 evidence ledger. It is a
+  byte-identical copy of the retained legacy page, uses root-absolute reviewed dependencies, carries
+  one canonical URL, is promoted from the synthetic Davis demo, and is checked by both deploy and
+  recurring live-integrity verification.
 - A state-first national FARS experience with an exact 2020–2024 profile for every state and DC,
   strict `state`/`year`/`lang` share URLs, explicit 2020–2021 versus 2022–2024 person-coding regimes,
   isolated historical-load failures, and suppression-safe cells that never infer or expose a zero.

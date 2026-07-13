@@ -8,7 +8,8 @@ and compares production with that exact build.
 The sentinel verifies:
 
 - the deployment and site-manifest source commit;
-- the apex and every remotely retrievable manifest file, byte for byte and by SHA-256;
+- the apex, the `/fars/national/` directory route, and every remotely retrievable manifest file,
+  byte for byte and by SHA-256;
 - every annual FARS artifact declared by the canonical release index;
 - English and Spanish year-specific share URLs; and
 - representative private, source, fixture, debug, and run-manifest paths still return HTTP 404.

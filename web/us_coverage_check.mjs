@@ -11,6 +11,8 @@ const repoRoot = join(here, "..");
 const APEX = join(repoRoot, "index.html");
 const PAGE = join(here, "us-coverage.html");
 const DAVIS_HOME = join(here, "index.html");
+const NATIONAL_ROUTE = "/fars/national/";
+const NATIONAL_CANONICAL = "https://nearmiss.report/fars/national/";
 const APP = join(here, "us-coverage.js");
 const I18N = join(here, "i18n.js");
 const LOCALES = join(here, "locales");
@@ -76,6 +78,13 @@ async function settle() {
   }
 }
 
+function sameRawTargetSet(actual, expected) {
+  return (
+    JSON.stringify(Array.from(new Set(actual)).sort()) ===
+    JSON.stringify(Array.from(new Set(expected)).sort())
+  );
+}
+
 function trustedAppSource(indexBytes) {
   const source = readFileSync(APP, "utf-8");
   return source
@@ -107,10 +116,12 @@ async function boot({
   const localeResolvers = {};
   const artifactResolvers = {};
   const artifactFetchCounts = {};
+  const fetchTargets = [];
   Object.defineProperty(window, "crypto", { value: disableCrypto ? {} : webcrypto, configurable: true });
   window.TextDecoder = TextDecoder;
   window.fetch = (requested) => {
     const target = String(requested);
+    fetchTargets.push(target);
     const locale = target.match(/locales\/([a-z]{2,3})\.json$/);
     if (locale) {
       const catalog = JSON.parse(readFileSync(join(LOCALES, `${locale[1]}.json`), "utf-8"));
@@ -162,6 +173,7 @@ async function boot({
       artifactResolvers[year]();
     },
     artifactFetchCounts,
+    fetchTargets,
   };
 }
 
@@ -219,27 +231,91 @@ async function assertNoAxeViolations(rendered, label) {
   }
 }
 
+async function assertLocaleRootFollowsLoadedScript() {
+  const dom = new JSDOM('<!doctype html><script src="/fallback/i18n.js"></script>', {
+    runScripts: "outside-only",
+    url: "https://example.test/fars/national/",
+  });
+  const { window } = dom;
+  Object.defineProperty(window.document, "currentScript", {
+    configurable: true,
+    value: { src: "https://static.example.test/nearmiss/i18n.js?release=reviewed" },
+  });
+  let requested = "";
+  window.fetch = (target) => {
+    requested = String(target);
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) });
+  };
+  window.eval(readFileSync(I18N, "utf-8"));
+  await window.NearmissI18n.create("web.coverage.").load("en");
+  if (requested !== "https://static.example.test/nearmiss/locales/en.json") {
+    die(`locale loader ignored the loaded script URL: ${requested}`);
+  }
+  dom.window.close();
+}
+
 async function main() {
+  await assertLocaleRootFollowsLoadedScript();
   const apex = new JSDOM(readFileSync(APEX, "utf-8")).window.document;
   const refresh = apex.querySelector('meta[http-equiv="refresh"]');
-  if (!refresh || refresh.getAttribute("content") !== "0; url=web/us-coverage.html") {
+  if (!refresh || refresh.getAttribute("content") !== "0; url=/fars/national/") {
     die("apex does not immediately redirect to the nationwide evidence ledger");
   }
-  if (!apex.querySelector('a[href="data/published/fars-state-mode-index.json"]')) {
+  if (!apex.querySelector('a[href="/data/published/fars-state-mode-index.json"]')) {
     die("apex has no direct national release-index link");
   }
-  if (!apex.querySelector('a[href="data/published/fars-2024-state-mode.json"]')) {
+  if (!apex.querySelector('a[href="/data/published/fars-2024-state-mode.json"]')) {
     die("apex lost the backward-compatible 2024 evidence link");
   }
+  if (!apex.querySelector('a[href="/fars/national/"]')) {
+    die("apex fallback does not target the canonical national route");
+  }
   if (!apex.querySelector("main")) die("apex fallback content has no main landmark");
+
+  const redirectSource = apex.querySelector("script[data-apex-redirect]")?.textContent;
+  if (!redirectSource) die("apex has no strict language-preserving redirect");
+  const apexTarget = (search) => {
+    let target = "";
+    Function("window", "URLSearchParams", redirectSource)(
+      { location: { search, replace: (value) => { target = value; } } },
+      URLSearchParams
+    );
+    return target;
+  };
+  const apexCases = new Map([
+    ["?lang=en", "/fars/national/?lang=en"],
+    ["?lang=es&state=CA&year=2024", "/fars/national/?lang=es"],
+    ["?lang=es&lang=en", "/fars/national/"],
+    ["?lang=ES", "/fars/national/"],
+    ["?year=2024&state=CA", "/fars/national/"],
+  ]);
+  for (const [query, expected] of apexCases) {
+    if (apexTarget(query) !== expected) {
+      die(`apex did not preserve only one strict supported language for ${query}`);
+    }
+  }
 
   const coverageSource = new JSDOM(readFileSync(PAGE, "utf-8")).window.document;
   const coverageCanonical = coverageSource.querySelectorAll('link[rel~="canonical"]');
   if (
     coverageCanonical.length !== 1 ||
-    coverageCanonical[0].getAttribute("href") !== "https://nearmiss.report/web/us-coverage.html"
+    coverageCanonical[0].getAttribute("href") !== NATIONAL_CANONICAL
   ) {
     die("nationwide page does not have the one absolute production canonical URL");
+  }
+  if (coverageSource.querySelector("base")) die("nationwide page relies on a path-rewriting base element");
+  if (coverageSource.querySelector(".skip-link")?.getAttribute("href") !== "#main") {
+    die("nationwide page skip link no longer targets its main landmark");
+  }
+  for (const dependency of [
+    "/web/style.css",
+    "/web/us-coverage.css",
+    "/web/i18n.js",
+    "/web/us-coverage.js",
+  ]) {
+    if (!coverageSource.querySelector(`[href="${dependency}"], [src="${dependency}"]`)) {
+      die(`nationwide page dependency ${dependency} is not root-absolute`);
+    }
   }
   if (!coverageSource.querySelector('#artifact-download[href$="fars-2024-state-mode.json"]')) {
     die("nationwide page lost the no-script 2024 artifact fallback");
@@ -249,8 +325,16 @@ async function main() {
   }
 
   const home = new JSDOM(readFileSync(DAVIS_HOME, "utf-8")).window.document;
-  if (!home.querySelector('.national-cta a[href="us-coverage.html"]')) {
+  const nationalCta = home.querySelector(`.national-cta a[href="${NATIONAL_ROUTE}"]`);
+  if (!nationalCta) {
     die("Davis homepage has no prominent link to the nationwide evidence ledger");
+  }
+  if (
+    !home.querySelector(".national-cta").textContent.includes("synthetic demo") ||
+    !nationalCta.textContent.includes("2020–2024") ||
+    !nationalCta.textContent.includes("nationwide US")
+  ) {
+    die("Davis CTA does not distinguish synthetic local data from nationwide reviewed evidence");
   }
 
   if (CHECKED_INDEX_BYTES.byteLength !== 5270 || digest(CHECKED_INDEX_BYTES) !== "64d73ea4f25de4ef1321e6f8bed56215b9585fdc7ee74bc05bf47ec74bedaa48") {
@@ -275,10 +359,83 @@ async function main() {
     }
   }
 
+  for (const locale of ["en", "es"]) {
+    const cta = JSON.parse(readFileSync(join(LOCALES, `${locale}.json`), "utf-8"))[
+      "web.app.us_coverage_cta"
+    ];
+    if (
+      !cta.includes('href="/fars/national/"') ||
+      !cta.includes("2020–2024") ||
+      !(locale === "en" ? cta.includes("synthetic demo") : cta.includes("demostración sintética"))
+    ) {
+      die(`${locale} catalog does not distinguish the Davis demo from national evidence`);
+    }
+  }
+
+  const canonicalRoute = await boot({
+    url: "https://example.test/fars/national/?lang=es",
+  });
+  if (canonicalRoute.doc.getElementById("coverage-status").classList.contains("is-error")) {
+    die("canonical national route did not boot the reviewed release");
+  }
+  select(canonicalRoute.doc, "state-filter", "CA");
+  await settle();
+  select(canonicalRoute.doc, "year-filter", "2021");
+  await settle();
+  canonicalRoute.doc.querySelector('[data-lang="en"]').click();
+  await settle();
+  if (
+    canonicalRoute.window.location.pathname !== NATIONAL_ROUTE ||
+    canonicalRoute.doc.getElementById("summary-year").textContent !== "2021" ||
+    canonicalRoute.doc.getElementById("state-filter").value !== "CA" ||
+    canonicalRoute.doc.documentElement.lang !== "en"
+  ) {
+    die("canonical route state/year/language changes did not preserve its pathname and state");
+  }
+  const canonicalFetchTargets = new Set(canonicalRoute.fetchTargets);
+  const expectedFetchTargets = new Set([
+    "https://example.test/web/locales/en.json",
+    "https://example.test/web/locales/es.json",
+    "/data/published/fars-state-mode-index.json",
+    ...YEARS.map((year) => `/data/published/fars-${year}-state-mode.json`),
+  ]);
+  if (!sameRawTargetSet(canonicalFetchTargets, expectedFetchTargets)) {
+    die(
+      `canonical route used unexpected, off-origin, or route-relative fetches: ${Array.from(canonicalFetchTargets).join(", ")}`
+    );
+  }
+  const indexTarget = "/data/published/fars-state-mode-index.json";
+  for (const forbidden of [
+    "../data/published/fars-state-mode-index.json",
+    "data/published/fars-state-mode-index.json",
+    "https://evil.test/data/published/fars-state-mode-index.json",
+  ]) {
+    const mutated = Array.from(expectedFetchTargets, (target) =>
+      target === indexTarget ? forbidden : target
+    );
+    if (sameRawTargetSet(mutated, expectedFetchTargets)) {
+      die(`raw fetch-target gate accepted forbidden target ${forbidden}`);
+    }
+  }
+  await assertNoAxeViolations(canonicalRoute, "canonical national route");
+  canonicalRoute.dom.window.close();
+
   const rendered = await boot();
   const { doc, window } = rendered;
   if (doc.getElementById("coverage-status").classList.contains("is-error")) {
     die("reviewed 2024 release entered the error state");
+  }
+  const legacyFetchTargets = new Set(rendered.fetchTargets);
+  const expectedLegacyFetchTargets = new Set([
+    "https://example.test/web/locales/en.json",
+    "/data/published/fars-state-mode-index.json",
+    "/data/published/fars-2024-state-mode.json",
+  ]);
+  if (
+    window.location.pathname !== "/web/us-coverage.html" ||
+    !sameRawTargetSet(legacyFetchTargets, expectedLegacyFetchTargets)
+  ) {
+    die("legacy national route did not boot with root-absolute runtime fetches");
   }
   if (renderedRows(doc).length !== 0 || !doc.getElementById("state-profile-wrap").hidden) {
     die("the state-first empty state exposed annual or profile values before selection");
@@ -326,6 +483,7 @@ async function main() {
   await settle();
   if (renderedRows(doc).length !== 6) die("California filter did not render six canonical modes");
   if (
+    window.location.pathname !== "/web/us-coverage.html" ||
     !window.location.search.includes("state=CA") ||
     !window.location.search.includes("year=2024") ||
     !window.location.search.includes("lang=en")

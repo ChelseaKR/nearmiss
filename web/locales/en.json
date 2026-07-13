@@ -110,7 +110,7 @@
   "web.app.tt_n": "Number of reports on this segment (the sample size).",
   "web.app.tt_rate": "Reports per 1000 units of exposure — risk per rider, not a raw count.",
   "web.app.tt_tier": "How much to trust this segment's exposure denominator: observed (direct count), modeled (demand model), proxy (third-party activity layer), or unknown.",
-  "web.app.us_coverage_cta": "<strong>New: verified US fatal-crash context.</strong> <a href=\"us-coverage.html\">Explore published annual state-by-mode counts, non-published cells, and source provenance →</a>",
+  "web.app.us_coverage_cta": "<strong>This Davis page is a synthetic demo.</strong> <a href=\"/fars/national/\">Explore separate, nationwide US evidence from reviewed 2020–2024 fatal-crash records →</a>",
   "web.coverage.all_modes": "All modes",
   "web.coverage.all_statuses": "All statuses",
   "web.coverage.annual_contract_label": "Annual contract",

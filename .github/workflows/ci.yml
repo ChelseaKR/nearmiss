@@ -560,6 +560,7 @@ jobs:
             'deployment.json|deployment.json'
             'web/index.html|web/index.html'
             'web/us-coverage.html|web/us-coverage.html'
+            'fars/national/index.html|fars/national/'
             'web/us-coverage.js|web/us-coverage.js'
             'web/i18n.js|web/i18n.js'
             'web/locales/en.json|web/locales/en.json'
