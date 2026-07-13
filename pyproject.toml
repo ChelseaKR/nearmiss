@@ -52,7 +52,7 @@ dev = [
   # dev-only, audited dependency surface: it lives in `dev`, so the blocking
   # `pip-audit --strict` security gate in `make verify` scans it like every
   # other dev tool. Pure Python, no native build step.
-  "hypothesis>=6.100",
+  "hypothesis>=6.156.6",
   # i18n message-catalog tooling (INTERNATIONALIZATION-STANDARD §3/§4). Babel
   # provides `pybabel extract` and the CLDR-backed `Locale.parse` used by the
   # i18n gates. Pure Python (no PyICU/native ICU build) so the "runs anywhere
