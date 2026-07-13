@@ -10,10 +10,10 @@ and `O_NOFOLLOW` support. Windows and non-POSIX/network filesystems are not supp
 
 ## Operator contract
 
-For a source ID such as `fars-2024`, a successful attempt writes:
+For a source ID such as `fars-joined-2024`, a successful attempt writes:
 
 ```text
-<root>/fars-2024/
+<root>/fars-joined-2024/
   raw/sha256/<raw-sha256>.bin
   normalized/sha256/<normalized-sha256>.bin
   normalized/current.json
@@ -99,7 +99,7 @@ reviewed operator action; automated jobs must fail closed.
 The architecture decision and trade-offs are recorded in
 [ADR 0007](adr/0007-content-addressed-fail-closed-ingestion.md).
 
-## First source integration: local FARS
+## Source integrations: local FARS
 
 `nearmiss ingest-fars` is the first source-specific consumer of this transaction. It reads a bounded
 local NHTSA FARS CSV/ZIP, validates a deterministic private outcome artifact, and uses source ID `fars`.
@@ -107,9 +107,25 @@ See [REAL-DATA.md](REAL-DATA.md#official-outcomes--national-context-not-an-intak
 operator command and source-specific limits. It does not perform network acquisition, scheduling,
 publication, mode inference, or segment comparison.
 
+`nearmiss ingest-fars-year` is the additive, exact annual accident/person path. It requires a local
+raw archive, private root, registered year, and exact append-only contract revision. The registered
+contract—not CLI policy flags—fixes the official archive size/hash, source and release identity,
+table encodings, mapping versions, row bounds, and reviewed regression policy. The command activates
+independent `fars-joined-<year>` lineages (currently 2020–2024), replays the full raw archive before
+returning success, and emits aggregate verification evidence only. It still performs no download,
+scheduling, segment/time comparison, or publication.
+
+Invoke that command from within a recognizable nearmiss source checkout or assembled public-site
+tree. The CLI binds the private-root preflight to that real invocation boundary and, for an editable
+install, to the source checkout as well. It deliberately fails closed when a wheel/pipx installation
+is invoked outside either tree: the Python installation prefix is not evidence of what an operator
+might serve. This check prevents placement under the active nearmiss tree; as documented in the
+threat model, operators must separately keep the root outside any unrelated static-server tree.
+
 `nearmiss coverage --fars-root ROOT` is a separate, read-only consumer. It fails closed unless the
-active marker matches immutable history, every content hash and artifact contract holds, and replaying
-the preserved raw export produces the exact stored normalized bytes. A matching source-registry row
-with `id = "fars"` and `kind = "official_outcomes"` is also required before coverage reports
-`verified_official_outcomes`. Verification performs no repair or permission change and never grants
-triangulation, tier promotion, or publication.
+legacy source-ID-`fars` active marker matches immutable history, every content hash and artifact
+contract holds, and replaying the preserved raw export produces the exact stored normalized bytes. A
+matching source-registry row with `id = "fars"` and `kind = "official_outcomes"` is also required
+before coverage reports `verified_official_outcomes`. It does not yet consume the independent annual
+lineages. Verification performs no repair or permission change and never grants triangulation, tier
+promotion, or publication.

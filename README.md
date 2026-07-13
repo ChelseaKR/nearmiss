@@ -263,6 +263,13 @@ nearmiss coverage --config config/davis-demo.toml  # evidence tier, freshness, c
 # this grants verified crash context only, never triangulation or a tier promotion.
 nearmiss coverage --config config/city.toml --fars-root "$HOME/.local/share/nearmiss/ingestion"
 
+# Activate one exact reviewed annual FARS accident/person archive in private storage.
+# Year and contract revision are explicit; source identity and policy come from the registry.
+# Run from inside this checkout (or an assembled nearmiss public site) so the CLI can bind and
+# reject the private root against the real operator-visible tree even when installed with pipx.
+nearmiss ingest-fars-year /private/downloads/FARS2024NationalCSV.zip \
+  --root "$HOME/.local/share/nearmiss/ingestion" --year 2024 --contract-revision 1
+
 # Public crowdsourced submissions: queue one for review, then moderate it in
 nearmiss submit submission.json --config config/davis-demo.toml      # -> PENDING (private)
 nearmiss moderate list --config config/davis-demo.toml               # review the queue + flags

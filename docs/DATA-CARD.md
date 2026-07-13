@@ -290,11 +290,13 @@ success receipt whose atomic replacement commits the active version. Historical 
 receipts record the source attempt without copying callback messages, URLs, or payload fragments.
 
 This foundation does **not** change the composition or schema of the published dataset by itself. The
-first integration, `nearmiss ingest-fars`, can now validate and preserve a private crash-level FARS
-artifact, but no FARS outcome, BikeMaps refresh, exposure layer, or other imported artifact becomes
-published until a reviewed aggregation/privacy publication path explicitly consumes it. The private
-root must remain outside every served directory and is never part of the allowlisted Pages artifact.
-See [`INGESTION.md`](INGESTION.md) for the operator contract and limits.
+legacy `nearmiss ingest-fars` command validates a private crash-level FARS artifact; the additive
+`nearmiss ingest-fars-year` command validates an exact registered annual archive and privately joins
+its accident/person tables into a mode-aware artifact. Neither makes a FARS outcome, BikeMaps
+refresh, exposure layer, or other imported artifact public until a reviewed aggregation/privacy
+publication path explicitly consumes it. The private root must remain outside every served directory
+and is never part of the allowlisted Pages artifact. See [`INGESTION.md`](INGESTION.md) for the
+operator contract and limits.
 
 The coverage command may read that private FARS root only when the operator supplies `--fars-root`.
 It verifies the active receipt/history/raw/artifact chain and deterministic normalization replay, then
@@ -595,9 +597,12 @@ ways this kind of data is misused.
   operational lineage and private retention, not the current published GeoJSON composition or privacy
   contract. A future source integration must review this card again before publishing new aggregates.
 - **FARS-artifact schema review impact (2026-07-12).** The `1.0.0` official-outcome artifact and local
-  CLI add private national fatal-crash lineage, not a new published feature or rate. Exact outcome
-  coordinates remain in the owner-only ingestion tree; stdout is aggregate-only. Publication remains
-  unchanged until mode joining, segment/time linkage, privacy review and comparative methodology land.
+  CLIs add private national fatal-crash lineage; the CLIs themselves publish no feature or rate. Exact
+  outcome coordinates remain in the owner-only ingestion tree and stdout is aggregate-only. A
+  separately reviewed projection already publishes 2024 state × involved-mode context with small-cell
+  suppression. The annual path joins accident/person mode context privately, but no segment/time
+  comparison or near-miss/outcome triangulation is published without another methodology and privacy
+  review.
 - **Errata and corrections.** Data and threshold fixes are made as recorded, re-run edits;
   corrections ship in a new versioned release rather than mutating a published one.
 - **Deprecation.** Superseded dataset versions remain identifiable by version and hash; consumers
