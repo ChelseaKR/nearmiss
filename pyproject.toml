@@ -94,7 +94,7 @@ release = [
 # dependency — figures are hand-built SVG, exactly like src/nearmiss/figures.py).
 # `make teach` installs this group on demand; a dedicated CI job runs it.
 teaching = [
-  "nbconvert>=7.16",
+  "nbconvert>=7.17.1",
   "nbclient>=0.11.0",
   "ipykernel>=6.29",
 ]
