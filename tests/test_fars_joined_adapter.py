@@ -17,6 +17,7 @@ from nearmiss.adapters import fars_joined
 from nearmiss.adapters.fars_joined import (
     collect_joined,
     read_joined_export_bytes,
+    read_pinned_joined_export_bytes,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +48,13 @@ def _accident_with_counties(counties: tuple[str, str, str] = ("113", "997", "999
         values.insert(-1, county)
         output.append(",".join(values))
     return ("\n".join(output) + "\n").encode()
+
+
+def _cp1252_accident_2020() -> bytes:
+    lines = ACCIDENT.decode().replace(",2024,", ",2020,").splitlines()
+    output = [f"{lines[0]},CITYNAME"]
+    output.extend(f"{line},LA CAÑADA" for line in lines[1:])
+    return ("\n".join(output) + "\n").encode("cp1252")
 
 
 def _archive(
@@ -175,7 +183,7 @@ def test_source_coded_unknown_and_died_prior_are_involved_but_not_fatal() -> Non
         ([ROWS[0].replace("6,100001", "7,100001"), *ROWS[1:]], "state does not match"),
         ([ROWS[0].replace(",4,4", ",3,4"), *ROWS[1:]], "fatal count does not match"),
         ([ROWS[0].replace(",1,1,1,", ",1,0,1,"), *ROWS[1:]], "invalid FARS person PER_NO"),
-        ([ROWS[0].replace(",1,4,4", ",77,4,4"), *ROWS[1:]], "invalid FARS person PER_TYP"),
+        ([ROWS[0].replace(",1,4,4", ",77,4,4"), *ROWS[1:]], "FARS person PER_TYP"),
         ([ROWS[0].replace(",1,1,1,", ",0,1,1,"), *ROWS[1:]], "positive VEH_NO"),
         ([ROWS[1].replace(",0,1,5,", ",1,1,5,"), ROWS[0], *ROWS[2:]], "VEH_NO zero"),
     ],
@@ -256,18 +264,45 @@ def test_batch_rows_are_immutable() -> None:
         batch.person_rows[0]["PER_TYP"] = "5"  # type: ignore[index]
 
 
-def test_person_row_count_is_bounded(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("nearmiss.adapters.fars_joined._MAX_PERSON_ROWS", 1)
+def test_person_row_count_is_bounded() -> None:
     with pytest.raises(ValueError, match="row-count safety limit"):
-        read_joined_export_bytes(_archive())
+        fars_joined._person_rows(io.StringIO(_person().decode()), row_cap=1)
 
 
 @pytest.mark.parametrize("person_type", ["11", "12", "13"])
-def test_documented_other_road_user_codes_are_supported(person_type: str) -> None:
+def test_early_regime_personal_conveyance_codes_are_supported(person_type: str) -> None:
     rows = ROWS.copy()
     rows[1] = f"6,100001,0,1,{person_type},2,"
-    summaries = collect_joined(read_joined_export_bytes(_archive(_person(rows))))[1]
+    accident = ACCIDENT.replace(b",2024,", b",2021,")
+    summaries = collect_joined(
+        read_joined_export_bytes(
+            _archive(_person(rows), accident=accident),
+            expected_year=2021,
+        )
+    )[1]
     assert summaries[0].involved_modes == ("motor_vehicle_occupant", "other_road_user")
+
+
+@pytest.mark.parametrize("person_type", ["8", "19"])
+def test_early_regime_rejects_late_person_types(person_type: str) -> None:
+    rows = ROWS.copy()
+    rows[1] = f"6,100001,0,1,{person_type},2,"
+    accident = ACCIDENT.replace(b",2024,", b",2021,")
+    with pytest.raises(ValueError, match="semantic regime"):
+        collect_joined(
+            read_joined_export_bytes(
+                _archive(_person(rows), accident=accident),
+                expected_year=2021,
+            )
+        )
+
+
+@pytest.mark.parametrize("person_type", ["11", "12", "13"])
+def test_late_regime_rejects_early_personal_conveyance_codes(person_type: str) -> None:
+    rows = ROWS.copy()
+    rows[1] = f"6,100001,0,1,{person_type},2,"
+    with pytest.raises(ValueError, match="semantic regime"):
+        collect_joined(read_joined_export_bytes(_archive(_person(rows))))
 
 
 @pytest.mark.parametrize("body", ["", "98", "99"])
@@ -278,10 +313,35 @@ def test_unknown_occupant_body_is_not_misclassified(body: str) -> None:
     assert summaries[0].fatality_modes == ("unknown",)
 
 
-def test_person_mapping_rejects_non_2024_dataset() -> None:
+def test_reader_rejects_dataset_year_mismatched_to_contract() -> None:
     archive = _archive(accident=ACCIDENT.replace(b",2024,", b",2023,"))
-    with pytest.raises(ValueError, match="supports dataset year 2024 only"):
-        collect_joined(read_joined_export_bytes(archive))
+    with pytest.raises(ValueError, match="fixed-year contract"):
+        read_joined_export_bytes(archive)
+
+
+def test_pinned_reader_rejects_unreviewed_same_year_package_before_parsing() -> None:
+    with pytest.raises(ValueError, match="raw archive identity"):
+        read_pinned_joined_export_bytes(_archive(), expected_year=2024)
+
+
+def test_person_mapping_supports_reviewed_2023_contract() -> None:
+    archive = _archive(accident=ACCIDENT.replace(b",2024,", b",2023,"))
+    outcomes, summaries, _crash, person = collect_joined(
+        read_joined_export_bytes(archive, expected_year=2023)
+    )
+    assert person.dataset_year == 2023
+    assert outcomes[0]["source_record_id"] == "2023:100001"
+    assert summaries[0].source_record_id == "2023:100001"
+
+
+def test_2020_contract_uses_strict_cp1252_accident_decoding() -> None:
+    archive = _archive(accident=_cp1252_accident_2020())
+    outcomes, summaries, _crash, person = collect_joined(
+        read_joined_export_bytes(archive, expected_year=2020)
+    )
+    assert person.dataset_year == 2020
+    assert outcomes[0]["source_record_id"] == "2020:100001"
+    assert summaries[0].source_record_id == "2020:100001"
 
 
 def test_release_status_is_validated_by_the_crash_adapter() -> None:
@@ -290,7 +350,6 @@ def test_release_status_is_validated_by_the_crash_adapter() -> None:
         collect_joined(batch, release_status="  ")
 
 
-def test_person_row_limit_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(fars_joined, "_MAX_PERSON_ROWS", 1)
+def test_person_row_limit_fails_closed() -> None:
     with pytest.raises(ValueError, match="row-count safety limit"):
-        read_joined_export_bytes(_archive())
+        fars_joined._person_rows(io.StringIO(_person().decode()), row_cap=1)

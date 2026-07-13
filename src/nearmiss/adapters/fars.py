@@ -39,6 +39,7 @@ _MAX_COMPRESSION_RATIO = 200
 _INTEGER_RE = re.compile(r"^[+]?[0-9]+$")
 _CANONICAL_CASE_ID_RE = re.compile(r"^[1-9][0-9]*$")
 _DISTRIBUTION_PATH_PREFIX = "/nhtsa/downloads/FARS/"
+_SUPPORTED_ENCODINGS = frozenset({"utf-8-sig", "cp1252"})
 
 
 def _distribution_release_year(path: str) -> int:
@@ -110,7 +111,11 @@ class FarsRawBatch:
         object.__setattr__(self, "rows", frozen_rows)
 
 
-def _normalized_rows(stream: io.TextIOBase) -> tuple[dict[str, str], ...]:
+def _normalized_rows(
+    stream: io.TextIOBase,
+    *,
+    row_cap: int | None = None,
+) -> tuple[dict[str, str], ...]:
     reader = csv.DictReader(stream)
     if reader.fieldnames is None:
         raise ValueError("FARS CSV has no header")
@@ -122,6 +127,8 @@ def _normalized_rows(stream: io.TextIOBase) -> tuple[dict[str, str], ...]:
         raise ValueError(f"FARS CSV missing required column(s): {', '.join(missing)}")
     rows: list[dict[str, str]] = []
     for source_row in reader:
+        if row_cap is not None and len(rows) >= row_cap:
+            raise ValueError("FARS accident.csv exceeds its row-count safety limit")
         rows.append(
             {
                 normalized[index]: (source_row.get(original) or "").strip()
@@ -168,14 +175,20 @@ def _read_zip_member(payload: bytes) -> bytes:
             return _read_limited(stream, limit=_MAX_CSV_BYTES, label="accident.csv")
 
 
-def _read_bytes(payload: bytes, *, zipped: bool) -> tuple[dict[str, str], ...]:
+def _read_bytes(
+    payload: bytes,
+    *,
+    zipped: bool,
+    encoding: str,
+    row_cap: int | None,
+) -> tuple[dict[str, str], ...]:
     if zipped:
         csv_bytes = _read_zip_member(payload)
     else:
         if len(payload) > _MAX_CSV_BYTES:
             raise ValueError(f"FARS CSV exceeds the {_MAX_CSV_BYTES}-byte safety limit")
         csv_bytes = payload
-    return _normalized_rows(io.StringIO(csv_bytes.decode("utf-8-sig")))
+    return _normalized_rows(io.StringIO(csv_bytes.decode(encoding)), row_cap=row_cap)
 
 
 def load_export_bytes(path: str | Path, *, limit: int | None = None) -> bytes:
@@ -190,19 +203,40 @@ def load_export_bytes(path: str | Path, *, limit: int | None = None) -> bytes:
         return _read_limited(stream, limit=effective_limit, label="export")
 
 
-def read_export_bytes(payload: bytes) -> FarsRawBatch:
+def read_export_bytes(
+    payload: bytes,
+    *,
+    encoding: str = "utf-8-sig",
+    row_cap: int | None = None,
+) -> FarsRawBatch:
     """Decode bounded FARS CSV or ZIP bytes into an immutable, traceable batch."""
     if not isinstance(payload, bytes):
         raise TypeError("FARS export payload must be bytes")
+    if encoding not in _SUPPORTED_ENCODINGS:
+        raise ValueError("FARS export encoding is not an explicitly supported contract encoding")
+    if row_cap is not None and (
+        isinstance(row_cap, bool) or not isinstance(row_cap, int) or row_cap < 1
+    ):
+        raise ValueError("FARS accident row cap must be a positive integer")
     if len(payload) > _MAX_INPUT_BYTES:
         raise ValueError(f"FARS export exceeds the {_MAX_INPUT_BYTES}-byte safety limit")
-    rows = _read_bytes(payload, zipped=zipfile.is_zipfile(io.BytesIO(payload)))
+    rows = _read_bytes(
+        payload,
+        zipped=zipfile.is_zipfile(io.BytesIO(payload)),
+        encoding=encoding,
+        row_cap=row_cap,
+    )
     return FarsRawBatch(rows=rows, input_sha256=hashlib.sha256(payload).hexdigest())
 
 
-def read_export(path: str | Path) -> FarsRawBatch:
+def read_export(
+    path: str | Path,
+    *,
+    encoding: str = "utf-8-sig",
+    row_cap: int | None = None,
+) -> FarsRawBatch:
     """Read an extracted accident CSV or an NHTSA CSV ZIP into an immutable batch."""
-    return read_export_bytes(load_export_bytes(path))
+    return read_export_bytes(load_export_bytes(path), encoding=encoding, row_cap=row_cap)
 
 
 def _integer(row: Mapping[str, str], key: str) -> int:

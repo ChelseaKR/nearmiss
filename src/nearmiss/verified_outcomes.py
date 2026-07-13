@@ -797,10 +797,14 @@ def _validate_joined_regression(
 def _replay_joined(raw: bytes, normalized: bytes, artifact: Mapping[str, object]) -> None:
     policy, crash, join_policy, _person = _joined_sections(artifact)
     try:
-        batch = read_joined_export_bytes(raw)
+        batch = read_joined_export_bytes(
+            raw,
+            expected_year=cast(int, policy["expected_year"]),
+        )
         outcomes, summaries, replayed_crash, replayed_person = collect_joined(
             batch,
             release_status=cast(str, crash["release_status"]),
+            legacy_mode_semantics=artifact["schema_version"] in {"1.0.0", "1.1.0"},
         )
         rebuilt = build_joined_outcome_artifact(
             outcomes,

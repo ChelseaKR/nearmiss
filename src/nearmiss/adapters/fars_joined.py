@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, cast
 
+from ..fars_year_contracts import FarsYearContract, fars_year_contract
 from .fars import FarsAdapter, FarsRawBatch, read_export_bytes
 from .outcomes import OutcomeProvenance
 
@@ -41,11 +42,6 @@ _MAX_MEMBER_BYTES = 128 * 1024 * 1024
 _MAX_EXPANDED_BYTES = 256 * 1024 * 1024
 _MAX_MEMBERS = 1_000
 _MAX_COMPRESSION_RATIO = 200
-# The final 2024 national file contains 88,326 rows. This 13% headroom is
-# intentionally narrow: the mapping is 2024-only, and a materially larger
-# replacement must be reviewed instead of expanding into unbounded Python
-# row objects inside an ingestion worker.
-_MAX_PERSON_ROWS = 100_000
 _DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 _CRC32_RE = re.compile(r"^[0-9a-f]{8}$")
 _DIGITS_RE = re.compile(r"^[0-9]+$")
@@ -119,6 +115,7 @@ class FarsJoinedRawBatch:
     person_sha256: str
     accident_member: FarsMemberDescriptor
     person_member: FarsMemberDescriptor
+    year_contract: FarsYearContract
 
     def __post_init__(self) -> None:
         if any(
@@ -130,6 +127,8 @@ class FarsJoinedRawBatch:
             self.person_member, FarsMemberDescriptor
         ):
             raise TypeError("joined FARS members must have verified descriptors")
+        if not isinstance(self.year_contract, FarsYearContract):
+            raise TypeError("joined FARS batch requires an immutable year contract")
         if self.accident_member.name.casefold() != "accident.csv":
             raise ValueError("joined FARS accident descriptor names the wrong table")
         if self.person_member.name.casefold() != "person.csv":
@@ -168,6 +167,7 @@ class PersonJoinProvenance:
     records_excluded_with_rejected_crash: int
     cases_excluded_with_rejected_crash: int
     rejection_reasons: Mapping[str, int]
+    semantic_regime_id: str = "fars_per_typ_2022_2024_v1"
 
     def __post_init__(self) -> None:
         reasons = MappingProxyType(dict(sorted(self.rejection_reasons.items())))
@@ -191,8 +191,9 @@ class PersonJoinProvenance:
             or self.person_sha256 != self.person_member.sha256
         ):
             raise ValueError("joined FARS provenance member digests are inconsistent")
-        if self.dataset_year != 2024:
-            raise ValueError("joined FARS person mapping supports dataset year 2024 only")
+        contract = fars_year_contract(self.dataset_year)
+        if self.semantic_regime_id != contract.semantic_regime_id:
+            raise ValueError("joined FARS person semantic regime does not match dataset year")
         counts = (
             self.records_read,
             self.records_accepted,
@@ -248,7 +249,8 @@ class FarsJurisdictionSummary:
     county_code_system: str = FARS_COUNTY_CODE_SYSTEM
 
     def __post_init__(self) -> None:
-        if re.fullmatch(r"^2024:[1-9][0-9]*$", self.source_record_id, re.ASCII) is None:
+        identity = re.fullmatch(r"^(202[0-4]):[1-9][0-9]*$", self.source_record_id, re.ASCII)
+        if identity is None:
             raise ValueError("FARS jurisdiction source identity is invalid")
         if re.fullmatch(r"^[1-9][0-9]?$", self.state_code, re.ASCII) is None:
             raise ValueError("FARS jurisdiction state code is invalid")
@@ -262,7 +264,8 @@ class FarsJurisdictionSummary:
         }.get(self.county_code, "reported")
         if self.county_status != expected_status:
             raise ValueError("FARS jurisdiction county status is invalid")
-        if self.county_code_system != FARS_COUNTY_CODE_SYSTEM:
+        expected_code_system = f"nhtsa_fars_gsa_{identity.group(1)}"
+        if self.county_code_system != expected_code_system:
             raise ValueError("FARS jurisdiction county code system is invalid")
 
     def as_dict(self) -> dict[str, str]:
@@ -393,7 +396,11 @@ class _HashingReader(io.RawIOBase):
         return count
 
 
-def _person_rows(stream: io.TextIOBase) -> tuple[Mapping[str, str], ...]:
+def _person_rows(
+    stream: io.TextIOBase,
+    *,
+    row_cap: int,
+) -> tuple[Mapping[str, str], ...]:
     reader = csv.DictReader(stream)
     if reader.fieldnames is None:
         raise ValueError("FARS person.csv has no header")
@@ -405,7 +412,7 @@ def _person_rows(stream: io.TextIOBase) -> tuple[Mapping[str, str], ...]:
         raise ValueError(f"FARS person.csv missing required columns: {', '.join(missing)}")
     rows: list[Mapping[str, str]] = []
     for source in reader:
-        if len(rows) >= _MAX_PERSON_ROWS:
+        if len(rows) >= row_cap:
             raise ValueError("FARS person.csv exceeds its row-count safety limit")
         if None in source:
             raise ValueError("FARS person.csv row has more values than its header")
@@ -422,15 +429,18 @@ def _person_rows(stream: io.TextIOBase) -> tuple[Mapping[str, str], ...]:
 
 
 def _read_person_member(
-    archive: zipfile.ZipFile, member: zipfile.ZipInfo
+    archive: zipfile.ZipFile,
+    member: zipfile.ZipInfo,
+    *,
+    contract: FarsYearContract,
 ) -> tuple[tuple[Mapping[str, str], ...], FarsMemberDescriptor]:
     with archive.open(member) as compressed:
         hashing = _HashingReader(compressed)
         with (
             io.BufferedReader(hashing) as buffered,
-            io.TextIOWrapper(buffered, encoding="utf-8-sig", newline="") as text,
+            io.TextIOWrapper(buffered, encoding=contract.person_encoding, newline="") as text,
         ):
-            rows = _person_rows(text)
+            rows = _person_rows(text, row_cap=contract.person_row_cap)
         descriptor = _descriptor(
             member,
             size=hashing.total,
@@ -440,24 +450,38 @@ def _read_person_member(
         return rows, descriptor
 
 
-def read_joined_export_bytes(payload: bytes) -> FarsJoinedRawBatch:
-    """Read exactly accident.csv and person.csv from one bounded FARS ZIP."""
+def read_joined_export_bytes(payload: bytes, *, expected_year: int = 2024) -> FarsJoinedRawBatch:
+    """Read one bounded ZIP under the legacy/replay-compatible year contract."""
     if not isinstance(payload, bytes):
         raise TypeError("joined FARS export must be bytes")
     if len(payload) > _MAX_INPUT_BYTES:
         raise ValueError("joined FARS export exceeds its safety limit")
+    contract = fars_year_contract(expected_year)
     if not zipfile.is_zipfile(io.BytesIO(payload)):
         raise ValueError("joined FARS export must be a ZIP archive")
     with zipfile.ZipFile(io.BytesIO(payload)) as archive:
         if len(archive.infolist()) > _MAX_MEMBERS:
             raise ValueError("joined FARS ZIP contains too many members")
-        accident_member = _member(archive, "accident.csv")
-        person_member = _member(archive, "person.csv")
+        accident_member = _member(archive, contract.accident_member)
+        person_member = _member(archive, contract.person_member)
         if accident_member.file_size + person_member.file_size > _MAX_EXPANDED_BYTES:
             raise ValueError("joined FARS selected members exceed the expansion safety limit")
         accident_descriptor = _hash_member(archive, accident_member)
-        person_rows, person_descriptor = _read_person_member(archive, person_member)
-    crash_batch = read_export_bytes(payload)
+        person_rows, person_descriptor = _read_person_member(
+            archive,
+            person_member,
+            contract=contract,
+        )
+    crash_batch = read_export_bytes(
+        payload,
+        encoding=contract.accident_encoding,
+        row_cap=contract.accident_row_cap,
+    )
+    if any(
+        _DIGITS_RE.fullmatch(row.get("YEAR", "")) is None or int(row["YEAR"]) != contract.year
+        for row in crash_batch.rows
+    ):
+        raise ValueError("joined FARS accident year does not match its fixed-year contract")
     return FarsJoinedRawBatch(
         accident_rows=crash_batch.rows,
         person_rows=person_rows,
@@ -466,7 +490,18 @@ def read_joined_export_bytes(payload: bytes) -> FarsJoinedRawBatch:
         person_sha256=person_descriptor.sha256,
         accident_member=accident_descriptor,
         person_member=person_descriptor,
+        year_contract=contract,
     )
+
+
+def read_pinned_joined_export_bytes(payload: bytes, *, expected_year: int) -> FarsJoinedRawBatch:
+    """Read a fixed-year ZIP only after exact reviewed package identity validation."""
+    if not isinstance(payload, bytes):
+        raise TypeError("joined FARS export must be bytes")
+    if len(payload) > _MAX_INPUT_BYTES:
+        raise ValueError("joined FARS export exceeds its safety limit")
+    fars_year_contract(expected_year).validate_raw_package(payload)
+    return read_joined_export_bytes(payload, expected_year=expected_year)
 
 
 def _integer(row: Mapping[str, str], key: str, *, positive: bool = False) -> int:
@@ -479,18 +514,29 @@ def _integer(row: Mapping[str, str], key: str, *, positive: bool = False) -> int
     return result
 
 
-def _mode(row: Mapping[str, str]) -> str:
+def _person_type_domain(semantic_regime_id: str) -> tuple[set[int], set[int]]:
+    if semantic_regime_id == "fars_union_legacy_v1":
+        return set(range(1, 14)) | {19}, {4, 8, 10, 11, 12, 13}
+    if semantic_regime_id == "fars_per_typ_2020_2021_v1":
+        return {1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13}, {4, 10, 11, 12, 13}
+    if semantic_regime_id == "fars_per_typ_2022_2024_v1":
+        return set(range(1, 11)) | {19}, {4, 8, 10}
+    raise ValueError("unsupported FARS person semantic regime")
+
+
+def _mode(row: Mapping[str, str], *, semantic_regime_id: str) -> str:
     person_type = _integer(row, "PER_TYP")
+    allowed_types, other_types = _person_type_domain(semantic_regime_id)
+    if person_type not in allowed_types:
+        raise ValueError("FARS person PER_TYP is invalid for its semantic regime")
     if person_type == 5:
         return "pedestrian"
     if person_type in {6, 7}:
         return "pedalcyclist"
-    if person_type in {4, 8, 10, 11, 12, 13}:
+    if person_type in other_types:
         return "other_road_user"
     if person_type == 19:
         return "unknown"
-    if person_type not in {1, 2, 3, 9}:
-        raise ValueError("invalid FARS person PER_TYP")
     body = row.get("BODY_TYP", "")
     if not body or body in {"98", "99"}:
         return "unknown"
@@ -531,18 +577,21 @@ def _accident_index(
                     "998": "not_reported",
                     "999": "unknown",
                 }.get(county_code, "reported"),
+                county_code_system=batch.year_contract.county_code_system,
             )
         accident[case] = (state, _integer(row, "FATALS"), year, jurisdiction)
     if len(years) != 1:
         raise ValueError("joined FARS export must contain exactly one dataset year")
     year = years.pop()
-    if year != 2024:
-        raise ValueError("joined FARS person mapping supports dataset year 2024 only")
+    if year != batch.year_contract.year:
+        raise ValueError("joined FARS dataset year does not match its fixed-year contract")
     return accident, year
 
 
 def _person_index(  # noqa: C901 - whole-batch relational checks remain auditable together
     batch: FarsJoinedRawBatch,
+    *,
+    legacy_mode_semantics: bool = False,
 ) -> tuple[
     dict[str, dict[str, Any]],
     dict[str, FarsJurisdictionSummary | None],
@@ -567,7 +616,12 @@ def _person_index(  # noqa: C901 - whole-batch relational checks remain auditabl
         injury = _integer(row, "INJ_SEV")
         if injury not in allowed_injury:
             raise ValueError("invalid FARS person INJ_SEV")
-        mode = _mode(row)
+        semantic_regime_id = (
+            "fars_union_legacy_v1"
+            if legacy_mode_semantics
+            else batch.year_contract.semantic_regime_id
+        )
+        mode = _mode(row, semantic_regime_id=semantic_regime_id)
         person_type = _integer(row, "PER_TYP")
         occupant_types = {1, 2, 3, 9}
         if person_type in occupant_types and vehicle < 1:
@@ -596,6 +650,7 @@ def collect_joined(
     batch: FarsJoinedRawBatch,
     *,
     release_status: str = "unspecified",
+    legacy_mode_semantics: bool = False,
 ) -> tuple[
     list[dict[str, Any]],
     list[FarsModeSummary],
@@ -603,7 +658,10 @@ def collect_joined(
     PersonJoinProvenance,
 ]:
     """Map crash outcomes and attach deterministic crash-level person mode summaries."""
-    joined, jurisdictions, year = _person_index(batch)
+    joined, jurisdictions, year = _person_index(
+        batch,
+        legacy_mode_semantics=legacy_mode_semantics,
+    )
     outcomes, crash_provenance = FarsAdapter().parse(
         FarsRawBatch(rows=batch.accident_rows, input_sha256=batch.input_sha256),
         release_status=release_status,
@@ -644,5 +702,6 @@ def collect_joined(
         records_excluded_with_rejected_crash=excluded_person_records,
         cases_excluded_with_rejected_crash=len(excluded_cases),
         rejection_reasons=reasons,
+        semantic_regime_id=batch.year_contract.semantic_regime_id,
     )
     return outcomes, summaries, crash_provenance, provenance
