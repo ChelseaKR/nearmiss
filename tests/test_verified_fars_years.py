@@ -18,6 +18,7 @@ from typing import Any, cast
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
+import nearmiss.fars_national_context as national_context
 import nearmiss.fars_year_contracts as year_contracts
 import nearmiss.joined_outcome_artifacts_v2 as artifacts_v2
 import nearmiss.verified_fars_years as verifier
@@ -225,6 +226,105 @@ def test_first_activation_without_receipts_then_public_full_replay(tmp_path: Pat
     assert all("proof" not in key for key in evidence.as_dict())
     with pytest.raises(dataclasses.FrozenInstanceError):
         evidence.attempt_id = "forged"  # type: ignore[misc]
+
+
+def test_annual_national_projector_opens_only_exact_v2_snapshot(
+    tmp_path: Path,
+) -> None:
+    _root, _result, normalized, captured = _ingest(tmp_path, year=2020)
+    joined, evidence, contract = national_context._verified_annual_joined_artifact(
+        captured[0],
+        year=2020,
+        contract_revision=1,
+    )
+    assert joined["schema_version"] == "2.0.0"
+    assert evidence is captured[0].evidence
+    assert contract is fars_year_contract(2020)
+    assert hashlib.sha256(normalized).hexdigest() == evidence.normalized_sha256
+
+    with pytest.raises(ValueError, match="selected revision"):
+        national_context._verified_annual_joined_artifact(
+            captured[0],
+            year=2021,
+            contract_revision=1,
+        )
+    with pytest.raises(TypeError, match="proof-bound annual snapshot"):
+        national_context._verified_annual_joined_artifact(
+            object(),
+            year=2020,
+            contract_revision=1,
+        )
+
+
+def test_annual_national_projector_aggregates_in_memory_without_rows(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _root, _result, _normalized, captured = _ingest(tmp_path, year=2020)
+    validated: list[dict[str, object]] = []
+    monkeypatch.setattr(national_context, "_MIN_NATIONAL_CASES", 1)
+    monkeypatch.setattr(national_context, "_NATIONAL_REQUIRED_STATE_CODES", frozenset({"6"}))
+    monkeypatch.setattr(
+        national_context,
+        "validate_fars_national_context_artifact",
+        lambda artifact: validated.append(artifact),
+    )
+
+    artifact = national_context.build_verified_fars_year_national_context(
+        captured[0],
+        year=2020,
+        contract_revision=1,
+        requested_k=1,
+    )
+    assert validated == [artifact]
+    assert artifact["visibility"] == "private"
+    source = cast(dict[str, Any], artifact["source_lineage"])
+    assert source["source_id"] == "fars-joined-2020"
+    assert source["dataset_year"] == 2020
+    assert source["contract_revision"] == 1
+    method = cast(dict[str, Any], artifact["method"])
+    assert method["coverage"] == "official_2020_national_50_states_and_dc"
+    assert method["effective_k"] == 5
+    accounting = cast(dict[str, int], artifact["accounting"])
+    assert accounting["case_count"] == 2
+    assert accounting["states_with_records"] == 1
+    assert accounting["positive_candidate_cell_count"] >= 2
+    assert accounting["eligible_cell_count"] == 0
+    assert artifact["cells"] == []
+    payload = json.dumps(artifact, sort_keys=True).encode()
+    assert all(
+        token not in payload
+        for token in (
+            b'"records"',
+            b'"source_record_id"',
+            b'"occurred_on"',
+            b'"location"',
+            b'"jurisdiction"',
+            b'"county_code"',
+        )
+    )
+
+
+@pytest.mark.parametrize("requested_k", [True, 1.0, "10"])
+def test_annual_national_projector_rejects_non_integer_k(requested_k: object) -> None:
+    with pytest.raises(TypeError, match="requested_k must be an integer"):
+        national_context.build_verified_fars_year_national_context(
+            object(),
+            year=2020,
+            contract_revision=1,
+            requested_k=cast(Any, requested_k),
+        )
+
+
+@pytest.mark.parametrize("requested_k", [0, 45_001])
+def test_annual_national_projector_bounds_k(requested_k: int) -> None:
+    with pytest.raises(ValueError, match="between 1 and 45000"):
+        national_context.build_verified_fars_year_national_context(
+            object(),
+            year=2020,
+            contract_revision=1,
+            requested_k=requested_k,
+        )
 
 
 def test_repeated_activation_replays_history_and_retains_exact_snapshot(tmp_path: Path) -> None:

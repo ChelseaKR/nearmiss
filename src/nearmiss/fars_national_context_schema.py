@@ -18,17 +18,28 @@ from .fars_national_context import (
     FARS_NATIONAL_CONTEXT_MINIMUM_K,
     FARS_NATIONAL_CONTEXT_SCHEMA_VERSION,
     FARS_STATE_CODEBOOK_VERSION,
+    fars_national_context_caveat,
     fars_national_context_contract_descriptor,
     fars_state_codebook_sha256,
+    fars_state_codebook_version,
+)
+from .fars_year_contracts import (
+    FARS_ACCIDENT_ROW_CAP,
+    FARS_PERSON_ROW_CAP,
+    FARS_YEAR_CONTRACT_HISTORY,
+    fars_year_contract_sha256,
 )
 from .joined_outcome_artifacts import SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS
 
 _CAPS = cast(dict[str, object], fars_national_context_contract_descriptor()["caps"])
-_MAX_CASES = cast(int, _CAPS["max_cases"])
-_MAX_PERSON_RECORDS = cast(int, _CAPS["max_person_records"])
+_MAX_CASES = FARS_ACCIDENT_ROW_CAP
+_MAX_PERSON_RECORDS = FARS_PERSON_ROW_CAP
 _MAX_CELLS = cast(int, _CAPS["max_cells"])
-_MAX_CONTRIBUTIONS = cast(int, _CAPS["max_contributions"])
+_MAX_CONTRIBUTIONS = _MAX_CASES * len(MODE_ORDER)
 _SHA256 = {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+_ANNUAL_CONTRACTS = tuple(
+    contract for history in FARS_YEAR_CONTRACT_HISTORY.values() for contract in history
+)
 
 
 def _closed(properties: Mapping[str, object]) -> dict[str, object]:
@@ -42,6 +53,84 @@ def _closed(properties: Mapping[str, object]) -> dict[str, object]:
 
 def _count(maximum: int, *, minimum: int = 0) -> dict[str, object]:
     return {"type": "integer", "minimum": minimum, "maximum": maximum}
+
+
+_SOURCE_LINEAGE_PROPERTIES: dict[str, object] = {
+    "source_id": {"type": "string"},
+    "dataset_year": {"type": "integer"},
+    "contract_revision": {"type": "integer", "minimum": 1},
+    "source_revision_id": {"type": "string"},
+    "contract_sha256": _SHA256,
+    "release_status": {"type": "string", "enum": ["preliminary", "final"]},
+    "attempt_id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+    },
+    "raw_sha256": _SHA256,
+    "normalized_sha256": _SHA256,
+    "accident_sha256": _SHA256,
+    "person_sha256": _SHA256,
+    "joined_schema_version": {
+        "type": "string",
+        "enum": [*SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS, "2.0.0"],
+    },
+    "crash_mapping_version": {"type": "string"},
+    "person_mapping_version": {"type": "string"},
+    "crash_records_read": _count(_MAX_CASES, minimum=1),
+    "crash_records_accepted": _count(_MAX_CASES, minimum=1),
+    "crash_records_rejected": _count(_MAX_CASES),
+    "person_records_read": _count(_MAX_PERSON_RECORDS, minimum=1),
+    "person_records_accepted": _count(_MAX_PERSON_RECORDS, minimum=1),
+    "person_records_excluded": _count(_MAX_PERSON_RECORDS),
+    "cases_joined": _count(_MAX_CASES, minimum=1),
+    "cases_excluded": _count(_MAX_CASES),
+}
+_SOURCE_COMMON_REQUIRED = [
+    key
+    for key in _SOURCE_LINEAGE_PROPERTIES
+    if key not in {"contract_revision", "source_revision_id", "contract_sha256"}
+]
+_LEGACY_SOURCE_BRANCH = {
+    "properties": {
+        "source_id": {"const": "fars-joined"},
+        "dataset_year": {"const": 2024},
+        "joined_schema_version": {"enum": list(SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS)},
+        "crash_mapping_version": {"const": FARS_MAPPING_VERSION},
+        "person_mapping_version": {"const": PERSON_MODE_MAPPING_VERSION},
+    },
+    "not": {
+        "anyOf": [
+            {"required": ["contract_revision"]},
+            {"required": ["source_revision_id"]},
+            {"required": ["contract_sha256"]},
+        ]
+    },
+}
+_ANNUAL_SOURCE_BRANCHES = [
+    {
+        "required": ["contract_revision", "source_revision_id", "contract_sha256"],
+        "properties": {
+            "source_id": {"const": contract.source_id},
+            "dataset_year": {"const": contract.year},
+            "contract_revision": {"const": contract.revision},
+            "source_revision_id": {"const": contract.source_revision_id},
+            "contract_sha256": {"const": fars_year_contract_sha256(contract)},
+            "release_status": {"const": contract.release_stage},
+            "raw_sha256": {"const": contract.raw_sha256},
+            "joined_schema_version": {"const": "2.0.0"},
+            "crash_mapping_version": {"const": contract.crash_mapping_version},
+            "person_mapping_version": {"const": contract.person_mapping_version},
+        },
+    }
+    for contract in _ANNUAL_CONTRACTS
+]
+_SOURCE_LINEAGE_SCHEMA: dict[str, object] = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": _SOURCE_COMMON_REQUIRED,
+    "properties": _SOURCE_LINEAGE_PROPERTIES,
+    "oneOf": [_LEGACY_SOURCE_BRANCH, *_ANNUAL_SOURCE_BRANCHES],
+}
 
 
 FARS_NATIONAL_CONTEXT_ARTIFACT_SCHEMA: dict[str, object] = {
@@ -64,36 +153,14 @@ FARS_NATIONAL_CONTEXT_ARTIFACT_SCHEMA: dict[str, object] = {
         "schema_version": {"const": FARS_NATIONAL_CONTEXT_SCHEMA_VERSION},
         "artifact_type": {"const": FARS_NATIONAL_CONTEXT_ARTIFACT_TYPE},
         "visibility": {"const": "private"},
-        "caveat": {"const": FARS_NATIONAL_CONTEXT_CAVEAT},
-        "source_lineage": _closed(
-            {
-                "source_id": {"const": "fars-joined"},
-                "dataset_year": {"const": 2024},
-                "release_status": {"type": "string", "enum": ["preliminary", "final"]},
-                "attempt_id": {
-                    "type": "string",
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-                },
-                "raw_sha256": _SHA256,
-                "normalized_sha256": _SHA256,
-                "accident_sha256": _SHA256,
-                "person_sha256": _SHA256,
-                "joined_schema_version": {
-                    "type": "string",
-                    "enum": list(SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS),
-                },
-                "crash_mapping_version": {"const": FARS_MAPPING_VERSION},
-                "person_mapping_version": {"const": PERSON_MODE_MAPPING_VERSION},
-                "crash_records_read": _count(_MAX_CASES, minimum=1),
-                "crash_records_accepted": _count(_MAX_CASES, minimum=1),
-                "crash_records_rejected": _count(_MAX_CASES),
-                "person_records_read": _count(_MAX_PERSON_RECORDS, minimum=1),
-                "person_records_accepted": _count(_MAX_PERSON_RECORDS, minimum=1),
-                "person_records_excluded": _count(_MAX_PERSON_RECORDS),
-                "cases_joined": _count(_MAX_CASES, minimum=1),
-                "cases_excluded": _count(_MAX_CASES),
-            }
-        ),
+        "caveat": {
+            "type": "string",
+            "enum": sorted(
+                {FARS_NATIONAL_CONTEXT_CAVEAT}
+                | {fars_national_context_caveat(contract.year) for contract in _ANNUAL_CONTRACTS}
+            ),
+        },
+        "source_lineage": _SOURCE_LINEAGE_SCHEMA,
         "method": _closed(
             {
                 "algorithm_version": {"const": FARS_NATIONAL_CONTEXT_ALGORITHM_VERSION},
@@ -102,7 +169,10 @@ FARS_NATIONAL_CONTEXT_ARTIFACT_SCHEMA: dict[str, object] = {
                     "type": "string",
                     "enum": [
                         "state_codes_present_in_verified_snapshot",
-                        "official_2024_national_50_states_and_dc",
+                        *[
+                            f"official_{contract.year}_national_50_states_and_dc"
+                            for contract in _ANNUAL_CONTRACTS
+                        ],
                     ],
                 },
                 "coverage_state_codes": {
@@ -115,8 +185,24 @@ FARS_NATIONAL_CONTEXT_ARTIFACT_SCHEMA: dict[str, object] = {
                 "contribution_unit": {"const": "distinct_crash_once_per_involved_mode"},
                 "minimum_k": {"const": FARS_NATIONAL_CONTEXT_MINIMUM_K},
                 "effective_k": _count(_MAX_CASES, minimum=FARS_NATIONAL_CONTEXT_MINIMUM_K),
-                "state_codebook_version": {"const": FARS_STATE_CODEBOOK_VERSION},
-                "state_codebook_sha256": {"const": fars_state_codebook_sha256()},
+                "state_codebook_version": {
+                    "enum": sorted(
+                        {FARS_STATE_CODEBOOK_VERSION}
+                        | {
+                            fars_state_codebook_version(contract.year)
+                            for contract in _ANNUAL_CONTRACTS
+                        }
+                    )
+                },
+                "state_codebook_sha256": {
+                    "enum": sorted(
+                        {fars_state_codebook_sha256()}
+                        | {
+                            fars_state_codebook_sha256(contract.year)
+                            for contract in _ANNUAL_CONTRACTS
+                        }
+                    )
+                },
                 "modes_non_additive": {"const": True},
             }
         ),

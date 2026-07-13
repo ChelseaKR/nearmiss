@@ -7,12 +7,12 @@
       "additionalProperties": false,
       "properties": {
         "case_count": {
-          "maximum": 36297,
+          "maximum": 45000,
           "minimum": 1,
           "type": "integer"
         },
         "crash_contribution_total": {
-          "maximum": 217782,
+          "maximum": 270000,
           "minimum": 1,
           "type": "integer"
         },
@@ -22,7 +22,7 @@
           "type": "integer"
         },
         "eligible_crash_contribution_total": {
-          "maximum": 217782,
+          "maximum": 270000,
           "minimum": 0,
           "type": "integer"
         },
@@ -47,7 +47,7 @@
           "type": "integer"
         },
         "suppressed_crash_contribution_total": {
-          "maximum": 217782,
+          "maximum": 270000,
           "minimum": 0,
           "type": "integer"
         }
@@ -69,14 +69,21 @@
       "const": "nearmiss.private.fars_national_context"
     },
     "caveat": {
-      "const": "Fatal-crash burden context only. Counts are distinct FARS fatal crashes with at least one person in the involved mode. They are not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. The official 2024 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+      "enum": [
+        "Fatal-crash burden context only. Counts are distinct FARS fatal crashes with at least one person in the involved mode. They are not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. The official 2020 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source.",
+        "Fatal-crash burden context only. Counts are distinct FARS fatal crashes with at least one person in the involved mode. They are not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. The official 2021 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source.",
+        "Fatal-crash burden context only. Counts are distinct FARS fatal crashes with at least one person in the involved mode. They are not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. The official 2022 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source.",
+        "Fatal-crash burden context only. Counts are distinct FARS fatal crashes with at least one person in the involved mode. They are not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. The official 2023 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source.",
+        "Fatal-crash burden context only. Counts are distinct FARS fatal crashes with at least one person in the involved mode. They are not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. The official 2024 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+      ],
+      "type": "string"
     },
     "cells": {
       "items": {
         "additionalProperties": false,
         "properties": {
           "crash_count": {
-            "maximum": 36297,
+            "maximum": 45000,
             "minimum": 5,
             "type": "integer"
           },
@@ -171,6 +178,10 @@
         "coverage": {
           "enum": [
             "state_codes_present_in_verified_snapshot",
+            "official_2020_national_50_states_and_dc",
+            "official_2021_national_50_states_and_dc",
+            "official_2022_national_50_states_and_dc",
+            "official_2023_national_50_states_and_dc",
             "official_2024_national_50_states_and_dc"
           ],
           "type": "string"
@@ -241,7 +252,7 @@
           "const": "involved_mode"
         },
         "effective_k": {
-          "maximum": 36297,
+          "maximum": 45000,
           "minimum": 5,
           "type": "integer"
         },
@@ -255,10 +266,22 @@
           "const": true
         },
         "state_codebook_sha256": {
-          "const": "e81d1277ef1d407bd8a1b476a18f71b27943cada7d532551c6ce30939fb82589"
+          "enum": [
+            "04833d5226a12e59c3cb77035b452c65606127dfe5e7eb8d29cfb951e8fd34bd",
+            "0d3947488f66afa3fed105b052cfae77bd0a33dfcf22390b0a3aac31cc87fb91",
+            "5401775cc554458af10a6dd0a2f5696231aafad3abcdbbc804afd0f325e018a7",
+            "8211b6b5e4123b9e474d11093fdfa00c5653f48335c7d5adbb3350f7e71e9194",
+            "e81d1277ef1d407bd8a1b476a18f71b27943cada7d532551c6ce30939fb82589"
+          ]
         },
         "state_codebook_version": {
-          "const": "fars-state-codes-2024-v1"
+          "enum": [
+            "fars-state-codes-2020-v1",
+            "fars-state-codes-2021-v1",
+            "fars-state-codes-2022-v1",
+            "fars-state-codes-2023-v1",
+            "fars-state-codes-2024-v1"
+          ]
         }
       },
       "required": [
@@ -281,6 +304,244 @@
     },
     "source_lineage": {
       "additionalProperties": false,
+      "oneOf": [
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "contract_revision"
+                ]
+              },
+              {
+                "required": [
+                  "source_revision_id"
+                ]
+              },
+              {
+                "required": [
+                  "contract_sha256"
+                ]
+              }
+            ]
+          },
+          "properties": {
+            "crash_mapping_version": {
+              "const": "1.0.0"
+            },
+            "dataset_year": {
+              "const": 2024
+            },
+            "joined_schema_version": {
+              "enum": [
+                "1.0.0",
+                "1.1.0"
+              ]
+            },
+            "person_mapping_version": {
+              "const": "1.0.0"
+            },
+            "source_id": {
+              "const": "fars-joined"
+            }
+          }
+        },
+        {
+          "properties": {
+            "contract_revision": {
+              "const": 1
+            },
+            "contract_sha256": {
+              "const": "c6294413066bb2e83b2aea02408dcfa2fa40441dda7de115983a45fb8aab132c"
+            },
+            "crash_mapping_version": {
+              "const": "1.0.0"
+            },
+            "dataset_year": {
+              "const": 2020
+            },
+            "joined_schema_version": {
+              "const": "2.0.0"
+            },
+            "person_mapping_version": {
+              "const": "1.0.0"
+            },
+            "raw_sha256": {
+              "const": "b2806902b3da9b45c632499f82e1c74fd108238ae7f67e108ebf40360ee4c9c3"
+            },
+            "release_status": {
+              "const": "final"
+            },
+            "source_id": {
+              "const": "fars-joined-2020"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-b2806902b3da"
+            }
+          },
+          "required": [
+            "contract_revision",
+            "source_revision_id",
+            "contract_sha256"
+          ]
+        },
+        {
+          "properties": {
+            "contract_revision": {
+              "const": 1
+            },
+            "contract_sha256": {
+              "const": "5c2c198cd4e3eee80f9e27874e3f42521b0e0b7cbc53a8bd0bf2684ef66a855e"
+            },
+            "crash_mapping_version": {
+              "const": "1.0.0"
+            },
+            "dataset_year": {
+              "const": 2021
+            },
+            "joined_schema_version": {
+              "const": "2.0.0"
+            },
+            "person_mapping_version": {
+              "const": "1.0.0"
+            },
+            "raw_sha256": {
+              "const": "743c19a13884614430d295289e655c5ad32b0a025a11e5b2149dfb57acae389b"
+            },
+            "release_status": {
+              "const": "final"
+            },
+            "source_id": {
+              "const": "fars-joined-2021"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-743c19a13884"
+            }
+          },
+          "required": [
+            "contract_revision",
+            "source_revision_id",
+            "contract_sha256"
+          ]
+        },
+        {
+          "properties": {
+            "contract_revision": {
+              "const": 1
+            },
+            "contract_sha256": {
+              "const": "18713f23f657334459febf729e4005bfd9e94492da37afb0255d9e5fd4159158"
+            },
+            "crash_mapping_version": {
+              "const": "1.0.0"
+            },
+            "dataset_year": {
+              "const": 2022
+            },
+            "joined_schema_version": {
+              "const": "2.0.0"
+            },
+            "person_mapping_version": {
+              "const": "1.0.0"
+            },
+            "raw_sha256": {
+              "const": "989448d7a2f3964264c96a3cdb220f6c413c782a33eb759781f520c5acb5f744"
+            },
+            "release_status": {
+              "const": "final"
+            },
+            "source_id": {
+              "const": "fars-joined-2022"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-989448d7a2f3"
+            }
+          },
+          "required": [
+            "contract_revision",
+            "source_revision_id",
+            "contract_sha256"
+          ]
+        },
+        {
+          "properties": {
+            "contract_revision": {
+              "const": 1
+            },
+            "contract_sha256": {
+              "const": "557a8edf2418c7794d349c932ae2237db6cad7165f62c80a2e7f3b15baeca143"
+            },
+            "crash_mapping_version": {
+              "const": "1.0.0"
+            },
+            "dataset_year": {
+              "const": 2023
+            },
+            "joined_schema_version": {
+              "const": "2.0.0"
+            },
+            "person_mapping_version": {
+              "const": "1.0.0"
+            },
+            "raw_sha256": {
+              "const": "edde841eb493e55751961b36bac2d1ce8750f601cb8e6e183a525723bb62bab0"
+            },
+            "release_status": {
+              "const": "final"
+            },
+            "source_id": {
+              "const": "fars-joined-2023"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-edde841eb493"
+            }
+          },
+          "required": [
+            "contract_revision",
+            "source_revision_id",
+            "contract_sha256"
+          ]
+        },
+        {
+          "properties": {
+            "contract_revision": {
+              "const": 1
+            },
+            "contract_sha256": {
+              "const": "f6bc3dd55cf3dfb360c265308c7702cdf7f6df66894cf792afd6be83c09c72f8"
+            },
+            "crash_mapping_version": {
+              "const": "1.0.0"
+            },
+            "dataset_year": {
+              "const": 2024
+            },
+            "joined_schema_version": {
+              "const": "2.0.0"
+            },
+            "person_mapping_version": {
+              "const": "1.0.0"
+            },
+            "raw_sha256": {
+              "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+            },
+            "release_status": {
+              "const": "final"
+            },
+            "source_id": {
+              "const": "fars-joined-2024"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-5112727a8c0d"
+            }
+          },
+          "required": [
+            "contract_revision",
+            "source_revision_id",
+            "contract_sha256"
+          ]
+        }
+      ],
       "properties": {
         "accident_sha256": {
           "pattern": "^[0-9a-f]{64}$",
@@ -291,40 +552,49 @@
           "type": "string"
         },
         "cases_excluded": {
-          "maximum": 36297,
+          "maximum": 45000,
           "minimum": 0,
           "type": "integer"
         },
         "cases_joined": {
-          "maximum": 36297,
+          "maximum": 45000,
           "minimum": 1,
           "type": "integer"
         },
+        "contract_revision": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "contract_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
         "crash_mapping_version": {
-          "const": "1.0.0"
+          "type": "string"
         },
         "crash_records_accepted": {
-          "maximum": 36297,
+          "maximum": 45000,
           "minimum": 1,
           "type": "integer"
         },
         "crash_records_read": {
-          "maximum": 36297,
+          "maximum": 45000,
           "minimum": 1,
           "type": "integer"
         },
         "crash_records_rejected": {
-          "maximum": 36297,
+          "maximum": 45000,
           "minimum": 0,
           "type": "integer"
         },
         "dataset_year": {
-          "const": 2024
+          "type": "integer"
         },
         "joined_schema_version": {
           "enum": [
             "1.0.0",
-            "1.1.0"
+            "1.1.0",
+            "2.0.0"
           ],
           "type": "string"
         },
@@ -333,20 +603,20 @@
           "type": "string"
         },
         "person_mapping_version": {
-          "const": "1.0.0"
+          "type": "string"
         },
         "person_records_accepted": {
-          "maximum": 100000,
+          "maximum": 110000,
           "minimum": 1,
           "type": "integer"
         },
         "person_records_excluded": {
-          "maximum": 100000,
+          "maximum": 110000,
           "minimum": 0,
           "type": "integer"
         },
         "person_records_read": {
-          "maximum": 100000,
+          "maximum": 110000,
           "minimum": 1,
           "type": "integer"
         },
@@ -366,7 +636,10 @@
           "type": "string"
         },
         "source_id": {
-          "const": "fars-joined"
+          "type": "string"
+        },
+        "source_revision_id": {
+          "type": "string"
         }
       },
       "required": [

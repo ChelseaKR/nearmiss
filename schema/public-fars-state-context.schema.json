@@ -2,6 +2,248 @@
   "$id": "https://nearmiss.dev/schema/public-fars-state-context.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "caveat": {
+          "const": "Counts are distinct 2020 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2020 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+        },
+        "dataset_year": {
+          "const": 2020
+        },
+        "geography": {
+          "properties": {
+            "coverage": {
+              "const": "official_2020_national_50_states_and_dc"
+            },
+            "state_crosswalk_sha256": {
+              "const": "a96bc1c2c9623f5485a6739009fb0a21855c0fb5ae7d2e2d5dd4b1bb21231be4"
+            },
+            "state_crosswalk_version": {
+              "const": "fars-usps-50-states-dc-2020-v1"
+            }
+          }
+        },
+        "source": {
+          "properties": {
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2020/National/FARS2020NationalCSV.zip"
+            },
+            "name": {
+              "const": "NHTSA Fatality Analysis Reporting System (FARS)"
+            },
+            "raw_sha256": {
+              "const": "b2806902b3da9b45c632499f82e1c74fd108238ae7f67e108ebf40360ee4c9c3"
+            },
+            "raw_size_bytes": {
+              "const": 31016385
+            },
+            "release_stage": {
+              "const": "final"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-b2806902b3da"
+            }
+          }
+        },
+        "title": {
+          "const": "2020 US fatal-crash burden by state and involved mode"
+        }
+      }
+    },
+    {
+      "properties": {
+        "caveat": {
+          "const": "Counts are distinct 2021 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2021 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+        },
+        "dataset_year": {
+          "const": 2021
+        },
+        "geography": {
+          "properties": {
+            "coverage": {
+              "const": "official_2021_national_50_states_and_dc"
+            },
+            "state_crosswalk_sha256": {
+              "const": "acf98a21f7358fbeee6bc2bc1c07eaea8e375fb1dd869624568bb5bef6dc0dac"
+            },
+            "state_crosswalk_version": {
+              "const": "fars-usps-50-states-dc-2021-v1"
+            }
+          }
+        },
+        "source": {
+          "properties": {
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2021/National/FARS2021NationalCSV.zip"
+            },
+            "name": {
+              "const": "NHTSA Fatality Analysis Reporting System (FARS)"
+            },
+            "raw_sha256": {
+              "const": "743c19a13884614430d295289e655c5ad32b0a025a11e5b2149dfb57acae389b"
+            },
+            "raw_size_bytes": {
+              "const": 35190858
+            },
+            "release_stage": {
+              "const": "final"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-743c19a13884"
+            }
+          }
+        },
+        "title": {
+          "const": "2021 US fatal-crash burden by state and involved mode"
+        }
+      }
+    },
+    {
+      "properties": {
+        "caveat": {
+          "const": "Counts are distinct 2022 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2022 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+        },
+        "dataset_year": {
+          "const": 2022
+        },
+        "geography": {
+          "properties": {
+            "coverage": {
+              "const": "official_2022_national_50_states_and_dc"
+            },
+            "state_crosswalk_sha256": {
+              "const": "3fda2696337c5f8263947ecc5b748b354f751178320796cec135e006d3bf9be5"
+            },
+            "state_crosswalk_version": {
+              "const": "fars-usps-50-states-dc-2022-v1"
+            }
+          }
+        },
+        "source": {
+          "properties": {
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2022/National/FARS2022NationalCSV.zip"
+            },
+            "name": {
+              "const": "NHTSA Fatality Analysis Reporting System (FARS)"
+            },
+            "raw_sha256": {
+              "const": "989448d7a2f3964264c96a3cdb220f6c413c782a33eb759781f520c5acb5f744"
+            },
+            "raw_size_bytes": {
+              "const": 34689724
+            },
+            "release_stage": {
+              "const": "final"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-989448d7a2f3"
+            }
+          }
+        },
+        "title": {
+          "const": "2022 US fatal-crash burden by state and involved mode"
+        }
+      }
+    },
+    {
+      "properties": {
+        "caveat": {
+          "const": "Counts are distinct 2023 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2023 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+        },
+        "dataset_year": {
+          "const": 2023
+        },
+        "geography": {
+          "properties": {
+            "coverage": {
+              "const": "official_2023_national_50_states_and_dc"
+            },
+            "state_crosswalk_sha256": {
+              "const": "a1eae08dba21b0a4b20fa797370529475796a344d828856e5048488ae333d944"
+            },
+            "state_crosswalk_version": {
+              "const": "fars-usps-50-states-dc-2023-v1"
+            }
+          }
+        },
+        "source": {
+          "properties": {
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/National/FARS2023NationalCSV.zip"
+            },
+            "name": {
+              "const": "NHTSA Fatality Analysis Reporting System (FARS)"
+            },
+            "raw_sha256": {
+              "const": "edde841eb493e55751961b36bac2d1ce8750f601cb8e6e183a525723bb62bab0"
+            },
+            "raw_size_bytes": {
+              "const": 34174899
+            },
+            "release_stage": {
+              "const": "final"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-edde841eb493"
+            }
+          }
+        },
+        "title": {
+          "const": "2023 US fatal-crash burden by state and involved mode"
+        }
+      }
+    },
+    {
+      "properties": {
+        "caveat": {
+          "const": "Counts are distinct 2024 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2024 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+        },
+        "dataset_year": {
+          "const": 2024
+        },
+        "geography": {
+          "properties": {
+            "coverage": {
+              "const": "official_2024_national_50_states_and_dc"
+            },
+            "state_crosswalk_sha256": {
+              "const": "6744b12717b0bd52a79c73aba3037286dde9257698a2aa0630f995c8a82ba25c"
+            },
+            "state_crosswalk_version": {
+              "const": "fars-usps-50-states-dc-2024-v1"
+            }
+          }
+        },
+        "source": {
+          "properties": {
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip"
+            },
+            "name": {
+              "const": "NHTSA Fatality Analysis Reporting System (FARS)"
+            },
+            "raw_sha256": {
+              "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+            },
+            "raw_size_bytes": {
+              "const": 32672161
+            },
+            "release_stage": {
+              "const": "final"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-5112727a8c0d"
+            }
+          }
+        },
+        "title": {
+          "const": "2024 US fatal-crash burden by state and involved mode"
+        }
+      }
+    }
+  ],
   "properties": {
     "accounting": {
       "additionalProperties": false,
@@ -71,25 +313,55 @@
       "const": "nearmiss.public.fars_state_context"
     },
     "caveat": {
-      "const": "Counts are distinct 2024 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2024 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+      "enum": [
+        "Counts are distinct 2020 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2020 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source.",
+        "Counts are distinct 2021 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2021 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source.",
+        "Counts are distinct 2022 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2022 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source.",
+        "Counts are distinct 2023 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2023 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source.",
+        "Counts are distinct 2024 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2024 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+      ]
     },
     "dataset_year": {
-      "const": 2024
+      "enum": [
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
     },
     "geography": {
       "additionalProperties": false,
       "properties": {
         "coverage": {
-          "const": "official_2024_national_50_states_and_dc"
+          "enum": [
+            "official_2020_national_50_states_and_dc",
+            "official_2021_national_50_states_and_dc",
+            "official_2022_national_50_states_and_dc",
+            "official_2023_national_50_states_and_dc",
+            "official_2024_national_50_states_and_dc"
+          ]
         },
         "state_count": {
           "const": 51
         },
         "state_crosswalk_sha256": {
-          "const": "6744b12717b0bd52a79c73aba3037286dde9257698a2aa0630f995c8a82ba25c"
+          "enum": [
+            "3fda2696337c5f8263947ecc5b748b354f751178320796cec135e006d3bf9be5",
+            "6744b12717b0bd52a79c73aba3037286dde9257698a2aa0630f995c8a82ba25c",
+            "a1eae08dba21b0a4b20fa797370529475796a344d828856e5048488ae333d944",
+            "a96bc1c2c9623f5485a6739009fb0a21855c0fb5ae7d2e2d5dd4b1bb21231be4",
+            "acf98a21f7358fbeee6bc2bc1c07eaea8e375fb1dd869624568bb5bef6dc0dac"
+          ]
         },
         "state_crosswalk_version": {
-          "const": "fars-usps-50-states-dc-2024-v1"
+          "enum": [
+            "fars-usps-50-states-dc-2020-v1",
+            "fars-usps-50-states-dc-2021-v1",
+            "fars-usps-50-states-dc-2022-v1",
+            "fars-usps-50-states-dc-2023-v1",
+            "fars-usps-50-states-dc-2024-v1"
+          ]
         },
         "type": {
           "const": "fars_state_code"
@@ -166,22 +438,25 @@
       "additionalProperties": false,
       "properties": {
         "distribution_url": {
-          "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip"
+          "format": "uri",
+          "type": "string"
         },
         "name": {
           "const": "NHTSA Fatality Analysis Reporting System (FARS)"
         },
         "raw_sha256": {
-          "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
         },
         "raw_size_bytes": {
-          "const": 32672161
+          "minimum": 1,
+          "type": "integer"
         },
         "release_stage": {
           "const": "final"
         },
         "source_revision_id": {
-          "const": "reviewed-20260712-5112727a8c0d"
+          "type": "string"
         }
       },
       "required": [
@@ -443,7 +718,13 @@
       "type": "array"
     },
     "title": {
-      "const": "2024 US fatal-crash burden by state and involved mode"
+      "enum": [
+        "2020 US fatal-crash burden by state and involved mode",
+        "2021 US fatal-crash burden by state and involved mode",
+        "2022 US fatal-crash burden by state and involved mode",
+        "2023 US fatal-crash burden by state and involved mode",
+        "2024 US fatal-crash burden by state and involved mode"
+      ]
     },
     "visibility": {
       "const": "public"
@@ -462,6 +743,6 @@
     "caveat",
     "states"
   ],
-  "title": "Public NearMiss 2024 FARS state burden context",
+  "title": "Public NearMiss annual FARS state burden context",
   "type": "object"
 }

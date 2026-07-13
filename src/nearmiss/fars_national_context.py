@@ -2,9 +2,9 @@
 """Deterministic private national FARS burden context.
 
 This module deliberately starts at the coarsest useful nationwide projection:
-one 2024 fatal crash contributes at most once to each involved-mode cell for
-its source-native FARS state code.  The result is burden context, not a rate,
-risk estimate, ranking, record linkage, or validation of community reports.
+one fatal crash contributes at most once to each involved-mode cell for its
+source-native FARS state code.  The result is burden context, not a rate, risk
+estimate, ranking, record linkage, or validation of community reports.
 """
 
 from __future__ import annotations
@@ -17,6 +17,14 @@ from collections.abc import Mapping
 from typing import Any, NoReturn, cast
 
 from .adapters.fars_joined import MODE_ORDER
+from .fars_year_contracts import (
+    FARS_ACCIDENT_ROW_CAP,
+    FARS_PERSON_ROW_CAP,
+    FarsYearContract,
+    fars_year_contract_from_descriptor,
+    fars_year_contract_revision,
+    fars_year_contract_sha256,
+)
 from .joined_outcome_artifacts import (
     JOINED_ARTIFACT_SCHEMA_VERSION,
     JOINED_ARTIFACT_TYPE,
@@ -38,6 +46,9 @@ _MAX_PERSON_RECORDS = 100_000
 _MIN_NATIONAL_CASES = 30_000
 _MAX_CELLS = 52 * len(MODE_ORDER)
 _MAX_CONTRIBUTIONS = _MAX_CASES * len(MODE_ORDER)
+_MAX_ANNUAL_JOINED_BYTES = 512 * 1024 * 1024
+_MAX_ANNUAL_CASES = FARS_ACCIDENT_ROW_CAP
+_MAX_ANNUAL_PERSON_RECORDS = FARS_PERSON_ROW_CAP
 _CANONICAL_STATE_RE = re.compile(r"^[1-9][0-9]?$", re.ASCII)
 
 # Source-native FARS STATE values for the 50 states, DC, and Puerto Rico. FARS
@@ -110,6 +121,22 @@ FARS_NATIONAL_CONTEXT_CAVEAT = (
 )
 
 
+def fars_national_context_caveat(year: int) -> str:
+    """Return the reviewed annual caveat without weakening the 2024 wording."""
+    if isinstance(year, bool) or not isinstance(year, int):
+        raise TypeError("private national FARS year must be an integer")
+    fars_year_contract_revision(year, 1)
+    return FARS_NATIONAL_CONTEXT_CAVEAT.replace("2024", str(year))
+
+
+def fars_state_codebook_version(year: int) -> str:
+    """Return the exact presentation-code contract for one registered year."""
+    if isinstance(year, bool) or not isinstance(year, int):
+        raise TypeError("private national FARS year must be an integer")
+    fars_year_contract_revision(year, 1)
+    return f"fars-state-codes-{year}-v1"
+
+
 def _canonical_json_bytes(value: Mapping[str, object]) -> bytes:
     return (
         json.dumps(
@@ -123,12 +150,12 @@ def _canonical_json_bytes(value: Mapping[str, object]) -> bytes:
     ).encode("utf-8")
 
 
-def fars_state_codebook_sha256() -> str:
+def fars_state_codebook_sha256(year: int = 2024) -> str:
     """Return the digest of the exact ordered state-code contract."""
     payload = _canonical_json_bytes(
         {
             "codes": list(FARS_2024_STATE_CODES),
-            "version": FARS_STATE_CODEBOOK_VERSION,
+            "version": fars_state_codebook_version(year),
         }
     )
     return hashlib.sha256(payload).hexdigest()
@@ -153,6 +180,14 @@ def fars_national_context_contract_descriptor() -> dict[str, object]:
             "minimum_national_cases": _MIN_NATIONAL_CASES,
             "max_cells": _MAX_CELLS,
             "max_contributions": _MAX_CONTRIBUTIONS,
+        },
+        "annual_v2_caps": {
+            "max_joined_bytes": _MAX_ANNUAL_JOINED_BYTES,
+            "max_cases": _MAX_ANNUAL_CASES,
+            "max_person_records": _MAX_ANNUAL_PERSON_RECORDS,
+            "minimum_national_cases": _MIN_NATIONAL_CASES,
+            "max_cells": _MAX_CELLS,
+            "max_contributions": _MAX_ANNUAL_CASES * len(MODE_ORDER),
         },
     }
 
@@ -198,7 +233,7 @@ def _canonical_state_code(value: object) -> str:
     if not isinstance(value, str) or _CANONICAL_STATE_RE.fullmatch(value) is None:
         raise ValueError("private national FARS source has a noncanonical state code")
     if value not in _STATE_CODE_SET:
-        raise ValueError("private national FARS source has an unsupported 2024 state code")
+        raise ValueError("private national FARS source has an unsupported state code")
     return value
 
 
@@ -247,6 +282,91 @@ def _verified_joined_artifact(
     if any(getattr(evidence, key) != value for key, value in expected.items()):
         raise ValueError("private national FARS joined proof disagrees with its artifact")
     return joined, evidence
+
+
+def _verified_annual_joined_artifact(  # noqa: C901 - keep proof bindings adjacent
+    snapshot: object,
+    *,
+    year: int,
+    contract_revision: int,
+) -> tuple[dict[str, object], object, FarsYearContract]:
+    """Open exact annual v2 bytes only through the replay verifier's snapshot."""
+    # Local imports avoid a cycle: the v2 schema shares this module's reviewed
+    # source-native state-code inventory.
+    from .joined_outcome_artifacts_v2 import (
+        JOINED_ARTIFACT_V2_SCHEMA_VERSION,
+        canonical_joined_outcome_artifact_v2_bytes,
+        validate_joined_outcome_artifact_v2,
+    )
+    from .verified_fars_years import VerifiedFarsYearEvidence, _VerifiedFarsYearSnapshot
+
+    if type(snapshot) is not _VerifiedFarsYearSnapshot:
+        raise TypeError("private national FARS context requires a proof-bound annual snapshot")
+    evidence = snapshot.evidence
+    payload = snapshot.normalized_bytes
+    if type(evidence) is not VerifiedFarsYearEvidence or type(payload) is not bytes:
+        raise TypeError("private national FARS annual proof is invalid")
+    if not payload or len(payload) > _MAX_ANNUAL_JOINED_BYTES:
+        raise ValueError("private national FARS annual snapshot exceeds its byte safety limit")
+    if hashlib.sha256(payload).hexdigest() != evidence.normalized_sha256:
+        raise ValueError("private national FARS annual proof digest does not match its evidence")
+    try:
+        decoded = json.loads(
+            payload.decode("utf-8"),
+            object_pairs_hook=_strict_object,
+            parse_constant=_reject_constant,
+        )
+    except UnicodeDecodeError as exc:
+        raise ValueError("private national FARS annual source JSON is not UTF-8") from exc
+    except (json.JSONDecodeError, RecursionError) as exc:
+        raise ValueError("private national FARS annual source JSON is invalid") from exc
+    if not isinstance(decoded, dict):
+        raise ValueError("private national FARS annual source JSON must be an object")
+    joined = cast(dict[str, object], decoded)
+    try:
+        validate_joined_outcome_artifact_v2(joined)
+        canonical = canonical_joined_outcome_artifact_v2_bytes(joined)
+        descriptor = cast(Mapping[str, object], joined["source_contract"])
+        embedded_contract = fars_year_contract_from_descriptor(descriptor)
+        selected_contract = fars_year_contract_revision(year, contract_revision)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("private national FARS annual source is not an exact v2 artifact") from exc
+    if canonical != payload:
+        raise ValueError("private national FARS annual source JSON is not canonical")
+    if embedded_contract is not selected_contract:
+        raise ValueError("private national FARS annual source does not match the selected revision")
+
+    crash = cast(Mapping[str, object], joined["crash_provenance"])
+    normalization = cast(Mapping[str, object], joined["crash_normalization"])
+    person = cast(Mapping[str, object], joined["person_join"])
+    rejected = sum(cast(Mapping[str, int], crash["rejection_reasons"]).values())
+    expected = {
+        "source_id": selected_contract.source_id,
+        "dataset_year": selected_contract.year,
+        "contract_revision": selected_contract.revision,
+        "source_revision_id": selected_contract.source_revision_id,
+        "contract_sha256": fars_year_contract_sha256(selected_contract),
+        "crash_mapping_version": normalization["adapter_version"],
+        "person_mapping_version": person["mapping_version"],
+        "release_status": crash["release_status"],
+        "crash_records_read": crash["records_read"],
+        "crash_records_accepted": crash["records_accepted"],
+        "crash_records_rejected": rejected,
+        "person_records_read": person["records_read"],
+        "person_records_accepted": person["records_accepted"],
+        "person_records_excluded": person["records_excluded_with_rejected_crash"],
+        "cases_joined": person["cases_joined"],
+        "cases_excluded": person["cases_excluded_with_rejected_crash"],
+        "raw_sha256": selected_contract.raw_sha256,
+        "accident_sha256": person["accident_sha256"],
+        "person_sha256": person["person_sha256"],
+        "normalized_sha256": hashlib.sha256(payload).hexdigest(),
+    }
+    if any(getattr(evidence, key) != value for key, value in expected.items()):
+        raise ValueError("private national FARS annual proof disagrees with its artifact")
+    if joined["schema_version"] != JOINED_ARTIFACT_V2_SCHEMA_VERSION:
+        raise ValueError("private national FARS annual source schema is not v2")
+    return joined, evidence, selected_contract
 
 
 def _require_national_coverage(
@@ -393,6 +513,126 @@ def build_verified_fars_national_context(
     )
 
 
+def build_verified_fars_year_national_context(
+    snapshot: object,
+    *,
+    year: int,
+    contract_revision: int,
+    requested_k: int = FARS_NATIONAL_CONTEXT_MINIMUM_K,
+) -> dict[str, object]:
+    """Aggregate one exact replayed annual v2 snapshot without persisting rows."""
+    if isinstance(requested_k, bool) or not isinstance(requested_k, int):
+        raise TypeError("private national FARS requested_k must be an integer")
+    if not 1 <= requested_k <= _MAX_ANNUAL_CASES:
+        raise ValueError(
+            f"private national FARS requested_k must be between 1 and {_MAX_ANNUAL_CASES}"
+        )
+    joined, evidence, contract = _verified_annual_joined_artifact(
+        snapshot,
+        year=year,
+        contract_revision=contract_revision,
+    )
+    effective_k = max(FARS_NATIONAL_CONTEXT_MINIMUM_K, requested_k)
+    records = cast(list[Mapping[str, object]], joined["records"])
+    if len(records) > _MAX_ANNUAL_CASES:
+        raise ValueError("private national FARS annual source exceeds its case safety limit")
+
+    counts: Counter[tuple[str, str]] = Counter()
+    states_with_records: set[str] = set()
+    mode_set = frozenset(MODE_ORDER)
+    for record in records:
+        outcome = cast(Mapping[str, object], record["outcome"])
+        summary = cast(Mapping[str, object], record["mode_summary"])
+        state_code = _canonical_state_code(outcome.get("state_code"))
+        states_with_records.add(state_code)
+        involved_modes = summary["involved_modes"]
+        if not isinstance(involved_modes, list):
+            raise ValueError("private national FARS annual involved modes are invalid")
+        if any(not isinstance(mode, str) or mode not in mode_set for mode in involved_modes):
+            raise ValueError("private national FARS annual involved modes are invalid")
+        if len(involved_modes) != len(set(involved_modes)):
+            raise ValueError("private national FARS annual involved modes are duplicated")
+        for mode in involved_modes:
+            counts[(state_code, mode)] += 1
+
+    annual = cast(Any, evidence)
+    if (
+        annual.crash_records_read < _MIN_NATIONAL_CASES
+        or annual.cases_joined < _MIN_NATIONAL_CASES
+        or states_with_records != _NATIONAL_REQUIRED_STATE_CODES
+    ):
+        raise ValueError("private national FARS annual source does not satisfy national coverage")
+
+    mode_index = {mode: index for index, mode in enumerate(MODE_ORDER)}
+    eligible = {key: count for key, count in counts.items() if count >= effective_k}
+    ordered_keys = sorted(eligible, key=lambda key: (int(key[0]), mode_index[key[1]]))
+    cells = [
+        {"state_code": state_code, "involved_mode": mode, "crash_count": eligible[key]}
+        for key in ordered_keys
+        for state_code, mode in [key]
+    ]
+    total_contributions = sum(counts.values())
+    eligible_contributions = sum(eligible.values())
+    states_with_eligible = {state for state, _mode in eligible}
+    artifact: dict[str, object] = {
+        "schema_version": FARS_NATIONAL_CONTEXT_SCHEMA_VERSION,
+        "artifact_type": FARS_NATIONAL_CONTEXT_ARTIFACT_TYPE,
+        "visibility": "private",
+        "caveat": fars_national_context_caveat(year),
+        "source_lineage": {
+            "source_id": contract.source_id,
+            "dataset_year": contract.year,
+            "contract_revision": contract.revision,
+            "source_revision_id": contract.source_revision_id,
+            "contract_sha256": fars_year_contract_sha256(contract),
+            "release_status": annual.release_status,
+            "attempt_id": annual.attempt_id,
+            "raw_sha256": annual.raw_sha256,
+            "normalized_sha256": annual.normalized_sha256,
+            "accident_sha256": annual.accident_sha256,
+            "person_sha256": annual.person_sha256,
+            "joined_schema_version": joined["schema_version"],
+            "crash_mapping_version": annual.crash_mapping_version,
+            "person_mapping_version": annual.person_mapping_version,
+            "crash_records_read": annual.crash_records_read,
+            "crash_records_accepted": annual.crash_records_accepted,
+            "crash_records_rejected": annual.crash_records_rejected,
+            "person_records_read": annual.person_records_read,
+            "person_records_accepted": annual.person_records_accepted,
+            "person_records_excluded": annual.person_records_excluded,
+            "cases_joined": annual.cases_joined,
+            "cases_excluded": annual.cases_excluded,
+        },
+        "method": {
+            "algorithm_version": FARS_NATIONAL_CONTEXT_ALGORITHM_VERSION,
+            "geography": "fars_state_code",
+            "coverage": f"official_{year}_national_50_states_and_dc",
+            "coverage_state_codes": sorted(_NATIONAL_REQUIRED_STATE_CODES, key=int),
+            "dimension": "involved_mode",
+            "contribution_unit": "distinct_crash_once_per_involved_mode",
+            "minimum_k": FARS_NATIONAL_CONTEXT_MINIMUM_K,
+            "effective_k": effective_k,
+            "state_codebook_version": fars_state_codebook_version(year),
+            "state_codebook_sha256": fars_state_codebook_sha256(year),
+            "modes_non_additive": True,
+        },
+        "accounting": {
+            "case_count": len(records),
+            "states_with_records": len(states_with_records),
+            "states_with_eligible_cells": len(states_with_eligible),
+            "positive_candidate_cell_count": len(counts),
+            "eligible_cell_count": len(eligible),
+            "suppressed_cell_count": len(counts) - len(eligible),
+            "crash_contribution_total": total_contributions,
+            "eligible_crash_contribution_total": eligible_contributions,
+            "suppressed_crash_contribution_total": total_contributions - eligible_contributions,
+        },
+        "cells": cells,
+    }
+    validate_fars_national_context_artifact(artifact)
+    return artifact
+
+
 def _validate_cells(
     cells: list[Mapping[str, object]], *, effective_k: int, case_count: int
 ) -> tuple[int, set[str]]:
@@ -470,15 +710,62 @@ def _validate_coverage_marker(
         if codes != []:
             raise ValueError("private national FARS partial coverage marker is invalid")
         return
+    year = source["dataset_year"]
+    if isinstance(year, bool) or not isinstance(year, int):
+        raise ValueError("private national FARS source year is invalid")
     expected_codes = sorted(_NATIONAL_REQUIRED_STATE_CODES, key=int)
     if not (
-        codes == expected_codes
+        coverage == f"official_{year}_national_50_states_and_dc"
+        and codes == expected_codes
+        and method["state_codebook_version"] == fars_state_codebook_version(year)
+        and method["state_codebook_sha256"] == fars_state_codebook_sha256(year)
         and accounting["states_with_records"] == len(expected_codes)
         and accounting["case_count"] >= _MIN_NATIONAL_CASES
         and cast(int, source["crash_records_read"]) >= _MIN_NATIONAL_CASES
         and cast(int, source["cases_joined"]) >= _MIN_NATIONAL_CASES
     ):
         raise ValueError("private national FARS official coverage marker is invalid")
+
+
+def _validate_annual_source_contract(source: Mapping[str, object]) -> None:
+    """Bind annual private lineage metadata back to one registered revision."""
+    if source["source_id"] == "fars-joined":
+        if source["dataset_year"] != 2024:
+            raise ValueError("private national FARS legacy source year is invalid")
+        return
+    try:
+        year = cast(int, source["dataset_year"])
+        revision = cast(int, source["contract_revision"])
+        contract = fars_year_contract_revision(year, revision)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("private national FARS annual source contract is invalid") from exc
+    if not (
+        source["source_id"] == contract.source_id
+        and source["source_revision_id"] == contract.source_revision_id
+        and source["contract_sha256"] == fars_year_contract_sha256(contract)
+        and source["release_status"] == contract.release_stage
+        and source["raw_sha256"] == contract.raw_sha256
+        and source["crash_mapping_version"] == contract.crash_mapping_version
+        and source["person_mapping_version"] == contract.person_mapping_version
+    ):
+        raise ValueError("private national FARS annual source contract does not match lineage")
+
+
+def _validate_source_year_markers(
+    artifact: Mapping[str, object],
+    method: Mapping[str, object],
+    source: Mapping[str, object],
+) -> None:
+    """Prevent caveat and codebook metadata from being spliced across years."""
+    year = source["dataset_year"]
+    if isinstance(year, bool) or not isinstance(year, int):
+        raise ValueError("private national FARS source year is invalid")
+    if not (
+        artifact["caveat"] == fars_national_context_caveat(year)
+        and method["state_codebook_version"] == fars_state_codebook_version(year)
+        and method["state_codebook_sha256"] == fars_state_codebook_sha256(year)
+    ):
+        raise ValueError("private national FARS source year markers are inconsistent")
 
 
 def validate_fars_national_context_artifact(artifact: Mapping[str, object]) -> None:
@@ -501,6 +788,8 @@ def validate_fars_national_context_artifact(artifact: Mapping[str, object]) -> N
         raise ValueError("private national FARS eligible cell accounting is inconsistent")
     if accounting["case_count"] != source["cases_joined"]:
         raise ValueError("private national FARS source case accounting is inconsistent")
+    _validate_annual_source_contract(source)
+    _validate_source_year_markers(artifact, method, source)
     _validate_source_accounting(source)
     if (
         accounting["positive_candidate_cell_count"]
@@ -537,8 +826,11 @@ __all__ = [
     "FARS_NATIONAL_CONTEXT_SCHEMA_VERSION",
     "FARS_STATE_CODEBOOK_VERSION",
     "build_verified_fars_national_context",
+    "build_verified_fars_year_national_context",
     "canonical_fars_national_context_bytes",
+    "fars_national_context_caveat",
     "fars_national_context_contract_descriptor",
     "fars_state_codebook_sha256",
+    "fars_state_codebook_version",
     "validate_fars_national_context_artifact",
 ]
