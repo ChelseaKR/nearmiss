@@ -671,7 +671,7 @@ msgid "web.submit.status_sending"
 msgstr "Sending your submission for review…"
 
 msgid "web.app.us_coverage_cta"
-msgstr "<strong>New: verified US fatal-crash context.</strong> <a href=\"us-coverage.html\">Explore published annual state-by-mode counts, non-published cells, and source provenance →</a>"
+msgstr "<strong>This Davis page is a synthetic demo.</strong> <a href=\"/fars/national/\">Explore separate, nationwide US evidence from reviewed 2020–2024 fatal-crash records →</a>"
 
 msgid "web.coverage.annual_contract_label"
 msgstr "Annual contract"

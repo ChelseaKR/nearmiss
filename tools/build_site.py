@@ -124,6 +124,16 @@ def build_site(out: Path, source_sha: str) -> SiteManifest:
             )
     for directory in ("vendor", "locales"):
         _copy_tree(ROOT / "web" / directory, out / "web" / directory)
+
+    # Keep the historical flat-file URL available while publishing the same
+    # reviewed document at the stable, product-facing route. The document uses
+    # root-absolute dependencies, so these byte-identical copies need no
+    # redirect shell or path-rewriting <base> element.
+    _copy_file(
+        ROOT / "web" / "us-coverage.html",
+        out / "fars" / "national" / "index.html",
+        allowed_root=ROOT / "web",
+    )
     published = ROOT / "data" / "published"
     _verify_fars_releases(published)
     _copy_published(published, out / "data" / "published")

@@ -4,15 +4,16 @@
     <meta charset="utf-8" />
     <script data-apex-redirect>
       (() => {
-        const language = new URLSearchParams(window.location.search).get("lang");
+        const values = new URLSearchParams(window.location.search).getAll("lang");
+        const language = values.length === 1 ? values[0] : "";
         const query = language === "es" ? "?lang=es" : language === "en" ? "?lang=en" : "";
-        window.location.replace(`web/us-coverage.html${query}`);
+        window.location.replace(`/fars/national/${query}`);
       })();
     </script>
-    <meta http-equiv="refresh" content="0; url=web/us-coverage.html" />
+    <meta http-equiv="refresh" content="0; url=/fars/national/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>US evidence ledger — nearmiss</title>
-    <link rel="canonical" href="https://nearmiss.report/web/us-coverage.html" />
+    <link rel="canonical" href="https://nearmiss.report/fars/national/" />
   </head>
   <body>
     <!-- Apex landing for the GitHub Pages custom domain (nearmiss.report).
@@ -21,11 +22,11 @@
       <h1>US evidence ledger</h1>
       <p>
         Redirecting to the
-        <a href="web/us-coverage.html">US evidence ledger</a>…
-        <a href="web/us-coverage.html?lang=es" hreflang="es" lang="es">Español</a> ·
-        <a href="web/index.html">Davis near-miss demo</a>. The
-        <a href="data/published/fars-state-mode-index.json">national evidence release index</a>,
-        <a href="data/published/fars-2024-state-mode.json">2024 evidence JSON</a>, and
+        <a href="/fars/national/">US evidence ledger</a>…
+        <a href="/fars/national/?lang=es" hreflang="es" lang="es">Español</a> ·
+        <a href="/web/index.html">Davis near-miss demo</a>. The
+        <a href="/data/published/fars-state-mode-index.json">national evidence release index</a>,
+        <a href="/data/published/fars-2024-state-mode.json">2024 evidence JSON</a>, and
         <a href="https://github.com/ChelseaKR/nearmiss">source code</a> are public.
       </p>
     </main>

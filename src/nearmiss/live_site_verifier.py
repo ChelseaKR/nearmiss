@@ -302,6 +302,22 @@ def _verify_share_shells(
             raise LiveSiteVerificationError("live localized share shell changed the reviewed HTML")
 
 
+def _verify_canonical_national_route(
+    fetcher: Fetcher,
+    *,
+    cache_token: str,
+    expected_html: bytes,
+) -> None:
+    canonical = _required(
+        fetcher,
+        _cache_target("/fars/national/", cache_token=cache_token),
+        maximum_bytes=_MAX_PUBLIC_FILE_BYTES,
+        label="live canonical national route",
+    )
+    if canonical != expected_html:
+        raise LiveSiteVerificationError("live canonical national route changed the reviewed HTML")
+
+
 def _verify_private_paths(
     fetcher: Fetcher,
     *,
@@ -401,6 +417,11 @@ def verify_live_site(
     )
     if apex != expected_files["index.html"]:
         raise LiveSiteVerificationError("live apex does not match the reviewed index document")
+    _verify_canonical_national_route(
+        fetcher,
+        cache_token=cache_token,
+        expected_html=expected_files["fars/national/index.html"],
+    )
     _deployment(expected_files["deployment.json"], expected_sha=expected_sha)
     _deployment(
         _required(

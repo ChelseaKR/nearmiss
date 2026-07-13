@@ -73,6 +73,12 @@ class MemoryFetcher:
             result = self.overrides[path]
         elif path == "/":
             result = FetchResult(200, (self.root / "index.html").read_bytes(), "text/html")
+        elif path == "/fars/national/":
+            result = FetchResult(
+                200,
+                (self.root / "fars" / "national" / "index.html").read_bytes(),
+                "text/html",
+            )
         elif path == "/.nojekyll":
             result = self.not_found
         else:
@@ -104,7 +110,7 @@ def test_exact_site_and_large_custom_404s_pass(expected_site: Path) -> None:
     summary = _verify(expected_site, fetcher)
 
     assert summary.source_sha == SHA
-    assert summary.file_count == 46
+    assert summary.file_count == 47
     assert summary.default_year == 2024
     assert summary.default_source_revision.startswith("reviewed-")
     assert summary.private_probe_count == len(live.PRIVATE_PATH_PROBES)
@@ -113,6 +119,7 @@ def test_exact_site_and_large_custom_404s_pass(expected_site: Path) -> None:
         target.startswith("/.well-known/nearmiss-guaranteed-missing-")
         for target, _ in fetcher.targets
     )
+    assert any(urlsplit(target).path == "/fars/national/" for target, _ in fetcher.targets)
     assert all(f"verify={CACHE_TOKEN}" in target for target, _ in fetcher.targets)
 
 
@@ -121,6 +128,7 @@ def test_exact_site_and_large_custom_404s_pass(expected_site: Path) -> None:
     [
         ("/site-manifest.json", b"{}\n", "manifest"),
         ("/web/us-coverage.js", b"tampered", "us-coverage.js"),
+        ("/fars/national/", b"tampered", "canonical national route"),
         ("/", b"soft 200 error", "apex"),
         ("/deployment.json", b"{}\n", "deployment"),
     ],

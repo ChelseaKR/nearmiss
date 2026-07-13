@@ -4,8 +4,8 @@
 (function () {
   "use strict";
 
-  var INDEX_URL = "../data/published/fars-state-mode-index.json";
-  var DATA_ROOT = "../data/published/";
+  var INDEX_URL = "/data/published/fars-state-mode-index.json";
+  var DATA_ROOT = "/data/published/";
   var LEGACY_2024_DATA_URL = DATA_ROOT + "fars-2024-state-mode.json";
   var EXPECTED_INDEX_BYTES = 5270;
   var EXPECTED_INDEX_SHA256 = "64d73ea4f25de4ef1321e6f8bed56215b9585fdc7ee74bc05bf47ec74bedaa48";
@@ -994,7 +994,7 @@
   function updateYearUrl(year) {
     var url = new URL(window.location.href);
     url.searchParams.set("year", String(year));
-    window.history.replaceState(null, "", url.href);
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
   }
 
   function updateStateUrl(state) {
@@ -1006,13 +1006,13 @@
     } else {
       url.searchParams.delete("state");
     }
-    window.history.replaceState(null, "", url.href);
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
   }
 
   function updateLanguageUrl(next) {
     var url = new URL(window.location.href);
     url.searchParams.set("lang", next);
-    window.history.replaceState(null, "", url.href);
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
   }
 
   function loadRelease(release, updateUrl) {

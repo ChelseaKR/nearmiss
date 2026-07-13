@@ -671,7 +671,7 @@ msgid "web.submit.status_sending"
 msgstr "Enviando su reporte para revisión…"
 
 msgid "web.app.us_coverage_cta"
-msgstr "<strong>Nuevo: contexto verificado de choques fatales en EE. UU.</strong> <a href=\"us-coverage.html\">Explore los conteos anuales publicados por estado y modo, las celdas no publicadas y la procedencia de la fuente →</a>"
+msgstr "<strong>Esta página de Davis es una demostración sintética.</strong> <a href=\"/fars/national/\">Explore por separado evidencia nacional de EE. UU. de registros revisados de choques fatales de 2020–2024 →</a>"
 
 msgid "web.coverage.annual_contract_label"
 msgstr "Contrato anual"
