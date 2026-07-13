@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: Apache-2.0
+name: live integrity sentinel
+
+on:
+  schedule:
+    - cron: "23 13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Keep reads deduplicated without blocking or replacing a pending main deploy.
+  group: live-integrity-sentinel
+  cancel-in-progress: false
+
+jobs:
+  verify-live:
+    name: verify exact live bytes and private-path denial
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Verify deployed main and negative privacy paths
+        run: |
+          expected_sha="$(git rev-parse HEAD)"
+          set +e
+          python -S tools/verify_live_site.py \
+            --expected-sha "$expected_sha" \
+            --attempts 12 \
+            --retry-seconds 10 \
+            --timeout-seconds 10 \
+            --deadline-seconds 480
+          verify_rc="$?"
+          set -e
+          remote_sha="$(git ls-remote --exit-code origin refs/heads/main | cut -f1)"
+          if [ "$remote_sha" != "$expected_sha" ]; then
+            echo "::warning::main moved during live verification; rerun after its deploy"
+            exit 0
+          fi
+          exit "$verify_rc"

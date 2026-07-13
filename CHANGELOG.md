@@ -58,6 +58,10 @@ every entry.
 
 ### Added
 
+- A scheduled and manually dispatchable read-only live-integrity sentinel. It rebuilds the exact
+  `main` Pages artifact, verifies every remotely retrievable manifest file and annual FARS release pin, exercises localized
+  share URLs, and requires representative private/non-allowlisted paths to remain HTTP 404 without
+  receiving secrets or deployment authority.
 - An additive `nearmiss ingest-fars-year` operator command for exact reviewed 2020–2024 National
   FARS accident/person archives. It requires an explicit registered year and contract revision,
   derives every source, mapping, bound, release, and regression decision from that immutable
