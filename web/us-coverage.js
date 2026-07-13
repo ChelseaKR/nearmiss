@@ -124,7 +124,11 @@
   var currentRelease = null;
   var artifact = null;
   var rows = [];
+  var artifactPromises = {};
+  var profileArtifacts = null;
+  var profileState = "";
   var requestSerial = 0;
+  var profileRequestSerial = 0;
   var languageRequestSerial = 0;
 
   function t(key) {
@@ -176,6 +180,23 @@
 
   function isSupportedYear(value) {
     return Number.isInteger(value) && SUPPORTED_YEARS.indexOf(value) >= 0;
+  }
+
+  function stateParts(value) {
+    var parts = value.split("|");
+    return { code: parts[0], abbreviation: parts[1], name: parts[2] };
+  }
+
+  function stateDefinition(abbreviation) {
+    return (
+      EXPECTED_STATES.map(stateParts).find(function (state) {
+        return state.abbreviation === abbreviation;
+      }) || null
+    );
+  }
+
+  function isValidState(abbreviation) {
+    return typeof abbreviation === "string" && stateDefinition(abbreviation) !== null;
   }
 
   function expectedSourceUrl(year) {
@@ -503,6 +524,24 @@
       });
   }
 
+  function loadArtifact(release) {
+    var year = release.dataset_year;
+    if (!hasOwn(artifactPromises, year)) {
+      artifactPromises[year] = fetch(DATA_ROOT + release.artifact_path)
+        .then(function (response) {
+          return verifiedJson(response, release.artifact_bytes, release.artifact_sha256, "annual artifact");
+        })
+        .then(function (data) {
+          return validateArtifact(data, release, releaseIndex.contract);
+        })
+        .catch(function (error) {
+          delete artifactPromises[year];
+          throw error;
+        });
+    }
+    return artifactPromises[year];
+  }
+
   function flatten(data) {
     var output = [];
     data.states.forEach(function (state) {
@@ -536,20 +575,189 @@
     return element;
   }
 
+  function clearProfileTable() {
+    document.getElementById("profile-early-body").textContent = "";
+    document.getElementById("profile-late-body").textContent = "";
+    document.getElementById("state-profile-wrap").hidden = true;
+  }
+
+  function setProfileStatus(key, className) {
+    var status = document.getElementById("state-profile-status");
+    document
+      .getElementById("state-profile")
+      .setAttribute("aria-busy", className === "is-loading" ? "true" : "false");
+    status.setAttribute("data-i18n", key);
+    status.textContent = t(key);
+    status.className = "state-profile-status" + (className ? " " + className : "");
+  }
+
+  function showProfileEmpty() {
+    profileArtifacts = null;
+    profileState = "";
+    clearProfileTable();
+    setProfileStatus("profile_empty", "");
+  }
+
+  function showProfileLoading() {
+    profileArtifacts = null;
+    profileState = "";
+    clearProfileTable();
+    setProfileStatus("profile_loading", "is-loading");
+  }
+
+  function showProfileError() {
+    profileArtifacts = null;
+    profileState = "";
+    clearProfileTable();
+    setProfileStatus("profile_error", "is-error");
+  }
+
+  function profileStateFromArtifact(data, abbreviation) {
+    return (
+      data.states.find(function (state) {
+        return state.state_abbreviation === abbreviation;
+      }) || null
+    );
+  }
+
+  function renderRegimeGroup(body, labelKey, years) {
+    body.textContent = "";
+    var labelRow = document.createElement("tr");
+    labelRow.className = "profile-regime-label";
+    var label = cell("th", t(labelKey));
+    label.id = body.id + "-label";
+    label.colSpan = 7;
+    label.scope = "rowgroup";
+    body.setAttribute("aria-labelledby", label.id);
+    labelRow.appendChild(label);
+    body.appendChild(labelRow);
+
+    years.forEach(function (year) {
+      var data = profileArtifacts[year];
+      var state = profileStateFromArtifact(data, profileState);
+      assert(state, "selected profile state is missing from an annual artifact");
+      var row = document.createElement("tr");
+      row.className = "profile-year-row";
+      row.dataset.year = String(year);
+      row.appendChild(cell("th", String(year)));
+      row.firstElementChild.scope = "row";
+      EXPECTED_MODES.forEach(function (mode, modeIndex) {
+        var result = state.cells[modeIndex];
+        assert(result.involved_mode === mode, "profile mode order drifted after validation");
+        var value;
+        if (result.status === "published") {
+          value = cell("td", number(result.crash_count), "profile-value");
+        } else {
+          value = cell("td", t("cell_not_published"), "profile-withheld");
+        }
+        value.dataset.status = result.status;
+        value.dataset.mode = mode;
+        row.appendChild(value);
+      });
+      body.appendChild(row);
+    });
+  }
+
+  function renderStateProfile() {
+    if (!profileArtifacts || !profileState) return;
+    var definition = stateDefinition(profileState);
+    assert(definition, "selected profile state is unsupported");
+    renderRegimeGroup(
+      document.getElementById("profile-early-body"),
+      "profile_regime_early",
+      [2020, 2021]
+    );
+    renderRegimeGroup(
+      document.getElementById("profile-late-body"),
+      "profile_regime_late",
+      [2022, 2023, 2024]
+    );
+    var caption = document.getElementById("profile-caption");
+    caption.removeAttribute("data-i18n");
+    caption.textContent = tpl(t("profile_caption"), { state: definition.name });
+    document.getElementById("state-profile-wrap").hidden = false;
+    var status = document.getElementById("state-profile-status");
+    status.removeAttribute("data-i18n");
+    status.className = "state-profile-status is-ready";
+    status.textContent = tpl(t("profile_ready"), { state: definition.name });
+    document.getElementById("state-profile").setAttribute("aria-busy", "false");
+  }
+
+  function loadStateProfile(abbreviation) {
+    var serial = ++profileRequestSerial;
+    if (!abbreviation) {
+      showProfileEmpty();
+      return Promise.resolve();
+    }
+    if (!isValidState(abbreviation)) {
+      showProfileError();
+      return Promise.resolve();
+    }
+    showProfileLoading();
+    return Promise.all(
+      releaseIndex.releases.map(function (release) {
+        return loadArtifact(release);
+      })
+    )
+      .then(function (artifacts) {
+        if (
+          serial !== profileRequestSerial ||
+          document.getElementById("state-filter").value !== abbreviation
+        ) {
+          return;
+        }
+        profileArtifacts = {};
+        artifacts.forEach(function (data) {
+          profileArtifacts[data.dataset_year] = data;
+        });
+        profileState = abbreviation;
+        renderStateProfile();
+      })
+      .catch(function () {
+        if (
+          serial === profileRequestSerial &&
+          document.getElementById("state-filter").value === abbreviation
+        ) {
+          showProfileError();
+        }
+      });
+  }
+
   function selectedRows() {
     var state = document.getElementById("state-filter").value;
     var mode = document.getElementById("mode-filter").value;
     var status = document.getElementById("status-filter").value;
+    if (!state) return [];
     return rows.filter(function (row) {
-      return (!state || row.stateAbbreviation === state) && (!mode || row.mode === mode) && (!status || row.status === status);
+      return (
+        row.stateAbbreviation === state &&
+        (!mode || row.mode === mode) &&
+        (!status || row.status === status)
+      );
     });
   }
 
   function renderTable() {
     if (!artifact) return;
+    var selectedState = document.getElementById("state-filter").value;
     var selected = selectedRows();
     var body = document.getElementById("coverage-body");
+    var caption = document.getElementById("coverage-caption");
+    var status = document.getElementById("coverage-status");
     body.textContent = "";
+    if (!selectedState) {
+      var directionRow = document.createElement("tr");
+      var directionCell = cell("td", t("ledger_empty"));
+      directionCell.colSpan = 5;
+      directionRow.appendChild(directionCell);
+      body.appendChild(directionRow);
+      caption.setAttribute("data-i18n", "ledger_caption_empty");
+      caption.textContent = t("ledger_caption_empty");
+      status.setAttribute("data-i18n", "ledger_empty");
+      status.textContent = t("ledger_empty");
+      status.classList.remove("is-error");
+      return;
+    }
     if (!selected.length) {
       var emptyRow = document.createElement("tr");
       var emptyCell = cell("td", t("no_results"));
@@ -576,27 +784,35 @@
       tr.appendChild(cell("td", row.status === "published" ? number(row.count) : "—", "count-cell"));
       body.appendChild(tr);
     });
-    var values = { shown: number(selected.length), total: number(rows.length) };
-    var caption = document.getElementById("coverage-caption");
-    var status = document.getElementById("coverage-status");
+    var definition = stateDefinition(selectedState);
+    var stateTotal = rows.filter(function (row) {
+      return row.stateAbbreviation === selectedState;
+    }).length;
+    var values = {
+      shown: number(selected.length),
+      total: number(stateTotal),
+      state: definition.name,
+      year: String(artifact.dataset_year),
+    };
     caption.removeAttribute("data-i18n");
     status.removeAttribute("data-i18n");
-    caption.textContent = tpl(t("caption"), values);
-    status.textContent = tpl(t("result_summary"), values);
+    caption.textContent = tpl(t("caption_state"), values);
+    status.textContent = tpl(t("result_summary_state"), values);
   }
 
-  function renderArtifactControls() {
+  function populateStateControl(selectedState) {
     var stateSelect = document.getElementById("state-filter");
-    var selectedState = stateSelect.value;
     while (stateSelect.options.length > 1) stateSelect.remove(1);
-    artifact.states.forEach(function (state) {
+    EXPECTED_STATES.map(stateParts).forEach(function (state) {
       var option = document.createElement("option");
-      option.value = state.state_abbreviation;
-      option.textContent = state.state_name + " (" + state.state_abbreviation + ")";
+      option.value = state.abbreviation;
+      option.textContent = state.name + " (" + state.abbreviation + ")";
       stateSelect.appendChild(option);
     });
     stateSelect.value = selectedState;
+  }
 
+  function renderArtifactControls() {
     var modeSelect = document.getElementById("mode-filter");
     var selectedMode = modeSelect.value;
     while (modeSelect.options.length > 1) modeSelect.remove(1);
@@ -700,6 +916,7 @@
       renderMetadata();
       renderTable();
     }
+    if (profileArtifacts && profileState) renderStateProfile();
   }
 
   function showLoading() {
@@ -763,9 +980,32 @@
     return year;
   }
 
+  function requestedState() {
+    var params = new URLSearchParams(window.location.search);
+    if (!params.has("state")) return "";
+    var values = params.getAll("state");
+    assert(values.length === 1, "requested state must be unambiguous");
+    var value = values[0];
+    assert(/^[A-Z]{2}$/.test(value), "requested state is invalid");
+    assert(isValidState(value), "requested state is not a reviewed jurisdiction");
+    return value;
+  }
+
   function updateYearUrl(year) {
     var url = new URL(window.location.href);
     url.searchParams.set("year", String(year));
+    window.history.replaceState(null, "", url.href);
+  }
+
+  function updateStateUrl(state) {
+    var url = new URL(window.location.href);
+    if (state) {
+      url.searchParams.set("state", state);
+      url.searchParams.set("year", document.getElementById("year-filter").value);
+      url.searchParams.set("lang", lang);
+    } else {
+      url.searchParams.delete("state");
+    }
     window.history.replaceState(null, "", url.href);
   }
 
@@ -781,20 +1021,20 @@
     document.getElementById("year-filter").value = String(release.dataset_year);
     updateProofRail(release.dataset_year);
     showLoading();
-    return fetch(DATA_ROOT + release.artifact_path)
-      .then(function (response) {
-        return verifiedJson(response, release.artifact_bytes, release.artifact_sha256, "annual artifact");
-      })
+    return loadArtifact(release)
       .then(function (data) {
         if (serial !== requestSerial) return;
-        artifact = validateArtifact(data, release, releaseIndex.contract);
+        artifact = data;
         rows = flatten(artifact);
         if (updateUrl) updateYearUrl(release.dataset_year);
         document.getElementById("coverage-status").classList.remove("is-error");
         applyTranslations();
       })
       .catch(function () {
-        if (serial === requestSerial) showError();
+        if (serial === requestSerial) {
+          showError();
+          if (document.getElementById("state-filter").value) showProfileError();
+        }
       });
   }
 
@@ -811,6 +1051,17 @@
           return;
         }
         loadRelease(release, true);
+      } else if (event.target && event.target.id === "state-filter") {
+        var state = event.target.value;
+        if (state && !isValidState(state)) {
+          ++profileRequestSerial;
+          showError();
+          showProfileError();
+          return;
+        }
+        updateStateUrl(state);
+        renderTable();
+        loadStateProfile(state);
       } else {
         renderTable();
       }
@@ -821,6 +1072,9 @@
       document.getElementById("state-filter").value = "";
       document.getElementById("mode-filter").value = "";
       document.getElementById("status-filter").value = "";
+      ++profileRequestSerial;
+      updateStateUrl("");
+      showProfileEmpty();
       loadRelease(releaseForYear(releaseIndex.default_year), true);
     });
     document.querySelectorAll("[data-lang]").forEach(function (button) {
@@ -867,8 +1121,17 @@
       populateYearControl(releaseIndex.default_year);
       updateProofRail(null);
       var year = requestedYear();
+      var state = requestedState();
       populateYearControl(year);
-      return loadRelease(releaseForYear(year), false);
+      populateStateControl(state);
+      var selectedRelease = loadRelease(releaseForYear(year), false);
+      if (!state) return selectedRelease;
+      updateStateUrl(state);
+      return Promise.all([selectedRelease, loadStateProfile(state)]);
     })
-    .catch(showError);
+    .catch(function () {
+      ++profileRequestSerial;
+      showError();
+      showProfileError();
+    });
 })();
