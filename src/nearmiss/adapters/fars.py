@@ -353,14 +353,23 @@ def _validated_bbox(
     return west, south, east, north
 
 
-def collect(
+def _validated_release_status(value: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError("FARS release_status must be a string")
+    result = value.strip()
+    if not result:
+        raise ValueError("FARS release_status must not be empty")
+    return result
+
+
+def collect_v1(
     rows: Iterable[Mapping[str, str]],
     *,
     input_sha256: str | None = None,
     bbox: tuple[float, float, float, float] | None = None,
     release_status: str = "unspecified",
 ) -> tuple[list[dict[str, Any]], OutcomeProvenance]:
-    """Map crash rows, retaining deterministic rejection accounting."""
+    """Map crash rows under the immutable FARS crash mapping v1 semantics."""
     bbox = _validated_bbox(bbox)
     candidates: dict[str, list[dict[str, Any]]] = {}
     rejected: dict[str, int] = {}
@@ -417,6 +426,22 @@ def collect(
     return outcomes, provenance
 
 
+def collect(
+    rows: Iterable[Mapping[str, str]],
+    *,
+    input_sha256: str | None = None,
+    bbox: tuple[float, float, float, float] | None = None,
+    release_status: str = "unspecified",
+) -> tuple[list[dict[str, Any]], OutcomeProvenance]:
+    """Compatibility wrapper for the current FARS crash mapping."""
+    return collect_v1(
+        rows,
+        input_sha256=input_sha256,
+        bbox=bbox,
+        release_status=release_status,
+    )
+
+
 class FarsAdapter:
     """OfficialOutcomeAdapter for a local FARS accident CSV or CSV archive."""
 
@@ -430,12 +455,7 @@ class FarsAdapter:
 
     def parse(self, raw: Any, **kwargs: Any) -> tuple[list[dict[str, Any]], OutcomeProvenance]:
         bbox: tuple[float, float, float, float] | None = kwargs.get("bbox")
-        release_status: str = kwargs.get("release_status", "unspecified")
-        if not isinstance(release_status, str):
-            raise TypeError("FARS release_status must be a string")
-        release_status = release_status.strip()
-        if not release_status:
-            raise ValueError("FARS release_status must not be empty")
+        release_status = _validated_release_status(kwargs.get("release_status", "unspecified"))
         rows: Iterable[Mapping[str, str]]
         if isinstance(raw, FarsRawBatch):
             rows = raw.rows

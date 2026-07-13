@@ -14,11 +14,21 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, cast
 
-from ..fars_year_contracts import FarsYearContract, fars_year_contract
-from .fars import FarsAdapter, FarsRawBatch, read_export_bytes
+from ..fars_year_contracts import (
+    FARS_YEAR_CONTRACT_HISTORY,
+    SUPPORTED_FARS_YEARS,
+    FarsYearContract,
+    fars_year_contract,
+    fars_year_contract_revision,
+)
+from .fars import _validated_release_status as _validated_crash_release_status
+from .fars import collect_v1 as collect_crashes_v1
+from .fars import read_export_bytes
 from .outcomes import OutcomeProvenance
 
-PERSON_MODE_MAPPING_VERSION = "1.0.0"
+_PERSON_MODE_MAPPING_V1 = "1.0.0"
+PERSON_MODE_MAPPING_VERSION = _PERSON_MODE_MAPPING_V1
+_JOINED_MAPPING_IMPLEMENTATIONS = {("1.0.0", _PERSON_MODE_MAPPING_V1): "joined_v1"}
 FARS_COUNTY_CODE_SYSTEM = "nhtsa_fars_gsa_2024"
 MODE_ORDER = (
     "motor_vehicle_occupant",
@@ -46,6 +56,35 @@ _DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 _CRC32_RE = re.compile(r"^[0-9a-f]{8}$")
 _DIGITS_RE = re.compile(r"^[0-9]+$")
 _MAPPING_PROXY_TYPE: type[Any] = type(MappingProxyType({}))
+_SUPPORTED_PERSON_SEMANTIC_REGIMES = frozenset(
+    {"fars_per_typ_2020_2021_v1", "fars_per_typ_2022_2024_v1"}
+)
+
+
+def _joined_mapping_implementation(contract: FarsYearContract) -> str:
+    implementation = _JOINED_MAPPING_IMPLEMENTATIONS.get(
+        (contract.crash_mapping_version, contract.person_mapping_version)
+    )
+    if implementation is None:
+        raise ValueError("joined FARS contract mapping versions are not implemented")
+    return implementation
+
+
+def _validate_person_mapping_identity(
+    dataset_year: int,
+    mapping_version: str,
+    semantic_regime_id: str,
+) -> None:
+    if dataset_year not in SUPPORTED_FARS_YEARS:
+        raise ValueError("joined FARS person dataset year is unsupported")
+    if semantic_regime_id not in _SUPPORTED_PERSON_SEMANTIC_REGIMES or not any(
+        contract.person_mapping_version == mapping_version
+        and contract.semantic_regime_id == semantic_regime_id
+        for contract in FARS_YEAR_CONTRACT_HISTORY[dataset_year]
+    ):
+        raise ValueError(
+            "joined FARS person mapping version and semantic regime do not match dataset year"
+        )
 
 
 def _frozen_row(row: Mapping[str, str]) -> Mapping[str, str]:
@@ -191,9 +230,11 @@ class PersonJoinProvenance:
             or self.person_sha256 != self.person_member.sha256
         ):
             raise ValueError("joined FARS provenance member digests are inconsistent")
-        contract = fars_year_contract(self.dataset_year)
-        if self.semantic_regime_id != contract.semantic_regime_id:
-            raise ValueError("joined FARS person semantic regime does not match dataset year")
+        _validate_person_mapping_identity(
+            self.dataset_year,
+            self.mapping_version,
+            self.semantic_regime_id,
+        )
         counts = (
             self.records_read,
             self.records_accepted,
@@ -450,13 +491,15 @@ def _read_person_member(
         return rows, descriptor
 
 
-def read_joined_export_bytes(payload: bytes, *, expected_year: int = 2024) -> FarsJoinedRawBatch:
-    """Read one bounded ZIP under the legacy/replay-compatible year contract."""
+def _read_joined_export_bytes_for_contract(
+    payload: bytes,
+    *,
+    contract: FarsYearContract,
+) -> FarsJoinedRawBatch:
     if not isinstance(payload, bytes):
         raise TypeError("joined FARS export must be bytes")
     if len(payload) > _MAX_INPUT_BYTES:
         raise ValueError("joined FARS export exceeds its safety limit")
-    contract = fars_year_contract(expected_year)
     if not zipfile.is_zipfile(io.BytesIO(payload)):
         raise ValueError("joined FARS export must be a ZIP archive")
     with zipfile.ZipFile(io.BytesIO(payload)) as archive:
@@ -494,6 +537,14 @@ def read_joined_export_bytes(payload: bytes, *, expected_year: int = 2024) -> Fa
     )
 
 
+def read_joined_export_bytes(payload: bytes, *, expected_year: int = 2024) -> FarsJoinedRawBatch:
+    """Read one bounded ZIP under the legacy/replay-compatible latest year contract."""
+    return _read_joined_export_bytes_for_contract(
+        payload,
+        contract=fars_year_contract(expected_year),
+    )
+
+
 def read_pinned_joined_export_bytes(payload: bytes, *, expected_year: int) -> FarsJoinedRawBatch:
     """Read a fixed-year ZIP only after exact reviewed package identity validation."""
     if not isinstance(payload, bytes):
@@ -502,6 +553,26 @@ def read_pinned_joined_export_bytes(payload: bytes, *, expected_year: int) -> Fa
         raise ValueError("joined FARS export exceeds its safety limit")
     fars_year_contract(expected_year).validate_raw_package(payload)
     return read_joined_export_bytes(payload, expected_year=expected_year)
+
+
+def read_pinned_joined_export_bytes_for_contract(
+    payload: bytes,
+    *,
+    contract: FarsYearContract,
+) -> FarsJoinedRawBatch:
+    """Read exact bytes under one exact registered historical contract revision."""
+    if not isinstance(contract, FarsYearContract):
+        raise TypeError("joined FARS pinned reader requires an immutable year contract")
+    if not isinstance(payload, bytes):
+        raise TypeError("joined FARS export must be bytes")
+    registered = fars_year_contract_revision(contract.year, contract.revision)
+    if registered is not contract:
+        raise ValueError("joined FARS pinned reader requires an exact registered contract")
+    _joined_mapping_implementation(contract)
+    if len(payload) != contract.raw_size_bytes:
+        raise ValueError("FARS raw archive identity does not match the fixed-year contract")
+    contract.validate_raw_package(payload)
+    return _read_joined_export_bytes_for_contract(payload, contract=contract)
 
 
 def _integer(row: Mapping[str, str], key: str, *, positive: bool = False) -> int:
@@ -646,7 +717,7 @@ def _person_index(  # noqa: C901 - whole-batch relational checks remain auditabl
     return joined, {case: values[3] for case, values in accident.items()}, year
 
 
-def collect_joined(
+def _collect_joined_v1(
     batch: FarsJoinedRawBatch,
     *,
     release_status: str = "unspecified",
@@ -657,13 +728,15 @@ def collect_joined(
     OutcomeProvenance,
     PersonJoinProvenance,
 ]:
-    """Map crash outcomes and attach deterministic crash-level person mode summaries."""
+    """Map crashes and people under immutable joined mapping v1 semantics."""
+    release_status = _validated_crash_release_status(release_status)
     joined, jurisdictions, year = _person_index(
         batch,
         legacy_mode_semantics=legacy_mode_semantics,
     )
-    outcomes, crash_provenance = FarsAdapter().parse(
-        FarsRawBatch(rows=batch.accident_rows, input_sha256=batch.input_sha256),
+    outcomes, crash_provenance = collect_crashes_v1(
+        batch.accident_rows,
+        input_sha256=batch.input_sha256,
         release_status=release_status,
     )
     summaries: list[FarsModeSummary] = []
@@ -689,7 +762,7 @@ def collect_joined(
     excluded_person_records = len(batch.person_rows) - accepted_person_records
     reasons = {"parent_crash_rejected": excluded_person_records} if excluded_person_records else {}
     provenance = PersonJoinProvenance(
-        mapping_version=PERSON_MODE_MAPPING_VERSION,
+        mapping_version=_PERSON_MODE_MAPPING_V1,
         dataset_year=year,
         input_sha256=batch.input_sha256,
         accident_sha256=batch.accident_sha256,
@@ -705,3 +778,25 @@ def collect_joined(
         semantic_regime_id=batch.year_contract.semantic_regime_id,
     )
     return outcomes, summaries, crash_provenance, provenance
+
+
+def collect_joined(
+    batch: FarsJoinedRawBatch,
+    *,
+    release_status: str = "unspecified",
+    legacy_mode_semantics: bool = False,
+) -> tuple[
+    list[dict[str, Any]],
+    list[FarsModeSummary],
+    OutcomeProvenance,
+    PersonJoinProvenance,
+]:
+    """Dispatch one exact contract to an append-only joined mapping implementation."""
+    implementation = _joined_mapping_implementation(batch.year_contract)
+    if implementation == "joined_v1":
+        return _collect_joined_v1(
+            batch,
+            release_status=release_status,
+            legacy_mode_semantics=legacy_mode_semantics,
+        )
+    raise RuntimeError("joined FARS mapping dispatch selected an invalid implementation")

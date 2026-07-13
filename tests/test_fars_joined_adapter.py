@@ -18,7 +18,9 @@ from nearmiss.adapters.fars_joined import (
     collect_joined,
     read_joined_export_bytes,
     read_pinned_joined_export_bytes,
+    read_pinned_joined_export_bytes_for_contract,
 )
+from nearmiss.fars_year_contracts import fars_year_contract
 
 ROOT = Path(__file__).resolve().parents[1]
 ACCIDENT = (
@@ -322,6 +324,91 @@ def test_reader_rejects_dataset_year_mismatched_to_contract() -> None:
 def test_pinned_reader_rejects_unreviewed_same_year_package_before_parsing() -> None:
     with pytest.raises(ValueError, match="raw archive identity"):
         read_pinned_joined_export_bytes(_archive(), expected_year=2024)
+
+
+def test_exact_contract_reader_rejects_wrong_length_before_parsing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    parsed = False
+
+    def fail_if_parsed(payload: bytes, *, contract: object) -> object:
+        nonlocal parsed
+        parsed = True
+        raise AssertionError((payload, contract))
+
+    monkeypatch.setattr(fars_joined, "_read_joined_export_bytes_for_contract", fail_if_parsed)
+    with pytest.raises(ValueError, match="raw archive identity"):
+        read_pinned_joined_export_bytes_for_contract(
+            _archive(),
+            contract=fars_year_contract(2024),
+        )
+    assert parsed is False
+
+
+def test_exact_contract_reader_rejects_wrong_digest_before_parsing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    raw = _archive()
+    raw_sha256 = hashlib.sha256(raw).hexdigest()
+    contract = dataclasses.replace(
+        fars_year_contract(2024),
+        source_revision_id=f"reviewed-20260712-{raw_sha256[:12]}",
+        raw_size_bytes=len(raw),
+        raw_sha256=raw_sha256,
+    )
+    monkeypatch.setattr(
+        fars_joined,
+        "fars_year_contract_revision",
+        lambda year, revision: contract,
+    )
+    parsed = False
+
+    def fail_if_parsed(payload: bytes, *, contract: object) -> object:
+        nonlocal parsed
+        parsed = True
+        raise AssertionError((payload, contract))
+
+    monkeypatch.setattr(fars_joined, "_read_joined_export_bytes_for_contract", fail_if_parsed)
+    substituted = bytearray(raw)
+    substituted[-1] ^= 1
+    with pytest.raises(ValueError, match="raw archive identity"):
+        read_pinned_joined_export_bytes_for_contract(
+            bytes(substituted),
+            contract=contract,
+        )
+    assert parsed is False
+
+
+def test_exact_contract_reader_rejects_same_valued_reconstructed_contract(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    raw = _archive()
+    raw_sha256 = hashlib.sha256(raw).hexdigest()
+    registered = dataclasses.replace(
+        fars_year_contract(2024),
+        source_revision_id=f"reviewed-20260712-{raw_sha256[:12]}",
+        raw_size_bytes=len(raw),
+        raw_sha256=raw_sha256,
+    )
+    forged = dataclasses.replace(registered)
+    assert forged == registered and forged is not registered
+    monkeypatch.setattr(
+        fars_joined,
+        "fars_year_contract_revision",
+        lambda year, revision: registered,
+    )
+    with pytest.raises(ValueError, match="exact registered contract"):
+        read_pinned_joined_export_bytes_for_contract(raw, contract=forged)
+
+
+def test_mapping_dispatch_fails_closed_for_unimplemented_contract_versions() -> None:
+    contract = dataclasses.replace(
+        fars_year_contract(2024),
+        crash_mapping_version="2.0.0",
+        person_mapping_version="2.0.0",
+    )
+    with pytest.raises(ValueError, match="mapping versions are not implemented"):
+        fars_joined._joined_mapping_implementation(contract)
 
 
 def test_person_mapping_supports_reviewed_2023_contract() -> None:

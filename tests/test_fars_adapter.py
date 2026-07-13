@@ -15,6 +15,7 @@ from nearmiss.adapters.fars import (
     FarsAdapter,
     FarsRawBatch,
     collect,
+    collect_v1,
     fars_outcome_id,
     load_export_bytes,
     read_export,
@@ -47,6 +48,19 @@ def test_ids_and_order_are_stable() -> None:
     assert [row["source_record_id"] for row in first] == ["2023:100001", "2023:100002"]
     assert first[0]["id"] == fars_outcome_id(2023, "100001")
     assert uuid.UUID(first[0]["id"]).version == 5
+
+
+def test_current_collect_wrapper_preserves_named_v1_mapping() -> None:
+    batch = read_export(FIXTURE)
+    assert collect(batch.rows, input_sha256=batch.input_sha256) == collect_v1(
+        batch.rows,
+        input_sha256=batch.input_sha256,
+    )
+
+
+def test_direct_collect_preserves_legacy_release_status_behavior() -> None:
+    assert collect([], release_status=" final ")[1].release_status == " final "
+    assert collect([], release_status="  ")[1].release_status == "  "
 
 
 def test_year_scoped_case_ids_are_globally_qualified() -> None:
