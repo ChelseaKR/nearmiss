@@ -34,6 +34,12 @@ from .fars_context import (
 )
 from .ingestion import Clock, IngestionResult, run_ingestion
 from .loaders import load_streets_bytes
+from .private_paths import (
+    PrivateRootPreflightError,
+    RepositoryContainmentError,
+    RepositoryRootPreflightError,
+    require_private_root_outside_repository,
+)
 from .verified_outcomes import (
     VerificationError,
     VerifiedJoinedOutcomeEvidence,
@@ -1412,14 +1418,15 @@ def require_private_activation_root(root: str | Path, repository_root: str | Pat
     """Reject activation storage inside the repository before any mutation."""
 
     try:
-        resolved_root = Path(root).expanduser().resolve(strict=False)
-        resolved_repository = Path(repository_root).expanduser().resolve(strict=True)
-        resolved_root.relative_to(resolved_repository)
-    except ValueError:
-        return resolved_root
-    except OSError:
+        return require_private_root_outside_repository(root, repository_root)
+    except PrivateRootPreflightError:
         raise ValueError("FARS context activation root preflight failed") from None
-    raise ValueError("FARS context activation root must remain outside the repository")
+    except RepositoryRootPreflightError:
+        raise ValueError("FARS context activation repository root preflight failed") from None
+    except RepositoryContainmentError:
+        raise ValueError(
+            "FARS context activation root must remain outside the repository"
+        ) from None
 
 
 def activate_fars_context_audit_only(

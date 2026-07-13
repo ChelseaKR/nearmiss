@@ -278,9 +278,11 @@ _RECEIPT_VALIDATOR = Draft202012Validator(RECEIPT_SCHEMA, format_checker=FormatC
 
 Fetch = Callable[[], bytes]
 Normalize = Callable[[bytes], bytes]
+LockedPreflight = Callable[[Path], None]
 ValidateNormalized = Callable[[bytes, bytes | None], None]
 ValidateHistory = Callable[[Path, bytes, str], None]
 ValidateActivated = Callable[[Path, bytes, bytes], None]
+ValidateReceiptFinalization = Callable[[Path], None]
 Clock = Callable[[], dt.datetime]
 LockIdentity = tuple[int, int]
 
@@ -1033,9 +1035,11 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
     source_id: str,
     fetch: Fetch,
     normalize: Normalize,
+    locked_preflight: LockedPreflight | None = None,
     validate_normalized: ValidateNormalized | None = None,
     validate_history: ValidateHistory | None = None,
     validate_activated: ValidateActivated | None = None,
+    validate_receipt_finalization: ValidateReceiptFinalization | None = None,
     clock: Clock = _utc_now,
     attempt_id: str | None = None,
     max_raw_bytes: int | None = None,
@@ -1043,15 +1047,20 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
 ) -> IngestionResult:
     """Fetch, snapshot, normalize, and atomically activate one source.
 
-    ``fetch`` and ``normalize`` must return non-empty bytes. The optional
-    candidate validator receives the candidate and previous normalized bytes.
+    ``fetch`` and ``normalize`` must return non-empty bytes. The optional locked
+    preflight receives the owned source root after the built-in preflight and
+    before fetch; its exceptions propagate without writing an attempt receipt
+    or candidate artifact. The optional candidate validator receives the
+    candidate and previous normalized bytes.
     The optional history validator receives the owned source root, preserved
     candidate bytes, and exact canonical attempt start timestamp immediately
     before activation. The optional activated validator receives the owned source
     root, exact normalized candidate, and exact canonical success marker after
-    activation but before success receipt finalization. Any exception
-    after successful preflight produces a failure receipt and raises
-    :class:`IngestionRunError`; the prior normalized artifact remains active.
+    activation but before success receipt finalization. The optional receipt
+    finalization validator runs under the owned lock immediately before every
+    success or failure receipt write. If it rejects, no new receipt is written.
+    Other exceptions after successful preflight produce a failure receipt and
+    raise :class:`IngestionRunError`; the prior normalized artifact remains active.
     """
     if not _SAFE_SOURCE_ID.fullmatch(source_id):
         raise IngestionError("source_id must contain only letters, digits, '.', '_' or '-'")
@@ -1076,6 +1085,7 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
 
     lock_identity = _acquire_lock(lock_path, source_id)
 
+    preflight_limit_exceeded = False
     try:
         previous = _preflight_attempt(
             receipt_path,
@@ -1086,6 +1096,26 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
             max_normalized_bytes=max_normalized_bytes,
         )
     except _ActiveArtifactLimitError:
+        previous = None
+        preflight_limit_exceeded = True
+    except BaseException:
+        _release_lock(lock_path, lock_identity)
+        raise
+
+    if locked_preflight is not None:
+        try:
+            locked_preflight(source_root)
+        except BaseException:
+            _release_lock(lock_path, lock_identity)
+            raise
+
+    if preflight_limit_exceeded:
+        if validate_receipt_finalization is not None:
+            try:
+                validate_receipt_finalization(source_root)
+            except BaseException:
+                _release_lock(lock_path, lock_identity)
+                raise
         try:
             _write_preflight_limit_failure(
                 source_root=source_root,
@@ -1106,9 +1136,6 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
         raise IngestionRunError(
             f"ingestion failed for source {source_id!r}", receipt_path
         ) from None
-    except BaseException:
-        _release_lock(lock_path, lock_identity)
-        raise
 
     previous_marker = previous.marker_bytes if previous is not None else None
     previous_normalized = previous.normalized if previous is not None else None
@@ -1195,6 +1222,10 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
             )
 
         failure_stage = "success receipt finalization"
+        if validate_receipt_finalization is not None:
+            failure_stage = "success receipt finalization validation"
+            validate_receipt_finalization(source_root)
+            failure_stage = "success receipt finalization"
         _install_immutable(source_root, receipt_path, success_marker)
         return IngestionResult(
             source_id=source_id,
@@ -1304,6 +1335,16 @@ def run_ingestion(  # noqa: C901 - keep crash-state transitions together and aud
         failure_receipt_path = (
             receipts_dir / f"{run_id}.failure.json" if rollback_failed else receipt_path
         )
+        if validate_receipt_finalization is not None:
+            try:
+                validate_receipt_finalization(source_root)
+            except BaseException as finalization_exc:
+                if not isinstance(finalization_exc, Exception):
+                    raise
+                raise IngestionError(
+                    "ingestion failed and receipt finalization was rejected; "
+                    "no failure receipt was written"
+                ) from None
         try:
             _install_immutable(source_root, failure_receipt_path, _receipt_bytes(failure))
         except BaseException as receipt_exc:

@@ -390,6 +390,201 @@ def test_preflight_errors_release_owned_lock_without_fetching(tmp_path: Path) ->
     assert not (tmp_path / "source" / ".ingestion.lock").exists()
 
 
+def test_locked_preflight_runs_after_builtin_preflight_before_fetch_and_receipt(
+    tmp_path: Path,
+) -> None:
+    initial = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"raw-initial",
+        normalize=lambda raw: raw,
+        clock=_clock,
+        attempt_id="locked-preflight-initial",
+    )
+    initial.receipt_path.unlink()
+    source_root = tmp_path / "source"
+    attempt_receipt = source_root / "receipts" / "locked-preflight-next.json"
+    events: list[str] = []
+
+    def locked_preflight(actual_source_root: Path) -> None:
+        assert actual_source_root == source_root
+        assert (source_root / ".ingestion.lock").is_dir()
+        assert initial.receipt_path.read_bytes() == initial.current_path.read_bytes()
+        assert not attempt_receipt.exists()
+        events.append("locked-preflight")
+
+    def fetch() -> bytes:
+        assert events == ["locked-preflight"]
+        assert (source_root / ".ingestion.lock").is_dir()
+        assert not attempt_receipt.exists()
+        events.append("fetch")
+        return b"raw-next"
+
+    result = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=fetch,
+        normalize=lambda raw: raw,
+        locked_preflight=locked_preflight,
+        clock=_clock,
+        attempt_id="locked-preflight-next",
+    )
+
+    assert events == ["locked-preflight", "fetch"]
+    assert result.receipt_path == attempt_receipt
+    assert not (source_root / ".ingestion.lock").exists()
+
+
+@pytest.mark.parametrize("error", [RuntimeError("closed"), KeyboardInterrupt()])
+def test_locked_preflight_failure_propagates_without_fetch_receipt_or_artifact(
+    tmp_path: Path,
+    error: BaseException,
+) -> None:
+    source_root = tmp_path / "source"
+    fetched = False
+
+    def reject(actual_source_root: Path) -> None:
+        assert actual_source_root == source_root
+        assert (source_root / ".ingestion.lock").is_dir()
+        raise error
+
+    def fetch() -> bytes:
+        nonlocal fetched
+        fetched = True
+        return b"must-not-fetch"
+
+    with pytest.raises(type(error)) as raised:
+        run_ingestion(
+            root=tmp_path,
+            source_id="source",
+            fetch=fetch,
+            normalize=lambda raw: raw,
+            locked_preflight=reject,
+            clock=_clock,
+            attempt_id="locked-preflight-rejected",
+        )
+
+    assert raised.value is error
+    assert fetched is False
+    assert list(source_root.rglob("*.json")) == []
+    assert list(source_root.rglob("*.bin")) == []
+    assert not (source_root / ".ingestion.lock").exists()
+
+
+def test_locked_preflight_runs_before_active_limit_failure_receipt(tmp_path: Path) -> None:
+    initial = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"existing-raw",
+        normalize=lambda raw: raw,
+        clock=_clock,
+        attempt_id="locked-limit-initial",
+    )
+    source_root = tmp_path / "source"
+    failure_receipt = source_root / "receipts" / "locked-limit-rejected.json"
+    events: list[str] = []
+    fetched = False
+
+    def locked_preflight(actual_source_root: Path) -> None:
+        assert actual_source_root == source_root
+        assert (source_root / ".ingestion.lock").is_dir()
+        assert initial.receipt_path.is_file()
+        assert not failure_receipt.exists()
+        events.append("locked-preflight")
+
+    def fetch() -> bytes:
+        nonlocal fetched
+        fetched = True
+        return b"must-not-fetch"
+
+    def validate_receipt_finalization(actual_source_root: Path) -> None:
+        assert actual_source_root == source_root
+        assert (source_root / ".ingestion.lock").is_dir()
+        assert not failure_receipt.exists()
+        events.append("receipt-finalization")
+
+    with pytest.raises(IngestionRunError) as raised:
+        run_ingestion(
+            root=tmp_path,
+            source_id="source",
+            fetch=fetch,
+            normalize=lambda raw: raw,
+            locked_preflight=locked_preflight,
+            validate_receipt_finalization=validate_receipt_finalization,
+            max_raw_bytes=1,
+            clock=_clock,
+            attempt_id="locked-limit-rejected",
+        )
+
+    assert events == ["locked-preflight", "receipt-finalization"]
+    assert fetched is False
+    assert raised.value.receipt_path == failure_receipt
+    assert _receipt(failure_receipt)["error"] == {
+        "message": "active artifact preflight failed",
+        "type": "IngestionError",
+    }
+    assert not (source_root / ".ingestion.lock").exists()
+
+
+def test_receipt_finalization_guard_runs_before_success_receipt(tmp_path: Path) -> None:
+    source_root = tmp_path / "source"
+    receipt = source_root / "receipts" / "guarded-success.json"
+    current = source_root / "normalized" / "current.json"
+    events: list[str] = []
+
+    def validate_receipt_finalization(actual_source_root: Path) -> None:
+        assert actual_source_root == source_root
+        assert (source_root / ".ingestion.lock").is_dir()
+        assert current.is_file()
+        assert not receipt.exists()
+        events.append("receipt-finalization")
+
+    result = run_ingestion(
+        root=tmp_path,
+        source_id="source",
+        fetch=lambda: b"guarded-raw",
+        normalize=lambda raw: raw,
+        validate_receipt_finalization=validate_receipt_finalization,
+        clock=_clock,
+        attempt_id="guarded-success",
+    )
+
+    assert events == ["receipt-finalization"]
+    assert result.receipt_path == receipt
+    assert receipt.read_bytes() == current.read_bytes()
+
+
+def test_receipt_finalization_rejection_rolls_back_without_failure_receipt(
+    tmp_path: Path,
+) -> None:
+    source_root = tmp_path / "source"
+    receipt = source_root / "receipts" / "guarded-rejected.json"
+    current = source_root / "normalized" / "current.json"
+    marker_states: list[bool] = []
+
+    def reject_receipt(actual_source_root: Path) -> None:
+        assert actual_source_root == source_root
+        assert (source_root / ".ingestion.lock").is_dir()
+        marker_states.append(current.exists())
+        raise RuntimeError("receipt budget changed")
+
+    with pytest.raises(IngestionError, match="no failure receipt was written"):
+        run_ingestion(
+            root=tmp_path,
+            source_id="source",
+            fetch=lambda: b"guarded-raw",
+            normalize=lambda raw: raw,
+            validate_receipt_finalization=reject_receipt,
+            clock=_clock,
+            attempt_id="guarded-rejected",
+        )
+
+    assert marker_states == [True, False]
+    assert not current.exists()
+    assert not receipt.exists()
+    assert not (source_root / ".ingestion.lock").exists()
+
+
 def test_invalid_source_and_attempt_ids_cannot_escape_root(tmp_path: Path) -> None:
     for source_id, attempt_id in (("../escape", "safe"), ("source", "../escape")):
         with pytest.raises(IngestionError):

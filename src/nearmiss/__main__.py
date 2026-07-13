@@ -58,6 +58,12 @@ from .preregister import (
     write_registration,
     write_score_result,
 )
+from .private_paths import (
+    PrivateRootPreflightError,
+    RepositoryContainmentError,
+    RepositoryRootPreflightError,
+    require_private_root_outside_repository,
+)
 from .publish import _slug, publish
 from .server import serve
 from .stats.calibration import DEFAULT_N_SHUFFLES, DEFAULT_SEED, run_null_calibration
@@ -877,17 +883,15 @@ def _cmd_ingest_fars_joined(args: argparse.Namespace) -> int:
         validate_fars_distribution_url(args.distribution_url, expected_year=args.year)
     except (TypeError, ValueError):
         raise NearmissError("joined FARS preflight validation failed") from None
-    root = Path(args.root).expanduser()
     try:
-        resolved_root = root.resolve(strict=False)
-        repository_root = Path(__file__).resolve().parents[2]
-        resolved_root.relative_to(repository_root)
-    except ValueError:
-        pass
-    except OSError:
+        root = require_private_root_outside_repository(
+            args.root,
+            Path(__file__).resolve().parents[2],
+        )
+    except (PrivateRootPreflightError, RepositoryRootPreflightError):
         raise NearmissError("joined FARS preflight validation failed") from None
-    else:
-        raise NearmissError("joined FARS private root must remain outside the repository")
+    except RepositoryContainmentError:
+        raise NearmissError("joined FARS private root must remain outside the repository") from None
     export_path = Path(args.export).expanduser()
     artifact: dict[str, object] | None = None
 

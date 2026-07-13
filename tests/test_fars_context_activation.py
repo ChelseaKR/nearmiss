@@ -458,6 +458,10 @@ def test_root_preflight_is_exposed_and_mutates_nothing_inside_repository(tmp_pat
     assert not inside.exists()
     outside = tmp_path / "outside"
     assert require_private_activation_root(outside, repository) == outside.resolve()
+    with pytest.raises(ValueError, match="activation root preflight failed"):
+        require_private_activation_root("bad\0root", repository)
+    with pytest.raises(ValueError, match="repository root preflight failed"):
+        require_private_activation_root(outside, "bad\0repository")
 
 
 def test_derived_source_path_collision_is_rejected_before_mutation(tmp_path: Path) -> None:
