@@ -671,7 +671,10 @@ msgid "web.submit.status_sending"
 msgstr "Enviando su reporte para revisión…"
 
 msgid "web.app.us_coverage_cta"
-msgstr "<strong>Nuevo: contexto verificado de choques fatales en EE. UU.</strong> <a href=\"us-coverage.html\">Explore los conteos de 2024 por estado y modo, las celdas no publicadas y la procedencia de la fuente →</a>"
+msgstr "<strong>Nuevo: contexto verificado de choques fatales en EE. UU.</strong> <a href=\"us-coverage.html\">Explore los conteos anuales publicados por estado y modo, las celdas no publicadas y la procedencia de la fuente →</a>"
+
+msgid "web.coverage.annual_contract_label"
+msgstr "Contrato anual"
 
 msgid "web.coverage.all_modes"
 msgstr "Todos los modos"
@@ -689,7 +692,7 @@ msgid "web.coverage.can_h"
 msgstr "Lo que esto puede responder"
 
 msgid "web.coverage.can_list"
-msgstr "<li>Cuántos choques fatales involucraron cada modo en un estado en 2024.</li><li>Qué celdas cumplieron el mínimo de publicación para celdas pequeñas.</li><li>Qué versión oficial y transformación produjeron los conteos.</li>"
+msgstr "<li>Cuántos choques fatales involucraron cada modo en un estado en el año seleccionado.</li><li>Qué celdas cumplieron el mínimo de publicación para celdas pequeñas.</li><li>Qué versión oficial y transformación produjeron los conteos.</li>"
 
 msgid "web.coverage.cannot_h"
 msgstr "Lo que esto no puede responder"
@@ -718,6 +721,9 @@ msgstr "Publicado"
 msgid "web.coverage.contract"
 msgstr "Contrato de proyección"
 
+msgid "web.coverage.contract_value"
+msgstr "Revisión {revision} · SHA-256 {sha}"
+
 msgid "web.coverage.data_h"
 msgstr "Evidencia de estado × modo involucrado"
 
@@ -740,16 +746,22 @@ msgid "web.coverage.h1"
 msgstr "Carga de choques fatales, estado por estado"
 
 msgid "web.coverage.lede"
-msgstr "Explore los conteos FARS publicados de 2024 para choques fatales que involucraron cada modo de usuario vial en los 50 estados y DC. Cada fila permanece vinculada a su versión, regla de publicación para celdas pequeñas y fuente."
+msgstr "Elija un año FARS publicado y explore los conteos de choques fatales que involucraron cada modo de usuario vial en los 50 estados y DC. Cada fila permanece vinculada a su versión exacta, regla de publicación para celdas pequeñas y fuente."
 
 msgid "web.coverage.load_error"
-msgstr "El artefacto público revisado no se pudo cargar o no aprobó su contrato. No se muestran conteos."
+msgstr "El índice de versiones revisado o el artefacto público seleccionado no se pudo cargar o no aprobó su contrato. No se muestran conteos."
 
 msgid "web.coverage.loading"
 msgstr "Cargando el artefacto publicado…"
 
 msgid "web.coverage.manifest"
 msgstr "Manifiesto de archivos del sitio"
+
+msgid "web.coverage.mapping_value"
+msgstr "Choques {crash} · personas {person}"
+
+msgid "web.coverage.mapping_versions_label"
+msgstr "Versiones de mapeo"
 
 msgid "web.coverage.mode_label"
 msgstr "Modo de usuario vial involucrado"
@@ -779,7 +791,7 @@ msgid "web.coverage.proof_h"
 msgstr "Cinco años, con el estado de publicación explícito"
 
 msgid "web.coverage.proof_intro"
-msgstr "Los archivos fuente oficiales están fijados para 2020–2024. Este resultado público por estado y modo solo está publicado actualmente para 2024; los años no disponibles nunca se tratan silenciosamente como cero."
+msgstr "Los archivos fuente oficiales están fijados para 2020–2024. Solo se pueden seleccionar los años cuyos artefactos públicos revisados aparecen en el índice de versiones; los años no disponibles nunca se tratan silenciosamente como cero."
 
 msgid "web.coverage.proof_kicker"
 msgstr "Prueba de la versión"
@@ -788,10 +800,16 @@ msgid "web.coverage.provenance_h"
 msgstr "Procedencia de la fuente y del despliegue"
 
 msgid "web.coverage.provenance_intro"
-msgstr "El JSON público contiene la revisión de fuente, suma de comprobación, regla de publicación para celdas pequeñas y contabilidad. Los archivos de despliegue vinculan la página publicada con un commit exacto del código fuente."
+msgstr "El JSON público y el índice de versiones contienen pruebas de la fuente, el mapeo, el régimen semántico, la publicación de celdas pequeñas y la contabilidad. Los archivos de despliegue vinculan la página publicada con un commit exacto del código fuente."
 
 msgid "web.coverage.provenance_kicker"
 msgstr "Rastrear la evidencia"
+
+msgid "web.coverage.regime_caution"
+msgstr "<strong>Compare los años con cautela.</strong> La codificación del tipo de persona de FARS usa un régimen semántico revisado para 2020–2021 y otro para 2022–2024. Cada resultado permanece vinculado a su contrato anual de mapeo, por lo que un cambio entre regímenes puede reflejar la codificación además de los resultados."
+
+msgid "web.coverage.release_index"
+msgstr "Descargar índice de versiones"
 
 msgid "web.coverage.reset"
 msgstr "Restablecer filtros"
@@ -814,6 +832,9 @@ msgstr "Revisión de la fuente"
 msgid "web.coverage.scope_value"
 msgstr "50 estados + DC"
 
+msgid "web.coverage.semantic_regime_label"
+msgstr "Régimen semántico"
+
 msgid "web.coverage.skip"
 msgstr "Saltar al contenido principal"
 
@@ -822,6 +843,9 @@ msgstr "Fuente oficial"
 
 msgid "web.coverage.source_pinned"
 msgstr "Fuente fijada"
+
+msgid "web.coverage.state_code_system_label"
+msgstr "Sistema de códigos estatales"
 
 msgid "web.coverage.state_label"
 msgstr "Estado"

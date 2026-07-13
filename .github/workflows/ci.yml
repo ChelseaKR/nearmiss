@@ -551,50 +551,107 @@ jobs:
           set -euo pipefail
           base_url="${SITE_URL%/}"
           manifest_file="$(mktemp)"
-          apex_file="$(mktemp)"
-          coverage_file="$(mktemp)"
-          fars_file="$(mktemp)"
-          trap 'rm -f "$manifest_file" "$apex_file" "$coverage_file" "$fars_file"' EXIT
+          critical_dir="$(mktemp -d)"
+          fars_index_file="$critical_dir/data/published/fars-state-mode-index.json"
+          fars_release_dir="$(mktemp -d)"
+          trap 'rm -f "$manifest_file"; rm -rf "$critical_dir" "$fars_release_dir"' EXIT
+          critical_specs=(
+            'index.html|'
+            'deployment.json|deployment.json'
+            'web/index.html|web/index.html'
+            'web/us-coverage.html|web/us-coverage.html'
+            'web/us-coverage.js|web/us-coverage.js'
+            'web/i18n.js|web/i18n.js'
+            'web/locales/en.json|web/locales/en.json'
+            'web/locales/es.json|web/locales/es.json'
+            'web/us-coverage.css|web/us-coverage.css'
+            'web/style.css|web/style.css'
+            'data/published/davis.geojson|data/published/davis.geojson'
+            'data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json'
+          )
           for _ in $(seq 1 30); do
             if curl --fail --silent --show-error \
               "${base_url}/site-manifest.json" --output "$manifest_file"; then
               deployed_sha="$(python -c \
                 'import json,sys; print(json.load(open(sys.argv[1]))["source_sha"])' \
                 "$manifest_file")" || true
-              expected_apex_sha="$(python -c \
-                'import json,sys; print(json.load(open(sys.argv[1]))["files"]["index.html"])' \
-                "$manifest_file")" || true
-              expected_coverage_sha="$(python -c \
-                'import json,sys; print(json.load(open(sys.argv[1]))["files"]["web/us-coverage.html"])' \
-                "$manifest_file")" || true
-              if [ "$deployed_sha" = "$GITHUB_SHA" ] && \
-                curl --fail --silent --show-error \
-                  "${base_url}/" --output "$apex_file" && \
-                curl --fail --silent --show-error \
-                  "${base_url}/web/us-coverage.html" --output "$coverage_file"; then
-                apex_sha="$(python -c \
-                  'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())' \
-                  "$apex_file")"
-                coverage_sha="$(python -c \
-                  'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())' \
-                  "$coverage_file")"
-                if [ "$apex_sha" = "$expected_apex_sha" ] && \
-                  [ "$coverage_sha" = "$expected_coverage_sha" ] && \
-                  curl --fail --silent --show-error \
-                    "${base_url}/web/index.html" >/dev/null && \
-                  curl --fail --silent --show-error \
-                    "${base_url}/web/us-coverage.js" >/dev/null && \
-                  curl --fail --silent --show-error \
-                    "${base_url}/web/us-coverage.css" >/dev/null && \
-                  curl --fail --silent --show-error \
-                    "${base_url}/data/published/davis.geojson" >/dev/null && \
-                  curl --fail --silent --show-error \
-                    "${base_url}/data/published/fars-2024-state-mode.json" \
-                    --output "$fars_file"; then
-                  fars_sha="$(python -c \
+              if [ "$deployed_sha" = "$GITHUB_SHA" ]; then
+                critical_ok=true
+                for spec in "${critical_specs[@]}"; do
+                  manifest_path="${spec%%|*}"
+                  url_path="${spec#*|}"
+                  live_file="$critical_dir/$manifest_path"
+                  mkdir -p "$(dirname "$live_file")"
+                  if ! expected_sha="$(python -c \
+                    'import json,re,sys; d=json.load(open(sys.argv[1]))["files"][sys.argv[2]]; assert re.fullmatch(r"[0-9a-f]{64}", d); print(d)' \
+                    "$manifest_file" "$manifest_path")"; then
+                    critical_ok=false
+                    break
+                  fi
+                  if ! curl --fail --silent --show-error \
+                    "${base_url}/${url_path}" --output "$live_file"; then
+                    critical_ok=false
+                    break
+                  fi
+                  live_sha="$(python -c \
                     'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())' \
-                    "$fars_file")"
-                  if [ "$fars_sha" = "29b5dc2673987cc7bedd0a83b2147e724e1fb2a2cb1458053af3d017ac8d6578" ]; then
+                    "$live_file")"
+                  if [ "$live_sha" != "$expected_sha" ]; then
+                    critical_ok=false
+                    break
+                  fi
+                done
+                if [ "$critical_ok" = true ]; then
+                  release_records="$(python -c '
+          import json,re,sys
+          index=json.load(open(sys.argv[1]))
+          releases=index["releases"]
+          years=[release["dataset_year"] for release in releases]
+          assert 1 <= len(releases) <= 5 and years == sorted(set(years))
+          assert index["default_year"] == years[-1]
+          for release in releases:
+              path=release["artifact_path"]
+              size=release["artifact_bytes"]
+              digest=release["artifact_sha256"]
+              assert re.fullmatch(r"fars-[0-9]{4}-state-mode[.]json", path)
+              assert type(size) is int and 1 <= size <= 262144
+              assert re.fullmatch(r"[0-9a-f]{64}", digest)
+              print(f"{path}\t{size}\t{digest}")
+          ' "$fars_index_file")" || release_records=""
+                  releases_ok=true
+                  if [ -z "$release_records" ]; then
+                    releases_ok=false
+                  else
+                    while IFS=$'\t' read -r artifact_path artifact_bytes artifact_sha; do
+                      artifact_file="$fars_release_dir/$artifact_path"
+                      manifest_artifact_path="data/published/$artifact_path"
+                      if ! manifest_artifact_sha="$(python -c \
+                        'import json,re,sys; d=json.load(open(sys.argv[1]))["files"][sys.argv[2]]; assert re.fullmatch(r"[0-9a-f]{64}", d); print(d)' \
+                        "$manifest_file" "$manifest_artifact_path")"; then
+                        releases_ok=false
+                        break
+                      fi
+                      if ! curl --fail --silent --show-error \
+                        "${base_url}/${manifest_artifact_path}" \
+                        --output "$artifact_file"; then
+                        releases_ok=false
+                        break
+                      fi
+                      live_bytes="$(python -c \
+                        'import os,sys; print(os.path.getsize(sys.argv[1]))' \
+                        "$artifact_file")"
+                      live_sha="$(python -c \
+                        'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())' \
+                        "$artifact_file")"
+                      if [ "$live_bytes" != "$artifact_bytes" ] || \
+                        [ "$live_sha" != "$artifact_sha" ] || \
+                        [ "$live_sha" != "$manifest_artifact_sha" ]; then
+                        releases_ok=false
+                        break
+                      fi
+                    done <<< "$release_records"
+                  fi
+                  if [ "$releases_ok" = true ]; then
                     exit 0
                   fi
                 fi

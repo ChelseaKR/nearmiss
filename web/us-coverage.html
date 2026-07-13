@@ -6,7 +6,7 @@
     <title>US evidence ledger — nearmiss</title>
     <meta
       name="description"
-      content="Auditable 2024 FARS fatal-crash burden counts by state and involved road-user mode, with a small-cell publication rule and source provenance."
+      content="Auditable annual FARS fatal-crash burden counts by state and involved road-user mode, with a small-cell publication rule and source provenance."
     />
     <link rel="canonical" href="https://nearmiss.report/web/us-coverage.html" />
     <link rel="stylesheet" href="style.css" />
@@ -26,9 +26,9 @@
       <p class="coverage-eyebrow" data-i18n="eyebrow">US evidence ledger · official source</p>
       <h1 data-i18n="h1">Fatal-crash burden, state by state</h1>
       <p class="lede" data-i18n="lede">
-        Explore published 2024 FARS counts for fatal crashes involving each road-user mode across
-        all 50 states and DC. Every row remains tied to its release, small-cell publication rule,
-        and source.
+        Choose a published FARS year and explore fatal-crash counts involving each road-user mode
+        across all 50 states and DC. Every row remains tied to its exact release, small-cell
+        publication rule, and source.
       </p>
       <p class="coverage-caveat" data-i18n="caveat">
         <strong>Counts are not risk.</strong> They do not account for population, trips, miles, or
@@ -42,31 +42,37 @@
         <div class="section-kicker" data-i18n="proof_kicker">Release proof</div>
         <h2 id="proof-heading" data-i18n="proof_h">Five years, with publication status made explicit</h2>
         <p data-i18n="proof_intro">
-          Official source archives are pinned for 2020–2024. This public state-by-mode result is
-          currently published for 2024 only; unavailable years are never silently treated as zero.
+          Official source archives are pinned for 2020–2024. Only years whose reviewed public
+          artifacts appear in the release index can be selected; unavailable years are never
+          silently treated as zero.
+        </p>
+        <p class="coverage-caveat coverage-regime-caution" data-i18n="regime_caution">
+          <strong>Compare years with care.</strong> FARS person-type coding uses one reviewed
+          semantic regime for 2020–2021 and another for 2022–2024. Each result stays pinned to its
+          annual mapping contract, so a cross-regime change can reflect coding as well as outcomes.
         </p>
         <ol class="proof-rail">
-          <li>
+          <li data-year="2020">
             <span class="proof-year">2020</span>
             <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
-            <span class="proof-result is-pending" data-i18n="result_pending">State result not yet published</span>
+            <span class="proof-result" data-i18n="result_published">State counts published</span>
           </li>
-          <li>
+          <li data-year="2021">
             <span class="proof-year">2021</span>
             <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
-            <span class="proof-result is-pending" data-i18n="result_pending">State result not yet published</span>
+            <span class="proof-result" data-i18n="result_published">State counts published</span>
           </li>
-          <li>
+          <li data-year="2022">
             <span class="proof-year">2022</span>
             <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
-            <span class="proof-result is-pending" data-i18n="result_pending">State result not yet published</span>
+            <span class="proof-result" data-i18n="result_published">State counts published</span>
           </li>
-          <li>
+          <li data-year="2023">
             <span class="proof-year">2023</span>
             <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
-            <span class="proof-result is-pending" data-i18n="result_pending">State result not yet published</span>
+            <span class="proof-result" data-i18n="result_published">State counts published</span>
           </li>
-          <li class="is-current">
+          <li class="is-current" data-year="2024">
             <span class="proof-year">2024</span>
             <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
             <span class="proof-result" data-i18n="result_published">State counts published</span>
@@ -108,7 +114,7 @@
           <div>
             <label for="year-filter" data-i18n="year_label">Year</label>
             <select id="year-filter" name="year">
-              <option value="2024">2024</option>
+              <option value="">—</option>
             </select>
           </div>
           <div>
@@ -167,7 +173,7 @@
         <article>
           <h2 data-i18n="can_h">What this can answer</h2>
           <ul data-i18n="can_list">
-            <li>How many fatal crashes involved each mode in a state in 2024.</li>
+            <li>How many fatal crashes involved each mode in a state in the selected year.</li>
             <li>Which cells met the small-cell publication floor.</li>
             <li>Which official release and transformation produced the counts.</li>
           </ul>
@@ -186,8 +192,9 @@
         <div class="section-kicker" data-i18n="provenance_kicker">Trace the evidence</div>
         <h2 id="provenance-heading" data-i18n="provenance_h">Source and deployment provenance</h2>
         <p data-i18n="provenance_intro">
-          The public JSON carries its source revision, checksum, small-cell publication rule, and
-          accounting. Deployment files bind the published page back to an exact source commit.
+          The public JSON and release index carry source, mapping, semantic-regime, small-cell
+          publication, and accounting proof. Deployment files bind the published page back to an
+          exact source commit.
         </p>
         <dl class="provenance-list">
           <div>
@@ -198,9 +205,26 @@
             <dt data-i18n="revision_label">Source revision</dt>
             <dd><code id="source-revision">—</code></dd>
           </div>
+          <div>
+            <dt data-i18n="semantic_regime_label">Semantic regime</dt>
+            <dd><code id="semantic-regime">—</code></dd>
+          </div>
+          <div>
+            <dt data-i18n="mapping_versions_label">Mapping versions</dt>
+            <dd><code id="mapping-versions">—</code></dd>
+          </div>
+          <div>
+            <dt data-i18n="state_code_system_label">State-code system</dt>
+            <dd><code id="state-code-system">—</code></dd>
+          </div>
+          <div>
+            <dt data-i18n="annual_contract_label">Annual contract</dt>
+            <dd><code id="annual-contract">—</code></dd>
+          </div>
         </dl>
         <ul class="provenance-links">
-          <li><a href="../data/published/fars-2024-state-mode.json" download data-i18n="download">Download public JSON</a></li>
+          <li><a id="artifact-download" href="../data/published/fars-2024-state-mode.json" download data-i18n="download">Download public JSON</a></li>
+          <li><a href="../data/published/fars-state-mode-index.json" download data-i18n="release_index">Download release index</a></li>
           <li><a href="../deployment.json" data-i18n="deployment">Deployment record</a></li>
           <li><a href="../site-manifest.json" data-i18n="manifest">Site file manifest</a></li>
           <li><a href="https://github.com/ChelseaKR/nearmiss/blob/main/src/nearmiss/fars_public_context.py" data-i18n="contract">Projection contract</a></li>

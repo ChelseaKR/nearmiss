@@ -1,10 +1,15 @@
 /* Auditable nationwide FARS context — framework-free, bilingual, and driven
- * only by the checked-in public projection. Suppressed cells never acquire a
- * numeric value in this UI: absence remains an explicit publication status. */
+ * only by a hash-bound release index and its checked-in public projections.
+ * Suppressed cells never acquire a numeric value in this UI. */
 (function () {
   "use strict";
 
-  var DATA_URL = "../data/published/fars-2024-state-mode.json";
+  var INDEX_URL = "../data/published/fars-state-mode-index.json";
+  var DATA_ROOT = "../data/published/";
+  var LEGACY_2024_DATA_URL = DATA_ROOT + "fars-2024-state-mode.json";
+  var EXPECTED_INDEX_BYTES = 5270;
+  var EXPECTED_INDEX_SHA256 = "64d73ea4f25de4ef1321e6f8bed56215b9585fdc7ee74bc05bf47ec74bedaa48";
+  var SUPPORTED_YEARS = [2020, 2021, 2022, 2023, 2024];
   var EXPECTED_MODES = [
     "motor_vehicle_occupant",
     "motorcyclist",
@@ -13,40 +18,53 @@
     "other_road_user",
     "unknown",
   ];
-  var EXPECTED_SCHEMA_VERSION = "1.0.0";
+  var EXPECTED_INDEX_SCHEMA_VERSION = "1.0.0";
+  var EXPECTED_INDEX_ARTIFACT_TYPE = "nearmiss.public.fars_state_context_index";
+  var EXPECTED_ARTIFACT_SCHEMA_VERSION = "1.0.0";
   var EXPECTED_ARTIFACT_TYPE = "nearmiss.public.fars_state_context";
-  var EXPECTED_TITLE = "2024 US fatal-crash burden by state and involved mode";
-  var EXPECTED_SOURCE_URL = "https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip";
-  var EXPECTED_SOURCE_REVISION = "reviewed-20260712-5112727a8c0d";
-  var EXPECTED_SOURCE_SIZE = 32672161;
-  var EXPECTED_SOURCE_SHA256 = "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f";
-  var EXPECTED_PUBLIC_ARTIFACT_BYTES = 27590;
-  var EXPECTED_PUBLIC_ARTIFACT_SHA256 = "29b5dc2673987cc7bedd0a83b2147e724e1fb2a2cb1458053af3d017ac8d6578";
-  var EXPECTED_CROSSWALK_VERSION = "fars-usps-50-states-dc-2024-v1";
-  var EXPECTED_CROSSWALK_SHA256 = "6744b12717b0bd52a79c73aba3037286dde9257698a2aa0630f995c8a82ba25c";
   var EXPECTED_ALGORITHM_VERSION = "state-involved-mode-v1";
-  var EXPECTED_GEOGRAPHY_COVERAGE = "official_2024_national_50_states_and_dc";
-  var EXPECTED_ACCOUNTING = {
-    case_count: 36127,
-    state_count: 51,
-    state_mode_cell_count: 306,
-    published_cell_count: 206,
-    suppressed_or_zero_cell_count: 100,
-    positive_candidate_cell_count: 292,
-    positive_suppressed_cell_count: 86,
-    crash_contribution_total: 48524,
-    published_crash_contribution_total: 48154,
-    suppressed_crash_contribution_total: 370,
+  var EXPECTED_YEAR_CONTRACTS = {
+    2020: {
+      contract_revision: 1,
+      contract_sha256: "c6294413066bb2e83b2aea02408dcfa2fa40441dda7de115983a45fb8aab132c",
+      crash_mapping_version: "1.0.0",
+      person_mapping_version: "1.0.0",
+      semantic_regime_id: "fars_per_typ_2020_2021_v1",
+      state_code_system: "nhtsa_fars_state_2020",
+    },
+    2021: {
+      contract_revision: 1,
+      contract_sha256: "5c2c198cd4e3eee80f9e27874e3f42521b0e0b7cbc53a8bd0bf2684ef66a855e",
+      crash_mapping_version: "1.0.0",
+      person_mapping_version: "1.0.0",
+      semantic_regime_id: "fars_per_typ_2020_2021_v1",
+      state_code_system: "nhtsa_fars_state_2021",
+    },
+    2022: {
+      contract_revision: 1,
+      contract_sha256: "18713f23f657334459febf729e4005bfd9e94492da37afb0255d9e5fd4159158",
+      crash_mapping_version: "1.0.0",
+      person_mapping_version: "1.0.0",
+      semantic_regime_id: "fars_per_typ_2022_2024_v1",
+      state_code_system: "nhtsa_fars_state_2022",
+    },
+    2023: {
+      contract_revision: 1,
+      contract_sha256: "557a8edf2418c7794d349c932ae2237db6cad7165f62c80a2e7f3b15baeca143",
+      crash_mapping_version: "1.0.0",
+      person_mapping_version: "1.0.0",
+      semantic_regime_id: "fars_per_typ_2022_2024_v1",
+      state_code_system: "nhtsa_fars_state_2023",
+    },
+    2024: {
+      contract_revision: 1,
+      contract_sha256: "f6bc3dd55cf3dfb360c265308c7702cdf7f6df66894cf792afd6be83c09c72f8",
+      crash_mapping_version: "1.0.0",
+      person_mapping_version: "1.0.0",
+      semantic_regime_id: "fars_per_typ_2022_2024_v1",
+      state_code_system: "nhtsa_fars_state_2024",
+    },
   };
-  var EXPECTED_CAVEAT =
-    "Counts are distinct 2024 FARS fatal crashes with at least one person in the involved mode, " +
-    "counted at most once per crash per mode. They are fatal-crash burden context, not " +
-    "exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record " +
-    "linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. " +
-    "A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must " +
-    "never be read as zero. k=10 is a stability and publication guard for already-public FARS " +
-    "data, not a confidentiality guarantee. The official 2024 National archive covers the 50 states and District " +
-    "of Columbia; Puerto Rico requires a separately verified source.";
   var EXPECTED_STATES = [
     "1|AL|Alabama",
     "2|AK|Alaska",
@@ -102,8 +120,12 @@
   ];
   var lang = window.NearmissI18n.langFromQuery("en");
   var i18n = window.NearmissI18n.create("web.coverage.");
+  var releaseIndex = null;
+  var currentRelease = null;
   var artifact = null;
   var rows = [];
+  var requestSerial = 0;
+  var languageRequestSerial = 0;
 
   function t(key) {
     return i18n.t(key);
@@ -128,7 +150,7 @@
   }
 
   function assert(condition, message) {
-    if (!condition) throw new Error("Invalid public FARS artifact: " + message);
+    if (!condition) throw new Error("Invalid public FARS release: " + message);
   }
 
   function assertExactKeys(object, expected, label) {
@@ -148,6 +170,162 @@
     );
   }
 
+  function isSha256(value) {
+    return typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
+  }
+
+  function isSupportedYear(value) {
+    return Number.isInteger(value) && SUPPORTED_YEARS.indexOf(value) >= 0;
+  }
+
+  function expectedSourceUrl(year) {
+    return (
+      "https://static.nhtsa.gov/nhtsa/downloads/FARS/" +
+      year +
+      "/National/FARS" +
+      year +
+      "NationalCSV.zip"
+    );
+  }
+
+  function expectedTitle(year) {
+    return year + " US fatal-crash burden by state and involved mode";
+  }
+
+  function expectedCaveat(year) {
+    return (
+      "Counts are distinct " +
+      year +
+      " FARS fatal crashes with at least one person in the involved mode, " +
+      "counted at most once per crash per mode. They are fatal-crash burden context, not " +
+      "exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record " +
+      "linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. " +
+      "A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must " +
+      "never be read as zero. k=10 is a stability and publication guard for already-public FARS " +
+      "data, not a confidentiality guarantee. The official " +
+      year +
+      " National archive covers the 50 states and District " +
+      "of Columbia; Puerto Rico requires a separately verified source."
+    );
+  }
+
+  function validateIndex(data) {
+    assertExactKeys(
+      data,
+      ["schema_version", "artifact_type", "visibility", "default_year", "contract", "releases"],
+      "release index"
+    );
+    assert(data.schema_version === EXPECTED_INDEX_SCHEMA_VERSION, "index schema version is unsupported");
+    assert(data.artifact_type === EXPECTED_INDEX_ARTIFACT_TYPE, "index artifact type is unsupported");
+    assert(data.visibility === "public", "index visibility must be public");
+
+    var contract = data.contract;
+    assertExactKeys(
+      contract,
+      [
+        "algorithm_version",
+        "artifact_schema_version",
+        "artifact_type",
+        "contribution_unit",
+        "dimension",
+        "effective_k",
+        "modes",
+        "modes_non_additive",
+        "state_count",
+      ],
+      "index contract"
+    );
+    assert(contract.algorithm_version === EXPECTED_ALGORITHM_VERSION, "index algorithm is unsupported");
+    assert(contract.artifact_schema_version === EXPECTED_ARTIFACT_SCHEMA_VERSION, "artifact schema is unsupported");
+    assert(contract.artifact_type === EXPECTED_ARTIFACT_TYPE, "indexed artifact type is unsupported");
+    assert(contract.contribution_unit === "distinct_crash_once_per_involved_mode", "contribution unit is unsupported");
+    assert(contract.dimension === "involved_mode", "index dimension is unsupported");
+    assert(contract.effective_k === 10, "index publication floor is unsupported");
+    assert(contract.modes_non_additive === true, "index must mark modes non-additive");
+    assert(contract.state_count === 51, "index must cover 50 states and DC");
+    assert(sameOrderedValues(contract.modes, EXPECTED_MODES), "index mode inventory is unsupported");
+
+    assert(Array.isArray(data.releases) && data.releases.length >= 1 && data.releases.length <= 5, "index release inventory is invalid");
+    var years = [];
+    data.releases.forEach(function (release) {
+      assertExactKeys(
+        release,
+        ["artifact_bytes", "artifact_path", "artifact_sha256", "contract", "dataset_year", "geography", "source"],
+        "index release"
+      );
+      var year = release.dataset_year;
+      assert(isSupportedYear(year), "release year is not supported");
+      years.push(year);
+      assert(release.artifact_path === "fars-" + year + "-state-mode.json", "release path is not canonical");
+      assert(
+        Number.isInteger(release.artifact_bytes) && release.artifact_bytes >= 1 && release.artifact_bytes <= 262144,
+        "release byte length is invalid"
+      );
+      assert(isSha256(release.artifact_sha256), "release artifact digest is invalid");
+
+      assertExactKeys(
+        release.contract,
+        [
+          "contract_revision",
+          "contract_sha256",
+          "crash_mapping_version",
+          "person_mapping_version",
+          "semantic_regime_id",
+          "state_code_system",
+        ],
+        "release annual contract"
+      );
+      assert(
+        Object.keys(EXPECTED_YEAR_CONTRACTS[year]).every(function (field) {
+          return release.contract[field] === EXPECTED_YEAR_CONTRACTS[year][field];
+        }),
+        "release annual contract provenance is not reviewed"
+      );
+
+      assertExactKeys(
+        release.source,
+        ["distribution_url", "raw_sha256", "raw_size_bytes", "source_revision_id"],
+        "release source"
+      );
+      assert(release.source.distribution_url === expectedSourceUrl(year), "release source URL is not fixed-year National FARS");
+      assert(isSha256(release.source.raw_sha256), "release raw digest is invalid");
+      assert(
+        Number.isInteger(release.source.raw_size_bytes) &&
+          release.source.raw_size_bytes >= 1 &&
+          release.source.raw_size_bytes <= 268435456,
+        "release raw byte size is invalid"
+      );
+      assert(
+        typeof release.source.source_revision_id === "string" &&
+          /^reviewed-[0-9]{8}-[0-9a-f]{12}$/.test(release.source.source_revision_id),
+        "release source revision is invalid"
+      );
+
+      assertExactKeys(
+        release.geography,
+        ["coverage", "state_crosswalk_sha256", "state_crosswalk_version"],
+        "release geography"
+      );
+      assert(
+        release.geography.coverage === "official_" + year + "_national_50_states_and_dc",
+        "release geography coverage is invalid"
+      );
+      assert(
+        release.geography.state_crosswalk_version === "fars-usps-50-states-dc-" + year + "-v1",
+        "release crosswalk version is invalid"
+      );
+      assert(isSha256(release.geography.state_crosswalk_sha256), "release crosswalk digest is invalid");
+    });
+    assert(
+      years.every(function (year, index) {
+        return index === 0 || year > years[index - 1];
+      }),
+      "release years must be unique and ascending"
+    );
+    assert(data.default_year === years[years.length - 1], "default year must be the newest published release");
+    return data;
+  }
+
   function validateAccounting(data, observed) {
     var accounting = data.accounting;
     var integerFields = [
@@ -165,8 +343,8 @@
     assertExactKeys(accounting, integerFields, "accounting");
     integerFields.forEach(function (field) {
       assert(isNonNegativeInteger(accounting[field]), "accounting." + field + " must be a non-negative integer");
-      assert(accounting[field] === EXPECTED_ACCOUNTING[field], "accounting." + field + " does not match the reviewed release");
     });
+    assert(accounting.case_count >= 30000 && accounting.case_count <= 45000, "case count is outside the national bound");
     assert(accounting.state_count === observed.states, "accounting state count does not match states");
     assert(accounting.state_mode_cell_count === observed.cells, "accounting cell count does not match cells");
     assert(accounting.published_cell_count === observed.published, "accounting published count does not match cells");
@@ -192,9 +370,11 @@
       "positive suppressed cells exceed suppressed-or-zero cells"
     );
     assert(
-      accounting.suppressed_crash_contribution_total >= accounting.positive_suppressed_cell_count &&
-        accounting.suppressed_crash_contribution_total <
-          accounting.positive_suppressed_cell_count * data.metric.effective_k,
+      (accounting.positive_suppressed_cell_count === 0 && accounting.suppressed_crash_contribution_total === 0) ||
+        (accounting.positive_suppressed_cell_count >= 2 &&
+          accounting.suppressed_crash_contribution_total >= accounting.positive_suppressed_cell_count &&
+          accounting.suppressed_crash_contribution_total <
+            accounting.positive_suppressed_cell_count * data.metric.effective_k),
       "suppressed contribution total is inconsistent with k"
     );
     assert(
@@ -202,73 +382,72 @@
         accounting.crash_contribution_total,
       "accounting contribution totals do not reconcile"
     );
+    assert(
+      accounting.crash_contribution_total >= accounting.case_count &&
+        accounting.crash_contribution_total <= accounting.case_count * EXPECTED_MODES.length,
+      "accounting contributions are outside the case-count bound"
+    );
   }
 
-  function validateArtifact(data) {
+  function validateArtifact(data, release, contract) {
+    assert(release && contract, "artifact validation requires its indexed release");
     assertExactKeys(
       data,
       ["schema_version", "artifact_type", "visibility", "title", "dataset_year", "source", "geography", "metric", "accounting", "caveat", "states"],
-      "top level"
+      "artifact top level"
     );
-    assert(data.visibility === "public", "visibility must be public");
-    assert(data.dataset_year === 2024, "dataset year must be 2024");
-    assert(data.schema_version === EXPECTED_SCHEMA_VERSION, "schema version is not supported");
-    assert(data.artifact_type === EXPECTED_ARTIFACT_TYPE, "artifact type is not the public FARS context");
-    assert(data.title === EXPECTED_TITLE, "artifact title is not the reviewed title");
-    assert(data.caveat === EXPECTED_CAVEAT, "artifact caveat is not the reviewed caveat");
+    var year = release.dataset_year;
+    assert(data.visibility === "public", "artifact visibility must be public");
+    assert(data.dataset_year === year, "artifact year does not match its index entry");
+    assert(data.schema_version === contract.artifact_schema_version, "artifact schema version is unsupported");
+    assert(data.artifact_type === contract.artifact_type, "artifact type is unsupported");
+    assert(data.title === expectedTitle(year), "artifact title does not match its year");
+    assert(data.caveat === expectedCaveat(year), "artifact caveat does not match its year");
 
     assertExactKeys(
       data.source,
       ["name", "release_stage", "distribution_url", "source_revision_id", "raw_size_bytes", "raw_sha256"],
-      "source"
+      "artifact source"
     );
-    assert(data.source.release_stage === "final", "only the final FARS release may be shown");
-    assert(data.source.name === "NHTSA Fatality Analysis Reporting System (FARS)", "source name is not reviewed");
-    assert(data.source.distribution_url === EXPECTED_SOURCE_URL, "source distribution URL does not match the reviewed archive");
-    assert(data.source.source_revision_id === EXPECTED_SOURCE_REVISION, "source revision is not reviewed");
-    assert(data.source.raw_size_bytes === EXPECTED_SOURCE_SIZE, "source byte size does not match the reviewed archive");
-    assert(data.source.raw_sha256 === EXPECTED_SOURCE_SHA256, "source checksum does not match the reviewed archive");
+    assert(data.source.release_stage === "final", "only final FARS releases may be shown");
+    assert(data.source.name === "NHTSA Fatality Analysis Reporting System (FARS)", "source name is unsupported");
+    ["distribution_url", "source_revision_id", "raw_size_bytes", "raw_sha256"].forEach(function (field) {
+      assert(data.source[field] === release.source[field], "artifact source." + field + " drifted from the index");
+    });
 
     assertExactKeys(
       data.geography,
       ["type", "coverage", "state_count", "state_crosswalk_version", "state_crosswalk_sha256"],
-      "geography"
+      "artifact geography"
     );
     assert(data.geography.type === "fars_state_code", "geography must use source-native FARS state codes");
-    assert(data.geography.coverage === EXPECTED_GEOGRAPHY_COVERAGE, "coverage must be the official 2024 National 50-states-and-DC archive");
-    assert(data.geography.state_count === 51, "coverage must contain 51 jurisdictions");
-    assert(data.geography.state_crosswalk_version === EXPECTED_CROSSWALK_VERSION, "state crosswalk version is not reviewed");
-    assert(data.geography.state_crosswalk_sha256 === EXPECTED_CROSSWALK_SHA256, "state crosswalk checksum is not reviewed");
+    assert(data.geography.state_count === contract.state_count, "geography must contain 50 states and DC");
+    ["coverage", "state_crosswalk_version", "state_crosswalk_sha256"].forEach(function (field) {
+      assert(data.geography[field] === release.geography[field], "artifact geography." + field + " drifted from the index");
+    });
 
     assertExactKeys(
       data.metric,
       ["algorithm_version", "dimension", "contribution_unit", "effective_k", "modes_non_additive", "modes"],
-      "metric"
+      "artifact metric"
     );
-    assert(data.metric.algorithm_version === EXPECTED_ALGORITHM_VERSION, "metric algorithm is not reviewed");
-    assert(data.metric.dimension === "involved_mode", "metric dimension must be involved mode");
-    assert(
-      data.metric.contribution_unit === "distinct_crash_once_per_involved_mode",
-      "metric contribution unit is not supported"
-    );
-    assert(data.metric.modes_non_additive === true, "mode counts must be marked non-additive");
-    assert(data.metric.effective_k === 10, "effective k must equal the reviewed publication floor of 10");
-    assert(sameOrderedValues(data.metric.modes, EXPECTED_MODES), "mode inventory or order is unexpected");
+    assert(data.metric.algorithm_version === contract.algorithm_version, "metric algorithm drifted from the index");
+    assert(data.metric.dimension === contract.dimension, "metric dimension drifted from the index");
+    assert(data.metric.contribution_unit === contract.contribution_unit, "metric contribution unit drifted from the index");
+    assert(data.metric.modes_non_additive === contract.modes_non_additive, "mode additivity flag drifted from the index");
+    assert(data.metric.effective_k === contract.effective_k, "publication floor drifted from the index");
+    assert(sameOrderedValues(data.metric.modes, contract.modes), "mode inventory or order drifted from the index");
 
-    assert(Array.isArray(data.states) && data.states.length === 51, "states must contain 50 states and DC");
+    assert(Array.isArray(data.states) && data.states.length === contract.state_count, "states must contain 50 states and DC");
     var observed = { states: data.states.length, cells: 0, published: 0, withheld: 0, publishedContributions: 0 };
-
     data.states.forEach(function (state, stateIndex) {
-      assertExactKeys(state, ["state_code", "state_abbreviation", "state_name", "cells"], "state");
+      assertExactKeys(state, ["state_code", "state_abbreviation", "state_name", "cells"], "artifact state");
       assert(typeof state.state_code === "string", "state code must remain a source-native string");
-      assert(typeof state.state_abbreviation === "string", "state abbreviation must be a string");
-      assert(typeof state.state_name === "string", "state name must be a string");
       assert(
         [state.state_code, state.state_abbreviation, state.state_name].join("|") === EXPECTED_STATES[stateIndex],
-        "state crosswalk or canonical ordering does not match the reviewed inventory"
+        "state crosswalk or canonical ordering is unsupported"
       );
-
-      assert(Array.isArray(state.cells) && state.cells.length === EXPECTED_MODES.length, "each state needs six mode cells");
+      assert(Array.isArray(state.cells) && state.cells.length === contract.modes.length, "each state needs six mode cells");
       var cellModes = [];
       state.cells.forEach(function (cell) {
         assert(isObject(cell), "each cell must be an object");
@@ -277,34 +456,35 @@
         if (cell.status === "published") {
           assertExactKeys(cell, ["involved_mode", "status", "crash_count"], "published cell");
           assert(
-            isNonNegativeInteger(cell.crash_count) && cell.crash_count >= data.metric.effective_k,
-            "published counts must meet effective k"
+            isNonNegativeInteger(cell.crash_count) &&
+              cell.crash_count >= data.metric.effective_k &&
+              cell.crash_count <= data.accounting.case_count,
+            "published count is outside its fixed-year bounds"
           );
           observed.published += 1;
           observed.publishedContributions += cell.crash_count;
         } else {
           assertExactKeys(cell, ["involved_mode", "status"], "suppressed-or-zero cell");
-          assert(cell.status === "suppressed_or_zero", "cell status is not supported");
+          assert(cell.status === "suppressed_or_zero", "cell status is unsupported");
           assert(!hasOwn(cell, "crash_count"), "suppressed-or-zero cells must not contain a count");
           observed.withheld += 1;
         }
       });
-      assert(sameOrderedValues(cellModes, EXPECTED_MODES), "each state's cells must follow the canonical mode order");
+      assert(sameOrderedValues(cellModes, contract.modes), "state cells do not follow the canonical mode order");
     });
-
     validateAccounting(data, observed);
     return data;
   }
 
-  function verifiedArtifact(response) {
+  function verifiedJson(response, expectedBytes, expectedSha256, label) {
     var payload;
     if (!response.ok) throw new Error("HTTP " + response.status);
-    assert(typeof response.arrayBuffer === "function", "artifact response cannot provide exact bytes");
+    assert(typeof response.arrayBuffer === "function", label + " response cannot provide exact bytes");
     return response
       .arrayBuffer()
       .then(function (buffer) {
         payload = buffer;
-        assert(payload && payload.byteLength === EXPECTED_PUBLIC_ARTIFACT_BYTES, "artifact byte length is not reviewed");
+        assert(payload && payload.byteLength === expectedBytes, label + " byte length is not reviewed");
         assert(
           window.crypto && window.crypto.subtle && typeof window.crypto.subtle.digest === "function",
           "Web Crypto SHA-256 support is required"
@@ -317,7 +497,7 @@
             return byte.toString(16).padStart(2, "0");
           })
           .join("");
-        assert(actual === EXPECTED_PUBLIC_ARTIFACT_SHA256, "artifact SHA-256 is not the reviewed release");
+        assert(actual === expectedSha256, label + " SHA-256 is not reviewed");
         assert(typeof window.TextDecoder === "function", "UTF-8 decoder support is required");
         return JSON.parse(new window.TextDecoder("utf-8", { fatal: true }).decode(payload));
       });
@@ -370,7 +550,6 @@
     var selected = selectedRows();
     var body = document.getElementById("coverage-body");
     body.textContent = "";
-
     if (!selected.length) {
       var emptyRow = document.createElement("tr");
       var emptyCell = cell("td", t("no_results"));
@@ -378,7 +557,6 @@
       emptyRow.appendChild(emptyCell);
       body.appendChild(emptyRow);
     }
-
     selected.forEach(function (row) {
       var tr = document.createElement("tr");
       tr.dataset.status = row.status;
@@ -398,13 +576,16 @@
       tr.appendChild(cell("td", row.status === "published" ? number(row.count) : "—", "count-cell"));
       body.appendChild(tr);
     });
-
     var values = { shown: number(selected.length), total: number(rows.length) };
-    document.getElementById("coverage-caption").textContent = tpl(t("caption"), values);
-    document.getElementById("coverage-status").textContent = tpl(t("result_summary"), values);
+    var caption = document.getElementById("coverage-caption");
+    var status = document.getElementById("coverage-status");
+    caption.removeAttribute("data-i18n");
+    status.removeAttribute("data-i18n");
+    caption.textContent = tpl(t("caption"), values);
+    status.textContent = tpl(t("result_summary"), values);
   }
 
-  function renderControls() {
+  function renderArtifactControls() {
     var stateSelect = document.getElementById("state-filter");
     var selectedState = stateSelect.value;
     while (stateSelect.options.length > 1) stateSelect.remove(1);
@@ -428,6 +609,37 @@
     modeSelect.value = selectedMode;
   }
 
+  function populateYearControl(selectedYear) {
+    var select = document.getElementById("year-filter");
+    select.textContent = "";
+    releaseIndex.releases.forEach(function (release) {
+      var option = document.createElement("option");
+      option.value = String(release.dataset_year);
+      option.textContent = String(release.dataset_year);
+      option.defaultSelected = release.dataset_year === releaseIndex.default_year;
+      select.appendChild(option);
+    });
+    select.value = String(selectedYear);
+  }
+
+  function updateProofRail(selectedYear) {
+    if (!releaseIndex) return;
+    var published = new Set(
+      releaseIndex.releases.map(function (release) {
+        return release.dataset_year;
+      })
+    );
+    document.querySelectorAll(".proof-rail li[data-year]").forEach(function (item) {
+      var year = Number(item.getAttribute("data-year"));
+      var result = item.querySelector(".proof-result");
+      var isPublished = published.has(year);
+      item.classList.toggle("is-current", year === selectedYear);
+      result.classList.toggle("is-pending", !isPublished);
+      result.setAttribute("data-i18n", isPublished ? "result_published" : "result_pending");
+      result.textContent = t(isPublished ? "result_published" : "result_pending");
+    });
+  }
+
   function renderMetadata() {
     document.getElementById("summary-year").textContent = String(artifact.dataset_year);
     document.getElementById("summary-scope").textContent = t("scope_value");
@@ -440,6 +652,37 @@
     source.href = artifact.source.distribution_url;
     source.textContent = artifact.source.name;
     document.getElementById("source-revision").textContent = artifact.source.source_revision_id;
+    document.getElementById("semantic-regime").textContent = currentRelease.contract.semantic_regime_id;
+    document.getElementById("mapping-versions").textContent = tpl(t("mapping_value"), {
+      crash: currentRelease.contract.crash_mapping_version,
+      person: currentRelease.contract.person_mapping_version,
+    });
+    document.getElementById("state-code-system").textContent = currentRelease.contract.state_code_system;
+    document.getElementById("annual-contract").textContent = tpl(t("contract_value"), {
+      revision: number(currentRelease.contract.contract_revision),
+      sha: currentRelease.contract.contract_sha256,
+    });
+    document.getElementById("artifact-download").href = DATA_ROOT + currentRelease.artifact_path;
+  }
+
+  function clearMetadata() {
+    [
+      "summary-year",
+      "summary-scope",
+      "summary-threshold",
+      "summary-retention",
+      "source-revision",
+      "semantic-regime",
+      "mapping-versions",
+      "state-code-system",
+      "annual-contract",
+    ].forEach(function (id) {
+      document.getElementById(id).textContent = "—";
+    });
+    var source = document.getElementById("official-source");
+    source.removeAttribute("href");
+    source.textContent = "—";
+    document.getElementById("artifact-download").removeAttribute("href");
   }
 
   function applyTranslations() {
@@ -451,41 +694,145 @@
     document.querySelectorAll("[data-lang]").forEach(function (button) {
       button.setAttribute("aria-pressed", button.getAttribute("data-lang") === lang ? "true" : "false");
     });
+    updateProofRail(currentRelease ? currentRelease.dataset_year : null);
     if (artifact) {
-      renderControls();
+      renderArtifactControls();
       renderMetadata();
       renderTable();
     }
   }
 
-  function showError() {
+  function showLoading() {
+    artifact = null;
+    rows = [];
+    clearMetadata();
     var status = document.getElementById("coverage-status");
+    status.setAttribute("data-i18n", "loading");
+    status.textContent = t("loading");
+    status.classList.remove("is-error");
+    var body = document.getElementById("coverage-body");
+    body.textContent = "";
+    var row = document.createElement("tr");
+    var message = cell("td", t("loading"));
+    message.setAttribute("data-i18n", "loading");
+    message.colSpan = 5;
+    row.appendChild(message);
+    body.appendChild(row);
+    var caption = document.getElementById("coverage-caption");
+    caption.setAttribute("data-i18n", "caption_loading");
+    caption.textContent = t("caption_loading");
+  }
+
+  function showError() {
+    artifact = null;
+    rows = [];
+    clearMetadata();
+    var status = document.getElementById("coverage-status");
+    status.setAttribute("data-i18n", "load_error");
     status.textContent = t("load_error");
     status.classList.add("is-error");
     var body = document.getElementById("coverage-body");
     body.textContent = "";
     var row = document.createElement("tr");
     var message = cell("td", t("load_error"));
+    message.setAttribute("data-i18n", "load_error");
     message.colSpan = 5;
     row.appendChild(message);
     body.appendChild(row);
-    document.getElementById("coverage-caption").textContent = t("caption_error");
+    var caption = document.getElementById("coverage-caption");
+    caption.setAttribute("data-i18n", "caption_error");
+    caption.textContent = t("caption_error");
+  }
+
+  function releaseForYear(year) {
+    if (!releaseIndex) return null;
+    return (
+      releaseIndex.releases.find(function (release) {
+        return release.dataset_year === year;
+      }) || null
+    );
+  }
+
+  function requestedYear() {
+    var params = new URLSearchParams(window.location.search);
+    if (!params.has("year")) return releaseIndex.default_year;
+    var value = params.get("year");
+    assert(value !== null && /^[0-9]{4}$/.test(value), "requested year is invalid");
+    var year = Number(value);
+    assert(releaseForYear(year), "requested year is not published");
+    return year;
+  }
+
+  function updateYearUrl(year) {
+    var url = new URL(window.location.href);
+    url.searchParams.set("year", String(year));
+    window.history.replaceState(null, "", url.href);
+  }
+
+  function updateLanguageUrl(next) {
+    var url = new URL(window.location.href);
+    url.searchParams.set("lang", next);
+    window.history.replaceState(null, "", url.href);
+  }
+
+  function loadRelease(release, updateUrl) {
+    var serial = ++requestSerial;
+    currentRelease = release;
+    document.getElementById("year-filter").value = String(release.dataset_year);
+    updateProofRail(release.dataset_year);
+    showLoading();
+    return fetch(DATA_ROOT + release.artifact_path)
+      .then(function (response) {
+        return verifiedJson(response, release.artifact_bytes, release.artifact_sha256, "annual artifact");
+      })
+      .then(function (data) {
+        if (serial !== requestSerial) return;
+        artifact = validateArtifact(data, release, releaseIndex.contract);
+        rows = flatten(artifact);
+        if (updateUrl) updateYearUrl(release.dataset_year);
+        document.getElementById("coverage-status").classList.remove("is-error");
+        applyTranslations();
+      })
+      .catch(function () {
+        if (serial === requestSerial) showError();
+      });
   }
 
   function bindEvents() {
-    document.getElementById("coverage-filters").addEventListener("submit", function (event) {
+    var form = document.getElementById("coverage-filters");
+    form.addEventListener("submit", function (event) {
       event.preventDefault();
     });
-    document.getElementById("coverage-filters").addEventListener("change", renderTable);
-    document.getElementById("coverage-filters").addEventListener("reset", function () {
-      window.setTimeout(renderTable, 0);
+    form.addEventListener("change", function (event) {
+      if (event.target && event.target.id === "year-filter") {
+        var release = releaseForYear(Number(event.target.value));
+        if (!release) {
+          showError();
+          return;
+        }
+        loadRelease(release, true);
+      } else {
+        renderTable();
+      }
+    });
+    form.addEventListener("reset", function (event) {
+      event.preventDefault();
+      if (!releaseIndex) return;
+      document.getElementById("state-filter").value = "";
+      document.getElementById("mode-filter").value = "";
+      document.getElementById("status-filter").value = "";
+      loadRelease(releaseForYear(releaseIndex.default_year), true);
     });
     document.querySelectorAll("[data-lang]").forEach(function (button) {
       button.addEventListener("click", function () {
         var next = button.getAttribute("data-lang");
+        if (next !== "en" && next !== "es") return;
+        var serial = ++languageRequestSerial;
         i18n.load(next).then(function () {
+          if (serial !== languageRequestSerial) return;
           lang = next;
           i18n.setLang(lang);
+          updateLanguageUrl(lang);
           applyTranslations();
         });
       });
@@ -493,8 +840,16 @@
   }
 
   window.NearmissUSCoverage = {
-    validateArtifact: validateArtifact,
-    dataUrl: DATA_URL,
+    validateIndex: validateIndex,
+    validateArtifact: function (data, release, contract) {
+      return validateArtifact(
+        data,
+        release || currentRelease,
+        contract || (releaseIndex && releaseIndex.contract)
+      );
+    },
+    indexUrl: INDEX_URL,
+    dataUrl: LEGACY_2024_DATA_URL,
   };
 
   bindEvents();
@@ -502,16 +857,18 @@
     .then(function () {
       i18n.setLang(lang);
       applyTranslations();
-      return fetch(DATA_URL);
+      return fetch(INDEX_URL);
     })
     .then(function (response) {
-      return verifiedArtifact(response);
+      return verifiedJson(response, EXPECTED_INDEX_BYTES, EXPECTED_INDEX_SHA256, "release index");
     })
     .then(function (data) {
-      artifact = validateArtifact(data);
-      rows = flatten(artifact);
-      document.getElementById("coverage-status").classList.remove("is-error");
-      applyTranslations();
+      releaseIndex = validateIndex(data);
+      populateYearControl(releaseIndex.default_year);
+      updateProofRail(null);
+      var year = requestedYear();
+      populateYearControl(year);
+      return loadRelease(releaseForYear(year), false);
     })
     .catch(showError);
 })();

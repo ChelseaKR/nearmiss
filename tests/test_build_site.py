@@ -5,6 +5,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import subprocess
+import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -13,6 +15,7 @@ import tools.build_site as build_site_module
 from tools.build_site import build_site
 
 SHA = "a" * 40
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 NATIONAL_PATH = "web/us-coverage.html"
 NATIONAL_CANONICAL = "https://nearmiss.report/web/us-coverage.html"
 
@@ -67,6 +70,7 @@ def _assert_national_apex(html: str) -> None:
     assert NATIONAL_PATH in document.links
     assert f"{NATIONAL_PATH}?lang=es" in document.links
     assert "web/index.html" in document.links
+    assert "data/published/fars-state-mode-index.json" in document.links
     assert "data/published/fars-2024-state-mode.json" in document.links
     assert "data/published/" not in document.links
     assert document.links.index(NATIONAL_PATH) < document.links.index("web/index.html")
@@ -85,7 +89,9 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     assert "web/us-coverage.css" in files
     assert "web/vendor/leaflet/leaflet.js" in files
     assert "data/published/davis.geojson" in files
-    assert "data/published/fars-2024-state-mode.json" in files
+    assert "data/published/fars-state-mode-index.json" in files
+    for year in range(2020, 2025):
+        assert f"data/published/fars-{year}-state-mode.json" in files
     assert "deployment.json" in files
     assert not any(path.startswith("data/raw/") for path in files)
     assert not any(path.startswith("config/") for path in files)
@@ -120,6 +126,28 @@ def test_deployment_stamp_and_manifest_hashes_are_exact(tmp_path: Path) -> None:
     assert "site-manifest.json" in artifact_files
 
 
+def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
+    workflow = (PROJECT_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    required_specs = {
+        "index.html|",
+        "deployment.json|deployment.json",
+        "web/index.html|web/index.html",
+        "web/us-coverage.html|web/us-coverage.html",
+        "web/us-coverage.js|web/us-coverage.js",
+        "web/i18n.js|web/i18n.js",
+        "web/locales/en.json|web/locales/en.json",
+        "web/locales/es.json|web/locales/es.json",
+        "web/us-coverage.css|web/us-coverage.css",
+        "web/style.css|web/style.css",
+        "data/published/davis.geojson|data/published/davis.geojson",
+        "data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json",
+    }
+    for spec in required_specs:
+        assert f"'{spec}'" in workflow
+    assert '[ "$live_sha" != "$expected_sha" ]' in workflow
+    assert '[ "$live_sha" != "$manifest_artifact_sha" ]' in workflow
+
+
 def test_build_is_byte_stable_for_same_commit(tmp_path: Path) -> None:
     first = tmp_path / "first"
     second = tmp_path / "second"
@@ -128,6 +156,30 @@ def test_build_is_byte_stable_for_same_commit(tmp_path: Path) -> None:
     assert (first / "site-manifest.json").read_bytes() == (
         second / "site-manifest.json"
     ).read_bytes()
+
+
+def test_pages_builder_runs_without_site_packages(tmp_path: Path) -> None:
+    """The clean Pages job must not depend on packages preinstalled on its runner."""
+    out = tmp_path / "isolated-site"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-S",
+            str(PROJECT_ROOT / "tools" / "build_site.py"),
+            "--out",
+            str(out),
+            "--sha",
+            SHA,
+        ],
+        cwd=PROJECT_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    manifest = json.loads((out / "site-manifest.json").read_text(encoding="utf-8"))
+    assert manifest["source_sha"] == SHA
 
 
 def _minimal_site_source(root: Path) -> None:
@@ -141,6 +193,16 @@ def _minimal_site_source(root: Path) -> None:
     (root / "web" / "locales" / "en.json").write_text("{}", encoding="utf-8")
 
 
+def _copy_current_fars_release_set(destination: Path) -> None:
+    source = PROJECT_ROOT / "data" / "published"
+    index_path = source / "fars-state-mode-index.json"
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    (destination / index_path.name).write_bytes(index_path.read_bytes())
+    for release in index["releases"]:
+        name = release["artifact_path"]
+        (destination / name).write_bytes((source / name).read_bytes())
+
+
 @pytest.mark.skipif(not hasattr(os, "symlink"), reason="symlinks unavailable")
 def test_build_rejects_published_symlink_escape(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -151,6 +213,7 @@ def test_build_rejects_published_symlink_escape(
     private.parent.mkdir(parents=True)
     private.write_text('{"precise": true}', encoding="utf-8")
     (root / "data" / "published" / "escape.json").symlink_to(private)
+    _copy_current_fars_release_set(root / "data" / "published")
     monkeypatch.setattr(build_site_module, "ROOT", root)
 
     with pytest.raises(ValueError, match="refusing symlink"):
@@ -184,3 +247,22 @@ def test_copy_rejects_lexical_path_that_resolves_outside_root(tmp_path: Path) ->
             tmp_path / "site" / "leak.json",
             allowed_root=allowed,
         )
+
+
+def test_build_rejects_unindexed_fars_json_before_published_copy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "repo"
+    _minimal_site_source(root)
+    published = root / "data" / "published"
+    _copy_current_fars_release_set(published)
+    (published / "fars-2023-debug.json").write_text(
+        '{"raw_case_ids":["private-case-id"]}\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(build_site_module, "ROOT", root)
+
+    out = tmp_path / "site"
+    with pytest.raises(ValueError, match="FARS namespace"):
+        build_site_module.build_site(out, SHA)
+    assert not (out / "data" / "published").exists()
