@@ -737,6 +737,9 @@ msgstr ""
 msgid "web.coverage.all_statuses"
 msgstr ""
 
+msgid "web.coverage.annual_contract_label"
+msgstr ""
+
 msgid "web.coverage.back"
 msgstr ""
 
@@ -773,6 +776,9 @@ msgstr ""
 msgid "web.coverage.contract"
 msgstr ""
 
+msgid "web.coverage.contract_value"
+msgstr ""
+
 msgid "web.coverage.data_h"
 msgstr ""
 
@@ -804,6 +810,12 @@ msgid "web.coverage.loading"
 msgstr ""
 
 msgid "web.coverage.manifest"
+msgstr ""
+
+msgid "web.coverage.mapping_value"
+msgstr ""
+
+msgid "web.coverage.mapping_versions_label"
 msgstr ""
 
 msgid "web.coverage.mode_label"
@@ -848,6 +860,12 @@ msgstr ""
 msgid "web.coverage.provenance_kicker"
 msgstr ""
 
+msgid "web.coverage.regime_caution"
+msgstr ""
+
+msgid "web.coverage.release_index"
+msgstr ""
+
 msgid "web.coverage.reset"
 msgstr ""
 
@@ -869,6 +887,9 @@ msgstr ""
 msgid "web.coverage.scope_value"
 msgstr ""
 
+msgid "web.coverage.semantic_regime_label"
+msgstr ""
+
 msgid "web.coverage.skip"
 msgstr ""
 
@@ -876,6 +897,9 @@ msgid "web.coverage.source_label"
 msgstr ""
 
 msgid "web.coverage.source_pinned"
+msgstr ""
+
+msgid "web.coverage.state_code_system_label"
 msgstr ""
 
 msgid "web.coverage.state_label"

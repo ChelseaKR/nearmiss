@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 
-from .adapters.fars import validate_fars_distribution_url
+from .fars_distribution import validate_fars_distribution_url
 
 SUPPORTED_FARS_YEARS = (2020, 2021, 2022, 2023, 2024)
 FARS_ACCIDENT_ROW_CAP = 45_000

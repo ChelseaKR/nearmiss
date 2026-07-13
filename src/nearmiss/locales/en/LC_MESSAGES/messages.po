@@ -671,7 +671,10 @@ msgid "web.submit.status_sending"
 msgstr "Sending your submission for review…"
 
 msgid "web.app.us_coverage_cta"
-msgstr "<strong>New: verified US fatal-crash context.</strong> <a href=\"us-coverage.html\">Explore 2024 state-by-mode counts, non-published cells, and source provenance →</a>"
+msgstr "<strong>New: verified US fatal-crash context.</strong> <a href=\"us-coverage.html\">Explore published annual state-by-mode counts, non-published cells, and source provenance →</a>"
+
+msgid "web.coverage.annual_contract_label"
+msgstr "Annual contract"
 
 msgid "web.coverage.all_modes"
 msgstr "All modes"
@@ -689,7 +692,7 @@ msgid "web.coverage.can_h"
 msgstr "What this can answer"
 
 msgid "web.coverage.can_list"
-msgstr "<li>How many fatal crashes involved each mode in a state in 2024.</li><li>Which cells met the small-cell publication floor.</li><li>Which official release and transformation produced the counts.</li>"
+msgstr "<li>How many fatal crashes involved each mode in a state in the selected year.</li><li>Which cells met the small-cell publication floor.</li><li>Which official release and transformation produced the counts.</li>"
 
 msgid "web.coverage.cannot_h"
 msgstr "What this cannot answer"
@@ -718,6 +721,9 @@ msgstr "Published"
 msgid "web.coverage.contract"
 msgstr "Projection contract"
 
+msgid "web.coverage.contract_value"
+msgstr "Revision {revision} · SHA-256 {sha}"
+
 msgid "web.coverage.data_h"
 msgstr "State × involved-mode evidence"
 
@@ -740,16 +746,22 @@ msgid "web.coverage.h1"
 msgstr "Fatal-crash burden, state by state"
 
 msgid "web.coverage.lede"
-msgstr "Explore published 2024 FARS counts for fatal crashes involving each road-user mode across all 50 states and DC. Every row remains tied to its release, small-cell publication rule, and source."
+msgstr "Choose a published FARS year and explore fatal-crash counts involving each road-user mode across all 50 states and DC. Every row remains tied to its exact release, small-cell publication rule, and source."
 
 msgid "web.coverage.load_error"
-msgstr "The reviewed public artifact could not be loaded or did not pass its contract. No counts are shown."
+msgstr "The reviewed release index or selected public artifact could not be loaded or did not pass its contract. No counts are shown."
 
 msgid "web.coverage.loading"
 msgstr "Loading the published artifact…"
 
 msgid "web.coverage.manifest"
 msgstr "Site file manifest"
+
+msgid "web.coverage.mapping_value"
+msgstr "Crash {crash} · person {person}"
+
+msgid "web.coverage.mapping_versions_label"
+msgstr "Mapping versions"
 
 msgid "web.coverage.mode_label"
 msgstr "Involved road-user mode"
@@ -779,7 +791,7 @@ msgid "web.coverage.proof_h"
 msgstr "Five years, with publication status made explicit"
 
 msgid "web.coverage.proof_intro"
-msgstr "Official source archives are pinned for 2020–2024. This public state-by-mode result is currently published for 2024 only; unavailable years are never silently treated as zero."
+msgstr "Official source archives are pinned for 2020–2024. Only years whose reviewed public artifacts appear in the release index can be selected; unavailable years are never silently treated as zero."
 
 msgid "web.coverage.proof_kicker"
 msgstr "Release proof"
@@ -788,10 +800,16 @@ msgid "web.coverage.provenance_h"
 msgstr "Source and deployment provenance"
 
 msgid "web.coverage.provenance_intro"
-msgstr "The public JSON carries its source revision, checksum, small-cell publication rule, and accounting. Deployment files bind the published page back to an exact source commit."
+msgstr "The public JSON and release index carry source, mapping, semantic-regime, small-cell publication, and accounting proof. Deployment files bind the published page back to an exact source commit."
 
 msgid "web.coverage.provenance_kicker"
 msgstr "Trace the evidence"
+
+msgid "web.coverage.regime_caution"
+msgstr "<strong>Compare years with care.</strong> FARS person-type coding uses one reviewed semantic regime for 2020–2021 and another for 2022–2024. Each result stays pinned to its annual mapping contract, so a cross-regime change can reflect coding as well as outcomes."
+
+msgid "web.coverage.release_index"
+msgstr "Download release index"
 
 msgid "web.coverage.reset"
 msgstr "Reset filters"
@@ -814,6 +832,9 @@ msgstr "Source revision"
 msgid "web.coverage.scope_value"
 msgstr "50 states + DC"
 
+msgid "web.coverage.semantic_regime_label"
+msgstr "Semantic regime"
+
 msgid "web.coverage.skip"
 msgstr "Skip to main content"
 
@@ -822,6 +843,9 @@ msgstr "Official source"
 
 msgid "web.coverage.source_pinned"
 msgstr "Source pinned"
+
+msgid "web.coverage.state_code_system_label"
+msgstr "State-code system"
 
 msgid "web.coverage.state_label"
 msgstr "State"

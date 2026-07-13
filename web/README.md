@@ -48,7 +48,7 @@ below are checked by `make accessibility` and the `axe` run.
 | File | What it is |
 | --- | --- |
 | `index.html` + `app.js` | the Davis two-map view + authoritative data table (above) |
-| `us-coverage.html` + `us-coverage.js` | the nationwide 2024 FARS state × involved-mode evidence ledger, with explicit suppression and release provenance |
+| `us-coverage.html` + `us-coverage.js` | the nationwide annual FARS state × involved-mode evidence ledger; a hash-bound release index exposes only published years, with explicit suppression and release provenance |
 | `submit.html` + `submit.js` | the **public submission form** — accessible, serverless-honest; builds a schema-valid report for the moderation queue (see [`docs/SUBMISSIONS.md`](../docs/SUBMISSIONS.md)) |
 | `embed.html` + `embed.js` + `embed.css` | the **embeddable hotspot widget** (below) |
 | `nearmiss-embed.js` | one-line `<script>`-tag loader that injects the widget as a sandboxed iframe |

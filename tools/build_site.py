@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import sys
 from pathlib import Path
 from typing import TypedDict
 
@@ -94,6 +95,16 @@ def _copy_published(source_root: Path, destination_root: Path) -> None:
         )
 
 
+def _verify_fars_releases(source_root: Path) -> None:
+    """Load the dependency-free annual release contract from the source tree."""
+    source_package = str(ROOT / "src")
+    if source_package not in sys.path:
+        sys.path.insert(0, source_package)
+    from nearmiss.fars_public_index import verify_fars_public_release_directory
+
+    verify_fars_public_release_directory(source_root)
+
+
 def build_site(out: Path, source_sha: str) -> SiteManifest:
     """Build an allowlisted static artifact and return its manifest."""
     if out.exists():
@@ -114,6 +125,7 @@ def build_site(out: Path, source_sha: str) -> SiteManifest:
     for directory in ("vendor", "locales"):
         _copy_tree(ROOT / "web" / directory, out / "web" / directory)
     published = ROOT / "data" / "published"
+    _verify_fars_releases(published)
     _copy_published(published, out / "data" / "published")
 
     deployment = {

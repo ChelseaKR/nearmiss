@@ -137,6 +137,45 @@ those annual lineages are private and are not yet consumed by coverage, street-s
 comparison, or publication. Those consumers require a separate reviewed methodology and privacy
 boundary before any comparative capability appears.
 
+### Publishing annual state × mode context
+
+The public nationwide page consumes one canonical artifact per released year and the closed
+[`fars-state-mode-index.json`](../data/published/fars-state-mode-index.json) allowlist. The index is
+not a place to announce work in progress: it contains only years with an exact reviewed public
+artifact, pins every artifact by bytes and SHA-256, and binds it to that year's registered NHTSA
+archive, annual contract digest, semantic regime, crash/person mappings, state-code system, and
+geography crosswalk. The browser verifies the index and selected artifact before showing any count;
+an unknown or unpublished `?year=` fails closed instead of falling back to zero or another year.
+The page surfaces those method identities and explicitly warns that 2020–2021 and 2022–2024 use
+different reviewed person-type semantic regimes.
+
+Production inputs required to add a year are:
+
+1. the exact activated revision-1 annual v2 snapshot for that year, authenticated through its full
+   private receipt/raw/normalized lineage;
+2. a deterministic public projection from those authenticated bytes containing exactly 51 states ×
+   six involved modes, with every sub-`k=10` or zero cell represented only as
+   `suppressed_or_zero` and with reconciled aggregate accounting;
+3. canonical UTF-8 JSON named `fars-YYYY-state-mode.json`, independently checked against the
+   registered annual source identity and privacy-forbidden-field tests; and
+4. a regenerated index built from an explicit list of all released annual files:
+
+   ```bash
+   python tools/build_fars_public_index.py \
+     --artifact data/published/fars-2020-state-mode.json \
+     --artifact data/published/fars-2021-state-mode.json \
+     --artifact data/published/fars-2022-state-mode.json \
+     --artifact data/published/fars-2023-state-mode.json \
+     --artifact data/published/fars-2024-state-mode.json \
+     --out data/published/fars-state-mode-index.json
+   ```
+
+The checked-in production index publishes the proof-bound 2020–2024 projections. The browser
+contract exercises all five exact public artifacts, including transitions across the 2020–2021 and
+2022–2024 semantic regimes. A private annual activation proof alone must never be relabeled as a
+public result: any future year remains unpublished until its projection and annual contract are
+generated, independently reviewed, and added to the closed release inventory.
+
 ## 1. Incidents — real, and available today (BikeMaps.org)
 
 [BikeMaps.org](https://bikemaps.org) is a crowdsourced global map of cycling **collisions, near
