@@ -18,6 +18,7 @@ from .fars import FarsAdapter, FarsRawBatch, read_export_bytes
 from .outcomes import OutcomeProvenance
 
 PERSON_MODE_MAPPING_VERSION = "1.0.0"
+FARS_COUNTY_CODE_SYSTEM = "nhtsa_fars_gsa_2024"
 MODE_ORDER = (
     "motor_vehicle_occupant",
     "motorcyclist",
@@ -237,12 +238,51 @@ class PersonJoinProvenance:
 
 
 @dataclass(frozen=True)
+class FarsJurisdictionSummary:
+    """Source-native crash jurisdiction retained for private coarse projections."""
+
+    source_record_id: str
+    state_code: str
+    county_code: str
+    county_status: str
+    county_code_system: str = FARS_COUNTY_CODE_SYSTEM
+
+    def __post_init__(self) -> None:
+        if re.fullmatch(r"^2024:[1-9][0-9]*$", self.source_record_id, re.ASCII) is None:
+            raise ValueError("FARS jurisdiction source identity is invalid")
+        if re.fullmatch(r"^[1-9][0-9]?$", self.state_code, re.ASCII) is None:
+            raise ValueError("FARS jurisdiction state code is invalid")
+        if re.fullmatch(r"^[0-9]{3}$", self.county_code, re.ASCII) is None:
+            raise ValueError("FARS jurisdiction county code is invalid")
+        expected_status = {
+            "000": "not_applicable",
+            "997": "other",
+            "998": "not_reported",
+            "999": "unknown",
+        }.get(self.county_code, "reported")
+        if self.county_status != expected_status:
+            raise ValueError("FARS jurisdiction county status is invalid")
+        if self.county_code_system != FARS_COUNTY_CODE_SYSTEM:
+            raise ValueError("FARS jurisdiction county code system is invalid")
+
+    def as_dict(self) -> dict[str, str]:
+        return {
+            "source_record_id": self.source_record_id,
+            "state_code": self.state_code,
+            "county_code": self.county_code,
+            "county_status": self.county_status,
+            "county_code_system": self.county_code_system,
+        }
+
+
+@dataclass(frozen=True)
 class FarsModeSummary:
     source_record_id: str
     involved_modes: tuple[str, ...]
     fatality_modes: tuple[str, ...]
     involved_person_count_by_mode: Mapping[str, int]
     fatality_count_by_mode: Mapping[str, int]
+    jurisdiction: FarsJurisdictionSummary | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -255,6 +295,10 @@ class FarsModeSummary:
             "fatality_count_by_mode",
             MappingProxyType(dict(self.fatality_count_by_mode)),
         )
+        if self.jurisdiction is not None and not isinstance(
+            self.jurisdiction, FarsJurisdictionSummary
+        ):
+            raise TypeError("FARS mode summary jurisdiction is invalid")
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -457,16 +501,38 @@ def _mode(row: Mapping[str, str]) -> str:
 
 def _accident_index(
     batch: FarsJoinedRawBatch,
-) -> tuple[dict[str, tuple[str, int, int]], int]:
-    accident: dict[str, tuple[str, int, int]] = {}
+) -> tuple[dict[str, tuple[str, int, int, FarsJurisdictionSummary | None]], int]:
+    accident: dict[str, tuple[str, int, int, FarsJurisdictionSummary | None]] = {}
     years: set[int] = set()
+    county_presence = {"COUNTY" in row for row in batch.accident_rows}
+    if len(county_presence) > 1:
+        raise ValueError("joined FARS accident rows inconsistently provide COUNTY")
+    has_county = county_presence == {True}
     for row in batch.accident_rows:
         case = str(_integer(row, "ST_CASE", positive=True))
         if case in accident:
             raise ValueError("duplicate FARS accident case")
         year = _integer(row, "YEAR", positive=True)
         years.add(year)
-        accident[case] = (str(_integer(row, "STATE", positive=True)), _integer(row, "FATALS"), year)
+        state = str(_integer(row, "STATE", positive=True))
+        jurisdiction: FarsJurisdictionSummary | None = None
+        if has_county:
+            county = _integer(row, "COUNTY")
+            if county > 999:
+                raise ValueError("invalid FARS accident COUNTY")
+            county_code = f"{county:03d}"
+            jurisdiction = FarsJurisdictionSummary(
+                source_record_id=f"{year}:{case}",
+                state_code=state,
+                county_code=county_code,
+                county_status={
+                    "000": "not_applicable",
+                    "997": "other",
+                    "998": "not_reported",
+                    "999": "unknown",
+                }.get(county_code, "reported"),
+            )
+        accident[case] = (state, _integer(row, "FATALS"), year, jurisdiction)
     if len(years) != 1:
         raise ValueError("joined FARS export must contain exactly one dataset year")
     year = years.pop()
@@ -477,7 +543,11 @@ def _accident_index(
 
 def _person_index(  # noqa: C901 - whole-batch relational checks remain auditable together
     batch: FarsJoinedRawBatch,
-) -> tuple[dict[str, dict[str, Any]], int]:
+) -> tuple[
+    dict[str, dict[str, Any]],
+    dict[str, FarsJurisdictionSummary | None],
+    int,
+]:
     accident, year = _accident_index(batch)
     joined: dict[str, dict[str, Any]] = {}
     person_keys: set[tuple[str, int, int]] = set()
@@ -519,7 +589,7 @@ def _person_index(  # noqa: C901 - whole-batch relational checks remain auditabl
     for case, summary in joined.items():
         if sum(summary["fatal"].values()) != accident[case][1]:
             raise ValueError("FARS person fatal count does not match accident")
-    return joined, year
+    return joined, {case: values[3] for case, values in accident.items()}, year
 
 
 def collect_joined(
@@ -533,7 +603,7 @@ def collect_joined(
     PersonJoinProvenance,
 ]:
     """Map crash outcomes and attach deterministic crash-level person mode summaries."""
-    joined, year = _person_index(batch)
+    joined, jurisdictions, year = _person_index(batch)
     outcomes, crash_provenance = FarsAdapter().parse(
         FarsRawBatch(rows=batch.accident_rows, input_sha256=batch.input_sha256),
         release_status=release_status,
@@ -553,6 +623,7 @@ def collect_joined(
                 fatality_modes=tuple(mode for mode in MODE_ORDER if fatal[mode] > 0),
                 involved_person_count_by_mode=involved,
                 fatality_count_by_mode=fatal,
+                jurisdiction=jurisdictions[case],
             )
         )
     excluded_cases = set(joined) - emitted_cases

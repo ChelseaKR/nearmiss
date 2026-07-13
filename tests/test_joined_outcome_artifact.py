@@ -13,6 +13,7 @@ from jsonschema import Draft202012Validator
 
 from nearmiss.adapters.fars import FarsAdapter, read_export_bytes
 from nearmiss.adapters.fars_joined import (
+    FarsJurisdictionSummary,
     FarsMemberDescriptor,
     FarsModeSummary,
     PersonJoinProvenance,
@@ -176,6 +177,91 @@ def test_build_and_canonical_bytes_are_stable_under_input_reordering() -> None:
     assert b"\n" not in payload[:-1]
     assert json.loads(payload) == first
     assert b"generated_at" not in payload
+
+
+def test_v11_retains_closed_source_native_jurisdiction_with_v10_read_compatibility() -> None:
+    outcomes, summaries, crash, person = _inputs()
+    enriched = [
+        replace(
+            summary,
+            jurisdiction=FarsJurisdictionSummary(
+                source_record_id=summary.source_record_id,
+                state_code="6",
+                county_code="113" if index == 0 else "997",
+                county_status="reported" if index == 0 else "other",
+            ),
+        )
+        for index, summary in enumerate(summaries)
+    ]
+    artifact = _build(outcomes, enriched, crash, person)
+    assert artifact["schema_version"] == "1.1.0"
+    assert _records(artifact)[0]["jurisdiction"] == {
+        "source_record_id": "2024:100001",
+        "state_code": "6",
+        "county_code": "113",
+        "county_status": "reported",
+        "county_code_system": "nhtsa_fars_gsa_2024",
+    }
+    validate_joined_outcome_artifact(artifact)
+
+    legacy = build_joined_outcome_artifact(
+        outcomes,
+        enriched,
+        person,
+        crash,
+        distribution_url=URL,
+        max_invalid_fraction=0.34,
+        schema_version="1.0.0",
+    )
+    assert legacy["schema_version"] == "1.0.0"
+    assert all("jurisdiction" not in record for record in _records(legacy))
+    validate_joined_outcome_artifact(legacy)
+
+    validator = Draft202012Validator(JOINED_ARTIFACT_SCHEMA)
+    missing = copy.deepcopy(artifact)
+    _records(missing)[0].pop("jurisdiction")
+    assert not validator.is_valid(missing)
+    forbidden = copy.deepcopy(legacy)
+    _records(forbidden)[0]["jurisdiction"] = copy.deepcopy(_records(artifact)[0]["jurisdiction"])
+    assert not validator.is_valid(forbidden)
+
+    for field, value in (
+        ("source_record_id", "2024:999999"),
+        ("state_code", "48"),
+        ("county_status", "unknown"),
+        ("county_code", "998"),
+    ):
+        tampered = copy.deepcopy(artifact)
+        _records(tampered)[0]["jurisdiction"][field] = value
+        with pytest.raises(ValueError, match="jurisdiction"):
+            validate_joined_outcome_artifact(tampered)
+
+
+def test_jurisdiction_coverage_is_all_or_none_and_version_bound() -> None:
+    outcomes, summaries, crash, person = _inputs()
+    enriched = list(summaries)
+    enriched[0] = replace(
+        enriched[0],
+        jurisdiction=FarsJurisdictionSummary(
+            source_record_id=enriched[0].source_record_id,
+            state_code="6",
+            county_code="113",
+            county_status="reported",
+        ),
+    )
+    with pytest.raises(ValueError, match="coverage must be all or none"):
+        _build(outcomes, enriched, crash, person)
+
+    legacy = _artifact()
+    _records(legacy)[0]["jurisdiction"] = {
+        "source_record_id": "2024:100001",
+        "state_code": "6",
+        "county_code": "113",
+        "county_status": "reported",
+        "county_code_system": "nhtsa_fars_gsa_2024",
+    }
+    with pytest.raises(ValueError, match="invalid private joined artifact"):
+        validate_joined_outcome_artifact(legacy)
 
 
 def test_builder_requires_exactly_one_summary_per_outcome() -> None:

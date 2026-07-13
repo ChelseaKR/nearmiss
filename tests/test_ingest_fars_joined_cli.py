@@ -14,11 +14,24 @@ from nearmiss.__main__ import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-ACCIDENT = (
+ACCIDENT_WITHOUT_COUNTY = (
     (ROOT / "tests" / "fixtures" / "fars" / "accident.csv")
     .read_bytes()
     .replace(b",2023,", b",2024,")
 )
+
+
+def _with_county_column(payload: bytes) -> bytes:
+    lines = payload.decode().splitlines()
+    output = [lines[0].replace(",FATALS", ",COUNTY,FATALS")]
+    for line in lines[1:]:
+        values = line.split(",")
+        values.insert(-1, "113")
+        output.append(",".join(values))
+    return ("\n".join(output) + "\n").encode()
+
+
+ACCIDENT = _with_county_column(ACCIDENT_WITHOUT_COUNTY)
 PERSON_HEADER = "STATE,ST_CASE,VEH_NO,PER_NO,PER_TYP,INJ_SEV,BODY_TYP\n"
 PERSON_ROWS = [
     "6,100001,1,1,1,4,4",
@@ -111,6 +124,18 @@ def test_joined_ingestion_is_deterministic_private_and_isolated(
     assert len(list((root / "fars-joined" / "raw" / "sha256").glob("*.bin"))) == 1
     assert len(list((root / "fars-joined" / "normalized" / "sha256").glob("*.bin"))) == 1
     assert "records" not in first
+
+
+def test_new_ingestion_fails_closed_without_county_identity(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    export = tmp_path / "fars-2024.zip"
+    _archive(export, accident=ACCIDENT_WITHOUT_COUNTY)
+
+    assert main(_argv(export, tmp_path / "private")) == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "joined FARS ingestion failed" in captured.err
 
 
 def test_person_regression_rolls_back_until_explicit_override(

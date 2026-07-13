@@ -21,7 +21,7 @@ from .fars_national_context import (
     fars_national_context_contract_descriptor,
     fars_state_codebook_sha256,
 )
-from .joined_outcome_artifacts import JOINED_ARTIFACT_SCHEMA_VERSION
+from .joined_outcome_artifacts import SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS
 
 _CAPS = cast(dict[str, object], fars_national_context_contract_descriptor()["caps"])
 _MAX_CASES = cast(int, _CAPS["max_cases"])
@@ -78,7 +78,10 @@ FARS_NATIONAL_CONTEXT_ARTIFACT_SCHEMA: dict[str, object] = {
                 "normalized_sha256": _SHA256,
                 "accident_sha256": _SHA256,
                 "person_sha256": _SHA256,
-                "joined_schema_version": {"const": JOINED_ARTIFACT_SCHEMA_VERSION},
+                "joined_schema_version": {
+                    "type": "string",
+                    "enum": list(SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS),
+                },
                 "crash_mapping_version": {"const": FARS_MAPPING_VERSION},
                 "person_mapping_version": {"const": PERSON_MODE_MAPPING_VERSION},
                 "crash_records_read": _count(_MAX_CASES, minimum=1),

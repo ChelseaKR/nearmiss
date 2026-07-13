@@ -39,6 +39,16 @@ def _person(rows: list[str] | None = None) -> bytes:
     return (HEADER + "\n".join(ROWS if rows is None else rows) + "\n").encode()
 
 
+def _accident_with_counties(counties: tuple[str, str, str] = ("113", "997", "999")) -> bytes:
+    lines = ACCIDENT.decode().splitlines()
+    output = [lines[0].replace(",FATALS", ",COUNTY,FATALS")]
+    for line, county in zip(lines[1:], counties, strict=True):
+        values = line.split(",")
+        values.insert(-1, county)
+        output.append(",".join(values))
+    return ("\n".join(output) + "\n").encode()
+
+
 def _archive(
     person: bytes | None = None,
     *,
@@ -106,6 +116,38 @@ def test_reads_hashes_and_joins_deterministic_mode_summaries() -> None:
     schema = json.loads((ROOT / "schema" / "official-outcome.schema.json").read_text())
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     assert all(not list(validator.iter_errors(outcome)) for outcome in outcomes)
+
+
+def test_retains_source_native_county_jurisdiction_when_official_column_is_present() -> None:
+    summaries = collect_joined(
+        read_joined_export_bytes(_archive(accident=_accident_with_counties()))
+    )[1]
+    assert summaries[0].jurisdiction is not None
+    assert summaries[0].jurisdiction.as_dict() == {
+        "source_record_id": "2024:100001",
+        "state_code": "6",
+        "county_code": "113",
+        "county_status": "reported",
+        "county_code_system": "nhtsa_fars_gsa_2024",
+    }
+    assert summaries[1].jurisdiction is not None
+    assert summaries[1].jurisdiction.county_status == "other"
+
+
+def test_accounts_for_not_applicable_source_county_without_minting_an_identity() -> None:
+    summaries = collect_joined(
+        read_joined_export_bytes(_archive(accident=_accident_with_counties(("0", "113", "113"))))
+    )[1]
+    assert summaries[0].jurisdiction is not None
+    assert summaries[0].jurisdiction.county_code == "000"
+    assert summaries[0].jurisdiction.county_status == "not_applicable"
+
+
+@pytest.mark.parametrize(("county", "message"), [("", "COUNTY"), ("1000", "COUNTY")])
+def test_invalid_source_county_codes_fail_closed(county: str, message: str) -> None:
+    accident = _accident_with_counties((county, "113", "113"))
+    with pytest.raises(ValueError, match=message):
+        collect_joined(read_joined_export_bytes(_archive(accident=accident)))
 
 
 def test_person_row_order_does_not_change_outcomes() -> None:
