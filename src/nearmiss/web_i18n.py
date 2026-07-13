@@ -1,6 +1,7 @@
 """Registry of the web UI's translatable strings (message-extraction seam).
 
-The static site (:file:`web/app.js`, :file:`web/submit.js`) renders in English
+The static site (:file:`web/app.js`, :file:`web/submit.js`,
+:file:`web/us-coverage.js`) renders in English
 or Spanish, but it cannot call gettext at runtime — it is served as flat files
 from GitHub Pages with no build step. Its translations are therefore
 single-sourced from the *same* gettext catalogs as the advocacy brief: this
@@ -35,6 +36,7 @@ _APP_IDS: tuple[str, ...] = (
     N_("web.app.h1"),
     N_("web.app.lede"),
     N_("web.app.demo"),
+    N_("web.app.us_coverage_cta"),
     N_("web.app.titleCity"),
     N_("web.app.report_cta"),
     N_("web.app.demo_synth"),
@@ -162,6 +164,77 @@ _SUBMIT_IDS: tuple[str, ...] = (
     N_("web.submit.status_copy_manual"),
 )
 
+#: Every ``web.coverage.*`` id (the nationwide FARS evidence ledger).
+_COVERAGE_IDS: tuple[str, ...] = (
+    N_("web.coverage.title"),
+    N_("web.coverage.skip"),
+    N_("web.coverage.back"),
+    N_("web.coverage.eyebrow"),
+    N_("web.coverage.h1"),
+    N_("web.coverage.lede"),
+    N_("web.coverage.caveat"),
+    N_("web.coverage.proof_kicker"),
+    N_("web.coverage.proof_h"),
+    N_("web.coverage.proof_intro"),
+    N_("web.coverage.source_pinned"),
+    N_("web.coverage.result_pending"),
+    N_("web.coverage.result_published"),
+    N_("web.coverage.summary_h"),
+    N_("web.coverage.summary_year"),
+    N_("web.coverage.summary_scope"),
+    N_("web.coverage.summary_threshold"),
+    N_("web.coverage.summary_retention"),
+    N_("web.coverage.scope_value"),
+    N_("web.coverage.retention_value"),
+    N_("web.coverage.table_kicker"),
+    N_("web.coverage.data_h"),
+    N_("web.coverage.data_intro"),
+    N_("web.coverage.year_label"),
+    N_("web.coverage.state_label"),
+    N_("web.coverage.mode_label"),
+    N_("web.coverage.status_label"),
+    N_("web.coverage.all_states"),
+    N_("web.coverage.all_modes"),
+    N_("web.coverage.all_statuses"),
+    N_("web.coverage.status_published"),
+    N_("web.coverage.status_not_published"),
+    N_("web.coverage.reset"),
+    N_("web.coverage.loading"),
+    N_("web.coverage.load_error"),
+    N_("web.coverage.caption_loading"),
+    N_("web.coverage.caption_error"),
+    N_("web.coverage.caption"),
+    N_("web.coverage.result_summary"),
+    N_("web.coverage.no_results"),
+    N_("web.coverage.th_year"),
+    N_("web.coverage.th_state"),
+    N_("web.coverage.th_mode"),
+    N_("web.coverage.th_status"),
+    N_("web.coverage.th_count"),
+    N_("web.coverage.cell_published"),
+    N_("web.coverage.cell_not_published"),
+    N_("web.coverage.mode_motor_vehicle_occupant"),
+    N_("web.coverage.mode_motorcyclist"),
+    N_("web.coverage.mode_pedalcyclist"),
+    N_("web.coverage.mode_pedestrian"),
+    N_("web.coverage.mode_other_road_user"),
+    N_("web.coverage.mode_unknown"),
+    N_("web.coverage.can_h"),
+    N_("web.coverage.can_list"),
+    N_("web.coverage.cannot_h"),
+    N_("web.coverage.cannot_list"),
+    N_("web.coverage.provenance_kicker"),
+    N_("web.coverage.provenance_h"),
+    N_("web.coverage.provenance_intro"),
+    N_("web.coverage.source_label"),
+    N_("web.coverage.revision_label"),
+    N_("web.coverage.download"),
+    N_("web.coverage.deployment"),
+    N_("web.coverage.manifest"),
+    N_("web.coverage.contract"),
+    N_("web.coverage.footer"),
+)
+
 #: The full ``web.*`` inventory, single-sourced for :mod:`tools.po2json`,
 #: :mod:`tools.check_catalog_parity`, and the i18n tests.
-WEB_MESSAGE_IDS: tuple[str, ...] = _APP_IDS + _SUBMIT_IDS
+WEB_MESSAGE_IDS: tuple[str, ...] = _APP_IDS + _SUBMIT_IDS + _COVERAGE_IDS

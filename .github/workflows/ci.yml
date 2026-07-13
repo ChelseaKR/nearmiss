@@ -348,6 +348,11 @@ jobs:
       - name: dataset schema contract (jsdom web consumer)
         run: cd web && npm run contract
 
+      # G10: parse every authored page under dir=rtl and scan both inline styles
+      # and locally linked authored CSS for physical horizontal properties.
+      - name: RTL authored-layout smoke
+        run: cd web && npm run rtl
+
   security:
     name: security (pip-audit + gitleaks + CodeQL)
     runs-on: ubuntu-24.04
@@ -552,7 +557,20 @@ jobs:
             if [ "$deployed_sha" = "$GITHUB_SHA" ]; then
               curl --fail --silent --show-error "${base_url}/web/index.html" >/dev/null
               curl --fail --silent --show-error \
+                "${base_url}/web/us-coverage.html?sha=${GITHUB_SHA}" >/dev/null
+              curl --fail --silent --show-error \
+                "${base_url}/web/us-coverage.js?sha=${GITHUB_SHA}" >/dev/null
+              curl --fail --silent --show-error \
+                "${base_url}/web/us-coverage.css?sha=${GITHUB_SHA}" >/dev/null
+              curl --fail --silent --show-error \
                 "${base_url}/data/published/davis.geojson" >/dev/null
+              fars_sha="$(curl --fail --silent --show-error \
+                "${base_url}/data/published/fars-2024-state-mode.json?sha=${GITHUB_SHA}" | \
+                python -c 'import hashlib,sys; print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())')"
+              if [ "$fars_sha" != "29b5dc2673987cc7bedd0a83b2147e724e1fb2a2cb1458053af3d017ac8d6578" ]; then
+                echo "::error::deployed FARS public artifact SHA-256 mismatch: ${fars_sha}"
+                exit 1
+              fi
               exit 0
             fi
             sleep 5

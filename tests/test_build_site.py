@@ -22,8 +22,12 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     assert "index.html" in files
     assert "web/index.html" in files
     assert "web/app.js" in files
+    assert "web/us-coverage.html" in files
+    assert "web/us-coverage.js" in files
+    assert "web/us-coverage.css" in files
     assert "web/vendor/leaflet/leaflet.js" in files
     assert "data/published/davis.geojson" in files
+    assert "data/published/fars-2024-state-mode.json" in files
     assert "deployment.json" in files
     assert not any(path.startswith("data/raw/") for path in files)
     assert not any(path.startswith("config/") for path in files)

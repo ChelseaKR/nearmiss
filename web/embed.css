@@ -36,7 +36,7 @@ body.embed {
 
 .skip-link {
   position: absolute;
-  left: -9999px;
+  inset-inline-start: -9999px;
   top: 0;
   background: #fff;
   color: var(--embed-link);
@@ -44,7 +44,7 @@ body.embed {
   z-index: 1000;
 }
 .skip-link:focus {
-  left: 8px;
+  inset-inline-start: 8px;
   top: 8px;
 }
 
@@ -70,7 +70,7 @@ body.embed {
 }
 .embed-list ul {
   margin: 0.25rem 0;
-  padding-left: 1.1rem;
+  padding-inline-start: 1.1rem;
 }
 .embed-list li {
   margin: 0.15rem 0;
