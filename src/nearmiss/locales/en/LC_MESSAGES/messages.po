@@ -670,3 +670,206 @@ msgstr "Couldn't reach the server — here is your submission to send manually i
 msgid "web.submit.status_sending"
 msgstr "Sending your submission for review…"
 
+msgid "web.app.us_coverage_cta"
+msgstr "<strong>New: verified US fatal-crash context.</strong> <a href=\"us-coverage.html\">Explore 2024 state-by-mode counts, non-published cells, and source provenance →</a>"
+
+msgid "web.coverage.all_modes"
+msgstr "All modes"
+
+msgid "web.coverage.all_states"
+msgstr "All states + DC"
+
+msgid "web.coverage.all_statuses"
+msgstr "All statuses"
+
+msgid "web.coverage.back"
+msgstr "← Davis near-miss demo"
+
+msgid "web.coverage.can_h"
+msgstr "What this can answer"
+
+msgid "web.coverage.can_list"
+msgstr "<li>How many fatal crashes involved each mode in a state in 2024.</li><li>Which cells met the small-cell publication floor.</li><li>Which official release and transformation produced the counts.</li>"
+
+msgid "web.coverage.cannot_h"
+msgstr "What this cannot answer"
+
+msgid "web.coverage.cannot_list"
+msgstr "<li>Risk, rate, fault, causation, or a safety ranking.</li><li>Near misses, nonfatal crashes, counties, streets, or intersections.</li><li>Whether a non-published cell is zero or suppressed.</li>"
+
+msgid "web.coverage.caption"
+msgstr "Showing {shown} of {total} state × mode cells."
+
+msgid "web.coverage.caption_error"
+msgstr "State evidence is unavailable."
+
+msgid "web.coverage.caption_loading"
+msgstr "Loading state evidence…"
+
+msgid "web.coverage.caveat"
+msgstr "<strong>Counts are not risk.</strong> They do not account for population, trips, miles, or exposure. Modes can overlap in one crash, so mode counts are not additive and do not imply fault or causation."
+
+msgid "web.coverage.cell_not_published"
+msgstr "Not published (suppressed or zero)"
+
+msgid "web.coverage.cell_published"
+msgstr "Published"
+
+msgid "web.coverage.contract"
+msgstr "Projection contract"
+
+msgid "web.coverage.data_h"
+msgstr "State × involved-mode evidence"
+
+msgid "web.coverage.data_intro"
+msgstr "A published count is the number of distinct fatal crashes with at least one person in that mode. A missing public cell is labeled “Not published (suppressed or zero)”—never zero."
+
+msgid "web.coverage.deployment"
+msgstr "Deployment record"
+
+msgid "web.coverage.download"
+msgstr "Download public JSON"
+
+msgid "web.coverage.eyebrow"
+msgstr "US evidence ledger · official source"
+
+msgid "web.coverage.footer"
+msgstr "Official fatal-crash context, published with explicit limits. nearmiss remains an exposure-normalized near-miss product; these counts are a separate national context layer."
+
+msgid "web.coverage.h1"
+msgstr "Fatal-crash burden, state by state"
+
+msgid "web.coverage.lede"
+msgstr "Explore published 2024 FARS counts for fatal crashes involving each road-user mode across all 50 states and DC. Every row remains tied to its release, small-cell publication rule, and source."
+
+msgid "web.coverage.load_error"
+msgstr "The reviewed public artifact could not be loaded or did not pass its contract. No counts are shown."
+
+msgid "web.coverage.loading"
+msgstr "Loading the published artifact…"
+
+msgid "web.coverage.manifest"
+msgstr "Site file manifest"
+
+msgid "web.coverage.mode_label"
+msgstr "Involved road-user mode"
+
+msgid "web.coverage.mode_motor_vehicle_occupant"
+msgstr "Motor-vehicle occupant"
+
+msgid "web.coverage.mode_motorcyclist"
+msgstr "Motorcyclist"
+
+msgid "web.coverage.mode_other_road_user"
+msgstr "Other road user"
+
+msgid "web.coverage.mode_pedalcyclist"
+msgstr "Pedalcyclist"
+
+msgid "web.coverage.mode_pedestrian"
+msgstr "Pedestrian"
+
+msgid "web.coverage.mode_unknown"
+msgstr "Unknown mode"
+
+msgid "web.coverage.no_results"
+msgstr "No cells match these filters."
+
+msgid "web.coverage.proof_h"
+msgstr "Five years, with publication status made explicit"
+
+msgid "web.coverage.proof_intro"
+msgstr "Official source archives are pinned for 2020–2024. This public state-by-mode result is currently published for 2024 only; unavailable years are never silently treated as zero."
+
+msgid "web.coverage.proof_kicker"
+msgstr "Release proof"
+
+msgid "web.coverage.provenance_h"
+msgstr "Source and deployment provenance"
+
+msgid "web.coverage.provenance_intro"
+msgstr "The public JSON carries its source revision, checksum, small-cell publication rule, and accounting. Deployment files bind the published page back to an exact source commit."
+
+msgid "web.coverage.provenance_kicker"
+msgstr "Trace the evidence"
+
+msgid "web.coverage.reset"
+msgstr "Reset filters"
+
+msgid "web.coverage.result_pending"
+msgstr "State result not yet published"
+
+msgid "web.coverage.result_published"
+msgstr "State counts published"
+
+msgid "web.coverage.result_summary"
+msgstr "Showing {shown} of {total} state-by-mode cells."
+
+msgid "web.coverage.retention_value"
+msgstr "{published} / {total}"
+
+msgid "web.coverage.revision_label"
+msgstr "Source revision"
+
+msgid "web.coverage.scope_value"
+msgstr "50 states + DC"
+
+msgid "web.coverage.skip"
+msgstr "Skip to main content"
+
+msgid "web.coverage.source_label"
+msgstr "Official source"
+
+msgid "web.coverage.source_pinned"
+msgstr "Source pinned"
+
+msgid "web.coverage.state_label"
+msgstr "State"
+
+msgid "web.coverage.status_label"
+msgstr "Publication status"
+
+msgid "web.coverage.status_not_published"
+msgstr "Not published"
+
+msgid "web.coverage.status_published"
+msgstr "Published"
+
+msgid "web.coverage.summary_h"
+msgstr "Dataset summary"
+
+msgid "web.coverage.summary_retention"
+msgstr "Published contributions"
+
+msgid "web.coverage.summary_scope"
+msgstr "Geographic scope"
+
+msgid "web.coverage.summary_threshold"
+msgstr "Small-cell publication floor"
+
+msgid "web.coverage.summary_year"
+msgstr "Dataset year"
+
+msgid "web.coverage.table_kicker"
+msgstr "Auditable counts"
+
+msgid "web.coverage.th_count"
+msgstr "Fatal-crash count"
+
+msgid "web.coverage.th_mode"
+msgstr "Involved road-user mode"
+
+msgid "web.coverage.th_state"
+msgstr "State"
+
+msgid "web.coverage.th_status"
+msgstr "Publication status"
+
+msgid "web.coverage.th_year"
+msgstr "Year"
+
+msgid "web.coverage.title"
+msgstr "US evidence ledger — nearmiss"
+
+msgid "web.coverage.year_label"
+msgstr "Year"

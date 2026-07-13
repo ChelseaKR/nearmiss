@@ -31,7 +31,7 @@ PUBLISHED_DIR := data/published
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install lock lock-dev lint type test accessibility axe rtl security verify \
+.PHONY: help install lock lock-dev lint type test accessibility axe rtl web-check security verify \
         conformance i18n i18n-compile i18n-pseudo claims qgis-plugin-test \
         reproduce sensitivity demo teach publish serve bench bench-suite bench-suite-verify \
         bikemaps simra osm-streets real clean mutation release-build
@@ -103,7 +103,7 @@ qgis-plugin-test: ## Test the QGIS plugin's honest-symbology rules (EXP-11, no Q
 	cd integrations/qgis && $(PYTHON) -m pytest tests/ -q
 
 accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
-	$(PYTHON) tools/a11y_check.py web/index.html web/submit.html web/embed.html
+	$(PYTHON) tools/a11y_check.py web/index.html web/submit.html web/embed.html web/us-coverage.html
 	@echo "accessibility: structural checks passed."
 	@echo "NOTE: CI also runs axe; full conformance also requires manual NVDA + VoiceOver"
 	@echo "      review — see docs/accessibility/ACR.md (this gate is the floor, not the ceiling)."
@@ -125,6 +125,9 @@ axe: ## Deeper accessibility check: run axe-core against the built web page (nee
 
 rtl: ## G10 RTL smoke: load the web pages under dir="rtl" and reject direction-unsafe inline styles (needs node)
 	cd web && npm ci && npm run rtl
+
+web-check: ## One-install web gate: consumer contracts + axe + RTL-authored CSS scan
+	cd web && npm ci && npm run contract && npm run axe && npm run rtl
 
 i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + BCP-47
 	# G2-lite — regenerate the extraction template and fail if it drifts from the
@@ -180,8 +183,8 @@ claims: ## Claims-parity gate: docs/CLAIMS.md manifest <-> doc claim tags <-> wi
 	# claim whose tag/witness went missing). Local == CI.
 	$(PYTHON) tools/check_claims.py
 
-verify: lint type test accessibility security i18n claims conformance ## Full merge gate: lint + type + test + accessibility + security + i18n + claims + conformance
-	@echo "verify: all merge gates green (lint, type, test, accessibility, security, i18n, claims, conformance)."
+verify: lint type test accessibility web-check security i18n claims conformance ## Full merge gate: lint + type + test + web/a11y + security + i18n + claims + conformance
+	@echo "verify: all merge gates green (lint, type, test, web/a11y, security, i18n, claims, conformance)."
 
 mutation: ## ADVISORY (never a merge gate): mutation-test the spatial-stats core with mutmut
 	@echo "mutation: ADVISORY ONLY — this is NOT part of 'make verify' and never gates a PR"

@@ -86,6 +86,19 @@ h1 {
   max-width: 48rem;
 }
 
+.national-cta {
+  max-width: 48rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-inline-start-width: 5px;
+  border-radius: 6px;
+  background: #eef3f9;
+}
+
+.national-cta strong {
+  display: block;
+}
+
 /* Amber: synthetic / demo data. */
 .demo-note {
   background: #fff4e5;
@@ -114,7 +127,7 @@ button:focus-visible,
 
 .skip-link {
   position: absolute;
-  left: -999px;
+  inset-inline-start: -999px;
   top: 0;
   background: var(--bg);
   padding: 0.5rem 0.75rem;
@@ -122,7 +135,7 @@ button:focus-visible,
 }
 
 .skip-link:focus {
-  left: 0.5rem;
+  inset-inline-start: 0.5rem;
   top: 0.5rem;
   z-index: 10;
 }
@@ -264,7 +277,7 @@ figcaption {
 .hotspot-summary {
   margin: 0 0 1rem;
   padding: 0.5rem 0.75rem;
-  border-left: 4px solid var(--accent);
+  border-inline-start: 4px solid var(--accent);
   background: #f3f7fc;
   max-width: 48rem;
 }
@@ -346,14 +359,14 @@ table {
 }
 
 caption {
-  text-align: left;
+  text-align: start;
   padding: 0.5rem 0.75rem;
   color: var(--muted);
 }
 
 th,
 td {
-  text-align: left;
+  text-align: start;
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--line);
   vertical-align: top;
@@ -371,7 +384,7 @@ thead th {
    horizontally at 200% zoom / narrow widths. */
 th[scope="row"] {
   position: sticky;
-  left: 0;
+  inset-inline-start: 0;
   background: var(--bg);
   z-index: 1;
 }
@@ -397,10 +410,10 @@ th button:hover {
   text-decoration: underline;
 }
 
-/* A significant hotspot row gets a thick left border (a PATTERN, not color
+/* A significant hotspot row gets a thick inline-start border (a PATTERN, not color
    alone) AND an explicit text marker rendered in the cell. */
 tr.is-hotspot td {
-  border-left: 6px solid var(--hot);
+  border-inline-start: 6px solid var(--hot);
   background: #fbeeee;
 }
 
@@ -606,7 +619,7 @@ footer {
  * ------------------------------------------------------------------------- */
 .privacy-note {
   border: 1px solid var(--line);
-  border-left: 4px solid var(--accent);
+  border-inline-start: 4px solid var(--accent);
   border-radius: 6px;
   padding: 0.6rem 0.9rem;
   margin: 1rem 0;
@@ -614,7 +627,7 @@ footer {
 }
 .privacy-note ul {
   margin: 0.4rem 0 0.2rem;
-  padding-left: 1.2rem;
+  padding-inline-start: 1.2rem;
 }
 .privacy-note li {
   margin: 0.3rem 0;

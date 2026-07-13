@@ -16,6 +16,11 @@
   "use strict";
 
   var FALLBACK = "en";
+  var SUPPORTED = { en: true, es: true };
+
+  function isSupported(lang) {
+    return Object.prototype.hasOwnProperty.call(SUPPORTED, lang);
+  }
 
   function create(namespace) {
     // lang -> { shortKey: translation }, already stripped of the namespace.
@@ -69,16 +74,18 @@
     };
   }
 
-  // Read a UI-language request from ?lang=xx (2–3 lowercase letters). Both pages
-  // use this so a deep link renders the whole page in the requested locale.
+  // Read a UI-language request from ?lang=xx, but only select a locale this
+  // deployment actually ships. This keeps English fallback content labeled
+  // lang="en" instead of, for example, lang="ar" when no Arabic catalog exists.
   function langFromQuery(fallback) {
+    var safeFallback = isSupported(fallback) ? fallback : FALLBACK;
     try {
       var value = new URLSearchParams(window.location.search).get("lang");
-      if (value && /^[a-z]{2,3}$/.test(value)) return value;
+      if (value && isSupported(value)) return value;
     } catch (e) {
       /* no URLSearchParams — use the fallback */
     }
-    return fallback || FALLBACK;
+    return safeFallback;
   }
 
   window.NearmissI18n = { create: create, langFromQuery: langFromQuery, FALLBACK: FALLBACK };

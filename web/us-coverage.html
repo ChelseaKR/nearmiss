@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>US evidence ledger — nearmiss</title>
+    <meta
+      name="description"
+      content="Auditable 2024 FARS fatal-crash burden counts by state and involved road-user mode, with a small-cell publication rule and source provenance."
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="us-coverage.css" />
+  </head>
+  <body class="coverage-page">
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
+
+    <header class="coverage-header">
+      <div class="coverage-nav">
+        <a href="index.html" data-i18n="back">← Davis near-miss demo</a>
+        <div class="lang-switch" role="group" aria-label="Language / Idioma">
+          <button type="button" data-lang="en" aria-pressed="true">English</button>
+          <button type="button" data-lang="es" aria-pressed="false">Español</button>
+        </div>
+      </div>
+      <p class="coverage-eyebrow" data-i18n="eyebrow">US evidence ledger · official source</p>
+      <h1 data-i18n="h1">Fatal-crash burden, state by state</h1>
+      <p class="lede" data-i18n="lede">
+        Explore published 2024 FARS counts for fatal crashes involving each road-user mode across
+        all 50 states and DC. Every row remains tied to its release, small-cell publication rule,
+        and source.
+      </p>
+      <p class="coverage-caveat" data-i18n="caveat">
+        <strong>Counts are not risk.</strong> They do not account for population, trips, miles, or
+        exposure. Modes can overlap in one crash, so mode counts are not additive and do not imply
+        fault or causation.
+      </p>
+    </header>
+
+    <main id="main">
+      <section class="proof-section" aria-labelledby="proof-heading">
+        <div class="section-kicker" data-i18n="proof_kicker">Release proof</div>
+        <h2 id="proof-heading" data-i18n="proof_h">Five years, with publication status made explicit</h2>
+        <p data-i18n="proof_intro">
+          Official source archives are pinned for 2020–2024. This public state-by-mode result is
+          currently published for 2024 only; unavailable years are never silently treated as zero.
+        </p>
+        <ol class="proof-rail">
+          <li>
+            <span class="proof-year">2020</span>
+            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
+            <span class="proof-result is-pending" data-i18n="result_pending">State result not yet published</span>
+          </li>
+          <li>
+            <span class="proof-year">2021</span>
+            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
+            <span class="proof-result is-pending" data-i18n="result_pending">State result not yet published</span>
+          </li>
+          <li>
+            <span class="proof-year">2022</span>
+            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
+            <span class="proof-result is-pending" data-i18n="result_pending">State result not yet published</span>
+          </li>
+          <li>
+            <span class="proof-year">2023</span>
+            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
+            <span class="proof-result is-pending" data-i18n="result_pending">State result not yet published</span>
+          </li>
+          <li class="is-current">
+            <span class="proof-year">2024</span>
+            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
+            <span class="proof-result" data-i18n="result_published">State counts published</span>
+          </li>
+        </ol>
+      </section>
+
+      <section class="summary-section" aria-labelledby="summary-heading">
+        <h2 id="summary-heading" class="visually-hidden" data-i18n="summary_h">Dataset summary</h2>
+        <dl class="evidence-summary">
+          <div>
+            <dt data-i18n="summary_year">Dataset year</dt>
+            <dd id="summary-year">—</dd>
+          </div>
+          <div>
+            <dt data-i18n="summary_scope">Geographic scope</dt>
+            <dd id="summary-scope">—</dd>
+          </div>
+          <div>
+            <dt data-i18n="summary_threshold">Small-cell publication floor</dt>
+            <dd id="summary-threshold">—</dd>
+          </div>
+          <div>
+            <dt data-i18n="summary_retention">Published contributions</dt>
+            <dd id="summary-retention">—</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section aria-labelledby="data-heading">
+        <div class="section-kicker" data-i18n="table_kicker">Auditable counts</div>
+        <h2 id="data-heading" data-i18n="data_h">State × involved-mode evidence</h2>
+        <p data-i18n="data_intro">
+          A published count is the number of distinct fatal crashes with at least one person in that
+          mode. A missing public cell is labeled “Not published (suppressed or zero)”—never zero.
+        </p>
+
+        <form id="coverage-filters" class="coverage-filters">
+          <div>
+            <label for="year-filter" data-i18n="year_label">Year</label>
+            <select id="year-filter" name="year">
+              <option value="2024">2024</option>
+            </select>
+          </div>
+          <div>
+            <label for="state-filter" data-i18n="state_label">State</label>
+            <select id="state-filter" name="state">
+              <option value="" data-i18n="all_states">All states + DC</option>
+            </select>
+          </div>
+          <div>
+            <label for="mode-filter" data-i18n="mode_label">Involved road-user mode</label>
+            <select id="mode-filter" name="mode">
+              <option value="" data-i18n="all_modes">All modes</option>
+            </select>
+          </div>
+          <div>
+            <label for="status-filter" data-i18n="status_label">Publication status</label>
+            <select id="status-filter" name="status">
+              <option value="" data-i18n="all_statuses">All statuses</option>
+              <option value="published" data-i18n="status_published">Published</option>
+              <option value="suppressed_or_zero" data-i18n="status_not_published">Not published</option>
+            </select>
+          </div>
+          <button type="reset" data-i18n="reset">Reset filters</button>
+        </form>
+
+        <p id="coverage-status" class="coverage-status" aria-live="polite" data-i18n="loading">
+          Loading the published artifact…
+        </p>
+        <div
+          class="table-wrap coverage-table-wrap"
+          tabindex="0"
+          role="region"
+          aria-labelledby="data-heading coverage-caption"
+        >
+          <table id="coverage-table">
+            <caption id="coverage-caption" data-i18n="caption_loading">Loading state evidence…</caption>
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="th_year">Year</th>
+                <th scope="col" data-i18n="th_state">State</th>
+                <th scope="col" data-i18n="th_mode">Involved road-user mode</th>
+                <th scope="col" data-i18n="th_status">Publication status</th>
+                <th scope="col" data-i18n="th_count">Fatal-crash count</th>
+              </tr>
+            </thead>
+            <tbody id="coverage-body">
+              <tr>
+                <td colspan="5" data-i18n="loading">Loading the published artifact…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="interpretation-grid">
+        <article>
+          <h2 data-i18n="can_h">What this can answer</h2>
+          <ul data-i18n="can_list">
+            <li>How many fatal crashes involved each mode in a state in 2024.</li>
+            <li>Which cells met the small-cell publication floor.</li>
+            <li>Which official release and transformation produced the counts.</li>
+          </ul>
+        </article>
+        <article class="cannot">
+          <h2 data-i18n="cannot_h">What this cannot answer</h2>
+          <ul data-i18n="cannot_list">
+            <li>Risk, rate, fault, causation, or a safety ranking.</li>
+            <li>Near misses, nonfatal crashes, counties, streets, or intersections.</li>
+            <li>Whether a non-published cell is zero or suppressed.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="provenance" aria-labelledby="provenance-heading">
+        <div class="section-kicker" data-i18n="provenance_kicker">Trace the evidence</div>
+        <h2 id="provenance-heading" data-i18n="provenance_h">Source and deployment provenance</h2>
+        <p data-i18n="provenance_intro">
+          The public JSON carries its source revision, checksum, small-cell publication rule, and
+          accounting. Deployment files bind the published page back to an exact source commit.
+        </p>
+        <dl class="provenance-list">
+          <div>
+            <dt data-i18n="source_label">Official source</dt>
+            <dd><a id="official-source" href="https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip" rel="external">NHTSA FARS</a></dd>
+          </div>
+          <div>
+            <dt data-i18n="revision_label">Source revision</dt>
+            <dd><code id="source-revision">—</code></dd>
+          </div>
+        </dl>
+        <ul class="provenance-links">
+          <li><a href="../data/published/fars-2024-state-mode.json" download data-i18n="download">Download public JSON</a></li>
+          <li><a href="../deployment.json" data-i18n="deployment">Deployment record</a></li>
+          <li><a href="../site-manifest.json" data-i18n="manifest">Site file manifest</a></li>
+          <li><a href="https://github.com/ChelseaKR/nearmiss/blob/main/src/nearmiss/fars_public_context.py" data-i18n="contract">Projection contract</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p data-i18n="footer">
+        Official fatal-crash context, published with explicit limits. nearmiss remains an
+        exposure-normalized near-miss product; these counts are a separate national context layer.
+      </p>
+    </footer>
+
+    <script src="i18n.js"></script>
+    <script src="us-coverage.js"></script>
+  </body>
+</html>

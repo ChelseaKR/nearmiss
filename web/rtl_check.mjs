@@ -1,19 +1,20 @@
 // G10 RTL layout smoke: load the static page in jsdom with the document forced to
-// right-to-left (dir="rtl") and fail if the markup carries direction-unsafe inline
-// styles that would break a mirrored layout. This is the RTL companion to
+// right-to-left (dir="rtl") and fail if its inline or locally linked authored CSS
+// carries direction-unsafe horizontal styles. This is the RTL companion to
 // axe_check.mjs (structural a11y) and tools/a11y_check.py; like those it runs in
 // jsdom with no browser, so it checks the *authored* DOM, not rendered geometry.
 //
 // nearmiss ships no RTL end-user locale today, but the brief's gettext seam makes
 // locale N+1 (incl. Arabic/Hebrew/Farsi) a translate-only step — so this gate keeps
-// the web shell honest now: physical left/right in inline styles is the single most
-// common thing that silently breaks when html[dir] flips. Use CSS logical
+// the web shell honest now: physical left/right properties are a common thing
+// that silently breaks when html[dir] flips. Use CSS logical
 // properties (margin-inline-start, inset-inline-*, text-align: start/end) instead,
 // which mirror automatically under [dir="rtl"].
 //
 // Lives in web/ so Node resolves web/node_modules (jsdom).
 // Usage:  cd web && npm install && npm run rtl   (or: node web/rtl_check.mjs index.html)
 import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
 
 const file = process.argv[2] || "index.html";
@@ -58,16 +59,47 @@ for (const el of document.querySelectorAll("[style]")) {
   const hit = UNSAFE.find((re) => re.test(style));
   if (hit) {
     const where = el.id ? `#${el.id}` : el.tagName.toLowerCase();
-    violations.push({ where, style: style.trim() });
+    violations.push({ kind: "inline style", where, style: style.trim() });
   }
+}
+
+// (3) Scan authored, locally linked stylesheets too. Vendored third-party CSS
+// (Leaflet) is excluded; it is upstream code and is isolated from our authored
+// layout rules. Physical horizontal declarations in the site CSS are rejected.
+const CSS_UNSAFE = [
+  /(?:^|[;{\s])(?:margin|padding|border)-(?:left|right)(?:-[\w-]+)?\s*:/i,
+  /(?:^|[;{\s])(?:left|right)\s*:/i,
+  /(?:^|[;{\s])float\s*:\s*(?:left|right)\b/i,
+  /(?:^|[;{\s])(?:text-align|clear)\s*:\s*(?:left|right)\b/i,
+];
+
+for (const link of document.querySelectorAll('link[rel~="stylesheet"][href]')) {
+  const href = link.getAttribute("href") || "";
+  const clean = href.split(/[?#]/, 1)[0];
+  if (!clean || /^(?:[a-z]+:|\/\/|\/)/i.test(clean) || clean.split("/").includes("vendor")) {
+    continue;
+  }
+  const cssPath = resolve(dirname(file), clean);
+  const css = readFileSync(cssPath, "utf-8").replace(/\/\*[\s\S]*?\*\//g, (comment) =>
+    comment.replace(/[^\n]/g, " ")
+  );
+  css.split(/\r?\n/).forEach((line, index) => {
+    if (CSS_UNSAFE.some((re) => re.test(line))) {
+      violations.push({
+        kind: "linked CSS",
+        where: `${clean}:${index + 1}`,
+        style: line.trim(),
+      });
+    }
+  });
 }
 
 if (violations.length > 0) {
   for (const v of violations) {
-    console.log(`rtl: direction-unsafe inline style on ${v.where} — "${v.style}"`);
+    console.log(`rtl: direction-unsafe ${v.kind} at ${v.where} — "${v.style}"`);
     console.log(`     use a CSS logical property (e.g. margin-inline-start, inset-inline-*, text-align: start/end).`);
   }
-  console.log(`\nrtl: ${violations.length} direction-unsafe inline style(s) in ${file}.`);
+  console.log(`\nrtl: ${violations.length} direction-unsafe authored style(s) in ${file}.`);
   process.exit(1);
 }
-console.log(`rtl: ${file} parses under dir="rtl"; no direction-unsafe inline styles (static DOM).`);
+console.log(`rtl: ${file} parses under dir="rtl"; inline and linked authored CSS use direction-safe properties.`);

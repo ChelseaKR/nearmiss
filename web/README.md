@@ -40,14 +40,15 @@ Core commitments (see [`docs/ACCESSIBILITY.md`](../docs/ACCESSIBILITY.md) and th
   clear labels and error text.
 - **Honest legends.** A raw-count layer is labeled "report volume," never "danger."
 
-Accessibility is a **merge-blocking CI gate** (axe + manual NVDA/VoiceOver review). All three pages
+Accessibility is a **merge-blocking CI gate** (axe + manual NVDA/VoiceOver review). All four pages
 below are checked by `make accessibility` and the `axe` run.
 
 ## Pages
 
 | File | What it is |
 | --- | --- |
-| `index.html` + `app.js` | the two-map view + authoritative data table (above) |
+| `index.html` + `app.js` | the Davis two-map view + authoritative data table (above) |
+| `us-coverage.html` + `us-coverage.js` | the nationwide 2024 FARS state × involved-mode evidence ledger, with explicit suppression and release provenance |
 | `submit.html` + `submit.js` | the **public submission form** — accessible, serverless-honest; builds a schema-valid report for the moderation queue (see [`docs/SUBMISSIONS.md`](../docs/SUBMISSIONS.md)) |
 | `embed.html` + `embed.js` + `embed.css` | the **embeddable hotspot widget** (below) |
 | `nearmiss-embed.js` | one-line `<script>`-tag loader that injects the widget as a sandboxed iframe |

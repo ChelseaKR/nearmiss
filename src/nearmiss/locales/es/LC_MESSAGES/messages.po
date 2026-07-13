@@ -670,3 +670,206 @@ msgstr "No se pudo conectar con el servidor — aquí está su reporte para envi
 msgid "web.submit.status_sending"
 msgstr "Enviando su reporte para revisión…"
 
+msgid "web.app.us_coverage_cta"
+msgstr "<strong>Nuevo: contexto verificado de choques fatales en EE. UU.</strong> <a href=\"us-coverage.html\">Explore los conteos de 2024 por estado y modo, las celdas no publicadas y la procedencia de la fuente →</a>"
+
+msgid "web.coverage.all_modes"
+msgstr "Todos los modos"
+
+msgid "web.coverage.all_states"
+msgstr "Todos los estados + DC"
+
+msgid "web.coverage.all_statuses"
+msgstr "Todos los estados de publicación"
+
+msgid "web.coverage.back"
+msgstr "← Demostración de cuasi-accidentes de Davis"
+
+msgid "web.coverage.can_h"
+msgstr "Lo que esto puede responder"
+
+msgid "web.coverage.can_list"
+msgstr "<li>Cuántos choques fatales involucraron cada modo en un estado en 2024.</li><li>Qué celdas cumplieron el mínimo de publicación para celdas pequeñas.</li><li>Qué versión oficial y transformación produjeron los conteos.</li>"
+
+msgid "web.coverage.cannot_h"
+msgstr "Lo que esto no puede responder"
+
+msgid "web.coverage.cannot_list"
+msgstr "<li>Riesgo, tasa, culpa, causalidad o una clasificación de seguridad.</li><li>Cuasi-accidentes, choques no fatales, condados, calles o intersecciones.</li><li>Si una celda no publicada es cero o fue suprimida.</li>"
+
+msgid "web.coverage.caption"
+msgstr "Se muestran {shown} de {total} celdas de estado × modo."
+
+msgid "web.coverage.caption_error"
+msgstr "La evidencia estatal no está disponible."
+
+msgid "web.coverage.caption_loading"
+msgstr "Cargando la evidencia estatal…"
+
+msgid "web.coverage.caveat"
+msgstr "<strong>Los conteos no son riesgo.</strong> No consideran población, viajes, millas ni exposición. Los modos pueden superponerse en un choque, por lo que sus conteos no son aditivos ni implican culpa o causalidad."
+
+msgid "web.coverage.cell_not_published"
+msgstr "No publicado (suprimido o cero)"
+
+msgid "web.coverage.cell_published"
+msgstr "Publicado"
+
+msgid "web.coverage.contract"
+msgstr "Contrato de proyección"
+
+msgid "web.coverage.data_h"
+msgstr "Evidencia de estado × modo involucrado"
+
+msgid "web.coverage.data_intro"
+msgstr "Un conteo publicado es el número de choques fatales distintos con al menos una persona de ese modo. Una celda pública ausente se etiqueta “No publicado (suprimido o cero)”, nunca como cero."
+
+msgid "web.coverage.deployment"
+msgstr "Registro del despliegue"
+
+msgid "web.coverage.download"
+msgstr "Descargar JSON público"
+
+msgid "web.coverage.eyebrow"
+msgstr "Registro de evidencia de EE. UU. · fuente oficial"
+
+msgid "web.coverage.footer"
+msgstr "Contexto oficial de choques fatales, publicado con límites explícitos. nearmiss sigue siendo un producto de cuasi-accidentes normalizado por exposición; estos conteos son una capa separada de contexto nacional."
+
+msgid "web.coverage.h1"
+msgstr "Carga de choques fatales, estado por estado"
+
+msgid "web.coverage.lede"
+msgstr "Explore los conteos FARS publicados de 2024 para choques fatales que involucraron cada modo de usuario vial en los 50 estados y DC. Cada fila permanece vinculada a su versión, regla de publicación para celdas pequeñas y fuente."
+
+msgid "web.coverage.load_error"
+msgstr "El artefacto público revisado no se pudo cargar o no aprobó su contrato. No se muestran conteos."
+
+msgid "web.coverage.loading"
+msgstr "Cargando el artefacto publicado…"
+
+msgid "web.coverage.manifest"
+msgstr "Manifiesto de archivos del sitio"
+
+msgid "web.coverage.mode_label"
+msgstr "Modo de usuario vial involucrado"
+
+msgid "web.coverage.mode_motor_vehicle_occupant"
+msgstr "Ocupante de vehículo motorizado"
+
+msgid "web.coverage.mode_motorcyclist"
+msgstr "Motociclista"
+
+msgid "web.coverage.mode_other_road_user"
+msgstr "Otro usuario vial"
+
+msgid "web.coverage.mode_pedalcyclist"
+msgstr "Ciclista"
+
+msgid "web.coverage.mode_pedestrian"
+msgstr "Peatón"
+
+msgid "web.coverage.mode_unknown"
+msgstr "Modo desconocido"
+
+msgid "web.coverage.no_results"
+msgstr "Ninguna celda coincide con estos filtros."
+
+msgid "web.coverage.proof_h"
+msgstr "Cinco años, con el estado de publicación explícito"
+
+msgid "web.coverage.proof_intro"
+msgstr "Los archivos fuente oficiales están fijados para 2020–2024. Este resultado público por estado y modo solo está publicado actualmente para 2024; los años no disponibles nunca se tratan silenciosamente como cero."
+
+msgid "web.coverage.proof_kicker"
+msgstr "Prueba de la versión"
+
+msgid "web.coverage.provenance_h"
+msgstr "Procedencia de la fuente y del despliegue"
+
+msgid "web.coverage.provenance_intro"
+msgstr "El JSON público contiene la revisión de fuente, suma de comprobación, regla de publicación para celdas pequeñas y contabilidad. Los archivos de despliegue vinculan la página publicada con un commit exacto del código fuente."
+
+msgid "web.coverage.provenance_kicker"
+msgstr "Rastrear la evidencia"
+
+msgid "web.coverage.reset"
+msgstr "Restablecer filtros"
+
+msgid "web.coverage.result_pending"
+msgstr "Resultado estatal aún no publicado"
+
+msgid "web.coverage.result_published"
+msgstr "Conteos estatales publicados"
+
+msgid "web.coverage.result_summary"
+msgstr "Se muestran {shown} de {total} celdas de estado por modo."
+
+msgid "web.coverage.retention_value"
+msgstr "{published} / {total}"
+
+msgid "web.coverage.revision_label"
+msgstr "Revisión de la fuente"
+
+msgid "web.coverage.scope_value"
+msgstr "50 estados + DC"
+
+msgid "web.coverage.skip"
+msgstr "Saltar al contenido principal"
+
+msgid "web.coverage.source_label"
+msgstr "Fuente oficial"
+
+msgid "web.coverage.source_pinned"
+msgstr "Fuente fijada"
+
+msgid "web.coverage.state_label"
+msgstr "Estado"
+
+msgid "web.coverage.status_label"
+msgstr "Estado de publicación"
+
+msgid "web.coverage.status_not_published"
+msgstr "No publicado"
+
+msgid "web.coverage.status_published"
+msgstr "Publicado"
+
+msgid "web.coverage.summary_h"
+msgstr "Resumen del conjunto de datos"
+
+msgid "web.coverage.summary_retention"
+msgstr "Contribuciones publicadas"
+
+msgid "web.coverage.summary_scope"
+msgstr "Alcance geográfico"
+
+msgid "web.coverage.summary_threshold"
+msgstr "Mínimo de publicación para celdas pequeñas"
+
+msgid "web.coverage.summary_year"
+msgstr "Año del conjunto de datos"
+
+msgid "web.coverage.table_kicker"
+msgstr "Conteos auditables"
+
+msgid "web.coverage.th_count"
+msgstr "Conteo de choques fatales"
+
+msgid "web.coverage.th_mode"
+msgstr "Modo de usuario vial involucrado"
+
+msgid "web.coverage.th_state"
+msgstr "Estado"
+
+msgid "web.coverage.th_status"
+msgstr "Estado de publicación"
+
+msgid "web.coverage.th_year"
+msgstr "Año"
+
+msgid "web.coverage.title"
+msgstr "Registro de evidencia de EE. UU. — nearmiss"
+
+msgid "web.coverage.year_label"
+msgstr "Año"

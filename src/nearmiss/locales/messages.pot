@@ -725,6 +725,210 @@ msgstr ""
 msgid "web.app.tt_tier"
 msgstr ""
 
+msgid "web.app.us_coverage_cta"
+msgstr ""
+
+msgid "web.coverage.all_modes"
+msgstr ""
+
+msgid "web.coverage.all_states"
+msgstr ""
+
+msgid "web.coverage.all_statuses"
+msgstr ""
+
+msgid "web.coverage.back"
+msgstr ""
+
+msgid "web.coverage.can_h"
+msgstr ""
+
+msgid "web.coverage.can_list"
+msgstr ""
+
+msgid "web.coverage.cannot_h"
+msgstr ""
+
+msgid "web.coverage.cannot_list"
+msgstr ""
+
+msgid "web.coverage.caption"
+msgstr ""
+
+msgid "web.coverage.caption_error"
+msgstr ""
+
+msgid "web.coverage.caption_loading"
+msgstr ""
+
+msgid "web.coverage.caveat"
+msgstr ""
+
+msgid "web.coverage.cell_not_published"
+msgstr ""
+
+msgid "web.coverage.cell_published"
+msgstr ""
+
+msgid "web.coverage.contract"
+msgstr ""
+
+msgid "web.coverage.data_h"
+msgstr ""
+
+msgid "web.coverage.data_intro"
+msgstr ""
+
+msgid "web.coverage.deployment"
+msgstr ""
+
+msgid "web.coverage.download"
+msgstr ""
+
+msgid "web.coverage.eyebrow"
+msgstr ""
+
+msgid "web.coverage.footer"
+msgstr ""
+
+msgid "web.coverage.h1"
+msgstr ""
+
+msgid "web.coverage.lede"
+msgstr ""
+
+msgid "web.coverage.load_error"
+msgstr ""
+
+msgid "web.coverage.loading"
+msgstr ""
+
+msgid "web.coverage.manifest"
+msgstr ""
+
+msgid "web.coverage.mode_label"
+msgstr ""
+
+msgid "web.coverage.mode_motor_vehicle_occupant"
+msgstr ""
+
+msgid "web.coverage.mode_motorcyclist"
+msgstr ""
+
+msgid "web.coverage.mode_other_road_user"
+msgstr ""
+
+msgid "web.coverage.mode_pedalcyclist"
+msgstr ""
+
+msgid "web.coverage.mode_pedestrian"
+msgstr ""
+
+msgid "web.coverage.mode_unknown"
+msgstr ""
+
+msgid "web.coverage.no_results"
+msgstr ""
+
+msgid "web.coverage.proof_h"
+msgstr ""
+
+msgid "web.coverage.proof_intro"
+msgstr ""
+
+msgid "web.coverage.proof_kicker"
+msgstr ""
+
+msgid "web.coverage.provenance_h"
+msgstr ""
+
+msgid "web.coverage.provenance_intro"
+msgstr ""
+
+msgid "web.coverage.provenance_kicker"
+msgstr ""
+
+msgid "web.coverage.reset"
+msgstr ""
+
+msgid "web.coverage.result_pending"
+msgstr ""
+
+msgid "web.coverage.result_published"
+msgstr ""
+
+msgid "web.coverage.result_summary"
+msgstr ""
+
+msgid "web.coverage.retention_value"
+msgstr ""
+
+msgid "web.coverage.revision_label"
+msgstr ""
+
+msgid "web.coverage.scope_value"
+msgstr ""
+
+msgid "web.coverage.skip"
+msgstr ""
+
+msgid "web.coverage.source_label"
+msgstr ""
+
+msgid "web.coverage.source_pinned"
+msgstr ""
+
+msgid "web.coverage.state_label"
+msgstr ""
+
+msgid "web.coverage.status_label"
+msgstr ""
+
+msgid "web.coverage.status_not_published"
+msgstr ""
+
+msgid "web.coverage.status_published"
+msgstr ""
+
+msgid "web.coverage.summary_h"
+msgstr ""
+
+msgid "web.coverage.summary_retention"
+msgstr ""
+
+msgid "web.coverage.summary_scope"
+msgstr ""
+
+msgid "web.coverage.summary_threshold"
+msgstr ""
+
+msgid "web.coverage.summary_year"
+msgstr ""
+
+msgid "web.coverage.table_kicker"
+msgstr ""
+
+msgid "web.coverage.th_count"
+msgstr ""
+
+msgid "web.coverage.th_mode"
+msgstr ""
+
+msgid "web.coverage.th_state"
+msgstr ""
+
+msgid "web.coverage.th_status"
+msgstr ""
+
+msgid "web.coverage.th_year"
+msgstr ""
+
+msgid "web.coverage.title"
+msgstr ""
+
+msgid "web.coverage.year_label"
+msgstr ""
+
 msgid "web.submit.geo_denied"
 msgstr ""
 
