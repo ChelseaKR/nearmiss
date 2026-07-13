@@ -151,6 +151,18 @@ def test_repository_schema_matches_the_embedded_contract() -> None:
     Draft202012Validator.check_schema(FARS_NATIONAL_CONTEXT_ARTIFACT_SCHEMA)
 
 
+def test_contract_descriptor_names_closed_annual_v2_safety_caps() -> None:
+    annual = cast(dict[str, int], fars_national_context_contract_descriptor()["annual_v2_caps"])
+    assert annual == {
+        "max_joined_bytes": 512 * 1024 * 1024,
+        "max_cases": 45_000,
+        "max_person_records": 110_000,
+        "minimum_national_cases": 30_000,
+        "max_cells": 312,
+        "max_contributions": 270_000,
+    }
+
+
 def test_known_answer_counts_distinct_crashes_once_per_involved_mode() -> None:
     artifact = _artifact()
     assert _cells(artifact) == [

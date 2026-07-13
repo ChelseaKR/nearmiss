@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Deterministic public-safe projection of verified 2024 National FARS burden.
+"""Deterministic public-safe projection of verified annual National FARS burden.
 
 The private national context contains proof lineage that is useful to an
 operator but is unnecessary on the public site.  This module accepts only a
@@ -23,8 +23,16 @@ from jsonschema import Draft202012Validator, FormatChecker
 from .adapters.fars_joined import MODE_ORDER
 from .fars_national_context import (
     FARS_NATIONAL_CONTEXT_ALGORITHM_VERSION,
+    FARS_NATIONAL_CONTEXT_ARTIFACT_TYPE,
     build_verified_fars_national_context,
+    build_verified_fars_year_national_context,
+    fars_national_context_caveat,
     validate_fars_national_context_artifact,
+)
+from .fars_year_contracts import (
+    FARS_YEAR_CONTRACT_HISTORY,
+    FarsYearContract,
+    fars_year_contract_revision,
 )
 from .verified_outcomes import _VerifiedJoinedSnapshot
 
@@ -49,6 +57,25 @@ FARS_PUBLIC_CONTEXT_CAVEAT = (
     "data, not a confidentiality guarantee. The official 2024 National archive covers the 50 "
     "states and District of Columbia; Puerto Rico requires a separately verified source."
 )
+
+
+def fars_public_context_title(year: int) -> str:
+    """Return the exact annual public title."""
+    fars_year_contract_revision(year, 1)
+    return f"{year} US fatal-crash burden by state and involved mode"
+
+
+def fars_public_context_caveat(year: int) -> str:
+    """Return the exact annual public caveat, preserving the 2024 release."""
+    fars_year_contract_revision(year, 1)
+    return FARS_PUBLIC_CONTEXT_CAVEAT.replace("2024", str(year))
+
+
+def fars_public_state_crosswalk_version(year: int) -> str:
+    """Return the reviewed annual state-presentation contract version."""
+    fars_year_contract_revision(year, 1)
+    return f"fars-usps-50-states-dc-{year}-v1"
+
 
 # Source-native FARS STATE code -> USPS abbreviation and display name. Puerto
 # Rico (FARS code 43) is intentionally absent: the audited 2024 National archive
@@ -115,6 +142,9 @@ _MAX_CASES = 45_000
 _MAX_CONTRIBUTIONS = _MAX_CASES * len(MODE_ORDER)
 _MAX_PUBLIC_ARTIFACT_BYTES = 256 * 1024
 _SHA256 = {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+_PUBLIC_RELEASE_CONTRACTS = tuple(
+    contract for history in FARS_YEAR_CONTRACT_HISTORY.values() for contract in history
+)
 
 
 def _canonical_json_bytes(value: Mapping[str, object]) -> bytes:
@@ -130,7 +160,7 @@ def _canonical_json_bytes(value: Mapping[str, object]) -> bytes:
     ).encode("utf-8")
 
 
-def _state_crosswalk_payload() -> dict[str, object]:
+def _state_crosswalk_payload(year: int = 2024) -> dict[str, object]:
     return {
         "states": [
             {"state_code": code, "state_abbreviation": abbreviation, "state_name": name}
@@ -138,13 +168,13 @@ def _state_crosswalk_payload() -> dict[str, object]:
                 FARS_PUBLIC_STATE_CROSSWALK.items(), key=lambda item: item[1][1]
             )
         ],
-        "version": FARS_PUBLIC_STATE_CROSSWALK_VERSION,
+        "version": fars_public_state_crosswalk_version(year),
     }
 
 
-def fars_public_state_crosswalk_sha256() -> str:
+def fars_public_state_crosswalk_sha256(year: int = 2024) -> str:
     """Return the digest of the exact ordered public presentation crosswalk."""
-    return hashlib.sha256(_canonical_json_bytes(_state_crosswalk_payload())).hexdigest()
+    return hashlib.sha256(_canonical_json_bytes(_state_crosswalk_payload(year))).hexdigest()
 
 
 def _closed(properties: Mapping[str, object]) -> dict[str, object]:
@@ -174,10 +204,39 @@ _SUPPRESSED_CELL_SCHEMA = _closed(
     }
 )
 
+
+def _release_schema_branch(contract: FarsYearContract) -> dict[str, object]:
+    year = contract.year
+    return {
+        "properties": {
+            "title": {"const": fars_public_context_title(year)},
+            "dataset_year": {"const": year},
+            "source": {
+                "properties": {
+                    "name": {"const": "NHTSA Fatality Analysis Reporting System (FARS)"},
+                    "release_stage": {"const": contract.release_stage},
+                    "distribution_url": {"const": contract.distribution_url},
+                    "source_revision_id": {"const": contract.source_revision_id},
+                    "raw_size_bytes": {"const": contract.raw_size_bytes},
+                    "raw_sha256": {"const": contract.raw_sha256},
+                }
+            },
+            "geography": {
+                "properties": {
+                    "coverage": {"const": f"official_{year}_national_50_states_and_dc"},
+                    "state_crosswalk_version": {"const": fars_public_state_crosswalk_version(year)},
+                    "state_crosswalk_sha256": {"const": fars_public_state_crosswalk_sha256(year)},
+                }
+            },
+            "caveat": {"const": fars_public_context_caveat(year)},
+        }
+    }
+
+
 FARS_PUBLIC_CONTEXT_ARTIFACT_SCHEMA: dict[str, object] = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://nearmiss.dev/schema/public-fars-state-context.schema.json",
-    "title": "Public NearMiss 2024 FARS state burden context",
+    "title": "Public NearMiss annual FARS state burden context",
     "type": "object",
     "additionalProperties": False,
     "required": [
@@ -193,29 +252,53 @@ FARS_PUBLIC_CONTEXT_ARTIFACT_SCHEMA: dict[str, object] = {
         "caveat",
         "states",
     ],
+    "oneOf": [_release_schema_branch(contract) for contract in _PUBLIC_RELEASE_CONTRACTS],
     "properties": {
         "schema_version": {"const": FARS_PUBLIC_CONTEXT_SCHEMA_VERSION},
         "artifact_type": {"const": FARS_PUBLIC_CONTEXT_ARTIFACT_TYPE},
         "visibility": {"const": "public"},
-        "title": {"const": "2024 US fatal-crash burden by state and involved mode"},
-        "dataset_year": {"const": 2024},
+        "title": {
+            "enum": sorted({fars_public_context_title(c.year) for c in _PUBLIC_RELEASE_CONTRACTS})
+        },
+        "dataset_year": {"enum": sorted({contract.year for contract in _PUBLIC_RELEASE_CONTRACTS})},
         "source": _closed(
             {
                 "name": {"const": "NHTSA Fatality Analysis Reporting System (FARS)"},
                 "release_stage": {"const": "final"},
-                "distribution_url": {"const": FARS_PUBLIC_CONTEXT_DISTRIBUTION_URL},
-                "source_revision_id": {"const": FARS_PUBLIC_CONTEXT_SOURCE_REVISION_ID},
-                "raw_size_bytes": {"const": FARS_PUBLIC_CONTEXT_RAW_SIZE_BYTES},
-                "raw_sha256": {"const": FARS_PUBLIC_CONTEXT_RAW_SHA256},
+                "distribution_url": {"type": "string", "format": "uri"},
+                "source_revision_id": {"type": "string"},
+                "raw_size_bytes": {"type": "integer", "minimum": 1},
+                "raw_sha256": _SHA256,
             }
         ),
         "geography": _closed(
             {
                 "type": {"const": "fars_state_code"},
-                "coverage": {"const": "official_2024_national_50_states_and_dc"},
+                "coverage": {
+                    "enum": sorted(
+                        {
+                            f"official_{contract.year}_national_50_states_and_dc"
+                            for contract in _PUBLIC_RELEASE_CONTRACTS
+                        }
+                    )
+                },
                 "state_count": {"const": _STATE_COUNT},
-                "state_crosswalk_version": {"const": FARS_PUBLIC_STATE_CROSSWALK_VERSION},
-                "state_crosswalk_sha256": {"const": fars_public_state_crosswalk_sha256()},
+                "state_crosswalk_version": {
+                    "enum": sorted(
+                        {
+                            fars_public_state_crosswalk_version(contract.year)
+                            for contract in _PUBLIC_RELEASE_CONTRACTS
+                        }
+                    )
+                },
+                "state_crosswalk_sha256": {
+                    "enum": sorted(
+                        {
+                            fars_public_state_crosswalk_sha256(contract.year)
+                            for contract in _PUBLIC_RELEASE_CONTRACTS
+                        }
+                    )
+                },
             }
         ),
         "metric": _closed(
@@ -248,7 +331,9 @@ FARS_PUBLIC_CONTEXT_ARTIFACT_SCHEMA: dict[str, object] = {
                 "suppressed_crash_contribution_total": _count(_MAX_CONTRIBUTIONS),
             }
         ),
-        "caveat": {"const": FARS_PUBLIC_CONTEXT_CAVEAT},
+        "caveat": {
+            "enum": sorted({fars_public_context_caveat(c.year) for c in _PUBLIC_RELEASE_CONTRACTS})
+        },
         "states": {
             "type": "array",
             "minItems": _STATE_COUNT,
@@ -378,10 +463,13 @@ def _require_public_source(private: Mapping[str, object]) -> None:
         raise ValueError("public FARS projection requires the exact verified 2024 National context")
 
 
-def _build_fars_public_context(private: Mapping[str, object]) -> dict[str, object]:
-    """Private test seam projecting a validated k=10 context into public-safe cells."""
-    validate_fars_national_context_artifact(private)
-    _require_public_source(private)
+def _project_fars_public_context(
+    private: Mapping[str, object],
+    *,
+    contract: FarsYearContract,
+) -> dict[str, object]:
+    """Project one already-authorized private aggregate into closed public cells."""
+    year = contract.year
     private_cells = cast(list[Mapping[str, object]], private["cells"])
     published_by_key = {
         (cast(str, cell["state_code"]), cast(str, cell["involved_mode"])): cast(
@@ -439,22 +527,22 @@ def _build_fars_public_context(private: Mapping[str, object]) -> dict[str, objec
         "schema_version": FARS_PUBLIC_CONTEXT_SCHEMA_VERSION,
         "artifact_type": FARS_PUBLIC_CONTEXT_ARTIFACT_TYPE,
         "visibility": "public",
-        "title": "2024 US fatal-crash burden by state and involved mode",
-        "dataset_year": 2024,
+        "title": fars_public_context_title(year),
+        "dataset_year": year,
         "source": {
             "name": "NHTSA Fatality Analysis Reporting System (FARS)",
-            "release_stage": "final",
-            "distribution_url": FARS_PUBLIC_CONTEXT_DISTRIBUTION_URL,
-            "source_revision_id": FARS_PUBLIC_CONTEXT_SOURCE_REVISION_ID,
-            "raw_size_bytes": FARS_PUBLIC_CONTEXT_RAW_SIZE_BYTES,
-            "raw_sha256": FARS_PUBLIC_CONTEXT_RAW_SHA256,
+            "release_stage": contract.release_stage,
+            "distribution_url": contract.distribution_url,
+            "source_revision_id": contract.source_revision_id,
+            "raw_size_bytes": contract.raw_size_bytes,
+            "raw_sha256": contract.raw_sha256,
         },
         "geography": {
             "type": "fars_state_code",
-            "coverage": "official_2024_national_50_states_and_dc",
+            "coverage": f"official_{year}_national_50_states_and_dc",
             "state_count": _STATE_COUNT,
-            "state_crosswalk_version": FARS_PUBLIC_STATE_CROSSWALK_VERSION,
-            "state_crosswalk_sha256": fars_public_state_crosswalk_sha256(),
+            "state_crosswalk_version": fars_public_state_crosswalk_version(year),
+            "state_crosswalk_sha256": fars_public_state_crosswalk_sha256(year),
         },
         "metric": {
             "algorithm_version": FARS_NATIONAL_CONTEXT_ALGORITHM_VERSION,
@@ -465,11 +553,46 @@ def _build_fars_public_context(private: Mapping[str, object]) -> dict[str, objec
             "modes": list(MODE_ORDER),
         },
         "accounting": accounting,
-        "caveat": FARS_PUBLIC_CONTEXT_CAVEAT,
+        "caveat": fars_public_context_caveat(year),
         "states": states,
     }
     validate_fars_public_context_artifact(artifact)
     return artifact
+
+
+def _build_fars_public_context(private: Mapping[str, object]) -> dict[str, object]:
+    """Legacy 2024 test seam retained as a byte-for-byte release anchor."""
+    validate_fars_national_context_artifact(private)
+    _require_public_source(private)
+    return _project_fars_public_context(
+        private,
+        contract=fars_year_contract_revision(2024, 1),
+    )
+
+
+def _require_annual_public_source(
+    private: Mapping[str, object],
+    *,
+    contract: FarsYearContract,
+) -> None:
+    source = cast(Mapping[str, object], private["source_lineage"])
+    method = cast(Mapping[str, object], private["method"])
+    if not (
+        private["visibility"] == "private"
+        and private["artifact_type"] == FARS_NATIONAL_CONTEXT_ARTIFACT_TYPE
+        and private["caveat"] == fars_national_context_caveat(contract.year)
+        and source["source_id"] == contract.source_id
+        and source["dataset_year"] == contract.year
+        and source["contract_revision"] == contract.revision
+        and source["source_revision_id"] == contract.source_revision_id
+        and source["release_status"] == contract.release_stage == "final"
+        and source["raw_sha256"] == contract.raw_sha256
+        and method["coverage"] == f"official_{contract.year}_national_50_states_and_dc"
+        and method["effective_k"] == FARS_PUBLIC_CONTEXT_EFFECTIVE_K
+        and method["modes_non_additive"] is True
+        and method["coverage_state_codes"] == sorted(FARS_PUBLIC_STATE_CROSSWALK, key=int)
+    ):
+        raise ValueError("public FARS projection requires the exact verified annual context")
 
 
 def build_verified_fars_public_context(
@@ -483,6 +606,32 @@ def build_verified_fars_public_context(
         requested_k=FARS_PUBLIC_CONTEXT_EFFECTIVE_K,
     )
     return _build_fars_public_context(private)
+
+
+def build_verified_fars_public_release(
+    snapshot: object,
+    *,
+    year: int,
+    contract_revision: int,
+    effective_k: int = FARS_PUBLIC_CONTEXT_EFFECTIVE_K,
+) -> dict[str, object]:
+    """Build one annual public release only from exact replayed v2 authority."""
+    if (
+        isinstance(effective_k, bool)
+        or not isinstance(effective_k, int)
+        or effective_k != FARS_PUBLIC_CONTEXT_EFFECTIVE_K
+    ):
+        raise ValueError("public FARS releases require the reviewed effective k=10")
+    contract = fars_year_contract_revision(year, contract_revision)
+    private = build_verified_fars_year_national_context(
+        snapshot,
+        year=year,
+        contract_revision=contract_revision,
+        requested_k=effective_k,
+    )
+    validate_fars_national_context_artifact(private)
+    _require_annual_public_source(private, contract=contract)
+    return _project_fars_public_context(private, contract=contract)
 
 
 def canonical_fars_public_context_bytes(artifact: Mapping[str, object]) -> bytes:
@@ -541,8 +690,12 @@ __all__ = [
     "FARS_PUBLIC_STATE_CROSSWALK",
     "FARS_PUBLIC_STATE_CROSSWALK_VERSION",
     "build_verified_fars_public_context",
+    "build_verified_fars_public_release",
     "canonical_fars_public_context_bytes",
+    "fars_public_context_caveat",
+    "fars_public_context_title",
     "fars_public_state_crosswalk_sha256",
+    "fars_public_state_crosswalk_version",
     "load_fars_public_context_bytes",
     "validate_fars_public_context_artifact",
 ]
