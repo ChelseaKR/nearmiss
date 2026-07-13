@@ -1,0 +1,407 @@
+{
+  "$id": "https://nearmiss.dev/schema/private-fars-national-context.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "accounting": {
+      "additionalProperties": false,
+      "properties": {
+        "case_count": {
+          "maximum": 36297,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "crash_contribution_total": {
+          "maximum": 217782,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "eligible_cell_count": {
+          "maximum": 312,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "eligible_crash_contribution_total": {
+          "maximum": 217782,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "positive_candidate_cell_count": {
+          "maximum": 312,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "states_with_eligible_cells": {
+          "maximum": 52,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "states_with_records": {
+          "maximum": 52,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "suppressed_cell_count": {
+          "maximum": 312,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "suppressed_crash_contribution_total": {
+          "maximum": 217782,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "case_count",
+        "states_with_records",
+        "states_with_eligible_cells",
+        "positive_candidate_cell_count",
+        "eligible_cell_count",
+        "suppressed_cell_count",
+        "crash_contribution_total",
+        "eligible_crash_contribution_total",
+        "suppressed_crash_contribution_total"
+      ],
+      "type": "object"
+    },
+    "artifact_type": {
+      "const": "nearmiss.private.fars_national_context"
+    },
+    "caveat": {
+      "const": "Fatal-crash burden context only. Counts are distinct FARS fatal crashes with at least one person in the involved mode. They are not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. The official 2024 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+    },
+    "cells": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "crash_count": {
+            "maximum": 36297,
+            "minimum": 5,
+            "type": "integer"
+          },
+          "involved_mode": {
+            "enum": [
+              "motor_vehicle_occupant",
+              "motorcyclist",
+              "pedalcyclist",
+              "pedestrian",
+              "other_road_user",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "state_code": {
+            "enum": [
+              "1",
+              "2",
+              "4",
+              "5",
+              "6",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "15",
+              "16",
+              "17",
+              "18",
+              "19",
+              "20",
+              "21",
+              "22",
+              "23",
+              "24",
+              "25",
+              "26",
+              "27",
+              "28",
+              "29",
+              "30",
+              "31",
+              "32",
+              "33",
+              "34",
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42",
+              "43",
+              "44",
+              "45",
+              "46",
+              "47",
+              "48",
+              "49",
+              "50",
+              "51",
+              "53",
+              "54",
+              "55",
+              "56"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "state_code",
+          "involved_mode",
+          "crash_count"
+        ],
+        "type": "object"
+      },
+      "maxItems": 312,
+      "type": "array"
+    },
+    "method": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm_version": {
+          "const": "state-involved-mode-v1"
+        },
+        "contribution_unit": {
+          "const": "distinct_crash_once_per_involved_mode"
+        },
+        "coverage": {
+          "enum": [
+            "state_codes_present_in_verified_snapshot",
+            "official_2024_national_50_states_and_dc"
+          ],
+          "type": "string"
+        },
+        "coverage_state_codes": {
+          "items": {
+            "enum": [
+              "1",
+              "2",
+              "4",
+              "5",
+              "6",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "15",
+              "16",
+              "17",
+              "18",
+              "19",
+              "20",
+              "21",
+              "22",
+              "23",
+              "24",
+              "25",
+              "26",
+              "27",
+              "28",
+              "29",
+              "30",
+              "31",
+              "32",
+              "33",
+              "34",
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42",
+              "43",
+              "44",
+              "45",
+              "46",
+              "47",
+              "48",
+              "49",
+              "50",
+              "51",
+              "53",
+              "54",
+              "55",
+              "56"
+            ],
+            "type": "string"
+          },
+          "maxItems": 52,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "dimension": {
+          "const": "involved_mode"
+        },
+        "effective_k": {
+          "maximum": 36297,
+          "minimum": 5,
+          "type": "integer"
+        },
+        "geography": {
+          "const": "fars_state_code"
+        },
+        "minimum_k": {
+          "const": 5
+        },
+        "modes_non_additive": {
+          "const": true
+        },
+        "state_codebook_sha256": {
+          "const": "e81d1277ef1d407bd8a1b476a18f71b27943cada7d532551c6ce30939fb82589"
+        },
+        "state_codebook_version": {
+          "const": "fars-state-codes-2024-v1"
+        }
+      },
+      "required": [
+        "algorithm_version",
+        "geography",
+        "coverage",
+        "coverage_state_codes",
+        "dimension",
+        "contribution_unit",
+        "minimum_k",
+        "effective_k",
+        "state_codebook_version",
+        "state_codebook_sha256",
+        "modes_non_additive"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "source_lineage": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "attempt_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        "cases_excluded": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "cases_joined": {
+          "maximum": 36297,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "crash_mapping_version": {
+          "const": "1.0.0"
+        },
+        "crash_records_accepted": {
+          "maximum": 36297,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "crash_records_read": {
+          "maximum": 36297,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "crash_records_rejected": {
+          "maximum": 36297,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dataset_year": {
+          "const": 2024
+        },
+        "joined_schema_version": {
+          "const": "1.0.0"
+        },
+        "normalized_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "person_mapping_version": {
+          "const": "1.0.0"
+        },
+        "person_records_accepted": {
+          "maximum": 100000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "person_records_excluded": {
+          "maximum": 100000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "person_records_read": {
+          "maximum": 100000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "person_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "raw_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "release_status": {
+          "enum": [
+            "preliminary",
+            "final"
+          ],
+          "type": "string"
+        },
+        "source_id": {
+          "const": "fars-joined"
+        }
+      },
+      "required": [
+        "source_id",
+        "dataset_year",
+        "release_status",
+        "attempt_id",
+        "raw_sha256",
+        "normalized_sha256",
+        "accident_sha256",
+        "person_sha256",
+        "joined_schema_version",
+        "crash_mapping_version",
+        "person_mapping_version",
+        "crash_records_read",
+        "crash_records_accepted",
+        "crash_records_rejected",
+        "person_records_read",
+        "person_records_accepted",
+        "person_records_excluded",
+        "cases_joined",
+        "cases_excluded"
+      ],
+      "type": "object"
+    },
+    "visibility": {
+      "const": "private"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "visibility",
+    "caveat",
+    "source_lineage",
+    "method",
+    "accounting",
+    "cells"
+  ],
+  "title": "Private NearMiss national FARS context artifact",
+  "type": "object"
+}
