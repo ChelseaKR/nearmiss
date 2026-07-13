@@ -2,19 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="refresh" content="0; url=web/index.html" />
+    <script data-apex-redirect>
+      (() => {
+        const language = new URLSearchParams(window.location.search).get("lang");
+        const query = language === "es" ? "?lang=es" : language === "en" ? "?lang=en" : "";
+        window.location.replace(`web/us-coverage.html${query}`);
+      })();
+    </script>
+    <meta http-equiv="refresh" content="0; url=web/us-coverage.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>nearmiss — where the danger actually is</title>
-    <link rel="canonical" href="web/index.html" />
+    <title>US evidence ledger — nearmiss</title>
+    <link rel="canonical" href="https://nearmiss.report/web/us-coverage.html" />
   </head>
   <body>
     <!-- Apex landing for the GitHub Pages custom domain (nearmiss.report).
-         Redirects to the accessible map + data view; the link is a no-JS fallback. -->
-    <p>
-      Redirecting to the
-      <a href="web/index.html">nearmiss accessible map and data view</a>… The
-      open dataset lives in <a href="data/published/">data/published/</a>, and the
-      source is on <a href="https://github.com/ChelseaKR/nearmiss">GitHub</a>.
-    </p>
+         Redirects to the national evidence ledger; the links are no-JS fallbacks. -->
+    <main>
+      <h1>US evidence ledger</h1>
+      <p>
+        Redirecting to the
+        <a href="web/us-coverage.html">US evidence ledger</a>…
+        <a href="web/us-coverage.html?lang=es" hreflang="es" lang="es">Español</a> ·
+        <a href="web/index.html">Davis near-miss demo</a>. The
+        <a href="data/published/fars-2024-state-mode.json">national evidence JSON</a> and
+        <a href="https://github.com/ChelseaKR/nearmiss">source code</a> are public.
+      </p>
+    </main>
   </body>
 </html>

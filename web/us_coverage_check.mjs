@@ -10,8 +10,9 @@ import { JSDOM, VirtualConsole } from "jsdom";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..");
+const APEX = join(repoRoot, "index.html");
 const PAGE = join(here, "us-coverage.html");
-const HOME = join(here, "index.html");
+const DAVIS_HOME = join(here, "index.html");
 const APP = join(here, "us-coverage.js");
 const I18N = join(here, "i18n.js");
 const LOCALES = join(here, "locales");
@@ -99,7 +100,52 @@ function rejectedValidator(window, base, label, mutate) {
 }
 
 async function main() {
-  const home = new JSDOM(readFileSync(HOME, "utf-8")).window.document;
+  const apex = new JSDOM(readFileSync(APEX, "utf-8")).window.document;
+  const refresh = apex.querySelector('meta[http-equiv="refresh"]');
+  if (!refresh || refresh.getAttribute("content") !== "0; url=web/us-coverage.html") {
+    die("apex does not immediately redirect to the nationwide evidence ledger");
+  }
+  const apexCanonical = apex.querySelectorAll('link[rel~="canonical"]');
+  if (
+    apexCanonical.length !== 1 ||
+    apexCanonical[0].getAttribute("href") !== "https://nearmiss.report/web/us-coverage.html"
+  ) {
+    die("apex does not have the one absolute nationwide canonical URL");
+  }
+  const apexLinks = Array.from(apex.querySelectorAll("a[href]"), (link) => link.getAttribute("href"));
+  const nationalFallback = apexLinks.indexOf("web/us-coverage.html");
+  const davisFallback = apexLinks.indexOf("web/index.html");
+  if (nationalFallback < 0) die("apex has no nationwide no-redirect fallback");
+  if (davisFallback <= nationalFallback) die("apex does not retain Davis as a secondary demo link");
+  if (!apex.querySelector("main")) die("apex fallback content has no main landmark");
+  if (!apex.querySelector('a[href="web/us-coverage.html?lang=es"][hreflang="es"]')) {
+    die("apex has no explicit Spanish fallback link");
+  }
+  if (apex.querySelector('a[href="data/published/"]')) {
+    die("apex links to the non-indexed published-data directory");
+  }
+  if (!apex.querySelector('a[href="data/published/fars-2024-state-mode.json"]')) {
+    die("apex has no direct national evidence download");
+  }
+  const redirectScript = apex.querySelector("script[data-apex-redirect]")?.textContent || "";
+  for (const contract of [
+    'language === "es" ? "?lang=es"',
+    'language === "en" ? "?lang=en"',
+    "window.location.replace(`web/us-coverage.html${query}`)",
+  ]) {
+    if (!redirectScript.includes(contract)) die("apex does not preserve its supported locale");
+  }
+
+  const coverageSource = new JSDOM(readFileSync(PAGE, "utf-8")).window.document;
+  const coverageCanonical = coverageSource.querySelectorAll('link[rel~="canonical"]');
+  if (
+    coverageCanonical.length !== 1 ||
+    coverageCanonical[0].getAttribute("href") !== "https://nearmiss.report/web/us-coverage.html"
+  ) {
+    die("nationwide page does not have the one absolute production canonical URL");
+  }
+
+  const home = new JSDOM(readFileSync(DAVIS_HOME, "utf-8")).window.document;
   if (!home.querySelector('.national-cta a[href="us-coverage.html"]')) {
     die("Davis homepage has no prominent link to the nationwide evidence ledger");
   }
