@@ -628,6 +628,9 @@
         },
         {
           "$ref": "#/$defs/source_contract_2024_r1"
+        },
+        {
+          "$ref": "#/$defs/source_contract_2024_r2"
         }
       ]
     },
@@ -1170,6 +1173,114 @@
         "person_row_cap"
       ],
       "type": "object"
+    },
+    "source_contract_2024_r2": {
+      "additionalProperties": false,
+      "properties": {
+        "accident_encoding": {
+          "const": "utf-8-sig"
+        },
+        "accident_member": {
+          "const": "accident.csv"
+        },
+        "accident_row_cap": {
+          "const": 45000
+        },
+        "allowed_regressions": {
+          "const": []
+        },
+        "contract_schema_version": {
+          "const": "1.0.0"
+        },
+        "county_code_system": {
+          "const": "nhtsa_fars_gsa_2024"
+        },
+        "crash_mapping_version": {
+          "const": "1.0.0"
+        },
+        "distribution_url": {
+          "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip"
+        },
+        "person_encoding": {
+          "const": "utf-8-sig"
+        },
+        "person_mapping_version": {
+          "const": "1.0.0"
+        },
+        "person_member": {
+          "const": "person.csv"
+        },
+        "person_row_cap": {
+          "const": 110000
+        },
+        "predecessor_contract_sha256": {
+          "const": "f6bc3dd55cf3dfb360c265308c7702cdf7f6df66894cf792afd6be83c09c72f8"
+        },
+        "raw_sha256": {
+          "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+        },
+        "raw_size_bytes": {
+          "const": 32672161
+        },
+        "release_stage": {
+          "const": "annual_report_file"
+        },
+        "revision": {
+          "const": 2
+        },
+        "semantic_regime_id": {
+          "const": "fars_per_typ_2022_2024_v1"
+        },
+        "source_id": {
+          "const": "fars-joined-2024"
+        },
+        "source_record_id_scheme": {
+          "const": "fars_year_st_case_v1"
+        },
+        "source_revision_id": {
+          "const": "reviewed-20260712-d5d9589b5a48"
+        },
+        "state_code_system": {
+          "const": "nhtsa_fars_state_2024"
+        },
+        "table_encoding_profile": {
+          "const": "fars_utf8_sig_2021_2024_v1"
+        },
+        "transition_review_reference": {
+          "const": "nearmiss-fars-2024-arf-provenance-review-20260712"
+        },
+        "year": {
+          "const": 2024
+        }
+      },
+      "required": [
+        "contract_schema_version",
+        "year",
+        "revision",
+        "predecessor_contract_sha256",
+        "transition_review_reference",
+        "allowed_regressions",
+        "source_id",
+        "source_revision_id",
+        "distribution_url",
+        "release_stage",
+        "raw_size_bytes",
+        "raw_sha256",
+        "accident_member",
+        "accident_encoding",
+        "person_member",
+        "person_encoding",
+        "semantic_regime_id",
+        "table_encoding_profile",
+        "crash_mapping_version",
+        "person_mapping_version",
+        "source_record_id_scheme",
+        "state_code_system",
+        "county_code_system",
+        "accident_row_cap",
+        "person_row_cap"
+      ],
+      "type": "object"
     }
   },
   "$id": "https://nearmiss.dev/schema/private-fars-joined-outcomes-v2.schema.json",
@@ -1608,6 +1719,93 @@
         },
         "source_contract": {
           "$ref": "#/$defs/source_contract_2024_r1"
+        }
+      }
+    },
+    {
+      "properties": {
+        "crash_normalization": {
+          "properties": {
+            "adapter_version": {
+              "const": "1.0.0"
+            },
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip"
+            },
+            "expected_year": {
+              "const": 2024
+            }
+          }
+        },
+        "crash_provenance": {
+          "properties": {
+            "dataset_years": {
+              "const": [
+                2024
+              ]
+            },
+            "input_sha256": {
+              "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+            },
+            "release_status": {
+              "const": "annual_report_file"
+            }
+          }
+        },
+        "person_join": {
+          "properties": {
+            "dataset_year": {
+              "const": 2024
+            },
+            "input_sha256": {
+              "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+            },
+            "mapping_version": {
+              "const": "1.0.0"
+            },
+            "semantic_regime_id": {
+              "const": "fars_per_typ_2022_2024_v1"
+            }
+          }
+        },
+        "records": {
+          "items": {
+            "properties": {
+              "jurisdiction": {
+                "properties": {
+                  "county_code_system": {
+                    "const": "nhtsa_fars_gsa_2024"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2024:[1-9][0-9]*$"
+                  },
+                  "state_code_system": {
+                    "const": "nhtsa_fars_state_2024"
+                  }
+                }
+              },
+              "mode_summary": {
+                "properties": {
+                  "source_record_id": {
+                    "pattern": "^2024:[1-9][0-9]*$"
+                  }
+                }
+              },
+              "outcome": {
+                "properties": {
+                  "occurred_on": {
+                    "pattern": "^2024-"
+                  },
+                  "source_record_id": {
+                    "pattern": "^2024:[1-9][0-9]*$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "source_contract": {
+          "$ref": "#/$defs/source_contract_2024_r2"
         }
       }
     }

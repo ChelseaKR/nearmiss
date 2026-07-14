@@ -56,7 +56,7 @@ The first official adapter reads NHTSA Fatality Analysis Reporting System (FARS)
 from nearmiss.adapters import FarsAdapter
 
 outcomes, provenance = FarsAdapter().parse(
-    "FARS2024NationalCSV.zip",
+    "FARS2023NationalCSV.zip",
     release_status="final",
 )
 ```
@@ -64,6 +64,9 @@ outcomes, provenance = FarsAdapter().parse(
 NHTSA describes FARS as a nationwide census of fatal motor-vehicle traffic crashes and publishes
 annual downloads from 1975 onward at the
 [official FARS data page](https://www.nhtsa.gov/research-data/fatality-analysis-reporting-system-fars).
+NHTSA's April 2026 analytical manual identifies 2024 as the Annual Report File (ARF), not a Final
+File. NHTSA replaces an ARF with a final file after its later review cycle, so release stage is part
+of the immutable annual source contract rather than a cosmetic label.
 The crash table provides a nationwide baseline but cannot identify pedestrian or cyclist involvement
 by itself; that requires a later join to FARS `person.csv`. It also says nothing about nonfatal or
 unreported near misses. For file-backed exports, the adapter preserves the input SHA-256 along with
@@ -76,12 +79,12 @@ intended for controlled transformations and tests.
 separate operator step so the exact bytes can be reviewed and pinned before normalization.
 
 ```bash
-nearmiss ingest-fars /private/downloads/FARS2024NationalCSV.zip \
+nearmiss ingest-fars /private/downloads/FARS2023NationalCSV.zip \
   --root "$HOME/.local/share/nearmiss/ingestion" \
-  --year 2024 \
+  --year 2023 \
   --release-status final \
   --distribution-url \
-    https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip \
+    https://static.nhtsa.gov/nhtsa/downloads/FARS/2023/National/FARS2023NationalCSV.zip \
   --max-invalid-fraction 0.01 \
   --max-raw-bytes 67108864 \
   --max-normalized-bytes 67108864
@@ -98,23 +101,34 @@ normalized artifact.
 
 For the reviewed annual accident/person path, `nearmiss ingest-fars-year` accepts only the exact
 National ZIP registered for an explicit year and append-only contract revision. The current registry
-covers 2020–2024 at revision 1. Archive size and SHA-256, CSV members and encodings, release stage,
+covers 2020–2023 at revision 1 and 2024 through revision 2. Archive size and SHA-256, CSV members and encodings, release stage,
 mapping versions, row ceilings, and permitted regression categories all come from that immutable
-contract; the CLI has no flags that can replace them.
+contract; the CLI has no flags that can replace them. Revisions 1 and 2 are retained for 2024:
+revision 1 preserves the originally published provenance bytes, while revision 2 corrects the stage
+to `annual_report_file` without changing the pinned raw archive or mapping versions.
 
 ```bash
+# A fresh 2024 lineage must preserve the originally published revision first.
 nearmiss ingest-fars-year /private/downloads/FARS2024NationalCSV.zip \
   --root "$HOME/.local/share/nearmiss/ingestion" \
   --year 2024 \
   --contract-revision 1
+
+# Then advance the same private lineage to the provenance-corrected revision.
+nearmiss ingest-fars-year /private/downloads/FARS2024NationalCSV.zip \
+  --root "$HOME/.local/share/nearmiss/ingestion" \
+  --year 2024 \
+  --contract-revision 2
 ```
 
-The command performs the registered `accident.csv`/`person.csv` join, activates the canonical private
+Each command performs the registered `accident.csv`/`person.csv` join, activates the canonical private
 annual artifact under source ID `fars-joined-<year>`, and prints one JSON line of verified aggregate
 lineage evidence. That line contains contract/mapping identities, hashes, and crash/person/case
 accounting—not private paths, coordinates, or normalized records. Run the command from inside the
 nearmiss checkout or assembled public site: even under pipx/wheel installation, the CLI rejects a
 private root inside that real operator-visible boundary and fails closed when it cannot identify one.
+Revision 2 is accepted only after revision 1 is active in that same private root; a fresh lineage
+cannot skip retained history.
 Keep the private root outside every other served tree as an explicit operator control. Acquisition
 remains a separate reviewed step; a stable NHTSA URL alone is not accepted as proof of the bytes.
 
@@ -139,8 +153,8 @@ boundary before any comparative capability appears.
 
 ### Publishing annual state × mode context
 
-The public nationwide page consumes one canonical artifact per released year and the closed
-[`fars-state-mode-index.json`](../data/published/fars-state-mode-index.json) allowlist. The index is
+The public nationwide page consumes one canonical artifact per released year and the closed current
+[`fars-state-mode-index-v2.json`](../data/published/fars-state-mode-index-v2.json) allowlist. The index is
 not a place to announce work in progress: it contains only years with an exact reviewed public
 artifact, pins every artifact by bytes and SHA-256, and binds it to that year's registered NHTSA
 archive, annual contract digest, semantic regime, crash/person mappings, state-code system, and
@@ -151,12 +165,13 @@ different reviewed person-type semantic regimes.
 
 Production inputs required to add a year are:
 
-1. the exact activated revision-1 annual v2 snapshot for that year, authenticated through its full
+1. the exact activated registered annual revision for that year, authenticated through its full
    private receipt/raw/normalized lineage;
 2. a deterministic public projection from those authenticated bytes containing exactly 51 states ×
    six involved modes, with every sub-`k=10` or zero cell represented only as
    `suppressed_or_zero` and with reconciled aggregate accounting;
-3. canonical UTF-8 JSON named `fars-YYYY-state-mode.json`, independently checked against the
+3. canonical UTF-8 JSON named `fars-YYYY-state-mode.json` for revision 1 or
+   `fars-YYYY-state-mode-rN.json` for a later immutable revision, independently checked against the
    registered annual source identity and privacy-forbidden-field tests; and
 4. a regenerated index built from an explicit list of all released annual files:
 
@@ -166,11 +181,25 @@ Production inputs required to add a year are:
      --artifact data/published/fars-2021-state-mode.json \
      --artifact data/published/fars-2022-state-mode.json \
      --artifact data/published/fars-2023-state-mode.json \
-     --artifact data/published/fars-2024-state-mode.json \
-     --out data/published/fars-state-mode-index.json
+     --artifact data/published/fars-2024-state-mode-r2.json \
+     --out data/published/fars-state-mode-index-v2.json
    ```
 
-The checked-in production index publishes the proof-bound 2020–2024 projections. The browser
+   A provenance correction also rebuilds its closed ledger from the two immutable generations:
+
+   ```bash
+   python tools/build_fars_correction_ledger.py \
+     --prior-artifact data/published/fars-2024-state-mode.json \
+     --replacement-artifact data/published/fars-2024-state-mode-r2.json \
+     --prior-index data/published/fars-state-mode-index.json \
+     --replacement-index data/published/fars-state-mode-index-v2.json \
+     --out data/published/fars-release-corrections.json
+   ```
+
+The checked-in production index publishes the proof-bound 2020–2024 projections. The superseded
+`fars-2024-state-mode.json` and `fars-state-mode-index.json` URLs remain byte-identical and are bound
+to their replacements by `fars-release-corrections.json`; the browser consumes only the corrected
+revision-2 catalog. The browser
 contract exercises all five exact public artifacts, including transitions across the 2020–2021 and
 2022–2024 semantic regimes. A private annual activation proof alone must never be relabeled as a
 public result: any future year remains unpublished until its projection and annual contract are

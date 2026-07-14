@@ -242,6 +242,54 @@
           "const": "2024 US fatal-crash burden by state and involved mode"
         }
       }
+    },
+    {
+      "properties": {
+        "caveat": {
+          "const": "Counts are distinct 2024 FARS fatal crashes with at least one person in the involved mode, counted at most once per crash per mode. They are fatal-crash burden context, not exposure-normalized risk, incidence, causation, nonfatal crashes, near misses, record linkage, outcome validation, or a safety ranking. Mode cells overlap and are non-additive. A suppressed_or_zero cell combines a true zero with a positive count below k=10 and must never be read as zero. k=10 is a stability and publication guard for already-public FARS data, not a confidentiality guarantee. The official 2024 National archive covers the 50 states and District of Columbia; Puerto Rico requires a separately verified source."
+        },
+        "dataset_year": {
+          "const": 2024
+        },
+        "geography": {
+          "properties": {
+            "coverage": {
+              "const": "official_2024_national_50_states_and_dc"
+            },
+            "state_crosswalk_sha256": {
+              "const": "6744b12717b0bd52a79c73aba3037286dde9257698a2aa0630f995c8a82ba25c"
+            },
+            "state_crosswalk_version": {
+              "const": "fars-usps-50-states-dc-2024-v1"
+            }
+          }
+        },
+        "source": {
+          "properties": {
+            "distribution_url": {
+              "const": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip"
+            },
+            "name": {
+              "const": "NHTSA Fatality Analysis Reporting System (FARS)"
+            },
+            "raw_sha256": {
+              "const": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"
+            },
+            "raw_size_bytes": {
+              "const": 32672161
+            },
+            "release_stage": {
+              "const": "annual_report_file"
+            },
+            "source_revision_id": {
+              "const": "reviewed-20260712-d5d9589b5a48"
+            }
+          }
+        },
+        "title": {
+          "const": "2024 US fatal-crash burden by state and involved mode"
+        }
+      }
     }
   ],
   "properties": {
@@ -453,7 +501,11 @@
           "type": "integer"
         },
         "release_stage": {
-          "const": "final"
+          "enum": [
+            "preliminary",
+            "annual_report_file",
+            "final"
+          ]
         },
         "source_revision_id": {
           "type": "string"

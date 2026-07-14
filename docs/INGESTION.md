@@ -115,6 +115,11 @@ independent `fars-joined-<year>` lineages (currently 2020–2024), replays the f
 returning success, and emits aggregate verification evidence only. It still performs no download,
 scheduling, segment/time comparison, or publication.
 
+The 2024 history retains revision 1 and adds revision 2 to correct the source stage to NHTSA's
+`annual_report_file` classification. That provenance-only transition reuses the exact raw archive and
+mappings only because both contract identities and their allowed delta are golden-pinned; ordinary
+same-archive revisions still require a mapping-version advance.
+
 Invoke that command from within a recognizable nearmiss source checkout or assembled public-site
 tree. The CLI binds the private-root preflight to that real invocation boundary and, for an editable
 install, to the source checkout as well. It deliberately fails closed when a wheel/pipx installation

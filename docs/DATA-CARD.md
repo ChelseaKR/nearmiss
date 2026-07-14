@@ -605,6 +605,10 @@ ways this kind of data is misused.
   review.
 - **Errata and corrections.** Data and threshold fixes are made as recorded, re-run edits;
   corrections ship in a new versioned release rather than mutating a published one.
+- **2024 FARS provenance correction (2026-07-12).** NHTSA identifies 2024 as its Annual Report File.
+  The corrected revision changes only release-stage provenance; the original artifact/index remain
+  available at their exact hashes, and a machine-readable ledger pins both generations. Counts,
+  suppression, geography, raw archive identity, and mappings are unchanged.
 - **Deprecation.** Superseded dataset versions remain identifiable by version and hash; consumers
   should pin the version they cite.
 

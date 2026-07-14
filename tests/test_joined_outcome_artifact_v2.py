@@ -26,7 +26,9 @@ from nearmiss.fars_year_contracts import (
     SUPPORTED_FARS_YEARS,
     fars_year_contract,
     fars_year_contract_descriptor,
+    fars_year_contract_revision,
     fars_year_contract_sha256,
+    validate_fars_year_contract_registry,
 )
 from nearmiss.joined_outcome_artifacts import JOINED_ARTIFACT_TYPE
 from nearmiss.joined_outcome_artifacts_v2 import (
@@ -106,14 +108,40 @@ def _register_exact_fixture_archives(monkeypatch: pytest.MonkeyPatch) -> None:
     for year, registered_history in FARS_YEAR_CONTRACT_HISTORY.items():
         raw = _archive(year)
         raw_sha256 = hashlib.sha256(raw).hexdigest()
-        contract = replace(
-            registered_history[0],
-            source_revision_id=f"reviewed-20260712-{raw_sha256[:12]}",
-            raw_size_bytes=len(raw),
-            raw_sha256=raw_sha256,
-        )
-        history[year] = (contract,)
-        contracts[year] = contract
+        fixture_history: list[Any] = []
+        for registered in registered_history:
+            if registered.revision == 1:
+                fixture = replace(
+                    registered,
+                    source_revision_id=f"reviewed-20260712-{raw_sha256[:12]}",
+                    raw_size_bytes=len(raw),
+                    raw_sha256=raw_sha256,
+                )
+            else:
+                fixture = replace(
+                    registered,
+                    predecessor_contract_sha256=year_contracts._unregistered_contract_sha256(
+                        fixture_history[-1]
+                    ),
+                    source_revision_id=year_contracts._2024_arf_source_revision_id(raw_sha256),
+                    raw_size_bytes=len(raw),
+                    raw_sha256=raw_sha256,
+                )
+            fixture_history.append(fixture)
+        history[year] = tuple(fixture_history)
+        contracts[year] = fixture_history[-1]
+    fixture_2024 = history[2024]
+    monkeypatch.setattr(
+        year_contracts,
+        "_REVIEWED_2024_R1_CONTRACT_SHA256",
+        year_contracts._unregistered_contract_sha256(fixture_2024[0]),
+    )
+    monkeypatch.setattr(
+        year_contracts,
+        "_REVIEWED_2024_ARF_CONTRACT_SHA256",
+        year_contracts._unregistered_contract_sha256(fixture_2024[1]),
+    )
+    validate_fars_year_contract_registry(history)
     monkeypatch.setattr(year_contracts, "FARS_YEAR_CONTRACT_HISTORY", history)
     monkeypatch.setattr(year_contracts, "FARS_YEAR_CONTRACTS", contracts)
     monkeypatch.setattr(artifacts_v2, "FARS_YEAR_CONTRACT_HISTORY", history)
@@ -125,11 +153,11 @@ def _register_exact_fixture_archives(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-def _inputs(year: int = 2024) -> tuple[list[Any], list[Any], Any, Any]:
-    contract = fars_year_contract(year)
+def _inputs(year: int = 2024, revision: int = 1) -> tuple[list[Any], list[Any], Any, Any]:
+    contract = fars_year_contract_revision(year, revision)
     outcomes, summaries, crash, person = collect_joined(
         read_joined_export_bytes(_archive(year), expected_year=year),
-        release_status="final",
+        release_status=contract.release_stage,
     )
     return (
         outcomes,
@@ -139,14 +167,14 @@ def _inputs(year: int = 2024) -> tuple[list[Any], list[Any], Any, Any]:
     )
 
 
-def _build(year: int = 2024) -> dict[str, object]:
+def _build(year: int = 2024, revision: int = 1) -> dict[str, object]:
     return cast(
         dict[str, object],
         json.loads(
             canonical_joined_outcome_artifact_v2_from_pinned_archive(
                 _archive(year),
                 year=year,
-                contract_revision=1,
+                contract_revision=revision,
             )
         ),
     )
@@ -161,7 +189,7 @@ def _section(artifact: dict[str, object], key: str) -> dict[str, Any]:
 
 
 def test_authority_boundary_accepts_only_exact_registered_raw_bytes() -> None:
-    contract = fars_year_contract(2024)
+    contract = fars_year_contract_revision(2024, 1)
     payload = canonical_joined_outcome_artifact_v2_from_pinned_archive(
         _archive(2024),
         year=2024,
@@ -218,8 +246,9 @@ def test_authority_boundary_exposes_no_fabricatable_inputs() -> None:
     assert parameters["contract_revision"].kind is inspect.Parameter.KEYWORD_ONLY
 
     outcomes, summaries, crash, person = _inputs()
-    forged_crash = replace(crash, input_sha256=fars_year_contract(2024).raw_sha256)
-    forged_person = replace(person, input_sha256=fars_year_contract(2024).raw_sha256)
+    r1 = fars_year_contract_revision(2024, 1)
+    forged_crash = replace(crash, input_sha256=r1.raw_sha256)
+    forged_person = replace(person, input_sha256=r1.raw_sha256)
     with pytest.raises(TypeError):
         cast(Any, canonical_joined_outcome_artifact_v2_from_pinned_archive)(
             _archive(2024),
@@ -247,7 +276,7 @@ def test_schema_is_valid_and_equals_the_static_schema() -> None:
 @pytest.mark.parametrize("year", SUPPORTED_FARS_YEARS)
 def test_builds_closed_strict_artifact_for_each_fixed_year(year: int) -> None:
     artifact = _build(year)
-    contract = fars_year_contract(year)
+    contract = fars_year_contract_revision(year, 1)
     assert artifact["schema_version"] == JOINED_ARTIFACT_V2_SCHEMA_VERSION
     assert artifact["artifact_type"] == JOINED_ARTIFACT_V2_TYPE
     assert artifact["source_contract"] == fars_year_contract_descriptor(contract)
@@ -272,7 +301,7 @@ def test_builds_closed_strict_artifact_for_each_fixed_year(year: int) -> None:
 
 def test_canonical_bytes_are_deterministic_under_input_reordering() -> None:
     outcomes, summaries, crash, person = _inputs()
-    contract = fars_year_contract(2024)
+    contract = fars_year_contract_revision(2024, 1)
     first = artifacts_v2._project_joined_outcome_artifact_v2_without_source_authority(
         outcomes,
         summaries,
@@ -454,7 +483,7 @@ def test_schema_enumerates_a_future_registered_revision(
     raw_sha256 = "2" * 64
     future = replace(
         previous,
-        revision=2,
+        revision=3,
         predecessor_contract_sha256=fars_year_contract_sha256(previous),
         transition_review_reference="nearmiss-fars-source-audit-20260713",
         allowed_regressions=("record_counts",),
@@ -473,50 +502,33 @@ def test_schema_enumerates_a_future_registered_revision(
     definitions = cast(dict[str, Any], schema["$defs"])
     assert "source_contract_2024_r1" in definitions
     assert "source_contract_2024_r2" in definitions
-    assert len(cast(list[Any], schema["oneOf"])) == 6
+    assert "source_contract_2024_r3" in definitions
+    assert len(cast(list[Any], schema["oneOf"])) == 7
     refs = {item["$ref"] for item in cast(dict[str, Any], definitions["source_contract"])["oneOf"]}
-    assert "#/$defs/source_contract_2024_r2" in refs
+    assert "#/$defs/source_contract_2024_r3" in refs
     normalization = cast(dict[str, Any], definitions["normalization"])
     assert normalization["properties"]["adapter_version"]["enum"] == ["1.0.0", "2.0.0"]
     person_join = cast(dict[str, Any], definitions["person_join"])
     assert person_join["properties"]["mapping_version"]["enum"] == ["1.0.0", "2.0.0"]
     branches = cast(list[dict[str, Any]], schema["oneOf"])
-    r1 = branches[-2]["properties"]
-    r2 = branches[-1]["properties"]
-    assert r1["crash_normalization"]["properties"]["adapter_version"] == {"const": "1.0.0"}
-    assert r1["person_join"]["properties"]["mapping_version"] == {"const": "1.0.0"}
-    assert r2["crash_normalization"]["properties"]["adapter_version"] == {"const": "2.0.0"}
-    assert r2["person_join"]["properties"]["mapping_version"] == {"const": "2.0.0"}
+    previous_branch = branches[-2]["properties"]
+    future_branch = branches[-1]["properties"]
+    assert previous_branch["source_contract"] == {"$ref": "#/$defs/source_contract_2024_r2"}
+    assert previous_branch["crash_normalization"]["properties"]["adapter_version"] == {
+        "const": "1.0.0"
+    }
+    assert previous_branch["person_join"]["properties"]["mapping_version"] == {"const": "1.0.0"}
+    assert future_branch["source_contract"] == {"$ref": "#/$defs/source_contract_2024_r3"}
+    assert future_branch["crash_normalization"]["properties"]["adapter_version"] == {
+        "const": "2.0.0"
+    }
+    assert future_branch["person_join"]["properties"]["mapping_version"] == {"const": "2.0.0"}
     Draft202012Validator.check_schema(schema)
 
 
-def test_explicit_r1_replay_does_not_switch_to_latest_r2(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    r1 = fars_year_contract(2024)
-    r2 = replace(
-        r1,
-        revision=2,
-        predecessor_contract_sha256=fars_year_contract_sha256(r1),
-        transition_review_reference="nearmiss-fars-source-audit-20260713",
-        source_revision_id=f"reviewed-20260713-{r1.raw_sha256[:12]}",
-        crash_mapping_version="2.0.0",
-        person_mapping_version="2.0.0",
-    )
-    history = dict(year_contracts.FARS_YEAR_CONTRACT_HISTORY)
-    history[2024] = (r1, r2)
-    contracts = dict(year_contracts.FARS_YEAR_CONTRACTS)
-    contracts[2024] = r2
-    monkeypatch.setattr(year_contracts, "FARS_YEAR_CONTRACT_HISTORY", history)
-    monkeypatch.setattr(year_contracts, "FARS_YEAR_CONTRACTS", contracts)
-    monkeypatch.setattr(artifacts_v2, "FARS_YEAR_CONTRACT_HISTORY", history)
-    schema = artifacts_v2._schema()
-    monkeypatch.setattr(
-        artifacts_v2,
-        "_VALIDATOR",
-        Draft202012Validator(schema, format_checker=FormatChecker()),
-    )
-
+def test_explicit_r1_replay_does_not_switch_to_latest_r2() -> None:
+    r1 = fars_year_contract_revision(2024, 1)
+    assert fars_year_contract(2024).revision == 2
     payload = canonical_joined_outcome_artifact_v2_from_pinned_archive(
         _archive(2024),
         year=2024,
@@ -528,13 +540,40 @@ def test_explicit_r1_replay_does_not_switch_to_latest_r2(
     assert artifact["person_join"]["mapping_version"] == "1.0.0"
 
 
+def test_explicit_2024_r2_replay_changes_only_provenance_over_the_same_archive() -> None:
+    r1 = _build(2024, 1)
+    r2 = _build(2024, 2)
+    r1_contract = fars_year_contract_revision(2024, 1)
+    r2_contract = fars_year_contract_revision(2024, 2)
+
+    assert r1["source_contract"] == fars_year_contract_descriptor(r1_contract)
+    assert r2["source_contract"] == fars_year_contract_descriptor(r2_contract)
+    assert _section(r1, "crash_provenance")["release_status"] == "final"
+    assert _section(r2, "crash_provenance")["release_status"] == "annual_report_file"
+    assert (
+        _section(r1, "crash_provenance")["input_sha256"]
+        == _section(r2, "crash_provenance")["input_sha256"]
+    )
+    assert (
+        _section(r1, "crash_normalization")["adapter_version"]
+        == _section(r2, "crash_normalization")["adapter_version"]
+    )
+    assert (
+        _section(r1, "person_join")["mapping_version"]
+        == _section(r2, "person_join")["mapping_version"]
+    )
+    assert r1["records"] == r2["records"]
+    validate_joined_outcome_artifact_v2(r1)
+    validate_joined_outcome_artifact_v2(r2)
+
+
 @pytest.mark.parametrize(
     ("revision", "error"),
     [
         (True, TypeError),
         (1.0, TypeError),
         (0, ValueError),
-        (2, ValueError),
+        (3, ValueError),
     ],
 )
 def test_authority_boundary_rejects_noninteger_or_unregistered_revision(
@@ -558,7 +597,7 @@ def test_builder_rejects_missing_jurisdiction_and_mixed_year_contract() -> None:
             summaries,
             person,
             crash,
-            contract=fars_year_contract(2024),
+            contract=fars_year_contract_revision(2024, 1),
         )
 
     outcomes, summaries, crash, person = _inputs(2023)
@@ -568,7 +607,7 @@ def test_builder_rejects_missing_jurisdiction_and_mixed_year_contract() -> None:
             summaries,
             person,
             crash,
-            contract=fars_year_contract(2024),
+            contract=fars_year_contract_revision(2024, 1),
         )
 
 
@@ -587,5 +626,5 @@ def test_builder_and_schema_cap_annual_records(
             summaries,
             person,
             crash,
-            contract=fars_year_contract(2024),
+            contract=fars_year_contract_revision(2024, 1),
         )

@@ -7,12 +7,13 @@ import hashlib
 import json
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import MappingProxyType
 
 from .fars_distribution import validate_fars_distribution_url
 
 SUPPORTED_FARS_YEARS = (2020, 2021, 2022, 2023, 2024)
+FARS_RELEASE_STAGES = ("preliminary", "annual_report_file", "final")
 FARS_ACCIDENT_ROW_CAP = 45_000
 FARS_PERSON_ROW_CAP = 110_000
 FARS_RAW_ARCHIVE_MAX_BYTES = 256 * 1024 * 1024
@@ -23,6 +24,13 @@ _EARLY_SEMANTIC_REGIME = "fars_per_typ_2020_2021_v1"
 _LATE_SEMANTIC_REGIME = "fars_per_typ_2022_2024_v1"
 _CONTRACT_SCHEMA_VERSION = "1.0.0"
 _INITIAL_REVIEW_REFERENCE = "nearmiss-fars-source-audit-20260712"
+_2024_ARF_REVIEW_REFERENCE = "nearmiss-fars-2024-arf-provenance-review-20260712"
+_REVIEWED_2024_R1_CONTRACT_SHA256 = (
+    "f6bc3dd55cf3dfb360c265308c7702cdf7f6df66894cf792afd6be83c09c72f8"
+)
+_REVIEWED_2024_ARF_CONTRACT_SHA256 = (
+    "2a24d2cad5341a8ffbe77272b59ccaf0c983a2e9beb763551bb3df7f4ef02b63"
+)
 _ALLOWED_REGRESSION_CATEGORIES = ("mode_counts", "record_counts")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$", re.ASCII)
 _SEMVER_RE = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$", re.ASCII)
@@ -37,6 +45,9 @@ _PINNED_RAW_IDENTITIES = {
     2023: (34_174_899, "edde841eb493e55751961b36bac2d1ce8750f601cb8e6e183a525723bb62bab0"),
     2024: (32_672_161, "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f"),
 }
+_RELEASE_STAGE_RANK = MappingProxyType(
+    {stage: rank for rank, stage in enumerate(FARS_RELEASE_STAGES)}
+)
 
 
 def _official_national_distribution_url(year: int) -> str:
@@ -167,8 +178,8 @@ class FarsYearContract:
             raise ValueError("FARS contract state code system does not match its reviewed year")
         if self.county_code_system != f"nhtsa_fars_gsa_{self.year}":
             raise ValueError("FARS contract county code system does not match its reviewed year")
-        if self.release_stage != "final":
-            raise ValueError("FARS contract release stage must be final")
+        if self.release_stage not in FARS_RELEASE_STAGES:
+            raise ValueError("FARS contract release stage is invalid")
 
     def _validate_bounds_and_raw_identity(self) -> None:
         if (
@@ -302,6 +313,64 @@ def _unregistered_contract_sha256(contract: FarsYearContract) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def fars_release_stage_rank(release_stage: str) -> int:
+    """Return the monotonic publication rank of a closed FARS release stage."""
+    if not isinstance(release_stage, str):
+        raise TypeError("FARS release stage must be a string")
+    try:
+        return _RELEASE_STAGE_RANK[release_stage]
+    except KeyError as exc:
+        raise ValueError("FARS release stage is invalid") from exc
+
+
+def _2024_arf_source_revision_id(raw_sha256: str) -> str:
+    material = f"{raw_sha256}:annual_report_file:{_2024_ARF_REVIEW_REFERENCE}"
+    suffix = hashlib.sha256(material.encode("ascii")).hexdigest()[:12]
+    return f"reviewed-20260712-{suffix}"
+
+
+def is_fars_provenance_only_same_archive_correction(
+    current: object,
+    previous: object,
+) -> bool:
+    """Prove the single reviewed 2024 final-to-ARF provenance correction."""
+    if not isinstance(current, FarsYearContract) or not isinstance(previous, FarsYearContract):
+        return False
+    if not (
+        previous.year == current.year == 2024
+        and previous.revision == 1
+        and current.revision == 2
+        and previous.predecessor_contract_sha256 is None
+        and previous.transition_review_reference == _INITIAL_REVIEW_REFERENCE
+        and previous.allowed_regressions == current.allowed_regressions == ()
+        and previous.release_stage == "final"
+        and current.release_stage == "annual_report_file"
+        and current.predecessor_contract_sha256 == _unregistered_contract_sha256(previous)
+        and current.transition_review_reference == _2024_ARF_REVIEW_REFERENCE
+        and previous.source_revision_id == f"reviewed-20260712-{previous.raw_sha256[:12]}"
+        and current.source_revision_id == _2024_arf_source_revision_id(current.raw_sha256)
+        and _unregistered_contract_sha256(previous) == _REVIEWED_2024_R1_CONTRACT_SHA256
+        and _unregistered_contract_sha256(current) == _REVIEWED_2024_ARF_CONTRACT_SHA256
+    ):
+        return False
+    allowed_changes = frozenset(
+        {
+            "revision",
+            "predecessor_contract_sha256",
+            "transition_review_reference",
+            "source_revision_id",
+            "release_stage",
+        }
+    )
+    previous_descriptor = _contract_descriptor_value(previous)
+    current_descriptor = _contract_descriptor_value(current)
+    return all(
+        current_descriptor[key] == value
+        for key, value in previous_descriptor.items()
+        if key not in allowed_changes
+    )
+
+
 def _validate_predecessor(
     contract: FarsYearContract,
     previous: FarsYearContract | None,
@@ -311,6 +380,7 @@ def _validate_predecessor(
             contract.predecessor_contract_sha256 is not None
             or contract.transition_review_reference != _INITIAL_REVIEW_REFERENCE
             or contract.allowed_regressions
+            or contract.release_stage != "final"
         ):
             raise ValueError("FARS initial contract revision metadata is invalid")
         return
@@ -341,6 +411,16 @@ def _validate_revision_mapping_semantics(
         current < prior for current, prior in zip(current_versions, previous_versions, strict=True)
     ):
         raise ValueError("FARS contract mapping versions must not regress")
+    provenance_only_correction = is_fars_provenance_only_same_archive_correction(
+        contract,
+        previous,
+    )
+    if (
+        fars_release_stage_rank(contract.release_stage)
+        < fars_release_stage_rank(previous.release_stage)
+        and not provenance_only_correction
+    ):
+        raise ValueError("FARS contract release stage must not regress")
     reuses_raw_archive = (
         contract.raw_size_bytes,
         contract.raw_sha256,
@@ -348,8 +428,13 @@ def _validate_revision_mapping_semantics(
         previous.raw_size_bytes,
         previous.raw_sha256,
     )
-    if reuses_raw_archive and not any(
-        current > prior for current, prior in zip(current_versions, previous_versions, strict=True)
+    if (
+        reuses_raw_archive
+        and not provenance_only_correction
+        and not any(
+            current > prior
+            for current, prior in zip(current_versions, previous_versions, strict=True)
+        )
     ):
         raise ValueError("FARS reused-archive revision must advance a mapping version")
 
@@ -441,8 +526,24 @@ def _contract(year: int) -> FarsYearContract:
     )
 
 
+def _2024_arf_provenance_correction(previous: FarsYearContract) -> FarsYearContract:
+    return replace(
+        previous,
+        revision=2,
+        predecessor_contract_sha256=_unregistered_contract_sha256(previous),
+        transition_review_reference=_2024_ARF_REVIEW_REFERENCE,
+        allowed_regressions=(),
+        source_revision_id=_2024_arf_source_revision_id(previous.raw_sha256),
+        release_stage="annual_report_file",
+    )
+
+
 def _validated_registered_history() -> Mapping[int, tuple[FarsYearContract, ...]]:
-    history = {year: (_contract(year),) for year in SUPPORTED_FARS_YEARS}
+    history: dict[int, tuple[FarsYearContract, ...]] = {
+        year: (_contract(year),) for year in SUPPORTED_FARS_YEARS
+    }
+    previous_2024 = history[2024][0]
+    history[2024] = (previous_2024, _2024_arf_provenance_correction(previous_2024))
     validate_fars_year_contract_registry(history)
     return MappingProxyType(history)
 

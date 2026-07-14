@@ -153,7 +153,7 @@
           "type": "integer"
         },
         "artifact_path": {
-          "pattern": "^fars-20(20|21|22|23|24)-state-mode\\.json$",
+          "pattern": "^fars-20(20|21|22|23|24)-state-mode(-r[2-9][0-9]*)?\\.json$",
           "type": "string"
         },
         "artifact_sha256": {
@@ -385,6 +385,16 @@
       }
     },
     "year2024": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/year2024r1"
+        },
+        {
+          "$ref": "#/$defs/year2024r2"
+        }
+      ]
+    },
+    "year2024r1": {
       "properties": {
         "artifact_path": {
           "const": "fars-2024-state-mode.json"
@@ -421,6 +431,47 @@
             "raw_sha256": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f",
             "raw_size_bytes": 32672161,
             "source_revision_id": "reviewed-20260712-5112727a8c0d"
+          }
+        }
+      }
+    },
+    "year2024r2": {
+      "properties": {
+        "artifact_path": {
+          "const": "fars-2024-state-mode-r2.json"
+        },
+        "contract": {
+          "const": {
+            "contract_revision": 2,
+            "contract_sha256": "2a24d2cad5341a8ffbe77272b59ccaf0c983a2e9beb763551bb3df7f4ef02b63",
+            "crash_mapping_version": "1.0.0",
+            "person_mapping_version": "1.0.0",
+            "semantic_regime_id": "fars_per_typ_2022_2024_v1",
+            "state_code_system": "nhtsa_fars_state_2024"
+          }
+        },
+        "dataset_year": {
+          "const": 2024
+        },
+        "geography": {
+          "properties": {
+            "coverage": {
+              "const": "official_2024_national_50_states_and_dc"
+            },
+            "state_crosswalk_sha256": {
+              "const": "6744b12717b0bd52a79c73aba3037286dde9257698a2aa0630f995c8a82ba25c"
+            },
+            "state_crosswalk_version": {
+              "const": "fars-usps-50-states-dc-2024-v1"
+            }
+          }
+        },
+        "source": {
+          "const": {
+            "distribution_url": "https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip",
+            "raw_sha256": "5112727a8c0dc91ffee27ca05bddb073934f2d192ce4fae997da767dccdbe04f",
+            "raw_size_bytes": 32672161,
+            "source_revision_id": "reviewed-20260712-d5d9589b5a48"
           }
         }
       }

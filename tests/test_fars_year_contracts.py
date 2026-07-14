@@ -11,16 +11,19 @@ from nearmiss.fars_year_contracts import (
     FARS_ACCIDENT_ROW_CAP,
     FARS_PERSON_ROW_CAP,
     FARS_RAW_ARCHIVE_MAX_BYTES,
+    FARS_RELEASE_STAGES,
     FARS_YEAR_CONTRACT_HISTORY,
     FARS_YEAR_CONTRACTS,
     SUPPORTED_FARS_YEARS,
     FarsYearContract,
     canonical_fars_year_contract_bytes,
+    fars_release_stage_rank,
     fars_year_contract,
     fars_year_contract_descriptor,
     fars_year_contract_from_descriptor,
     fars_year_contract_revision,
     fars_year_contract_sha256,
+    is_fars_provenance_only_same_archive_correction,
     validate_fars_year_contract_registry,
 )
 
@@ -37,10 +40,15 @@ def test_registry_pins_exact_fixed_year_contracts() -> None:
     }
 
     for year in SUPPORTED_FARS_YEARS:
-        contract = fars_year_contract(year)
+        contract = fars_year_contract_revision(year, 1)
         assert contract.year == year
         assert contract.source_id == f"fars-joined-{year}"
-        assert FARS_YEAR_CONTRACT_HISTORY[year] == (contract,)
+        if year == 2024:
+            assert FARS_YEAR_CONTRACT_HISTORY[year][0] is contract
+            assert len(FARS_YEAR_CONTRACT_HISTORY[year]) == 2
+        else:
+            assert FARS_YEAR_CONTRACT_HISTORY[year] == (contract,)
+            assert fars_year_contract(year) is contract
         assert contract.revision == 1
         assert contract.source_revision_id == f"reviewed-20260712-{contract.raw_sha256[:12]}"
         assert contract.distribution_url == (
@@ -63,6 +71,36 @@ def test_registry_pins_exact_fixed_year_contracts() -> None:
             size=contract.raw_size_bytes,
             sha256=contract.raw_sha256,
         )
+
+
+def test_2024_revision_2_is_an_exact_arf_provenance_only_correction() -> None:
+    r1, r2 = FARS_YEAR_CONTRACT_HISTORY[2024]
+    assert fars_year_contract(2024) is r2
+    assert r1.revision == 1
+    assert r2.revision == 2
+    assert r2.predecessor_contract_sha256 == fars_year_contract_sha256(r1)
+    assert r2.transition_review_reference == "nearmiss-fars-2024-arf-provenance-review-20260712"
+    assert r2.source_revision_id == "reviewed-20260712-d5d9589b5a48"
+    assert r2.source_revision_id == year_contracts._2024_arf_source_revision_id(r2.raw_sha256)
+    assert r1.release_stage == "final"
+    assert r2.release_stage == "annual_report_file"
+    assert r2.allowed_regressions == ()
+    assert is_fars_provenance_only_same_archive_correction(r2, r1)
+    assert FARS_RELEASE_STAGES == ("preliminary", "annual_report_file", "final")
+    assert [fars_release_stage_rank(stage) for stage in FARS_RELEASE_STAGES] == [0, 1, 2]
+
+    changed = {
+        key
+        for key, value in fars_year_contract_descriptor(r1).items()
+        if fars_year_contract_descriptor(r2)[key] != value
+    }
+    assert changed == {
+        "revision",
+        "predecessor_contract_sha256",
+        "transition_review_reference",
+        "source_revision_id",
+        "release_stage",
+    }
 
 
 def test_registry_pins_reviewed_encodings_and_semantic_regimes() -> None:
@@ -164,6 +202,7 @@ def test_registered_revision_digests_are_golden_append_only_identities() -> None
         (2022, 1): "18713f23f657334459febf729e4005bfd9e94492da37afb0255d9e5fd4159158",
         (2023, 1): "557a8edf2418c7794d349c932ae2237db6cad7165f62c80a2e7f3b15baeca143",
         (2024, 1): "f6bc3dd55cf3dfb360c265308c7702cdf7f6df66894cf792afd6be83c09c72f8",
+        (2024, 2): "2a24d2cad5341a8ffbe77272b59ccaf0c983a2e9beb763551bb3df7f4ef02b63",
     }
     assert {
         (year, contract.revision): fars_year_contract_sha256(contract)
@@ -173,10 +212,10 @@ def test_registered_revision_digests_are_golden_append_only_identities() -> None
 
 
 def _future_2024_revision(**changes: object) -> FarsYearContract:
-    previous = fars_year_contract_revision(2024, 1)
+    previous = fars_year_contract_revision(2024, 2)
     raw_sha256 = "1" * 64
     values: dict[str, object] = {
-        "revision": 2,
+        "revision": 3,
         "predecessor_contract_sha256": fars_year_contract_sha256(previous),
         "transition_review_reference": "nearmiss-fars-source-audit-20260713",
         "allowed_regressions": ("mode_counts", "record_counts"),
@@ -192,19 +231,19 @@ def _registry_with_future_2024(
     revision: FarsYearContract,
 ) -> dict[int, tuple[FarsYearContract, ...]]:
     registry = dict(FARS_YEAR_CONTRACT_HISTORY)
-    registry[2024] = (fars_year_contract_revision(2024, 1), revision)
+    registry[2024] = (*FARS_YEAR_CONTRACT_HISTORY[2024], revision)
     return registry
 
 
 def test_registry_validator_supports_a_contiguous_reviewed_future_revision() -> None:
     revision = _future_2024_revision()
-    assert revision.revision == 2
+    assert revision.revision == 3
     assert revision.allowed_regressions == ("mode_counts", "record_counts")
     validate_fars_year_contract_registry(_registry_with_future_2024(revision))
 
 
 def test_registry_validator_allows_mapping_revision_to_reuse_raw_archive() -> None:
-    previous = fars_year_contract_revision(2024, 1)
+    previous = fars_year_contract_revision(2024, 2)
     revision = _future_2024_revision(
         source_revision_id="reviewed-20260713-222222222222",
         raw_size_bytes=previous.raw_size_bytes,
@@ -216,7 +255,7 @@ def test_registry_validator_allows_mapping_revision_to_reuse_raw_archive() -> No
 
 
 def test_registry_validator_rejects_noop_mapping_revision_reusing_raw_archive() -> None:
-    previous = fars_year_contract_revision(2024, 1)
+    previous = fars_year_contract_revision(2024, 2)
     revision = _future_2024_revision(
         source_revision_id="reviewed-20260713-222222222222",
         raw_size_bytes=previous.raw_size_bytes,
@@ -227,7 +266,7 @@ def test_registry_validator_rejects_noop_mapping_revision_reusing_raw_archive() 
 
 
 def test_registry_validator_rejects_mapping_rollback_when_reusing_raw_archive() -> None:
-    previous = fars_year_contract_revision(2024, 1)
+    previous = fars_year_contract_revision(2024, 2)
     revision = _future_2024_revision(
         source_revision_id="reviewed-20260713-222222222222",
         raw_size_bytes=previous.raw_size_bytes,
@@ -248,6 +287,51 @@ def test_registry_validator_rejects_mapping_rollback_with_new_raw_archive() -> N
         validate_fars_year_contract_registry(_registry_with_future_2024(revision))
 
 
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"transition_review_reference": "nearmiss-fars-2024-arf-review-other"},
+        {"source_revision_id": "reviewed-20260712-222222222222"},
+        {"allowed_regressions": ("record_counts",)},
+        {"crash_mapping_version": "1.0.1"},
+        {"release_stage": "preliminary"},
+    ],
+)
+def test_registry_rejects_near_misses_to_the_provenance_only_exception(
+    changes: dict[str, object],
+) -> None:
+    r1, r2 = FARS_YEAR_CONTRACT_HISTORY[2024]
+    candidate = replace(r2, **changes)  # type: ignore[arg-type]
+    assert not is_fars_provenance_only_same_archive_correction(candidate, r1)
+    registry = dict(FARS_YEAR_CONTRACT_HISTORY)
+    registry[2024] = (r1, candidate)
+    with pytest.raises(ValueError, match="release stage must not regress"):
+        validate_fars_year_contract_registry(registry)
+
+
+def test_registry_rejects_a_jointly_forged_provenance_correction_pair() -> None:
+    r1, r2 = FARS_YEAR_CONTRACT_HISTORY[2024]
+    raw_sha256 = "3" * 64
+    forged_r1 = replace(
+        r1,
+        source_revision_id=f"reviewed-20260712-{raw_sha256[:12]}",
+        raw_size_bytes=r1.raw_size_bytes + 1,
+        raw_sha256=raw_sha256,
+    )
+    forged_r2 = replace(
+        r2,
+        predecessor_contract_sha256=year_contracts._unregistered_contract_sha256(forged_r1),
+        source_revision_id=year_contracts._2024_arf_source_revision_id(raw_sha256),
+        raw_size_bytes=forged_r1.raw_size_bytes,
+        raw_sha256=raw_sha256,
+    )
+    assert not is_fars_provenance_only_same_archive_correction(forged_r2, forged_r1)
+    registry = dict(FARS_YEAR_CONTRACT_HISTORY)
+    registry[2024] = (forged_r1, forged_r2)
+    with pytest.raises(ValueError, match="release stage must not regress"):
+        validate_fars_year_contract_registry(registry)
+
+
 def test_registry_validator_rejects_raw_archive_reuse_across_fixed_years() -> None:
     source = fars_year_contract(2024)
     duplicate = replace(
@@ -265,7 +349,7 @@ def test_registry_validator_rejects_raw_archive_reuse_across_fixed_years() -> No
 @pytest.mark.parametrize(
     ("changes", "message"),
     [
-        ({"revision": 3}, "contiguous"),
+        ({"revision": 4}, "contiguous"),
         ({"predecessor_contract_sha256": "0" * 64}, "predecessor digest"),
         (
             {"source_revision_id": fars_year_contract(2024).source_revision_id},
@@ -293,9 +377,21 @@ def test_registry_validator_rejects_broken_future_history(
 
 def test_registry_validator_rejects_invalid_initial_revision_metadata() -> None:
     first = replace(
-        fars_year_contract(2024),
+        fars_year_contract_revision(2024, 1),
         predecessor_contract_sha256="0" * 64,
         allowed_regressions=("record_counts",),
+    )
+    registry = dict(FARS_YEAR_CONTRACT_HISTORY)
+    registry[2024] = (first,)
+    with pytest.raises(ValueError, match="initial contract revision metadata"):
+        validate_fars_year_contract_registry(registry)
+
+
+@pytest.mark.parametrize("release_stage", ["preliminary", "annual_report_file"])
+def test_registry_requires_every_initial_revision_to_be_final(release_stage: str) -> None:
+    first = replace(
+        fars_year_contract_revision(2024, 1),
+        release_stage=release_stage,
     )
     registry = dict(FARS_YEAR_CONTRACT_HISTORY)
     registry[2024] = (first,)
@@ -328,7 +424,7 @@ def test_contract_revision_lookup_rejects_non_integer_revision(revision: object)
         fars_year_contract_revision(2024, revision)  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize("revision", [-1, 0, 2, 999])
+@pytest.mark.parametrize("revision", [-1, 0, 3, 999])
 def test_contract_revision_lookup_rejects_unregistered_revision(revision: int) -> None:
     with pytest.raises(ValueError, match="revision is not registered"):
         fars_year_contract_revision(2024, revision)
@@ -369,7 +465,7 @@ def test_contract_descriptor_lookup_rejects_noncanonical_or_mutated_values(
         ({"source_record_id_scheme": "case_only"}, "identity scheme"),
         ({"state_code_system": "census_state"}, "state code system"),
         ({"county_code_system": "census_geoid"}, "county code system"),
-        ({"release_stage": "preliminary"}, "release stage"),
+        ({"release_stage": "draft"}, "release stage"),
         ({"accident_member": "accident_aux.csv"}, "selected CSV members"),
         ({"person_member": "person_aux.csv"}, "selected CSV members"),
         ({"accident_row_cap": 44_999}, "accident row cap"),

@@ -26,6 +26,7 @@ from .fars_national_context import (
 from .fars_year_contracts import (
     FARS_ACCIDENT_ROW_CAP,
     FARS_PERSON_ROW_CAP,
+    FARS_RELEASE_STAGES,
     FARS_YEAR_CONTRACT_HISTORY,
     fars_year_contract_sha256,
 )
@@ -61,7 +62,7 @@ _SOURCE_LINEAGE_PROPERTIES: dict[str, object] = {
     "contract_revision": {"type": "integer", "minimum": 1},
     "source_revision_id": {"type": "string"},
     "contract_sha256": _SHA256,
-    "release_status": {"type": "string", "enum": ["preliminary", "final"]},
+    "release_status": {"type": "string", "enum": list(FARS_RELEASE_STAGES)},
     "attempt_id": {
         "type": "string",
         "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
@@ -94,6 +95,7 @@ _LEGACY_SOURCE_BRANCH = {
     "properties": {
         "source_id": {"const": "fars-joined"},
         "dataset_year": {"const": 2024},
+        "release_status": {"const": "final"},
         "joined_schema_version": {"enum": list(SUPPORTED_JOINED_ARTIFACT_SCHEMA_VERSIONS)},
         "crash_mapping_version": {"const": FARS_MAPPING_VERSION},
         "person_mapping_version": {"const": PERSON_MODE_MAPPING_VERSION},

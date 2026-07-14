@@ -22,14 +22,18 @@ from pathlib import Path
 from typing import Any, NoReturn, cast
 
 from .fars_year_contracts import (
+    FARS_YEAR_CONTRACT_HISTORY,
     SUPPORTED_FARS_YEARS,
-    fars_year_contract,
+    FarsYearContract,
+    fars_year_contract_revision,
     fars_year_contract_sha256,
 )
 
 FARS_PUBLIC_INDEX_SCHEMA_VERSION = "1.0.0"
 FARS_PUBLIC_INDEX_ARTIFACT_TYPE = "nearmiss.public.fars_state_context_index"
-FARS_PUBLIC_INDEX_FILENAME = "fars-state-mode-index.json"
+FARS_PUBLIC_INDEX_FILENAME = "fars-state-mode-index-v2.json"
+FARS_PUBLIC_LEGACY_INDEX_FILENAME = "fars-state-mode-index.json"
+FARS_PUBLIC_CORRECTIONS_FILENAME = "fars-release-corrections.json"
 FARS_PUBLIC_ARTIFACT_SCHEMA_VERSION = "1.0.0"
 FARS_PUBLIC_ARTIFACT_TYPE = "nearmiss.public.fars_state_context"
 FARS_PUBLIC_ALGORITHM_VERSION = "state-involved-mode-v1"
@@ -50,7 +54,20 @@ _MAX_CASES = 45_000
 _MIN_CASES = 30_000
 _MAX_CONTRIBUTIONS = _MAX_CASES * len(FARS_PUBLIC_MODES)
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$", re.ASCII)
-_ARTIFACT_NAME_RE = re.compile(r"^fars-([0-9]{4})-state-mode\.json$", re.ASCII)
+_ARTIFACT_NAME_RE = re.compile(
+    r"^fars-([0-9]{4})-state-mode(?:-r([2-9][0-9]*))?\.json$",
+    re.ASCII,
+)
+_CORRECTION_ID = "fars-2024-release-stage-arf-20260712"
+_CORRECTION_AUTHORITY_URL = "https://rosap.ntl.bts.gov/view/dot/89797"
+_CORRECTION_REASON = (
+    "NHTSA identifies the 2024 release as the Annual Report File; revision 2 corrects "
+    "provenance metadata without changing counts."
+)
+_IMMUTABLE_2024_R1_BYTES = 27_590
+_IMMUTABLE_2024_R1_SHA256 = "29b5dc2673987cc7bedd0a83b2147e724e1fb2a2cb1458053af3d017ac8d6578"
+_IMMUTABLE_INDEX_V1_BYTES = 5_270
+_IMMUTABLE_INDEX_V1_SHA256 = "64d73ea4f25de4ef1321e6f8bed56215b9585fdc7ee74bc05bf47ec74bedaa48"
 
 # Canonical source-native FARS state code, USPS abbreviation, and display name,
 # ordered by display name. Puerto Rico is intentionally absent from the audited
@@ -199,6 +216,30 @@ def fars_public_artifact_title(year: int) -> str:
     return f"{year} US fatal-crash burden by state and involved mode"
 
 
+def fars_public_artifact_filename(year: int, contract_revision: int) -> str:
+    """Return the immutable public filename for one registered annual revision."""
+    contract = fars_year_contract_revision(year, contract_revision)
+    suffix = "" if contract.revision == 1 else f"-r{contract.revision}"
+    return f"fars-{year}-state-mode{suffix}.json"
+
+
+def _artifact_contract(artifact: Mapping[str, object], *, expected_year: int) -> FarsYearContract:
+    """Resolve exact artifact provenance to one registered immutable contract."""
+    source = _mapping(artifact["source"], "public FARS source")
+    matches = [
+        contract
+        for contract in FARS_YEAR_CONTRACT_HISTORY[expected_year]
+        if source.get("release_stage") == contract.release_stage
+        and source.get("distribution_url") == contract.distribution_url
+        and source.get("source_revision_id") == contract.source_revision_id
+        and source.get("raw_size_bytes") == contract.raw_size_bytes
+        and source.get("raw_sha256") == contract.raw_sha256
+    ]
+    if len(matches) != 1:
+        raise ValueError("public FARS source does not match a registered annual contract revision")
+    return matches[0]
+
+
 def fars_public_artifact_caveat(year: int) -> str:
     """Return the exact annual caveat included in canonical public bytes."""
     if year not in SUPPORTED_FARS_YEARS:
@@ -271,7 +312,6 @@ def _validate_public_artifact(  # noqa: C901 - keep the closed annual contract a
     ):
         raise ValueError("public FARS artifact identity does not match its reviewed year")
 
-    contract = fars_year_contract(expected_year)
     source = _mapping(artifact["source"], "public FARS source")
     _exact_keys(
         source,
@@ -285,15 +325,9 @@ def _validate_public_artifact(  # noqa: C901 - keep the closed annual contract a
         ),
         "public FARS source",
     )
-    if (
-        source["name"] != "NHTSA Fatality Analysis Reporting System (FARS)"
-        or source["release_stage"] != "final"
-        or source["distribution_url"] != contract.distribution_url
-        or source["source_revision_id"] != contract.source_revision_id
-        or source["raw_size_bytes"] != contract.raw_size_bytes
-        or source["raw_sha256"] != contract.raw_sha256
-    ):
+    if source["name"] != "NHTSA Fatality Analysis Reporting System (FARS)":
         raise ValueError("public FARS source does not match the registered annual contract")
+    _artifact_contract(artifact, expected_year=expected_year)
 
     geography = _mapping(artifact["geography"], "public FARS geography")
     _exact_keys(
@@ -495,10 +529,10 @@ def _index_contract() -> dict[str, object]:
 def _release_entry(year: int, payload: bytes, artifact: Mapping[str, object]) -> dict[str, object]:
     source = _mapping(artifact["source"], "public FARS source")
     geography = _mapping(artifact["geography"], "public FARS geography")
-    annual = fars_year_contract(year)
+    annual = _artifact_contract(artifact, expected_year=year)
     return {
         "artifact_bytes": len(payload),
-        "artifact_path": f"fars-{year}-state-mode.json",
+        "artifact_path": fars_public_artifact_filename(year, annual.revision),
         "artifact_sha256": hashlib.sha256(payload).hexdigest(),
         "contract": {
             "contract_revision": annual.revision,
@@ -612,8 +646,6 @@ def validate_fars_public_release_index(  # noqa: C901 - keep each index pin adja
         if year not in SUPPORTED_FARS_YEARS:
             raise ValueError("public FARS release year is not supported")
         observed_years.append(year)
-        if release["artifact_path"] != f"fars-{year}-state-mode.json":
-            raise ValueError("public FARS release artifact path is not canonical")
         _integer(
             release["artifact_bytes"],
             "public FARS release artifact bytes",
@@ -622,7 +654,6 @@ def validate_fars_public_release_index(  # noqa: C901 - keep each index pin adja
         )
         _sha256(release["artifact_sha256"], "public FARS release artifact digest")
 
-        annual = fars_year_contract(year)
         contract = _mapping(release["contract"], "public FARS release contract")
         _exact_keys(
             contract,
@@ -636,6 +667,18 @@ def validate_fars_public_release_index(  # noqa: C901 - keep each index pin adja
             ),
             "public FARS release contract",
         )
+        revision = _integer(
+            contract["contract_revision"],
+            "public FARS release contract revision",
+            minimum=1,
+            maximum=len(FARS_YEAR_CONTRACT_HISTORY[year]),
+        )
+        try:
+            annual = fars_year_contract_revision(year, revision)
+        except ValueError as exc:
+            raise ValueError("public FARS release contract revision is invalid") from exc
+        if release["artifact_path"] != fars_public_artifact_filename(year, revision):
+            raise ValueError("public FARS release artifact path is not canonical")
         if contract != {
             "contract_revision": annual.revision,
             "contract_sha256": fars_year_contract_sha256(annual),
@@ -722,33 +765,90 @@ def _bounded_regular_file(path: Path, *, maximum: int, label: str) -> bytes:
     return payload
 
 
-def verify_fars_public_release_directory(root: str | Path) -> dict[str, object]:
-    """Verify the index and every declared annual file before site assembly."""
-    directory = Path(root)
-    if directory.is_symlink() or not directory.is_dir():
-        raise ValueError("public FARS release directory must be a real directory")
-    index_payload = _bounded_regular_file(
-        directory / FARS_PUBLIC_INDEX_FILENAME,
+def _load_correction_ledger(payload: bytes) -> dict[str, object]:
+    ledger = _strict_json(
+        payload,
+        label="public FARS correction ledger",
         maximum=_MAX_INDEX_BYTES,
-        label="public FARS release index",
     )
-    index = load_fars_public_release_index_bytes(index_payload)
-    releases = cast(list[Mapping[str, object]], index["releases"])
-    declared = {cast(str, release["artifact_path"]) for release in releases}
-    allowed_namespace = declared | {FARS_PUBLIC_INDEX_FILENAME}
-    observed_namespace = {
-        path.relative_to(directory).as_posix()
-        for path in directory.rglob("*")
-        if (path.is_file() or path.is_symlink())
-        and path.name.casefold().startswith("fars-")
-        and path.suffix.casefold() == ".json"
-    }
-    if observed_namespace != allowed_namespace:
-        raise ValueError("public FARS namespace contains missing or unindexed JSON artifacts")
+    _exact_keys(
+        ledger,
+        ("schema_version", "artifact_type", "visibility", "corrections"),
+        "public FARS correction ledger",
+    )
+    if (
+        ledger["schema_version"] != "1.0.0"
+        or ledger["artifact_type"] != "nearmiss.public.fars_release_corrections"
+        or ledger["visibility"] != "public"
+    ):
+        raise ValueError("public FARS correction ledger identity is invalid")
+    corrections = _list(ledger["corrections"], "public FARS corrections")
+    if len(corrections) != 1:
+        raise ValueError("public FARS correction ledger must contain the reviewed correction")
+    correction = _mapping(corrections[0], "public FARS correction")
+    _exact_keys(
+        correction,
+        (
+            "affected_year",
+            "authority_url",
+            "corrected_value",
+            "correction_id",
+            "field",
+            "prior_artifact",
+            "prior_index",
+            "prior_value",
+            "reason",
+            "replacement_artifact",
+            "replacement_index",
+        ),
+        "public FARS correction",
+    )
+    if (
+        correction["correction_id"] != _CORRECTION_ID
+        or correction["affected_year"] != 2024
+        or correction["authority_url"] != _CORRECTION_AUTHORITY_URL
+        or correction["field"] != "source.release_stage"
+        or correction["prior_value"] != "final"
+        or correction["corrected_value"] != "annual_report_file"
+        or correction["reason"] != _CORRECTION_REASON
+    ):
+        raise ValueError("public FARS correction ledger semantics are invalid")
+    for field, expected_path in (
+        ("prior_artifact", "fars-2024-state-mode.json"),
+        ("replacement_artifact", "fars-2024-state-mode-r2.json"),
+        ("prior_index", FARS_PUBLIC_LEGACY_INDEX_FILENAME),
+        ("replacement_index", FARS_PUBLIC_INDEX_FILENAME),
+    ):
+        pin = _mapping(correction[field], f"public FARS correction {field}")
+        _exact_keys(pin, ("bytes", "path", "sha256"), f"public FARS correction {field}")
+        if pin["path"] != expected_path:
+            raise ValueError("public FARS correction ledger path is invalid")
+        _integer(
+            pin["bytes"],
+            f"public FARS correction {field} bytes",
+            minimum=1,
+            maximum=_MAX_ARTIFACT_BYTES,
+        )
+        _sha256(pin["sha256"], f"public FARS correction {field} digest")
+    if _canonical_json_bytes(ledger) != payload:
+        raise ValueError("public FARS correction ledger is not canonical")
+    return copy.deepcopy(ledger)
 
+
+def _verify_correction_pin(directory: Path, pin: Mapping[str, object], *, label: str) -> None:
+    path = directory / cast(str, pin["path"])
+    payload = _bounded_regular_file(path, maximum=_MAX_ARTIFACT_BYTES, label=label)
+    if len(payload) != pin["bytes"] or hashlib.sha256(payload).hexdigest() != pin["sha256"]:
+        raise ValueError(f"{label} does not match the correction ledger pin")
+
+
+def _verify_index_releases(directory: Path, index: Mapping[str, object]) -> set[str]:
+    releases = cast(list[Mapping[str, object]], index["releases"])
+    declared: set[str] = set()
     for release in releases:
         year = cast(int, release["dataset_year"])
         name = cast(str, release["artifact_path"])
+        declared.add(name)
         payload = _bounded_regular_file(
             directory / name,
             maximum=_MAX_ARTIFACT_BYTES,
@@ -762,6 +862,248 @@ def verify_fars_public_release_directory(root: str | Path) -> dict[str, object]:
         artifact = load_fars_public_release_bytes(payload, expected_year=year)
         if _release_entry(year, payload, artifact) != release:
             raise ValueError(f"public FARS {year} artifact metadata drifted from its index")
+    return declared
+
+
+def _verify_provenance_only_public_delta(
+    *,
+    legacy_index: Mapping[str, object],
+    current_index: Mapping[str, object],
+    legacy_artifact: Mapping[str, object],
+    current_artifact: Mapping[str, object],
+) -> None:
+    """Require revision 2 to change only registered provenance and byte pins."""
+    normalized_artifact = copy.deepcopy(current_artifact)
+    normalized_artifact_source = cast(dict[str, object], normalized_artifact["source"])
+    legacy_artifact_source = cast(Mapping[str, object], legacy_artifact["source"])
+    normalized_artifact_source["release_stage"] = legacy_artifact_source["release_stage"]
+    normalized_artifact_source["source_revision_id"] = legacy_artifact_source["source_revision_id"]
+    if normalized_artifact != legacy_artifact:
+        raise ValueError("corrected public FARS artifact changed non-provenance content")
+
+    normalized_index = copy.deepcopy(current_index)
+    normalized_releases = cast(list[dict[str, object]], normalized_index["releases"])
+    legacy_releases = cast(list[Mapping[str, object]], legacy_index["releases"])
+    if [release["dataset_year"] for release in normalized_releases] != [
+        release["dataset_year"] for release in legacy_releases
+    ]:
+        raise ValueError("corrected public FARS index changed the annual inventory")
+    for position, (normalized, legacy) in enumerate(
+        zip(normalized_releases, legacy_releases, strict=True)
+    ):
+        if normalized["dataset_year"] != 2024:
+            if normalized != legacy:
+                raise ValueError("corrected public FARS index changed an unaffected release")
+            continue
+        normalized["artifact_bytes"] = legacy["artifact_bytes"]
+        normalized["artifact_path"] = legacy["artifact_path"]
+        normalized["artifact_sha256"] = legacy["artifact_sha256"]
+        normalized["contract"] = copy.deepcopy(legacy["contract"])
+        normalized_source = cast(dict[str, object], normalized["source"])
+        legacy_source = cast(Mapping[str, object], legacy["source"])
+        normalized_source["source_revision_id"] = legacy_source["source_revision_id"]
+        if normalized != legacy:
+            raise ValueError(
+                f"corrected public FARS index changed unexpected 2024 metadata at {position}"
+            )
+    if normalized_index != legacy_index:
+        raise ValueError("corrected public FARS index changed non-correction content")
+
+
+def build_fars_public_correction_ledger_bytes(
+    *,
+    prior_artifact: bytes,
+    replacement_artifact: bytes,
+    prior_index: bytes,
+    replacement_index: bytes,
+) -> bytes:
+    """Build the canonical correction ledger from four exact reviewed payloads."""
+    if (
+        len(prior_artifact) != _IMMUTABLE_2024_R1_BYTES
+        or hashlib.sha256(prior_artifact).hexdigest() != _IMMUTABLE_2024_R1_SHA256
+    ):
+        raise ValueError("prior public FARS artifact is not the immutable published revision")
+    if (
+        len(prior_index) != _IMMUTABLE_INDEX_V1_BYTES
+        or hashlib.sha256(prior_index).hexdigest() != _IMMUTABLE_INDEX_V1_SHA256
+    ):
+        raise ValueError("prior public FARS index is not the immutable published revision")
+    legacy_artifact_value = load_fars_public_release_bytes(prior_artifact, expected_year=2024)
+    replacement_artifact_value = load_fars_public_release_bytes(
+        replacement_artifact,
+        expected_year=2024,
+    )
+    legacy_index_value = load_fars_public_release_index_bytes(prior_index)
+    replacement_index_value = load_fars_public_release_index_bytes(replacement_index)
+    legacy_releases = cast(list[Mapping[str, object]], legacy_index_value["releases"])
+    current_releases = cast(list[Mapping[str, object]], replacement_index_value["releases"])
+    legacy_2024 = [release for release in legacy_releases if release["dataset_year"] == 2024]
+    current_2024 = [release for release in current_releases if release["dataset_year"] == 2024]
+    if len(legacy_2024) != 1 or len(current_2024) != 1:
+        raise ValueError("correction indexes must each contain exactly one 2024 release")
+    legacy_release = legacy_2024[0]
+    current_release = current_2024[0]
+    current_contract = cast(Mapping[str, object], current_release["contract"])
+    if (
+        legacy_release["artifact_path"] != "fars-2024-state-mode.json"
+        or current_release["artifact_path"] != "fars-2024-state-mode-r2.json"
+        or current_contract["contract_revision"] != 2
+    ):
+        raise ValueError("correction indexes do not select the reviewed 2024 revisions")
+    for release, payload, label in (
+        (legacy_release, prior_artifact, "prior"),
+        (current_release, replacement_artifact, "replacement"),
+    ):
+        if (
+            release["artifact_bytes"] != len(payload)
+            or release["artifact_sha256"] != hashlib.sha256(payload).hexdigest()
+        ):
+            raise ValueError(f"{label} public FARS artifact does not match its index pin")
+    _verify_provenance_only_public_delta(
+        legacy_index=legacy_index_value,
+        current_index=replacement_index_value,
+        legacy_artifact=legacy_artifact_value,
+        current_artifact=replacement_artifact_value,
+    )
+    ledger: dict[str, object] = {
+        "artifact_type": "nearmiss.public.fars_release_corrections",
+        "corrections": [
+            {
+                "affected_year": 2024,
+                "authority_url": _CORRECTION_AUTHORITY_URL,
+                "corrected_value": "annual_report_file",
+                "correction_id": _CORRECTION_ID,
+                "field": "source.release_stage",
+                "prior_artifact": {
+                    "bytes": len(prior_artifact),
+                    "path": "fars-2024-state-mode.json",
+                    "sha256": hashlib.sha256(prior_artifact).hexdigest(),
+                },
+                "prior_index": {
+                    "bytes": len(prior_index),
+                    "path": FARS_PUBLIC_LEGACY_INDEX_FILENAME,
+                    "sha256": hashlib.sha256(prior_index).hexdigest(),
+                },
+                "prior_value": "final",
+                "reason": _CORRECTION_REASON,
+                "replacement_artifact": {
+                    "bytes": len(replacement_artifact),
+                    "path": "fars-2024-state-mode-r2.json",
+                    "sha256": hashlib.sha256(replacement_artifact).hexdigest(),
+                },
+                "replacement_index": {
+                    "bytes": len(replacement_index),
+                    "path": FARS_PUBLIC_INDEX_FILENAME,
+                    "sha256": hashlib.sha256(replacement_index).hexdigest(),
+                },
+            }
+        ],
+        "schema_version": "1.0.0",
+        "visibility": "public",
+    }
+    payload = _canonical_json_bytes(ledger)
+    _load_correction_ledger(payload)
+    return payload
+
+
+def verify_fars_public_release_directory(root: str | Path) -> dict[str, object]:
+    """Verify current and retained immutable releases before site assembly."""
+    directory = Path(root)
+    if directory.is_symlink() or not directory.is_dir():
+        raise ValueError("public FARS release directory must be a real directory")
+    current_index_payload = _bounded_regular_file(
+        directory / FARS_PUBLIC_INDEX_FILENAME,
+        maximum=_MAX_INDEX_BYTES,
+        label="public FARS release index",
+    )
+    legacy_index_payload = _bounded_regular_file(
+        directory / FARS_PUBLIC_LEGACY_INDEX_FILENAME,
+        maximum=_MAX_INDEX_BYTES,
+        label="retained public FARS release index",
+    )
+    ledger_payload = _bounded_regular_file(
+        directory / FARS_PUBLIC_CORRECTIONS_FILENAME,
+        maximum=_MAX_INDEX_BYTES,
+        label="public FARS correction ledger",
+    )
+    current_index = load_fars_public_release_index_bytes(current_index_payload)
+    legacy_index = load_fars_public_release_index_bytes(legacy_index_payload)
+    if (
+        len(legacy_index_payload) != _IMMUTABLE_INDEX_V1_BYTES
+        or hashlib.sha256(legacy_index_payload).hexdigest() != _IMMUTABLE_INDEX_V1_SHA256
+    ):
+        raise ValueError("retained public FARS index changed from its published identity")
+    ledger = _load_correction_ledger(ledger_payload)
+    corrections = cast(list[Mapping[str, object]], ledger["corrections"])
+    correction = corrections[0]
+    for field, label in (
+        ("prior_artifact", "retained public FARS artifact"),
+        ("replacement_artifact", "corrected public FARS artifact"),
+        ("prior_index", "retained public FARS index"),
+        ("replacement_index", "current public FARS index"),
+    ):
+        _verify_correction_pin(
+            directory,
+            cast(Mapping[str, object], correction[field]),
+            label=label,
+        )
+    declared = _verify_index_releases(directory, legacy_index)
+    declared |= _verify_index_releases(directory, current_index)
+    legacy_artifact_payload = _bounded_regular_file(
+        directory / "fars-2024-state-mode.json",
+        maximum=_MAX_ARTIFACT_BYTES,
+        label="retained public FARS 2024 artifact",
+    )
+    if (
+        len(legacy_artifact_payload) != _IMMUTABLE_2024_R1_BYTES
+        or hashlib.sha256(legacy_artifact_payload).hexdigest() != _IMMUTABLE_2024_R1_SHA256
+    ):
+        raise ValueError("retained public FARS 2024 artifact changed from its published identity")
+    current_2024_releases = [
+        release
+        for release in cast(list[Mapping[str, object]], current_index["releases"])
+        if release["dataset_year"] == 2024
+    ]
+    if len(current_2024_releases) != 1:
+        raise ValueError("current public FARS index must contain corrected 2024 release")
+    current_2024_release = current_2024_releases[0]
+    current_2024_contract = cast(Mapping[str, object], current_2024_release["contract"])
+    if (
+        current_2024_release["artifact_path"] != "fars-2024-state-mode-r2.json"
+        or current_2024_contract["contract_revision"] != 2
+    ):
+        raise ValueError("current public FARS index does not select 2024 revision 2")
+    current_artifact_payload = _bounded_regular_file(
+        directory / current_2024_release["artifact_path"],
+        maximum=_MAX_ARTIFACT_BYTES,
+        label="corrected public FARS 2024 artifact",
+    )
+    _verify_provenance_only_public_delta(
+        legacy_index=legacy_index,
+        current_index=current_index,
+        legacy_artifact=load_fars_public_release_bytes(
+            legacy_artifact_payload,
+            expected_year=2024,
+        ),
+        current_artifact=load_fars_public_release_bytes(
+            current_artifact_payload,
+            expected_year=2024,
+        ),
+    )
+    allowed_namespace = declared | {
+        FARS_PUBLIC_INDEX_FILENAME,
+        FARS_PUBLIC_LEGACY_INDEX_FILENAME,
+        FARS_PUBLIC_CORRECTIONS_FILENAME,
+    }
+    observed_namespace = {
+        path.relative_to(directory).as_posix()
+        for path in directory.rglob("*")
+        if (path.is_file() or path.is_symlink())
+        and path.name.casefold().startswith("fars-")
+        and path.suffix.casefold() == ".json"
+    }
+    if observed_namespace != allowed_namespace:
+        raise ValueError("public FARS namespace contains missing or unindexed JSON artifacts")
 
     on_disk = {
         path.relative_to(directory).as_posix()
@@ -770,22 +1112,26 @@ def verify_fars_public_release_directory(root: str | Path) -> dict[str, object]:
     }
     if on_disk != declared:
         raise ValueError("public FARS annual artifacts and release index do not match")
-    return index
+    return current_index
 
 
 __all__ = [
     "FARS_PUBLIC_ALGORITHM_VERSION",
     "FARS_PUBLIC_ARTIFACT_SCHEMA_VERSION",
     "FARS_PUBLIC_ARTIFACT_TYPE",
+    "FARS_PUBLIC_CORRECTIONS_FILENAME",
     "FARS_PUBLIC_EFFECTIVE_K",
     "FARS_PUBLIC_INDEX_ARTIFACT_TYPE",
     "FARS_PUBLIC_INDEX_FILENAME",
     "FARS_PUBLIC_INDEX_SCHEMA_VERSION",
+    "FARS_PUBLIC_LEGACY_INDEX_FILENAME",
     "FARS_PUBLIC_MODES",
     "FARS_PUBLIC_STATE_COUNT",
+    "build_fars_public_correction_ledger_bytes",
     "build_fars_public_release_index",
     "canonical_fars_public_release_index_bytes",
     "fars_public_artifact_caveat",
+    "fars_public_artifact_filename",
     "fars_public_artifact_title",
     "fars_public_crosswalk_sha256",
     "fars_public_crosswalk_version",

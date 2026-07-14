@@ -4,11 +4,11 @@
 (function () {
   "use strict";
 
-  var INDEX_URL = "/data/published/fars-state-mode-index.json";
+  var INDEX_URL = "/data/published/fars-state-mode-index-v2.json";
   var DATA_ROOT = "/data/published/";
-  var LEGACY_2024_DATA_URL = DATA_ROOT + "fars-2024-state-mode.json";
-  var EXPECTED_INDEX_BYTES = 5270;
-  var EXPECTED_INDEX_SHA256 = "64d73ea4f25de4ef1321e6f8bed56215b9585fdc7ee74bc05bf47ec74bedaa48";
+  var DEFAULT_2024_DATA_URL = DATA_ROOT + "fars-2024-state-mode-r2.json";
+  var EXPECTED_INDEX_BYTES = 5273;
+  var EXPECTED_INDEX_SHA256 = "594b13a65f5b88661db8acb21c73fc55ddc61ba94e5a659cdd27463c178f50f5";
   var SUPPORTED_YEARS = [2020, 2021, 2022, 2023, 2024];
   var EXPECTED_MODES = [
     "motor_vehicle_occupant",
@@ -57,13 +57,20 @@
       state_code_system: "nhtsa_fars_state_2023",
     },
     2024: {
-      contract_revision: 1,
-      contract_sha256: "f6bc3dd55cf3dfb360c265308c7702cdf7f6df66894cf792afd6be83c09c72f8",
+      contract_revision: 2,
+      contract_sha256: "2a24d2cad5341a8ffbe77272b59ccaf0c983a2e9beb763551bb3df7f4ef02b63",
       crash_mapping_version: "1.0.0",
       person_mapping_version: "1.0.0",
       semantic_regime_id: "fars_per_typ_2022_2024_v1",
       state_code_system: "nhtsa_fars_state_2024",
     },
+  };
+  var EXPECTED_RELEASE_STAGES = {
+    2020: "final",
+    2021: "final",
+    2022: "final",
+    2023: "final",
+    2024: "annual_report_file",
   };
   var EXPECTED_STATES = [
     "1|AL|Alabama",
@@ -277,7 +284,6 @@
       var year = release.dataset_year;
       assert(isSupportedYear(year), "release year is not supported");
       years.push(year);
-      assert(release.artifact_path === "fars-" + year + "-state-mode.json", "release path is not canonical");
       assert(
         Number.isInteger(release.artifact_bytes) && release.artifact_bytes >= 1 && release.artifact_bytes <= 262144,
         "release byte length is invalid"
@@ -302,6 +308,13 @@
         }),
         "release annual contract provenance is not reviewed"
       );
+      var expectedPath =
+        "fars-" +
+        year +
+        "-state-mode" +
+        (release.contract.contract_revision === 1 ? "" : "-r" + release.contract.contract_revision) +
+        ".json";
+      assert(release.artifact_path === expectedPath, "release path is not canonical");
 
       assertExactKeys(
         release.source,
@@ -430,7 +443,10 @@
       ["name", "release_stage", "distribution_url", "source_revision_id", "raw_size_bytes", "raw_sha256"],
       "artifact source"
     );
-    assert(data.source.release_stage === "final", "only final FARS releases may be shown");
+    assert(
+      data.source.release_stage === EXPECTED_RELEASE_STAGES[year],
+      "artifact release stage is not the reviewed annual stage"
+    );
     assert(data.source.name === "NHTSA Fatality Analysis Reporting System (FARS)", "source name is unsupported");
     ["distribution_url", "source_revision_id", "raw_size_bytes", "raw_sha256"].forEach(function (field) {
       assert(data.source[field] === release.source[field], "artifact source." + field + " drifted from the index");
@@ -868,6 +884,7 @@
     source.href = artifact.source.distribution_url;
     source.textContent = artifact.source.name;
     document.getElementById("source-revision").textContent = artifact.source.source_revision_id;
+    document.getElementById("release-stage").textContent = t("release_stage_" + artifact.source.release_stage);
     document.getElementById("semantic-regime").textContent = currentRelease.contract.semantic_regime_id;
     document.getElementById("mapping-versions").textContent = tpl(t("mapping_value"), {
       crash: currentRelease.contract.crash_mapping_version,
@@ -888,6 +905,7 @@
       "summary-threshold",
       "summary-retention",
       "source-revision",
+      "release-stage",
       "semantic-regime",
       "mapping-versions",
       "state-code-system",
@@ -1113,7 +1131,7 @@
       );
     },
     indexUrl: INDEX_URL,
-    dataUrl: LEGACY_2024_DATA_URL,
+    dataUrl: DEFAULT_2024_DATA_URL,
   };
 
   bindEvents();

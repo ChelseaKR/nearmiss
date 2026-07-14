@@ -77,14 +77,40 @@ def _register_exact_fixture_archives(monkeypatch: pytest.MonkeyPatch) -> None:
     for year, registered_history in year_contracts.FARS_YEAR_CONTRACT_HISTORY.items():
         raw = _archive(year)
         raw_sha256 = hashlib.sha256(raw).hexdigest()
-        contract = replace(
-            registered_history[0],
-            source_revision_id=f"reviewed-20260712-{raw_sha256[:12]}",
-            raw_size_bytes=len(raw),
-            raw_sha256=raw_sha256,
-        )
-        history[year] = (contract,)
-        contracts[year] = contract
+        fixture_history: list[Any] = []
+        for registered in registered_history:
+            if registered.revision == 1:
+                fixture = replace(
+                    registered,
+                    source_revision_id=f"reviewed-20260712-{raw_sha256[:12]}",
+                    raw_size_bytes=len(raw),
+                    raw_sha256=raw_sha256,
+                )
+            else:
+                fixture = replace(
+                    registered,
+                    predecessor_contract_sha256=year_contracts._unregistered_contract_sha256(
+                        fixture_history[-1]
+                    ),
+                    source_revision_id=year_contracts._2024_arf_source_revision_id(raw_sha256),
+                    raw_size_bytes=len(raw),
+                    raw_sha256=raw_sha256,
+                )
+            fixture_history.append(fixture)
+        history[year] = tuple(fixture_history)
+        contracts[year] = fixture_history[-1]
+    fixture_2024 = history[2024]
+    monkeypatch.setattr(
+        year_contracts,
+        "_REVIEWED_2024_R1_CONTRACT_SHA256",
+        year_contracts._unregistered_contract_sha256(fixture_2024[0]),
+    )
+    monkeypatch.setattr(
+        year_contracts,
+        "_REVIEWED_2024_ARF_CONTRACT_SHA256",
+        year_contracts._unregistered_contract_sha256(fixture_2024[1]),
+    )
+    year_contracts.validate_fars_year_contract_registry(history)
     monkeypatch.setattr(year_contracts, "FARS_YEAR_CONTRACT_HISTORY", history)
     monkeypatch.setattr(year_contracts, "FARS_YEAR_CONTRACTS", contracts)
     monkeypatch.setattr(artifacts_v2, "FARS_YEAR_CONTRACT_HISTORY", history)
@@ -106,6 +132,7 @@ def _activate(
     tmp_path: Path,
     *,
     year: int = 2024,
+    contract_revision: int = 1,
     attempt_id: str = "annual-activation",
 ) -> verifier.VerifiedFarsYearEvidence:
     return activation.activate_fars_year(
@@ -113,7 +140,7 @@ def _activate(
         repository_root=ROOT,
         raw_archive_path=_write_archive(tmp_path, year),
         year=year,
-        contract_revision=1,
+        contract_revision=contract_revision,
         attempt_id=attempt_id,
     )
 
@@ -230,6 +257,28 @@ def test_same_exact_revision_replays_complete_prior_history(tmp_path: Path) -> N
     )
 
 
+def test_exact_2024_arf_provenance_correction_activates_over_the_same_archive(
+    tmp_path: Path,
+) -> None:
+    r1 = _activate(tmp_path, contract_revision=1, attempt_id="annual-r1-final")
+    r2 = _activate(tmp_path, contract_revision=2, attempt_id="annual-r2-arf")
+
+    assert r1.raw_sha256 == r2.raw_sha256
+    assert r1.crash_mapping_version == r2.crash_mapping_version == "1.0.0"
+    assert r1.person_mapping_version == r2.person_mapping_version == "1.0.0"
+    assert r1.release_status == "final"
+    assert r2.release_status == "annual_report_file"
+    assert r1.normalized_sha256 != r2.normalized_sha256
+    assert (
+        verifier.verify_active_fars_year(
+            tmp_path / "private",
+            year=2024,
+            contract_revision=2,
+        )
+        == r2
+    )
+
+
 def test_smaller_registered_followup_archive_activates_after_larger_revision(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -319,7 +368,7 @@ def test_unregistered_revision_fails_before_private_storage_or_archive_read(
             repository_root=ROOT,
             raw_archive_path=tmp_path / "missing.zip",
             year=2024,
-            contract_revision=2,
+            contract_revision=3,
             attempt_id="must-not-run",
         )
     assert not (tmp_path / "private").exists()
