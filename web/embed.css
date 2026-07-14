@@ -65,6 +65,17 @@ body.embed {
   font-size: 0.92rem;
 }
 
+.embed-disclaimer {
+  margin: 0.5rem 0.6rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--embed-border);
+  border-inline-start: 3px solid var(--embed-link);
+  border-radius: 4px;
+  color: var(--embed-fg);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
 .embed-list {
   margin: 0 0.6rem;
 }
