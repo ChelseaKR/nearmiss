@@ -350,7 +350,7 @@ msgid "web.app.data_h"
 msgstr "Ranked segments"
 
 msgid "web.app.demo"
-msgstr "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not real reports. The method is the point: swap in real reports with no code change."
+msgstr "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not real reports. The method is the point; only explicitly reviewed and allowlisted artifacts can be selected."
 
 msgid "web.app.demo_real"
 msgstr "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {source}"

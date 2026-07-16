@@ -412,14 +412,15 @@ inventing a denominator. Sacramento has denser incident coverage and a regional 
 normalizes more fully.
 
 To put a real city on the live website, copy its published GeoJSON into `data/published/` (e.g.
-`data/published/sacramento.geojson`) and open the map with `?city=sacramento` (or the explicit
-`?data=../data/published/sacramento.geojson` form). Dataset selectors are restricted to filename slugs
-inside `data/published/`; origins, other directories, traversal, queries, fragments, and duplicates
-fail closed to the Davis default. The
-web app is source-agnostic and reads the dataset's own embedded `metadata`, so the provenance banner
+`data/published/sacramento.geojson`), add its slug and constant path to the web runtime's explicit
+allowlist, and open the map with `?city=sacramento` (or the explicit
+`?data=../data/published/sacramento.geojson` form). Dataset selectors are restricted to allowlisted
+filename slugs inside `data/published/`; origins, other directories, traversal, queries, fragments,
+and duplicates fail closed to the Davis default. The web app reads the dataset's own embedded `metadata`,
+so the provenance banner
 and title switch automatically: a `dataset_note` mentioning "synthetic"/"demo" shows the amber demo
 warning, anything else shows a green **real data** banner with the city, exposure unit, and source. No
-code change is needed — the synthetic demo stays correctly labeled, and a real dataset announces itself
+other rendering code is needed — the synthetic demo stays correctly labeled, and a real dataset announces itself
 as real.
 
 ## Network egress note

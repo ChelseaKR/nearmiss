@@ -18,7 +18,7 @@
   "web.app.conf_exposure_unknown": "exposure unknown",
   "web.app.conf_uncertain": "uncertain",
   "web.app.data_h": "Ranked segments",
-  "web.app.demo": "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not real reports. The method is the point: swap in real reports with no code change.",
+  "web.app.demo": "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not real reports. The method is the point; only explicitly reviewed and allowlisted artifacts can be selected.",
   "web.app.demo_real": "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {source}",
   "web.app.demo_synth": "⚠️ Showing the <strong>{city} synthetic demo</strong> dataset — generated test data, not real reports.",
   "web.app.desc": "descending",

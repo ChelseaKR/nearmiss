@@ -8,9 +8,9 @@
  * significance by a dashed pattern AND text, never by color alone, and a text
  * list of the significant hotspots is rendered as the non-visual equivalent.
  *
- * Source-agnostic within the public artifact directory: ?city=<slug> or
- * ?data=../data/published/<slug>.geojson selects a published dataset. Query
- * input cannot choose another origin or directory. The provenance line and the
+ * An explicit public-artifact allowlist accepts ?city=<slug> or
+ * ?data=../data/published/<slug>.geojson. Query input cannot choose another
+ * origin or directory. The provenance line and the
  * "view full" link are driven by the dataset's own embedded metadata.
  */
 (function () {
@@ -58,8 +58,13 @@
     return "davis";
   }
 
-  var DATASET_SLUG = resolveDatasetSlug();
-  var DATA_URL = "../data/published/" + DATASET_SLUG + ".geojson";
+  function datasetUrlForSlug(slug) {
+    return slug === "riverside"
+      ? "../data/published/riverside.geojson"
+      : "../data/published/davis.geojson";
+  }
+
+  var DATA_URL = datasetUrlForSlug(resolveDatasetSlug());
 
   var mapEl = document.getElementById("embed-map");
   var captionEl = document.getElementById("embed-caption");

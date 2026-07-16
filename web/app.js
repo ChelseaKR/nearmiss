@@ -12,8 +12,8 @@
 (function () {
   "use strict";
 
-  // Which published dataset to load. Query input selects a filename slug only;
-  // it can never choose an origin, directory, query string, or fragment.
+  // Which published dataset to load. Query input selects an allowlisted filename
+  // slug only; it can never choose an origin, directory, query string, or fragment.
   function hasEncodedDatasetSelector() {
     return window.location.search
       .replace(/^\?/, "")
@@ -56,8 +56,13 @@
     return "davis";
   }
 
-  var DATASET_SLUG = resolveDatasetSlug();
-  var DATA_URL = "../data/published/" + DATASET_SLUG + ".geojson";
+  function datasetUrlForSlug(slug) {
+    return slug === "riverside"
+      ? "../data/published/riverside.geojson"
+      : "../data/published/davis.geojson";
+  }
+
+  var DATA_URL = datasetUrlForSlug(resolveDatasetSlug());
   // Initial UI language: ?lang=xx if present (deep-linkable), else English. The
   // language buttons switch it at runtime.
   var lang = window.NearmissI18n.langFromQuery("en");
@@ -117,7 +122,7 @@
   }
 
   function plainTranslation(value) {
-    return decodedTranslationText(value.replace(/<[^>]*>/g, ""));
+    return decodedTranslationText(value);
   }
 
   function renderTranslation(element, translated) {
@@ -164,8 +169,15 @@
             return;
           }
           child = document.createElement("li");
+        } else if (tag === "strong") {
+          child = document.createElement("strong");
+        } else if (tag === "em") {
+          child = document.createElement("em");
+        } else if (tag === "code") {
+          child = document.createElement("code");
         } else {
-          child = document.createElement(tag);
+          failClosed();
+          return;
         }
         parent.appendChild(child);
         stack.push({ node: child, tag: tag });

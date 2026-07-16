@@ -18,7 +18,7 @@
   "web.app.conf_exposure_unknown": "exposición desconocida",
   "web.app.conf_uncertain": "incierto",
   "web.app.data_h": "Segmentos clasificados",
-  "web.app.demo": "⚠️ Mostrando el conjunto de <strong>demostración sintética de Davis</strong> — datos de prueba, no reportes reales. El método es lo importante: se cambian por reportes reales sin tocar el código.",
+  "web.app.demo": "⚠️ Mostrando el conjunto de <strong>demostración sintética de Davis</strong> — datos de prueba, no reportes reales. El método es lo importante; solo se pueden seleccionar artefactos revisados e incluidos explícitamente en la lista permitida.",
   "web.app.demo_real": "✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. {source}",
   "web.app.demo_synth": "⚠️ Mostrando la <strong>demostración sintética de {city}</strong> — datos de prueba, no reportes reales.",
   "web.app.desc": "descendente",

@@ -350,7 +350,7 @@ msgid "web.app.data_h"
 msgstr "Segmentos clasificados"
 
 msgid "web.app.demo"
-msgstr "⚠️ Mostrando el conjunto de <strong>demostración sintética de Davis</strong> — datos de prueba, no reportes reales. El método es lo importante: se cambian por reportes reales sin tocar el código."
+msgstr "⚠️ Mostrando el conjunto de <strong>demostración sintética de Davis</strong> — datos de prueba, no reportes reales. El método es lo importante; solo se pueden seleccionar artefactos revisados e incluidos explícitamente en la lista permitida."
 
 msgid "web.app.demo_real"
 msgstr "✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. {source}"

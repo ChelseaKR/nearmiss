@@ -398,6 +398,7 @@ async function main() {
     ["?data=javascript:alert(1)", "../data/published/davis.geojson"],
     ["?data=../data/published/riverside.geojson&data=../data/published/davis.geojson", "../data/published/davis.geojson"],
     ["?city=riverside&data=../data/published/riverside.geojson", "../data/published/davis.geojson"],
+    ["?city=unlisted", "../data/published/davis.geojson"],
     ["?city=../../private", "../data/published/davis.geojson"],
   ];
   for (const [query, expected] of datasetCases) {

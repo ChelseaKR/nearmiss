@@ -21,11 +21,11 @@ the footer.
 
 ## Data source and the honest provenance banner
 
-The page defaults to the committed synthetic demo (`../data/published/davis.geojson`) but is
-source-agnostic within the public artifact directory: `?city=<slug>` loads
-`../data/published/<slug>.geojson`, and `?data=../data/published/<slug>.geojson` provides the equivalent
-explicit form. Other origins, directories, queries, fragments, traversal, and duplicate selectors
-fail closed to the Davis default, so a real published city goes live by URL with no code change. The
+The page defaults to the committed synthetic demo (`../data/published/davis.geojson`). An explicit
+allowlist maps `?city=<slug>` or `?data=../data/published/<slug>.geojson` to the published Davis and
+Riverside artifacts. Unknown slugs, other origins or directories, queries, fragments, traversal, and
+duplicate selectors fail closed to the Davis default; adding another published city requires adding
+its constant artifact path to the allowlist. The
 provenance banner and the page title are driven by the dataset's **own embedded `metadata`**, never hard-coded: a
 `dataset_note` that mentions "synthetic"/"demo" shows the amber demo warning; any other note shows a
 green **real data** banner naming the city, exposure unit, and source. The page can therefore never
@@ -81,8 +81,8 @@ exposure-normalized hotspot map. Two ways to embed:
         data-city="davis" data-height="380" async></script>
 ```
 
-The widget is source-agnostic the same way the main page is (`?city=`/`?data=`),
-renders only the published, aggregated dataset (no tracking, no cookies), encodes
-magnitude by line thickness and significance by a dashed pattern **and** text
+The widget accepts `?city=`/`?data=` selectors from an explicit allowlist of the
+published Davis and Riverside artifacts, renders only aggregated data (no tracking, no cookies),
+encodes magnitude by line thickness and significance by a dashed pattern **and** text
 (never color alone), and ships a text list of the significant hotspots as the
 non-visual equivalent plus a link back to the full map, data, and methods.
