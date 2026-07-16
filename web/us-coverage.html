@@ -100,11 +100,11 @@
             </p>
           </div>
           <div class="view-switcher" role="group" aria-label="Evidence view" data-i18n-aria="view_label">
-            <button type="button" data-view="map" aria-pressed="true" data-i18n="view_map">Map</button>
-            <button type="button" data-view="matrix" aria-pressed="false" data-i18n="view_matrix">Matrix</button>
-            <button type="button" data-view="rank" aria-pressed="false" data-i18n="view_rank">Rank</button>
-            <button type="button" data-view="scatter" aria-pressed="false" data-i18n="view_scatter">Compare modes</button>
-            <button type="button" data-view="compare" aria-pressed="false" data-i18n="view_compare">Compare states</button>
+            <button type="button" data-view="map" aria-controls="map-panel" aria-pressed="true" data-i18n="view_map">Map</button>
+            <button type="button" data-view="matrix" aria-controls="matrix-panel" aria-pressed="false" data-i18n="view_matrix">Matrix</button>
+            <button type="button" data-view="rank" aria-controls="rank-panel" aria-pressed="false" data-i18n="view_rank">Rank</button>
+            <button type="button" data-view="scatter" aria-controls="scatter-panel" aria-pressed="false" data-i18n="view_scatter">Compare modes</button>
+            <button type="button" data-view="compare" aria-controls="compare-panel" aria-pressed="false" data-i18n="view_compare">Compare states</button>
           </div>
         </div>
 
@@ -148,7 +148,7 @@
           annual mapping contract, so a cross-regime change can reflect coding as well as outcomes.
         </p>
 
-        <p id="coverage-status" class="coverage-status" aria-live="polite" data-i18n="loading">
+        <p id="coverage-status" class="coverage-status" role="status" aria-live="polite" aria-atomic="true" data-i18n="loading">
           Loading the reviewed artifact…
         </p>
 
@@ -165,6 +165,9 @@
                   scaled within that mode; hatching means suppressed or zero.
                 </p>
               </div>
+              <p id="map-keyboard-hint" class="filter-scope" data-i18n="map_keyboard_hint">
+                Keyboard: Tab enters the map once. Arrow keys, Home, and End move through jurisdictions in alphabetical order; Enter or Space selects.
+              </p>
               <div class="national-map-shell">
                 <div
                   id="us-map"
@@ -195,6 +198,9 @@
                   Each column has its own scale. Hatched cells are not published and are never treated as zero.
                 </p>
               </div>
+              <p id="matrix-keyboard-hint" class="filter-scope" data-i18n="matrix_keyboard_hint">
+                Keyboard: after the matrix scroll region and mode filters, Tab enters the cell grid once. Arrow keys move between cells; Home and End move to the first and last mode; Enter or Space selects.
+              </p>
               <div class="matrix-wrap" tabindex="0" role="region" aria-labelledby="matrix-heading matrix-caption">
                 <table id="evidence-matrix" class="evidence-matrix">
                   <caption id="matrix-caption" data-i18n="caption_loading">Loading state evidence…</caption>
@@ -221,6 +227,9 @@
                   Only numeric cells are ranked. This is burden, not exposure-normalized risk or safety.
                 </p>
               </div>
+              <p id="rank-keyboard-hint" class="filter-scope" data-i18n="rank_keyboard_hint">
+                Keyboard: Tab enters the ranking once. Arrow keys, Home, and End move through states; Enter or Space selects.
+              </p>
               <ol id="rank-list" class="rank-list"></ol>
               <details class="unpublished-drawer">
                 <summary id="rank-unpublished-summary"></summary>
@@ -238,6 +247,9 @@
                   States appear only when both cells are published. Missing values stay outside the plot.
                 </p>
               </div>
+              <p id="scatter-keyboard-hint" class="filter-scope" data-i18n="scatter_keyboard_hint">
+                Keyboard: Tab enters the plot once. Arrow keys, Home, and End move through states; Enter or Space selects.
+              </p>
               <div class="plot-controls">
                 <div>
                   <label for="secondary-mode" data-i18n="secondary_mode">Second mode</label>
@@ -275,7 +287,7 @@
                   <p class="panel-kicker" data-i18n="compare_kicker">Side by side</p>
                   <h3 id="compare-heading" data-i18n="compare_h">Compare two states without adding modes</h3>
                 </div>
-                <p data-i18n="compare_intro">
+                <p id="compare-intro" data-i18n="compare_intro">
                   Every mode keeps an independent scale because one crash may contribute to multiple rows.
                 </p>
               </div>
@@ -289,7 +301,14 @@
                   <select id="compare-b"></select>
                 </div>
               </div>
-              <div id="state-comparison" class="state-comparison"></div>
+              <div
+                id="state-comparison"
+                class="state-comparison"
+                tabindex="0"
+                role="region"
+                aria-labelledby="compare-heading"
+                aria-describedby="compare-intro"
+              ></div>
               <button type="button" id="save-comparison" class="secondary-action" data-i18n="save_comparison">
                 Save comparison to brief
               </button>
@@ -312,7 +331,7 @@
             Each year is kept separate. The coding seam marks two reviewed FARS person-type
             regimes, so values on opposite sides should not be read as one continuous series.
           </p>
-          <p id="state-profile-status" class="state-profile-status" aria-live="polite" data-i18n="profile_empty">
+          <p id="state-profile-status" class="state-profile-status" role="status" aria-live="polite" aria-atomic="true" data-i18n="profile_empty">
             Choose a state above to load its five-year profile.
           </p>
           <div
@@ -358,7 +377,7 @@
           <button type="button" id="print-brief" data-i18n="print_brief">Print brief</button>
           <button type="button" id="clear-brief" data-i18n="clear_brief">Clear brief</button>
         </div>
-        <p id="brief-status" class="visually-hidden" aria-live="polite"></p>
+        <p id="brief-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
         <div id="brief-items" class="brief-items">
           <p class="brief-empty" data-i18n="brief_empty">No evidence saved yet. Select a state, then add it from the inspector.</p>
         </div>

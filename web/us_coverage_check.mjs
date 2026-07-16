@@ -14,6 +14,7 @@ const DAVIS_HOME = join(here, "index.html");
 const NATIONAL_ROUTE = "/fars/national/";
 const NATIONAL_CANONICAL = "https://nearmiss.report/fars/national/";
 const APP = join(here, "us-coverage.js");
+const STUDIO_STYLE = join(here, "us-coverage-studio.css");
 const I18N = join(here, "i18n.js");
 const LOCALES = join(here, "locales");
 const INDEX = join(repoRoot, "data", "published", "fars-state-mode-index-v2.json");
@@ -354,6 +355,59 @@ async function main() {
   if (!coverageSource.querySelector('a[href="/data/published/us-state-boundaries-2024.json"]')) {
     die("nationwide page has no reviewed Census-boundary download");
   }
+  for (const [view, hintId] of [
+    ["map", "map-keyboard-hint"],
+    ["matrix", "matrix-keyboard-hint"],
+    ["rank", "rank-keyboard-hint"],
+    ["scatter", "scatter-keyboard-hint"],
+  ]) {
+    const hint = coverageSource.getElementById(hintId);
+    if (
+      !hint ||
+      hint.getAttribute("data-i18n") !== `${view}_keyboard_hint` ||
+      !hint.textContent.trim() ||
+      hint.classList.contains("visually-hidden")
+    ) {
+      die(`${view} view does not expose concise visible keyboard instructions`);
+    }
+  }
+  if (!coverageSource.getElementById("matrix-keyboard-hint").textContent.includes("mode filters")) {
+    die("matrix keyboard instructions do not distinguish its scroll, filter, and roving-grid stops");
+  }
+  const comparisonRegionSource = coverageSource.getElementById("state-comparison");
+  if (
+    comparisonRegionSource.getAttribute("tabindex") !== "0" ||
+    comparisonRegionSource.getAttribute("role") !== "region" ||
+    comparisonRegionSource.getAttribute("aria-labelledby") !== "compare-heading" ||
+    comparisonRegionSource.getAttribute("aria-describedby") !== "compare-intro"
+  ) {
+    die("state comparison overflow is not exposed as a named keyboard-reachable region");
+  }
+  for (const button of coverageSource.querySelectorAll("[data-view]")) {
+    const view = button.getAttribute("data-view");
+    if (button.getAttribute("aria-controls") !== `${view}-panel`) {
+      die(`${view} view control is not programmatically related to its panel`);
+    }
+  }
+  for (const id of ["coverage-status", "state-profile-status", "brief-status"]) {
+    const status = coverageSource.getElementById(id);
+    if (
+      !status ||
+      status.getAttribute("role") !== "status" ||
+      status.getAttribute("aria-live") !== "polite" ||
+      status.getAttribute("aria-atomic") !== "true"
+    ) {
+      die(`${id} does not expose one atomic polite status contract`);
+    }
+  }
+  const studioStyle = readFileSync(STUDIO_STYLE, "utf-8");
+  if (
+    !studioStyle.includes(".map-state-group:focus .map-state,\n  .plot-point:focus") ||
+    !studioStyle.includes("stroke: Highlight;") ||
+    !studioStyle.includes(".matrix-cell-button:focus-visible,\n  .rank-item button:focus-visible")
+  ) {
+    die("forced-colors mode does not retain system-colored focus indicators for dense views");
+  }
 
   const home = new JSDOM(readFileSync(DAVIS_HOME, "utf-8")).window.document;
   const nationalCta = home.querySelector(`.national-cta a[href="${NATIONAL_ROUTE}"]`);
@@ -559,6 +613,31 @@ async function main() {
   ) {
     die("dense national visualizations do not expose one predictable roving keyboard entry each");
   }
+  const visiblePanels = doc.querySelectorAll("[data-panel]:not([hidden])");
+  const pressedViews = doc.querySelectorAll('[data-view][aria-pressed="true"]');
+  if (
+    visiblePanels.length !== 1 ||
+    pressedViews.length !== 1 ||
+    pressedViews[0].getAttribute("aria-controls") !== visiblePanels[0].id ||
+    doc.querySelectorAll("[data-panel][hidden]").length !== 4
+  ) {
+    die("view switcher does not expose exactly one pressed control and one active panel");
+  }
+  for (const [selector, hintId] of [
+    ["#us-map .map-state-group", "map-keyboard-hint"],
+    ["#matrix-body .matrix-cell-button", "matrix-keyboard-hint"],
+    ["#rank-list button[data-focus-key]", "rank-keyboard-hint"],
+    ["#scatter-plot .plot-point", "scatter-keyboard-hint"],
+  ]) {
+    const items = Array.from(doc.querySelectorAll(selector));
+    if (
+      !items.length ||
+      !doc.getElementById(hintId).textContent.startsWith("Keyboard:") ||
+      items.some((item) => item.getAttribute("aria-describedby") !== hintId)
+    ) {
+      die(`${hintId} is not associated with every generated roving item`);
+    }
+  }
   const initialMapFocus = doc.querySelector('#us-map .map-state-group[tabindex="0"]');
   initialMapFocus.focus();
   initialMapFocus.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
@@ -581,6 +660,35 @@ async function main() {
   select(doc, "state-filter", "CA");
   await settle();
   if (renderedRows(doc).length !== 6) die("California filter did not render six canonical modes");
+  for (const [selector, expectedMode] of [
+    ['#us-map .map-state-group[aria-current="true"]', null],
+    ['#matrix-body .matrix-cell-button[aria-current="true"]', "pedalcyclist"],
+    ['#rank-list button[aria-current="true"]', null],
+    ['#scatter-plot .plot-point[aria-current="true"]', null],
+  ]) {
+    const currentItems = doc.querySelectorAll(selector);
+    if (
+      currentItems.length !== 1 ||
+      currentItems[0].getAttribute("data-state") !== "CA" ||
+      (expectedMode && currentItems[0].getAttribute("data-mode") !== expectedMode)
+    ) {
+      die(`${selector} did not expose the linked selection with aria-current`);
+    }
+  }
+  const comparisonTable = doc.querySelector("#state-comparison table.comparison-table");
+  if (
+    !comparisonTable ||
+    comparisonTable.closest('[role="region"][tabindex="0"]')?.id !== "state-comparison" ||
+    !comparisonTable.querySelector("caption")?.textContent.trim() ||
+    comparisonTable.querySelectorAll('thead th[scope="col"]').length !== 3 ||
+    comparisonTable.querySelectorAll("tbody tr").length !== 6 ||
+    comparisonTable.querySelectorAll('tbody th[scope="row"]').length !== 6 ||
+    comparisonTable.querySelectorAll('.comparison-track[aria-hidden="true"]').length !== 12 ||
+    !comparisonTable.querySelector("thead")?.textContent.includes("California") ||
+    !comparisonTable.querySelector("thead")?.textContent.includes("Texas")
+  ) {
+    die("state comparison is not exposed as a captioned table with scoped state and mode headers");
+  }
   if (
     window.location.pathname !== "/web/us-coverage.html" ||
     !window.location.search.includes("state=CA") ||
@@ -657,6 +765,19 @@ async function main() {
   doc.querySelector('[data-lang="es"]').click();
   await settle();
   if (doc.documentElement.lang !== "es") die("Spanish control did not update document language");
+  for (const hintId of [
+    "map-keyboard-hint",
+    "matrix-keyboard-hint",
+    "rank-keyboard-hint",
+    "scatter-keyboard-hint",
+  ]) {
+    if (!doc.getElementById(hintId).textContent.startsWith("Teclado:")) {
+      die(`${hintId} did not render its visible Spanish keyboard instructions`);
+    }
+  }
+  if (!doc.getElementById("matrix-keyboard-hint").textContent.includes("filtros de modo")) {
+    die("Spanish matrix instructions do not distinguish its separate keyboard stops");
+  }
   if (doc.getElementById("release-stage").textContent !== "Archivo del informe anual (ARF)") {
     die("Spanish locale rerender did not surface the exact ARF status");
   }
@@ -763,7 +884,7 @@ async function main() {
 
   const studioLink = await boot({
     url:
-      "https://example.test/fars/national/?year=2022&lang=en&view=scatter&mode=motorcyclist&secondary=pedestrian&state=TX&a=TX&b=CA&scale=log&saved=CA,TX",
+      "https://example.test/fars/national/?year=2022&lang=en&view=scatter&mode=motorcyclist&secondary=pedestrian&state=TX&a=TX&b=CA&scale=log&saved=CA,TX,NY",
   });
   const linkedState = studioLink.window.NearmissUSCoverage.getState();
   if (
@@ -775,9 +896,9 @@ async function main() {
     linkedState.compareA !== "TX" ||
     linkedState.compareB !== "CA" ||
     linkedState.scale !== "log" ||
-    linkedState.saved.join(",") !== "CA,TX" ||
+    linkedState.saved.join(",") !== "CA,TX,NY" ||
     studioLink.doc.getElementById("scatter-panel").hidden ||
-    studioLink.doc.querySelectorAll("#brief-items .brief-card").length !== 2
+    studioLink.doc.querySelectorAll("#brief-items .brief-card").length !== 3
   ) {
     die("validated studio deep link did not restore its exact year and linked visible state");
   }
@@ -791,6 +912,41 @@ async function main() {
   await settle();
   if (studioLink.doc.activeElement?.getAttribute("data-focus-key") !== "scatter:TX") {
     die("scatter keyboard activation lost focus during its linked-view redraw");
+  }
+  const compareFromInspector = studioLink.doc.querySelector(".inspector-actions button:first-child");
+  compareFromInspector.focus();
+  compareFromInspector.click();
+  if (
+    studioLink.window.NearmissUSCoverage.getState().view !== "compare" ||
+    studioLink.doc.getElementById("compare-panel").hidden ||
+    studioLink.doc.getElementById("compare-a").value !== "TX" ||
+    studioLink.doc.activeElement !== studioLink.doc.getElementById("compare-a") ||
+    !studioLink.window.location.search.includes("view=compare")
+  ) {
+    die("inspector comparison action did not switch views and restore focus to the first state");
+  }
+  let removeButtons = Array.from(studioLink.doc.querySelectorAll("#brief-items .remove-brief"));
+  removeButtons[2].click();
+  if (
+    studioLink.doc.activeElement !== studioLink.doc.querySelectorAll("#brief-items .remove-brief")[1] ||
+    !studioLink.doc.activeElement.getAttribute("aria-label").includes("Texas")
+  ) {
+    die("removing the last brief card did not focus the previous remove action");
+  }
+  removeButtons = Array.from(studioLink.doc.querySelectorAll("#brief-items .remove-brief"));
+  removeButtons[0].click();
+  if (
+    studioLink.doc.activeElement !== studioLink.doc.querySelector("#brief-items .remove-brief") ||
+    !studioLink.doc.activeElement.getAttribute("aria-label").includes("Texas")
+  ) {
+    die("removing a brief card did not focus the next remove action");
+  }
+  studioLink.doc.activeElement.click();
+  if (
+    studioLink.doc.querySelector("#brief-items .remove-brief") ||
+    studioLink.doc.activeElement !== studioLink.doc.getElementById("clear-brief")
+  ) {
+    die("removing the only brief card did not focus the clear-brief action");
   }
   studioLink.dom.window.close();
 

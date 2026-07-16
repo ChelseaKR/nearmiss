@@ -892,18 +892,27 @@
 }
 
 .state-comparison {
-  display: grid;
-  gap: 0.75rem;
   margin-block: 1.25rem;
+  overflow-x: auto;
 }
 
-.comparison-row {
-  display: grid;
-  grid-template-columns: minmax(9rem, 0.8fr) repeat(2, minmax(8rem, 1fr));
-  gap: 0.75rem;
-  align-items: center;
-  padding-block-end: 0.75rem;
+.comparison-table {
+  inline-size: 100%;
+  min-inline-size: 34rem;
+  border-collapse: collapse;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 0.75rem;
   border-block-end: 1px solid var(--rule);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.comparison-table thead th {
+  background: var(--survey-ink);
+  color: var(--sheet);
 }
 
 .comparison-mode {
@@ -915,16 +924,12 @@
 }
 
 .comparison-value strong,
-.comparison-value small {
+.comparison-value .comparison-track {
   display: block;
 }
 
 .comparison-value strong {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-.comparison-value small {
-  color: var(--muted-ink);
 }
 
 .comparison-track {
@@ -1401,10 +1406,6 @@
     grid-row: 2;
   }
 
-  .comparison-row {
-    grid-template-columns: 1fr;
-  }
-
   .state-inspector .panel-kicker,
   .state-inspector h3,
   .state-inspector .inspector-content {
@@ -1459,6 +1460,18 @@
   .matrix-cell.is-unpublished,
   .map-state.is-unpublished {
     border: 2px dashed CanvasText;
+  }
+
+  .map-state-group:focus .map-state,
+  .plot-point:focus {
+    stroke: Highlight;
+    stroke-width: 4;
+    filter: none;
+  }
+
+  .matrix-cell-button:focus-visible,
+  .rank-item button:focus-visible {
+    outline-color: Highlight;
   }
 }
 

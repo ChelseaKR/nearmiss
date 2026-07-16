@@ -1392,6 +1392,8 @@
             : "-1",
         role: "button",
         "aria-label": label,
+        "aria-describedby": "map-keyboard-hint",
+        "aria-current": viewState.selectedState === feature.id ? "true" : "false",
         "data-state": feature.id,
         "data-focus-key": "map:" + feature.id,
       });
@@ -1546,6 +1548,11 @@
         cellButton.setAttribute("data-matrix-row", String(stateIndex));
         cellButton.setAttribute("data-matrix-col", String(modeIndex));
         cellButton.setAttribute("data-focus-key", "matrix:" + row.stateAbbreviation + ":" + row.mode);
+        cellButton.setAttribute("aria-describedby", "matrix-keyboard-hint");
+        cellButton.setAttribute(
+          "aria-current",
+          viewState.selectedState === row.stateAbbreviation && focusMode() === row.mode ? "true" : "false"
+        );
         cellButton.tabIndex =
           (viewState.selectedState === row.stateAbbreviation && focusMode() === row.mode) ||
           (!viewState.selectedState && stateIndex === 0 && modeIndex === 0)
@@ -1627,6 +1634,7 @@
           : -1;
       button.setAttribute("data-state", row.stateAbbreviation);
       button.setAttribute("data-focus-key", "rank:" + row.stateAbbreviation + ":" + mode);
+      button.setAttribute("aria-describedby", "rank-keyboard-hint");
       button.setAttribute("aria-current", viewState.selectedState === row.stateAbbreviation ? "true" : "false");
       button.appendChild(cell("span", String(index + 1), "rank-number"));
       button.appendChild(cell("span", row.stateName + " (" + row.stateAbbreviation + ")", "rank-state"));
@@ -1868,6 +1876,8 @@
         role: "button",
         "data-state": pair.state.state_abbreviation,
         "data-focus-key": "scatter:" + pair.state.state_abbreviation,
+        "aria-describedby": "scatter-keyboard-hint",
+        "aria-current": viewState.selectedState === pair.state.state_abbreviation ? "true" : "false",
         "aria-label": tpl(t("scatter_point"), {
           state: pair.state.state_name,
           xmode: modeLabel(primary),
@@ -1962,18 +1972,34 @@
       return;
     }
     document.getElementById("save-comparison").disabled = false;
+    var table = cell("table", "", "comparison-table");
+    table.appendChild(cell("caption", t("compare_h"), "visually-hidden"));
+    var head = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    var modeHeader = cell("th", t("mode_label"));
+    modeHeader.scope = "col";
+    headRow.appendChild(modeHeader);
+    [first, second].forEach(function (state) {
+      var stateHeader = cell("th", state.state_name + " (" + state.state_abbreviation + ")");
+      stateHeader.scope = "col";
+      headRow.appendChild(stateHeader);
+    });
+    head.appendChild(headRow);
+    table.appendChild(head);
+    var body = document.createElement("tbody");
     EXPECTED_MODES.forEach(function (mode) {
       var a = rowFor(first.state_abbreviation, mode);
       var b = rowFor(second.state_abbreviation, mode);
       var max = Math.max(a.count || 0, b.count || 0, 1);
-      var comparisonRow = cell("div", "", "comparison-row");
-      comparisonRow.appendChild(cell("div", modeLabel(mode), "comparison-mode"));
+      var comparisonRow = cell("tr", "", "comparison-row");
+      var modeCell = cell("th", modeLabel(mode), "comparison-mode");
+      modeCell.scope = "row";
+      comparisonRow.appendChild(modeCell);
       [
         { state: first, value: a, second: false },
         { state: second, value: b, second: true },
       ].forEach(function (item) {
-        var block = cell("div", "", "comparison-value" + (item.second ? " is-second" : ""));
-        block.appendChild(cell("small", item.state.state_abbreviation));
+        var block = cell("td", "", "comparison-value" + (item.second ? " is-second" : ""));
         block.appendChild(
           cell(
             "strong",
@@ -1981,6 +2007,7 @@
           )
         );
         var track = cell("span", "", "comparison-track");
+        track.setAttribute("aria-hidden", "true");
         var bar = cell("span", "");
         bar.style.inlineSize =
           item.value.status === "published" ? ((item.value.count / max) * 100).toFixed(2) + "%" : "0%";
@@ -1988,8 +2015,10 @@
         block.appendChild(track);
         comparisonRow.appendChild(block);
       });
-      container.appendChild(comparisonRow);
+      body.appendChild(comparisonRow);
     });
+    table.appendChild(body);
+    container.appendChild(table);
   }
 
   function renderInspector() {
@@ -2045,6 +2074,8 @@
       viewState.view = "compare";
       renderAll();
       syncUrl();
+      var compareA = document.getElementById("compare-a");
+      if (compareA) compareA.focus();
     });
     var saveButton = cell("button", t("add_to_brief"));
     saveButton.type = "button";
@@ -2081,7 +2112,7 @@
       return;
     }
     var mode = focusMode();
-    validSaved.forEach(function (abbreviation) {
+    validSaved.forEach(function (abbreviation, savedIndex) {
       var state = stateRecord(abbreviation);
       var row = rowFor(abbreviation, mode);
       var card = cell("article", "", "brief-card");
@@ -2115,6 +2146,10 @@
         renderBrief();
         syncUrl();
         announceBrief(t("brief_removed"));
+        var remainingRemoveButtons = container.querySelectorAll(".remove-brief");
+        var focusTarget = remainingRemoveButtons[Math.min(savedIndex, remainingRemoveButtons.length - 1)];
+        if (!focusTarget) focusTarget = document.getElementById("clear-brief");
+        if (focusTarget) focusTarget.focus();
       });
       card.appendChild(remove);
       container.appendChild(card);
@@ -2587,7 +2622,6 @@
       var selectedProfile = state ? loadStateProfile(state) : Promise.resolve();
       return Promise.all([selectedRelease, selectedProfile]).then(function () {
         if (artifact) {
-          renderAll();
           syncUrl();
         }
       });

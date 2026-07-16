@@ -1072,6 +1072,9 @@ msgstr "Carga de choques fatales en los Estados Unidos"
 msgid "web.coverage.map_intro"
 msgstr "Seleccione un modo de usuario vial para leer geográficamente los mismos conteos revisados. El color se escala dentro de ese modo; el rayado significa suprimido o cero."
 
+msgid "web.coverage.map_keyboard_hint"
+msgstr "Teclado: Tab entra una vez al mapa. Las flechas, Inicio y Fin recorren las jurisdicciones en orden alfabético; Intro o Espacio selecciona."
+
 msgid "web.coverage.map_kicker"
 msgstr "Vista nacional"
 
@@ -1108,6 +1111,9 @@ msgstr "Matriz de estado × modo involucrado"
 msgid "web.coverage.matrix_intro"
 msgstr "Cada columna usa su propia escala. Las celdas rayadas no están publicadas y nunca se tratan como cero."
 
+msgid "web.coverage.matrix_keyboard_hint"
+msgstr "Teclado: después de la región desplazable y los filtros de modo, Tab entra una vez a la cuadrícula de celdas. Las flechas recorren las celdas; Inicio y Fin van al primer y último modo; Intro o Espacio selecciona."
+
 msgid "web.coverage.matrix_kicker"
 msgstr "Panorama de publicación"
 
@@ -1119,6 +1125,9 @@ msgstr "Clasificar un modo involucrado"
 
 msgid "web.coverage.rank_intro"
 msgstr "Solo se clasifican las celdas numéricas. Esto es carga, no riesgo normalizado por exposición ni seguridad."
+
+msgid "web.coverage.rank_keyboard_hint"
+msgstr "Teclado: Tab entra una vez a la clasificación. Las flechas, Inicio y Fin recorren los estados; Intro o Espacio selecciona."
 
 msgid "web.coverage.rank_item"
 msgstr "Puesto {rank}: {state}; conteo de choques fatales: {count}; modo involucrado: {mode}."
@@ -1161,6 +1170,9 @@ msgstr "Comparar dos modos involucrados"
 
 msgid "web.coverage.scatter_intro"
 msgstr "Los estados solo aparecen cuando ambas celdas están publicadas. Los valores ausentes quedan fuera del gráfico."
+
+msgid "web.coverage.scatter_keyboard_hint"
+msgstr "Teclado: Tab entra una vez al gráfico. Las flechas, Inicio y Fin recorren los estados; Intro o Espacio selecciona."
 
 msgid "web.coverage.scatter_kicker"
 msgstr "Relación entre conteos"

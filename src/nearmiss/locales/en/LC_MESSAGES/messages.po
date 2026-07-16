@@ -1072,6 +1072,9 @@ msgstr "Fatal-crash burden across the United States"
 msgid "web.coverage.map_intro"
 msgstr "Select a road-user mode to read the same reviewed counts geographically. Color is scaled within that mode; hatching means suppressed or zero."
 
+msgid "web.coverage.map_keyboard_hint"
+msgstr "Keyboard: Tab enters the map once. Arrow keys, Home, and End move through jurisdictions in alphabetical order; Enter or Space selects."
+
 msgid "web.coverage.map_kicker"
 msgstr "Whole-country view"
 
@@ -1108,6 +1111,9 @@ msgstr "State × involved-mode matrix"
 msgid "web.coverage.matrix_intro"
 msgstr "Each column has its own scale. Hatched cells are not published and are never treated as zero."
 
+msgid "web.coverage.matrix_keyboard_hint"
+msgstr "Keyboard: after the matrix scroll region and mode filters, Tab enters the cell grid once. Arrow keys move between cells; Home and End move to the first and last mode; Enter or Space selects."
+
 msgid "web.coverage.matrix_kicker"
 msgstr "Publication landscape"
 
@@ -1119,6 +1125,9 @@ msgstr "Rank one involved mode"
 
 msgid "web.coverage.rank_intro"
 msgstr "Only numeric cells are ranked. This is burden, not exposure-normalized risk or safety."
+
+msgid "web.coverage.rank_keyboard_hint"
+msgstr "Keyboard: Tab enters the ranking once. Arrow keys, Home, and End move through states; Enter or Space selects."
 
 msgid "web.coverage.rank_item"
 msgstr "Rank {rank}: {state}, {count} fatal crashes involving {mode}."
@@ -1161,6 +1170,9 @@ msgstr "Compare two involved modes"
 
 msgid "web.coverage.scatter_intro"
 msgstr "States appear only when both cells are published. Missing values stay outside the plot."
+
+msgid "web.coverage.scatter_keyboard_hint"
+msgstr "Keyboard: Tab enters the plot once. Arrow keys, Home, and End move through states; Enter or Space selects."
 
 msgid "web.coverage.scatter_kicker"
 msgstr "Count relationship"

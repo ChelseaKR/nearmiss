@@ -929,6 +929,9 @@ msgstr ""
 msgid "web.coverage.map_intro"
 msgstr ""
 
+msgid "web.coverage.map_keyboard_hint"
+msgstr ""
+
 msgid "web.coverage.map_kicker"
 msgstr ""
 
@@ -969,6 +972,9 @@ msgid "web.coverage.matrix_h"
 msgstr ""
 
 msgid "web.coverage.matrix_intro"
+msgstr ""
+
+msgid "web.coverage.matrix_keyboard_hint"
 msgstr ""
 
 msgid "web.coverage.matrix_kicker"
@@ -1061,6 +1067,9 @@ msgstr ""
 msgid "web.coverage.rank_item"
 msgstr ""
 
+msgid "web.coverage.rank_keyboard_hint"
+msgstr ""
+
 msgid "web.coverage.rank_kicker"
 msgstr ""
 
@@ -1140,6 +1149,9 @@ msgid "web.coverage.scatter_h"
 msgstr ""
 
 msgid "web.coverage.scatter_intro"
+msgstr ""
+
+msgid "web.coverage.scatter_keyboard_hint"
 msgstr ""
 
 msgid "web.coverage.scatter_kicker"
