@@ -58,6 +58,11 @@ every entry.
 
 ### Added
 
+- A nationwide evidence studio over the reviewed 2020–2024 FARS release index: an official Census
+  state-boundary map, linked state × mode matrix, burden ranking, two-mode scatterplot, state
+  comparison, inspector, and printable evidence brief all share the same suppression-safe annual
+  cells. Deep links preserve the exact year and validated interaction state, while annual-contract,
+  release-stage, semantic-regime, correction-ledger, and boundary provenance stay visible.
 - An immutable 2024 FARS provenance correction: contract revision 2 classifies the exact pinned
   archive as NHTSA's `annual_report_file`, while the revision-1 artifact and release-index URLs remain
   byte-identical. A versioned artifact/index pair and machine-readable correction ledger bind both
@@ -108,6 +113,16 @@ every entry.
   supported capabilities, and the concrete inputs needed to unlock the next tier. Synthetic inputs
   are permanently labeled `demonstration`; `partner_city` requires both measured coverage and an
   explicit partner organization plus review reference, never report volume alone.
+
+### Security
+
+- Browser translations now build their small, audited markup vocabulary with DOM text nodes and
+  allowlisted links instead of reinterpreting catalog or dataset text as HTML. Locale catalogs keep
+  external keys as array values rather than object properties.
+- The local map and embed accept query-selected data only as filename slugs inside
+  `data/published/*.geojson`; external origins, other directories, traversal, queries, fragments, and
+  duplicate selectors fail closed to the Davis default. Contract tests exercise both valid selectors
+  and malicious path cases.
 
 ### Official outcome schema (`schema/official-outcome.schema.json`)
 

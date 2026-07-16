@@ -1,6 +1,6 @@
 # Accessibility Conformance Report (ACR)
 
-> **⚠ STALE (flagged 2026-07-05):** this report's date (below) and every table in it describe only
+> **⚠ STALE (updated 2026-07-16):** this report's date (below) and every table in it describe only
 > `index.html` + `app.js` + `style.css` — the surfaces that existed on 2026-06-17. **The public
 > submission form (`web/submit.html` / `submit.js`) and the embeddable hotspot widget
 > (`web/embed.html` / `embed.js` / `nearmiss-embed.js`), shipped 2026-06-29 (#18), are not evaluated
@@ -13,6 +13,19 @@
 > (`P2-3` in `audit-2026-07-05/nearmiss-REMEDIATION.md`) and was judged out of scope for this pass;
 > this banner exists so the gap is loud rather than silently implied-covered by an unchanged document.
 > Do not read this ACR as certifying `submit.html` or `embed.html`.
+>
+> The nationwide FARS evidence studio (`web/us-coverage.html` / `us-coverage.js` /
+> `us-coverage-studio.css`) is also outside this ACR's evaluated scope. It adds a linked national SVG
+> map, state-by-mode matrix, ranked view, mode-comparison plot, state comparison, inspector,
+> five-year profile, complete ledger, and brief builder. The implementation includes focusable named
+> state and plot-point controls with roving arrow-key navigation, Enter/Space activation, and
+> redundant semantic tables. The structural and axe gates pass, and a targeted rendered-browser
+> keyboard and 390×844 reflow review found no release defect, but those facts are not a manual
+> conformance result. The uninterrupted full keyboard/200% zoom checks remain outstanding, and **no
+> NVDA or VoiceOver review of this component has been performed**.
+> See the explicitly incomplete
+> [`2026-07-16 national evidence studio review`](../audits/2026-07-16-national-evidence-studio-a11y.md).
+> Do not read this ACR as certifying `us-coverage.html`.
 
 ## Voluntary Product Accessibility Template (VPAT) Version 2.5 — Revised Section 508 Edition
 

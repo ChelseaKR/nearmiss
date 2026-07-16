@@ -595,6 +595,8 @@ jobs:
           manifest_file="$(mktemp)"
           critical_dir="$(mktemp -d)"
           fars_index_file="$critical_dir/data/published/fars-state-mode-index-v2.json"
+          boundary_file="$critical_dir/data/published/us-state-boundaries-2024.json"
+          boundary_sha256="705219b3339077f1d03466391bb286fe7f1841298fc0bcce948de1d8c66df25d"
           fars_release_dir="$(mktemp -d)"
           trap 'rm -f "$manifest_file"; rm -rf "$critical_dir" "$fars_release_dir"' EXIT
           critical_specs=(
@@ -608,12 +610,14 @@ jobs:
             'web/locales/en.json|web/locales/en.json'
             'web/locales/es.json|web/locales/es.json'
             'web/us-coverage.css|web/us-coverage.css'
+            'web/us-coverage-studio.css|web/us-coverage-studio.css'
             'web/style.css|web/style.css'
             'data/published/davis.geojson|data/published/davis.geojson'
             'data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json'
             'data/published/fars-2024-state-mode.json|data/published/fars-2024-state-mode.json'
             'data/published/fars-state-mode-index-v2.json|data/published/fars-state-mode-index-v2.json'
             'data/published/fars-release-corrections.json|data/published/fars-release-corrections.json'
+            'data/published/us-state-boundaries-2024.json|data/published/us-state-boundaries-2024.json'
           )
           for _ in $(seq 1 30); do
             if curl --fail --silent --show-error \
@@ -647,6 +651,14 @@ jobs:
                     break
                   fi
                 done
+                if [ "$critical_ok" = true ]; then
+                  live_boundary_sha="$(python -c \
+                    'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())' \
+                    "$boundary_file")"
+                  if [ "$live_boundary_sha" != "$boundary_sha256" ]; then
+                    critical_ok=false
+                  fi
+                fi
                 if [ "$critical_ok" = true ]; then
                   release_records="$(python -c '
           import json,re,sys

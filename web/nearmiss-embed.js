@@ -9,7 +9,8 @@
  *           async></script>
  *
  * It injects a sandboxed <iframe> pointing at embed.html with the given city
- * (or ?data path). The iframe is the security boundary: the host page and the
+ * (or a validated ?data=../data/published/<slug>.geojson path). The iframe is
+ * the security boundary: the host page and the
  * widget never share script context. Everything the widget shows is the same
  * open, aggregated published data the full site uses — no tracking, no cookies.
  */

@@ -728,7 +728,16 @@ msgstr ""
 msgid "web.app.us_coverage_cta"
 msgstr ""
 
+msgid "web.coverage.accessible_table"
+msgstr ""
+
+msgid "web.coverage.add_to_brief"
+msgstr ""
+
 msgid "web.coverage.all_modes"
+msgstr ""
+
+msgid "web.coverage.all_states"
 msgstr ""
 
 msgid "web.coverage.all_statuses"
@@ -738,6 +747,42 @@ msgid "web.coverage.annual_contract_label"
 msgstr ""
 
 msgid "web.coverage.back"
+msgstr ""
+
+msgid "web.coverage.boundary_checksum_label"
+msgstr ""
+
+msgid "web.coverage.boundary_download"
+msgstr ""
+
+msgid "web.coverage.boundary_source_label"
+msgstr ""
+
+msgid "web.coverage.brief_cleared"
+msgstr ""
+
+msgid "web.coverage.brief_count"
+msgstr ""
+
+msgid "web.coverage.brief_empty"
+msgstr ""
+
+msgid "web.coverage.brief_h"
+msgstr ""
+
+msgid "web.coverage.brief_intro"
+msgstr ""
+
+msgid "web.coverage.brief_kicker"
+msgstr ""
+
+msgid "web.coverage.brief_removed"
+msgstr ""
+
+msgid "web.coverage.brief_saved"
+msgstr ""
+
+msgid "web.coverage.brief_unpublished"
 msgstr ""
 
 msgid "web.coverage.can_h"
@@ -773,13 +818,46 @@ msgstr ""
 msgid "web.coverage.cell_published"
 msgstr ""
 
+msgid "web.coverage.cells_value"
+msgstr ""
+
 msgid "web.coverage.choose_state"
+msgstr ""
+
+msgid "web.coverage.clear_brief"
+msgstr ""
+
+msgid "web.coverage.compare_a"
+msgstr ""
+
+msgid "web.coverage.compare_b"
+msgstr ""
+
+msgid "web.coverage.compare_empty"
+msgstr ""
+
+msgid "web.coverage.compare_h"
+msgstr ""
+
+msgid "web.coverage.compare_intro"
+msgstr ""
+
+msgid "web.coverage.compare_kicker"
+msgstr ""
+
+msgid "web.coverage.compare_with"
 msgstr ""
 
 msgid "web.coverage.contract"
 msgstr ""
 
 msgid "web.coverage.contract_value"
+msgstr ""
+
+msgid "web.coverage.copy_failed"
+msgstr ""
+
+msgid "web.coverage.copy_view"
 msgstr ""
 
 msgid "web.coverage.correction_ledger"
@@ -797,6 +875,9 @@ msgstr ""
 msgid "web.coverage.download"
 msgstr ""
 
+msgid "web.coverage.explore_action"
+msgstr ""
+
 msgid "web.coverage.eyebrow"
 msgstr ""
 
@@ -807,6 +888,18 @@ msgid "web.coverage.footer"
 msgstr ""
 
 msgid "web.coverage.h1"
+msgstr ""
+
+msgid "web.coverage.inspector_empty"
+msgstr ""
+
+msgid "web.coverage.inspector_h"
+msgstr ""
+
+msgid "web.coverage.inspector_kicker"
+msgstr ""
+
+msgid "web.coverage.inspector_rank"
 msgstr ""
 
 msgid "web.coverage.lede"
@@ -827,10 +920,58 @@ msgstr ""
 msgid "web.coverage.manifest"
 msgstr ""
 
+msgid "web.coverage.map_caption"
+msgstr ""
+
+msgid "web.coverage.map_h"
+msgstr ""
+
+msgid "web.coverage.map_intro"
+msgstr ""
+
+msgid "web.coverage.map_kicker"
+msgstr ""
+
+msgid "web.coverage.map_legend_high"
+msgstr ""
+
+msgid "web.coverage.map_legend_low"
+msgstr ""
+
+msgid "web.coverage.map_legend_unpublished"
+msgstr ""
+
+msgid "web.coverage.map_state_published"
+msgstr ""
+
+msgid "web.coverage.map_state_unpublished"
+msgstr ""
+
 msgid "web.coverage.mapping_value"
 msgstr ""
 
 msgid "web.coverage.mapping_versions_label"
+msgstr ""
+
+msgid "web.coverage.matrix_caption"
+msgstr ""
+
+msgid "web.coverage.matrix_cell_published"
+msgstr ""
+
+msgid "web.coverage.matrix_cell_unpublished"
+msgstr ""
+
+msgid "web.coverage.matrix_coverage"
+msgstr ""
+
+msgid "web.coverage.matrix_h"
+msgstr ""
+
+msgid "web.coverage.matrix_intro"
+msgstr ""
+
+msgid "web.coverage.matrix_kicker"
 msgstr ""
 
 msgid "web.coverage.mode_label"
@@ -855,6 +996,9 @@ msgid "web.coverage.mode_unknown"
 msgstr ""
 
 msgid "web.coverage.no_results"
+msgstr ""
+
+msgid "web.coverage.print_brief"
 msgstr ""
 
 msgid "web.coverage.profile_caption"
@@ -908,10 +1052,37 @@ msgstr ""
 msgid "web.coverage.provenance_kicker"
 msgstr ""
 
+msgid "web.coverage.rank_h"
+msgstr ""
+
+msgid "web.coverage.rank_intro"
+msgstr ""
+
+msgid "web.coverage.rank_item"
+msgstr ""
+
+msgid "web.coverage.rank_kicker"
+msgstr ""
+
+msgid "web.coverage.rank_title"
+msgstr ""
+
+msgid "web.coverage.rank_unpublished"
+msgstr ""
+
+msgid "web.coverage.real_data_badge"
+msgstr ""
+
 msgid "web.coverage.regime_caution"
 msgstr ""
 
+msgid "web.coverage.release_card_h"
+msgstr ""
+
 msgid "web.coverage.release_index"
+msgstr ""
+
+msgid "web.coverage.release_note"
 msgstr ""
 
 msgid "web.coverage.release_stage_annual_report_file"
@@ -921,6 +1092,9 @@ msgid "web.coverage.release_stage_final"
 msgstr ""
 
 msgid "web.coverage.release_stage_label"
+msgstr ""
+
+msgid "web.coverage.remove_brief"
 msgstr ""
 
 msgid "web.coverage.reset"
@@ -944,7 +1118,43 @@ msgstr ""
 msgid "web.coverage.revision_label"
 msgstr ""
 
+msgid "web.coverage.save_comparison"
+msgstr ""
+
+msgid "web.coverage.scale_label"
+msgstr ""
+
+msgid "web.coverage.scale_linear"
+msgstr ""
+
+msgid "web.coverage.scale_log"
+msgstr ""
+
+msgid "web.coverage.scatter_caption"
+msgstr ""
+
+msgid "web.coverage.scatter_empty"
+msgstr ""
+
+msgid "web.coverage.scatter_h"
+msgstr ""
+
+msgid "web.coverage.scatter_intro"
+msgstr ""
+
+msgid "web.coverage.scatter_kicker"
+msgstr ""
+
+msgid "web.coverage.scatter_point"
+msgstr ""
+
+msgid "web.coverage.scatter_title"
+msgstr ""
+
 msgid "web.coverage.scope_value"
+msgstr ""
+
+msgid "web.coverage.secondary_mode"
 msgstr ""
 
 msgid "web.coverage.selected_year_h"
@@ -978,6 +1188,21 @@ msgid "web.coverage.status_not_published"
 msgstr ""
 
 msgid "web.coverage.status_published"
+msgstr ""
+
+msgid "web.coverage.studio_h"
+msgstr ""
+
+msgid "web.coverage.studio_intro"
+msgstr ""
+
+msgid "web.coverage.studio_kicker"
+msgstr ""
+
+msgid "web.coverage.summary_cases"
+msgstr ""
+
+msgid "web.coverage.summary_cells"
 msgstr ""
 
 msgid "web.coverage.summary_h"
@@ -1014,6 +1239,27 @@ msgid "web.coverage.th_year"
 msgstr ""
 
 msgid "web.coverage.title"
+msgstr ""
+
+msgid "web.coverage.view_compare"
+msgstr ""
+
+msgid "web.coverage.view_copied"
+msgstr ""
+
+msgid "web.coverage.view_label"
+msgstr ""
+
+msgid "web.coverage.view_map"
+msgstr ""
+
+msgid "web.coverage.view_matrix"
+msgstr ""
+
+msgid "web.coverage.view_rank"
+msgstr ""
+
+msgid "web.coverage.view_scatter"
 msgstr ""
 
 msgid "web.coverage.year_label"

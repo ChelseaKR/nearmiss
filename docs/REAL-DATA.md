@@ -205,6 +205,18 @@ contract exercises all five exact public artifacts, including transitions across
 public result: any future year remains unpublished until its projection and annual contract are
 generated, independently reviewed, and added to the closed release inventory.
 
+### Official Census boundary geometry
+
+The nationwide view uses [`us-state-boundaries-2024.json`](../data/published/us-state-boundaries-2024.json)
+only for map geometry. It is a deterministic GeoJSON conversion of the U.S. Census Bureau's 2024
+national 1:20,000,000 cartographic-boundary KML, retaining the 50 states and District of Columbia;
+it supplies no crash values. The builder pins the source ZIP, validates the full state crosswalk,
+and fails closed on byte drift. Regenerate the reviewed asset with:
+
+```bash
+.venv/bin/python tools/build_us_state_boundaries.py
+```
+
 ## 1. Incidents — real, and available today (BikeMaps.org)
 
 [BikeMaps.org](https://bikemaps.org) is a crowdsourced global map of cycling **collisions, near
@@ -400,7 +412,10 @@ inventing a denominator. Sacramento has denser incident coverage and a regional 
 normalizes more fully.
 
 To put a real city on the live website, copy its published GeoJSON into `data/published/` (e.g.
-`data/published/sacramento.geojson`) and open the map with `?city=sacramento` (or `?data=<path>`). The
+`data/published/sacramento.geojson`) and open the map with `?city=sacramento` (or the explicit
+`?data=../data/published/sacramento.geojson` form). Dataset selectors are restricted to filename slugs
+inside `data/published/`; origins, other directories, traversal, queries, fragments, and duplicates
+fail closed to the Davis default. The
 web app is source-agnostic and reads the dataset's own embedded `metadata`, so the provenance banner
 and title switch automatically: a `dataset_note` mentioning "synthetic"/"demo" shows the amber demo
 warning, anything else shows a green **real data** banner with the city, exposure unit, and source. No

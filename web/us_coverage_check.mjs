@@ -19,6 +19,7 @@ const LOCALES = join(here, "locales");
 const INDEX = join(repoRoot, "data", "published", "fars-state-mode-index-v2.json");
 const LEGACY_INDEX = join(repoRoot, "data", "published", "fars-state-mode-index.json");
 const CORRECTIONS = join(repoRoot, "data", "published", "fars-release-corrections.json");
+const BOUNDARIES = join(repoRoot, "data", "published", "us-state-boundaries-2024.json");
 const YEARS = [2020, 2021, 2022, 2023, 2024];
 const ARTIFACTS = Object.fromEntries(
   YEARS.map((year) => [
@@ -35,6 +36,7 @@ const ARTIFACTS = Object.fromEntries(
 const CHECKED_INDEX_BYTES = readFileSync(INDEX);
 const LEGACY_INDEX_BYTES = readFileSync(LEGACY_INDEX);
 const CORRECTION_BYTES = readFileSync(CORRECTIONS);
+const CHECKED_BOUNDARY_BYTES = readFileSync(BOUNDARIES);
 const CHECKED_ARTIFACT_BYTES_BY_YEAR = Object.fromEntries(
   YEARS.map((year) => [year, readFileSync(ARTIFACTS[year])])
 );
@@ -116,6 +118,7 @@ async function boot({
   deferredLocales = [],
   deferredArtifacts = [],
   failArtifactYears = [],
+  boundaryBytes = CHECKED_BOUNDARY_BYTES,
   url = "https://example.test/web/us-coverage.html",
 } = {}) {
   const dom = new JSDOM(readFileSync(PAGE, "utf-8"), {
@@ -147,7 +150,9 @@ async function boot({
     }
     if (failFetch) return Promise.resolve({ ok: false, status: 503 });
     let bytes;
-    if (target.endsWith("fars-state-mode-index-v2.json")) {
+    if (target.endsWith("us-state-boundaries-2024.json")) {
+      bytes = boundaryBytes;
+    } else if (target.endsWith("fars-state-mode-index-v2.json")) {
       bytes = indexBytes;
     } else {
       const match = target.match(/fars-([0-9]{4})-state-mode(?:-r[2-9][0-9]*)?\.json$/);
@@ -267,6 +272,10 @@ async function assertLocaleRootFollowsLoadedScript() {
 }
 
 async function main() {
+  const appSource = readFileSync(APP, "utf-8");
+  if (/\b(?:innerHTML|outerHTML|insertAdjacentHTML|document\.write)\b/.test(appSource)) {
+    die("national runtime must not reinterpret translated or artifact text as HTML");
+  }
   await assertLocaleRootFollowsLoadedScript();
   const apex = new JSDOM(readFileSync(APEX, "utf-8")).window.document;
   const refresh = apex.querySelector('meta[http-equiv="refresh"]');
@@ -325,6 +334,7 @@ async function main() {
   for (const dependency of [
     "/web/style.css",
     "/web/us-coverage.css",
+    "/web/us-coverage-studio.css",
     "/web/i18n.js",
     "/web/us-coverage.js",
   ]) {
@@ -340,6 +350,9 @@ async function main() {
   }
   if (!coverageSource.querySelector('a[href$="fars-release-corrections.json"]')) {
     die("nationwide page has no correction-ledger download");
+  }
+  if (!coverageSource.querySelector('a[href="/data/published/us-state-boundaries-2024.json"]')) {
+    die("nationwide page has no reviewed Census-boundary download");
   }
 
   const home = new JSDOM(readFileSync(DAVIS_HOME, "utf-8")).window.document;
@@ -369,6 +382,12 @@ async function main() {
     digest(CORRECTION_BYTES) !== "783e238ae6eab3404dfcee4b5323c536d6653ac59ea9e6a6beb36fe8d91fb4f6"
   ) {
     die("release correction ledger drifted from its reviewed bytes");
+  }
+  if (
+    CHECKED_BOUNDARY_BYTES.byteLength !== 323232 ||
+    digest(CHECKED_BOUNDARY_BYTES) !== "705219b3339077f1d03466391bb286fe7f1841298fc0bcce948de1d8c66df25d"
+  ) {
+    die("Census state-boundary artifact drifted from its reviewed bytes");
   }
   if (
     CHECKED_INDEX.releases.length !== YEARS.length ||
@@ -427,6 +446,7 @@ async function main() {
     "https://example.test/web/locales/en.json",
     "https://example.test/web/locales/es.json",
     "/data/published/fars-state-mode-index-v2.json",
+    "/data/published/us-state-boundaries-2024.json",
     ...YEARS.map((year) =>
       `/data/published/fars-${year}-state-mode${year === 2024 ? "-r2" : ""}.json`
     ),
@@ -462,6 +482,7 @@ async function main() {
     "https://example.test/web/locales/en.json",
     "/data/published/fars-state-mode-index-v2.json",
     "/data/published/fars-2024-state-mode-r2.json",
+    "/data/published/us-state-boundaries-2024.json",
   ]);
   if (
     window.location.pathname !== "/web/us-coverage.html" ||
@@ -469,14 +490,14 @@ async function main() {
   ) {
     die("legacy national route did not boot with root-absolute runtime fetches");
   }
-  if (renderedRows(doc).length !== 0 || !doc.getElementById("state-profile-wrap").hidden) {
-    die("the state-first empty state exposed annual or profile values before selection");
+  if (renderedRows(doc).length !== CHECKED_ARTIFACT.accounting.state_mode_cell_count) {
+    die("the whole-country default did not expose every reviewed state-by-mode row");
   }
-  if (!doc.getElementById("coverage-status").textContent.includes("Choose a state")) {
-    die("the empty selected-year ledger does not direct the reader to state selection");
+  if (!doc.getElementById("state-profile-wrap").hidden) {
+    die("the whole-country default exposed a five-year profile before state selection");
   }
-  if (doc.querySelector("#coverage-filters select")?.id !== "state-filter") {
-    die("state selection is not the primary filter control");
+  if (!doc.getElementById("coverage-status").textContent.includes("306")) {
+    die("the whole-country status does not report all reviewed cells");
   }
   if (doc.querySelector("main > section") !== doc.getElementById("coverage-filters").closest("section")) {
     die("state selection and profile are not the first main-content workflow");
@@ -504,6 +525,15 @@ async function main() {
   if (!doc.querySelector(".coverage-regime-caution").textContent.includes("2020–2021")) {
     die("page omitted the cross-regime comparison caution");
   }
+  if (doc.querySelectorAll('[data-i18n="can_list"] > li').length !== 3) {
+    die("safe translation renderer did not preserve the three-item capability list");
+  }
+  if (doc.querySelectorAll('[data-i18n="cannot_list"] > li').length !== 3) {
+    die("safe translation renderer did not preserve the three-item limitation list");
+  }
+  if (!doc.querySelector('[data-i18n="caveat"] > strong')) {
+    die("safe translation renderer did not preserve the count caveat emphasis");
+  }
   if (!doc.getElementById("artifact-download").href.endsWith("fars-2024-state-mode-r2.json")) {
     die("reviewed release did not bind its annual download link");
   }
@@ -512,6 +542,40 @@ async function main() {
   }
   if (doc.getElementById("summary-retention").textContent !== "48,154 / 48,524") {
     die("published/total contribution accounting was not rendered from the artifact");
+  }
+  if (
+    doc.querySelectorAll("#us-map .map-state-group").length !== CHECKED_ARTIFACT.accounting.state_count ||
+    doc.querySelectorAll("#matrix-body tr").length !== CHECKED_ARTIFACT.accounting.state_count ||
+    doc.querySelectorAll("#matrix-body .matrix-cell").length !==
+      CHECKED_ARTIFACT.accounting.state_mode_cell_count
+  ) {
+    die("linked map or matrix did not render the complete national reviewed scope");
+  }
+  if (
+    doc.querySelectorAll('#us-map .map-state-group[tabindex="0"]').length !== 1 ||
+    doc.querySelectorAll('#matrix-body .matrix-cell-button[tabindex="0"]').length !== 1 ||
+    doc.querySelectorAll('#rank-list button[tabindex="0"]').length !== 1 ||
+    doc.querySelectorAll('#scatter-plot .plot-point[tabindex="0"]').length !== 1
+  ) {
+    die("dense national visualizations do not expose one predictable roving keyboard entry each");
+  }
+  const initialMapFocus = doc.querySelector('#us-map .map-state-group[tabindex="0"]');
+  initialMapFocus.focus();
+  initialMapFocus.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+  if (
+    doc.activeElement === initialMapFocus ||
+    !doc.activeElement.classList.contains("map-state-group") ||
+    doc.activeElement.getAttribute("tabindex") !== "0"
+  ) {
+    die("national map arrow-key navigation did not advance its roving focus");
+  }
+  const boundary = JSON.parse(CHECKED_BOUNDARY_BYTES.toString("utf-8"));
+  if (
+    doc.getElementById("boundary-source").href !== boundary.source.distribution_url ||
+    doc.getElementById("boundary-source").textContent !== boundary.source.name ||
+    doc.getElementById("boundary-checksum").textContent !== digest(CHECKED_BOUNDARY_BYTES)
+  ) {
+    die("national map did not display its reviewed Census source and artifact digest");
   }
 
   select(doc, "state-filter", "CA");
@@ -622,11 +686,15 @@ async function main() {
   });
   doc.getElementById("coverage-filters").dispatchEvent(new window.Event("reset", { bubbles: true }));
   await settle();
-  if (window.location.search.includes("state=") || renderedRows(doc).length || !doc.getElementById("state-profile-wrap").hidden) {
-    die("reset did not return to the state-first empty state and remove the URL state");
+  if (
+    window.location.search.includes("state=") ||
+    renderedRows(doc).length !== CHECKED_ARTIFACT.accounting.state_mode_cell_count ||
+    !doc.getElementById("state-profile-wrap").hidden
+  ) {
+    die("reset did not return to the whole-country default and remove the URL state");
   }
   rendered.dom.window.close();
-  console.log("us-coverage contract: state-first exact five-year profile, suppression, seam, and EN/ES passed.");
+  console.log("us-coverage contract: whole-country ledger, exact five-year profile, suppression, seam, and EN/ES passed.");
 
   const multiyear = await boot();
   const multiyearOptions = Array.from(multiyear.doc.getElementById("year-filter").options, (option) => option.value);
@@ -692,6 +760,39 @@ async function main() {
     die("shared year/language/state URL did not survive reload");
   }
   reloaded.dom.window.close();
+
+  const studioLink = await boot({
+    url:
+      "https://example.test/fars/national/?year=2022&lang=en&view=scatter&mode=motorcyclist&secondary=pedestrian&state=TX&a=TX&b=CA&scale=log&saved=CA,TX",
+  });
+  const linkedState = studioLink.window.NearmissUSCoverage.getState();
+  if (
+    studioLink.doc.getElementById("summary-year").textContent !== "2022" ||
+    linkedState.view !== "scatter" ||
+    linkedState.primaryMode !== "motorcyclist" ||
+    linkedState.secondaryMode !== "pedestrian" ||
+    linkedState.selectedState !== "TX" ||
+    linkedState.compareA !== "TX" ||
+    linkedState.compareB !== "CA" ||
+    linkedState.scale !== "log" ||
+    linkedState.saved.join(",") !== "CA,TX" ||
+    studioLink.doc.getElementById("scatter-panel").hidden ||
+    studioLink.doc.querySelectorAll("#brief-items .brief-card").length !== 2
+  ) {
+    die("validated studio deep link did not restore its exact year and linked visible state");
+  }
+  const linkedPoint = studioLink.doc.querySelector(
+    '#scatter-plot [data-focus-key="scatter:TX"]'
+  );
+  linkedPoint.focus();
+  linkedPoint.dispatchEvent(
+    new studioLink.window.KeyboardEvent("keydown", { key: "Enter", bubbles: true })
+  );
+  await settle();
+  if (studioLink.doc.activeElement?.getAttribute("data-focus-key") !== "scatter:TX") {
+    die("scatter keyboard activation lost focus during its linked-view redraw");
+  }
+  studioLink.dom.window.close();
 
   const localeRace = await boot({
     deferredLocales: ["es"],
@@ -839,6 +940,28 @@ async function main() {
     await boot({ url: "https://example.test/web/us-coverage.html?lang=en&lang=es" }),
     "ambiguous requested language"
   );
+  const studioParameterCases = [
+    ["view=globe", "unsupported requested view"],
+    ["view=map&view=rank", "ambiguous requested view"],
+    ["mode=bicycle", "unsupported requested mode"],
+    ["mode=pedestrian&mode=pedalcyclist", "ambiguous requested mode"],
+    ["secondary=bicycle", "unsupported requested secondary mode"],
+    ["secondary=pedestrian&secondary=motorcyclist", "ambiguous requested secondary mode"],
+    ["scale=sqrt", "unsupported requested scale"],
+    ["scale=linear&scale=log", "ambiguous requested scale"],
+    ["a=ca", "unsupported requested comparison state A"],
+    ["a=CA&a=NY", "ambiguous requested comparison state A"],
+    ["b=ZZ", "unsupported requested comparison state B"],
+    ["b=CA&b=NY", "ambiguous requested comparison state B"],
+    ["saved=CA,CA", "invalid requested saved-state list"],
+    ["saved=CA&saved=NY", "ambiguous requested saved-state list"],
+  ];
+  for (const [query, label] of studioParameterCases) {
+    assertError(
+      await boot({ url: `https://example.test/web/us-coverage.html?year=2024&${query}` }),
+      label
+    );
+  }
   const oneYearIndex = releaseSubsetIndex([2024]);
   assertError(
     await boot({
@@ -892,6 +1015,15 @@ async function main() {
   assertError(
     await boot({ indexBytes: wrongRevisionBytes, trustedIndexBytes: wrongRevisionBytes }),
     "current index with the superseded contract revision"
+  );
+
+  const changedBoundary = Buffer.from(CHECKED_BOUNDARY_BYTES);
+  const boundaryNameOffset = changedBoundary.indexOf(Buffer.from('"Alabama"'));
+  if (boundaryNameOffset < 0) die("could not construct Census boundary drift fixture");
+  changedBoundary[boundaryNameOffset + 1] = "X".charCodeAt(0);
+  assertError(
+    await boot({ boundaryBytes: changedBoundary }),
+    "Census boundary artifact digest drift"
   );
 
   assertError(await boot({ disableCrypto: true }), "missing Web Crypto digest support");

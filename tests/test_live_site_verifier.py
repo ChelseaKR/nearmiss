@@ -110,7 +110,9 @@ def test_exact_site_and_large_custom_404s_pass(expected_site: Path) -> None:
     summary = _verify(expected_site, fetcher)
 
     assert summary.source_sha == SHA
-    assert summary.file_count == 50
+    # The national studio publishes the pinned Census boundary artifact and its
+    # dedicated interaction stylesheet in addition to the prior 50-file site.
+    assert summary.file_count == 52
     assert summary.default_year == 2024
     assert summary.default_source_revision.startswith("reviewed-")
     assert summary.private_probe_count == len(live.PRIVATE_PATH_PROBES)

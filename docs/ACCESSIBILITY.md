@@ -1,8 +1,8 @@
 # Accessibility statement and approach
 
-**Last reviewed:** 2026-06-16
-**Applies to:** the nearmiss web map and table view (`src/nearmiss/server.py` + `web/`),
-the report form, and the published advocacy briefs and data card.
+**Last reviewed:** 2026-07-16
+**Applies to:** the nearmiss local web map and table view (`src/nearmiss/server.py` + `web/`),
+the nationwide FARS evidence studio, the report form, and the published advocacy briefs and data card.
 **Conformance target:** WCAG 2.2 Level AA, and conformance with the Revised Section 508
 Standards (36 CFR Part 1194).
 **Maintainer:** Chelsea Kelly-Reif (GitHub [@ChelseaKR](https://github.com/ChelseaKR)).
@@ -103,6 +103,22 @@ This is the Functional Performance Criterion "use without vision" made concrete:
 a screen reader gets the ranked locations, the rates, the intervals, and the significance — the
 entire analysis — without the visual layer.
 
+The nationwide FARS evidence studio applies the same rule to a different measure. Its selected-year
+map, matrix, rank, mode-comparison plot, state comparison, inspector, and complete ledger are derived
+from one exact reviewed annual state-by-mode count artifact; the five-year profile reads the five
+separately pinned annual artifacts. The semantic matrix, comparison table, five-year profile table,
+and complete ledger provide the state, involved mode, published count, and publication status without
+requiring the SVG views. A non-published value is always written as **suppressed or zero**, never
+silently converted to zero.
+
+The national SVG map states and mode-comparison plot points are implemented as named `role="button"`
+controls with a single roving tab stop, arrow/Home/End navigation, and Enter/Space activation; the
+state and mode selectors and the table controls provide native-HTML paths to the same evidence. The
+automated gates and a targeted rendered-browser keyboard and 390×844 reflow pass are green. These are
+not a completed conformance finding: human NVDA/VoiceOver review and the 200% zoom pass remain pending
+and are tracked in
+[`docs/audits/2026-07-16-national-evidence-studio-a11y.md`](audits/2026-07-16-national-evidence-studio-a11y.md).
+
 ---
 
 ## 4. Never conveying risk or significance by color alone
@@ -185,13 +201,19 @@ and **VoiceOver** (Safari, on macOS/iOS), exercising the journeys that matter:
 - read the ranked findings from the **table** end to end and confirm rates, intervals, and
   significance flags are announced;
 - operate **column sorting** by keyboard and confirm the new order and sort state are announced;
+- traverse the nationwide **state map and mode-comparison plot** without a pointer, activate a state
+  with Enter and Space, and confirm focus remains visible and stable after linked views redraw;
+- read the nationwide **matrix, comparison table, five-year profile, and complete ledger**, and
+  confirm that their counts and publication-status text provide the information in the visual views;
 - complete the **report form** by keyboard and screen reader, including triggering and recovering
   from a validation error;
 - confirm **no information is lost** when color is removed (grayscale / forced-colors pass).
 
 Manual review is logged in [`docs/audits/`](audits/) so each release has a record of what was
 checked, with what tool, and what was found. Keyboard-only testing (no pointer) is part of every
-manual pass.
+manual pass. For the nationwide evidence studio, a targeted browser keyboard and narrow-viewport pass
+is recorded; the uninterrupted full keyboard/200% zoom checks and required NVDA/VoiceOver passes
+remain pending, and the pre-release record does not count them as completed.
 
 ---
 

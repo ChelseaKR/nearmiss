@@ -100,6 +100,7 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     for year in range(2020, 2025):
         assert f"data/published/fars-{year}-state-mode.json" in files
     assert "data/published/fars-2024-state-mode-r2.json" in files
+    assert "data/published/us-state-boundaries-2024.json" in files
     assert "deployment.json" in files
     assert not any(path.startswith("data/raw/") for path in files)
     assert not any(path.startswith("config/") for path in files)
@@ -177,17 +178,23 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
         "web/locales/en.json|web/locales/en.json",
         "web/locales/es.json|web/locales/es.json",
         "web/us-coverage.css|web/us-coverage.css",
+        "web/us-coverage-studio.css|web/us-coverage-studio.css",
         "web/style.css|web/style.css",
         "data/published/davis.geojson|data/published/davis.geojson",
         "data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json",
         "data/published/fars-2024-state-mode.json|data/published/fars-2024-state-mode.json",
         "data/published/fars-state-mode-index-v2.json|data/published/fars-state-mode-index-v2.json",
         "data/published/fars-release-corrections.json|data/published/fars-release-corrections.json",
+        "data/published/us-state-boundaries-2024.json|data/published/us-state-boundaries-2024.json",
     }
     for spec in required_specs:
         assert f"'{spec}'" in workflow
     assert '[ "$live_sha" != "$expected_sha" ]' in workflow
     assert '[ "$live_sha" != "$manifest_artifact_sha" ]' in workflow
+    assert (
+        'boundary_sha256="705219b3339077f1d03466391bb286fe7f1841298fc0bcce948de1d8c66df25d"'
+        in workflow
+    )
 
 
 def test_build_is_byte_stable_for_same_commit(tmp_path: Path) -> None:

@@ -749,7 +749,7 @@ msgid "web.coverage.footer"
 msgstr "Contexto oficial de choques fatales, publicado con límites explícitos. nearmiss sigue siendo un producto de cuasi-accidentes normalizado por exposición; estos conteos son una capa separada de contexto nacional."
 
 msgid "web.coverage.filter_scope"
-msgstr "El estado carga el perfil de cinco años. El año, el modo y el estado de publicación refinan el detalle del año seleccionado de abajo."
+msgstr "El estado carga el perfil de cinco años. El año, el modo y el estado de publicación refinan las vistas nacionales y el registro del año seleccionado."
 
 msgid "web.coverage.h1"
 msgstr "Carga de choques fatales, estado por estado"
@@ -963,3 +963,249 @@ msgstr "Registro de evidencia de EE. UU. — nearmiss"
 
 msgid "web.coverage.year_label"
 msgstr "Año"
+
+msgid "web.coverage.release_card_h"
+msgstr "Una proyección anual vinculada a su hash"
+
+msgid "web.coverage.release_note"
+msgstr "Los bytes de origen, el contrato anual y la prueba contable se verifican antes de mostrar cualquier conteo."
+
+msgid "web.coverage.accessible_table"
+msgstr "Abrir la tabla accesible de comparación"
+
+msgid "web.coverage.add_to_brief"
+msgstr "Añadir al resumen"
+
+msgid "web.coverage.all_states"
+msgstr "Todos los estados + DC"
+
+msgid "web.coverage.boundary_checksum_label"
+msgstr "SHA-256 del archivo de límites"
+
+msgid "web.coverage.boundary_download"
+msgstr "Descargar los límites del Censo en GeoJSON"
+
+msgid "web.coverage.boundary_source_label"
+msgstr "Límites del mapa"
+
+msgid "web.coverage.brief_cleared"
+msgstr "Se borró el resumen."
+
+msgid "web.coverage.brief_count"
+msgstr "{year}: {count} choques fatales; modo involucrado: {mode}."
+
+msgid "web.coverage.brief_empty"
+msgstr "Aún no hay evidencia guardada. Seleccione un estado y añádalo desde el inspector."
+
+msgid "web.coverage.brief_h"
+msgstr "Resumen de evidencia"
+
+msgid "web.coverage.brief_intro"
+msgstr "Guarde hasta cuatro estados. El resumen imprimible mantiene asociados el año, el modo, el estado de publicación, la versión exacta, la fuente y el límite ‘los conteos no son riesgo’."
+
+msgid "web.coverage.brief_kicker"
+msgstr "Mantenga la salvedad junto al número"
+
+msgid "web.coverage.brief_removed"
+msgstr "Se quitó el estado del resumen."
+
+msgid "web.coverage.brief_saved"
+msgstr "Se añadió el estado al resumen."
+
+msgid "web.coverage.brief_unpublished"
+msgstr "Modo {mode}: no hay un conteo numérico publicado."
+
+msgid "web.coverage.cells_value"
+msgstr "{published} de {total}"
+
+msgid "web.coverage.clear_brief"
+msgstr "Borrar resumen"
+
+msgid "web.coverage.compare_a"
+msgstr "Primer estado"
+
+msgid "web.coverage.compare_b"
+msgstr "Segundo estado"
+
+msgid "web.coverage.compare_empty"
+msgstr "Seleccione dos estados para compararlos."
+
+msgid "web.coverage.compare_h"
+msgstr "Compare dos estados sin sumar los modos"
+
+msgid "web.coverage.compare_intro"
+msgstr "Cada modo mantiene una escala independiente porque un choque puede contribuir a varias filas."
+
+msgid "web.coverage.compare_kicker"
+msgstr "Lado a lado"
+
+msgid "web.coverage.compare_with"
+msgstr "Comparar este estado"
+
+msgid "web.coverage.copy_failed"
+msgstr "No se pudo copiar automáticamente. Copie la dirección del navegador."
+
+msgid "web.coverage.copy_view"
+msgstr "Copiar enlace a esta vista"
+
+msgid "web.coverage.explore_action"
+msgstr "Explorar la evidencia"
+
+msgid "web.coverage.inspector_empty"
+msgstr "Seleccione un área del mapa, una celda de la matriz, una barra de clasificación, un punto del gráfico o un control de estado para examinar sus seis celdas de publicación."
+
+msgid "web.coverage.inspector_h"
+msgstr "Seleccione un estado"
+
+msgid "web.coverage.inspector_kicker"
+msgstr "Evidencia seleccionada"
+
+msgid "web.coverage.inspector_rank"
+msgstr "Puesto de {mode} entre las celdas numéricas publicadas: {rank} de {total}."
+
+msgid "web.coverage.map_caption"
+msgstr "{mode}: {published} de 51 jurisdicciones tienen conteos numéricos publicados. La geografía sirve de orientación; los conteos no son riesgo normalizado por exposición."
+
+msgid "web.coverage.map_h"
+msgstr "Carga de choques fatales en los Estados Unidos"
+
+msgid "web.coverage.map_intro"
+msgstr "Seleccione un modo de usuario vial para leer geográficamente los mismos conteos revisados. El color se escala dentro de ese modo; el rayado significa suprimido o cero."
+
+msgid "web.coverage.map_kicker"
+msgstr "Vista nacional"
+
+msgid "web.coverage.map_legend_high"
+msgstr "Conteo publicado más alto"
+
+msgid "web.coverage.map_legend_low"
+msgstr "Conteo publicado más bajo"
+
+msgid "web.coverage.map_legend_unpublished"
+msgstr "Suprimido o cero"
+
+msgid "web.coverage.map_state_published"
+msgstr "{state}: {count} choques fatales; modo involucrado: {mode}"
+
+msgid "web.coverage.map_state_unpublished"
+msgstr "{state}: suprimido o cero para {mode}"
+
+msgid "web.coverage.matrix_caption"
+msgstr "Matriz de {states} jurisdicciones y seis modos involucrados: {published} de {total} celdas publican un conteo numérico."
+
+msgid "web.coverage.matrix_cell_published"
+msgstr "{state}, {mode}: conteo publicado de {count} choques fatales."
+
+msgid "web.coverage.matrix_cell_unpublished"
+msgstr "{state}, {mode}: sin publicar; suprimido o cero."
+
+msgid "web.coverage.matrix_coverage"
+msgstr "{published} de {total} publicadas"
+
+msgid "web.coverage.matrix_h"
+msgstr "Matriz de estado × modo involucrado"
+
+msgid "web.coverage.matrix_intro"
+msgstr "Cada columna usa su propia escala. Las celdas rayadas no están publicadas y nunca se tratan como cero."
+
+msgid "web.coverage.matrix_kicker"
+msgstr "Panorama de publicación"
+
+msgid "web.coverage.print_brief"
+msgstr "Imprimir resumen"
+
+msgid "web.coverage.rank_h"
+msgstr "Clasificar un modo involucrado"
+
+msgid "web.coverage.rank_intro"
+msgstr "Solo se clasifican las celdas numéricas. Esto es carga, no riesgo normalizado por exposición ni seguridad."
+
+msgid "web.coverage.rank_item"
+msgstr "Puesto {rank}: {state}; conteo de choques fatales: {count}; modo involucrado: {mode}."
+
+msgid "web.coverage.rank_kicker"
+msgstr "Carga publicada"
+
+msgid "web.coverage.rank_title"
+msgstr "{mode}: conteos publicados de choques fatales"
+
+msgid "web.coverage.rank_unpublished"
+msgstr "{count} jurisdicciones no tienen un conteo numérico publicado para {mode} (suprimido o cero)"
+
+msgid "web.coverage.real_data_badge"
+msgstr "Datos oficiales reales"
+
+msgid "web.coverage.remove_brief"
+msgstr "Quitar {state} del resumen"
+
+msgid "web.coverage.save_comparison"
+msgstr "Guardar ambos estados en el resumen"
+
+msgid "web.coverage.scale_label"
+msgstr "Escala"
+
+msgid "web.coverage.scale_linear"
+msgstr "Lineal"
+
+msgid "web.coverage.scale_log"
+msgstr "Logarítmica"
+
+msgid "web.coverage.scatter_caption"
+msgstr "{comparable} jurisdicciones tienen ambos conteos numéricos; {excluded} quedan fuera del gráfico porque una o ambas celdas no están publicadas."
+
+msgid "web.coverage.scatter_empty"
+msgstr "Ninguna jurisdicción tiene ambos conteos publicados."
+
+msgid "web.coverage.scatter_h"
+msgstr "Comparar dos modos involucrados"
+
+msgid "web.coverage.scatter_intro"
+msgstr "Los estados solo aparecen cuando ambas celdas están publicadas. Los valores ausentes quedan fuera del gráfico."
+
+msgid "web.coverage.scatter_kicker"
+msgstr "Relación entre conteos"
+
+msgid "web.coverage.scatter_point"
+msgstr "{state}: {xmode}, {xcount} choques fatales; {ymode}, {ycount} choques fatales."
+
+msgid "web.coverage.scatter_title"
+msgstr "{x} y {y}: relación entre conteos publicados"
+
+msgid "web.coverage.secondary_mode"
+msgstr "Segundo modo"
+
+msgid "web.coverage.studio_h"
+msgstr "Un conjunto de evidencia, cinco formas de examinarlo"
+
+msgid "web.coverage.studio_intro"
+msgstr "Todas las vistas parten de las mismas celdas revisadas de estado por modo para el año seleccionado. Una selección hecha en una vista se conserva en las demás."
+
+msgid "web.coverage.studio_kicker"
+msgstr "Explorar · comparar · citar"
+
+msgid "web.coverage.summary_cases"
+msgstr "Choques fatales distintos"
+
+msgid "web.coverage.summary_cells"
+msgstr "Celdas con cifra publicada"
+
+msgid "web.coverage.view_compare"
+msgstr "Comparar estados"
+
+msgid "web.coverage.view_copied"
+msgstr "Se copió el enlace a esta vista."
+
+msgid "web.coverage.view_label"
+msgstr "Vista de la evidencia"
+
+msgid "web.coverage.view_map"
+msgstr "Mapa"
+
+msgid "web.coverage.view_matrix"
+msgstr "Matriz"
+
+msgid "web.coverage.view_rank"
+msgstr "Clasificación"
+
+msgid "web.coverage.view_scatter"
+msgstr "Comparar modos"

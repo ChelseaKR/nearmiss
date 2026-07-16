@@ -8,26 +8,33 @@
  * significance by a dashed pattern AND text, never by color alone, and a text
  * list of the significant hotspots is rendered as the non-visual equivalent.
  *
- * Source-agnostic: ?city=<slug> loads ../data/published/<slug>.geojson and
- * ?data=<same-origin path> loads an explicit file, so a host points it at any
- * published dataset by URL. The provenance line and the "view full" link are
- * driven by the dataset's own embedded metadata.
+ * Source-agnostic within the public artifact directory: ?city=<slug> or
+ * ?data=../data/published/<slug>.geojson selects a published dataset. Query
+ * input cannot choose another origin or directory. The provenance line and the
+ * "view full" link are driven by the dataset's own embedded metadata.
  */
 (function () {
   "use strict";
 
-  function resolveDataUrl() {
+  function resolveDatasetSlug() {
     try {
       var params = new URLSearchParams(window.location.search);
-      var data = params.get("data");
-      if (data && !/^[a-z]+:|^\/\//i.test(data)) return data; // same-origin relative only
-      var city = params.get("city");
-      if (city && /^[a-z0-9_-]+$/i.test(city)) return "../data/published/" + city + ".geojson";
+      var dataValues = params.getAll("data");
+      var cityValues = params.getAll("city");
+      if (dataValues.length > 1 || cityValues.length > 1) return "davis";
+      var data = dataValues[0] || "";
+      var match = /^(?:\.\.\/|\/)?data\/published\/([a-z0-9][a-z0-9_-]*)\.geojson$/i.exec(data);
+      if (match) return match[1].toLowerCase();
+      var city = cityValues[0] || "";
+      if (/^[a-z0-9][a-z0-9_-]*$/i.test(city)) return city.toLowerCase();
     } catch (e) {
       /* old browser — use the default */
     }
-    return "../data/published/davis.geojson";
+    return "davis";
   }
+
+  var DATASET_SLUG = resolveDatasetSlug();
+  var DATA_URL = "../data/published/" + DATASET_SLUG + ".geojson";
 
   var mapEl = document.getElementById("embed-map");
   var captionEl = document.getElementById("embed-caption");
@@ -117,7 +124,7 @@
       .sort(function (a, b) {
         return (b.properties.rate || 0) - (a.properties.rate || 0);
       });
-    listEl.innerHTML = "";
+    listEl.textContent = "";
     if (hotspots.length) {
       hotspots.forEach(function (f) {
         var p = f.properties;
@@ -148,7 +155,7 @@
     }
   }
 
-  fetch(resolveDataUrl())
+  fetch(DATA_URL)
     .then(function (r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();

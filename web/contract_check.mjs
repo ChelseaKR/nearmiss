@@ -25,6 +25,7 @@ const here = dirname(fileURLToPath(import.meta.url)); // web/
 const repoRoot = join(here, "..");
 const INDEX = join(here, "index.html");
 const APP_JS = join(here, "app.js");
+const EMBED_JS = join(here, "embed.js");
 const I18N_JS = join(here, "i18n.js");
 const LOCALES_DIR = join(here, "locales");
 const FIXTURE = join(repoRoot, "data", "published", "davis.geojson");
@@ -94,22 +95,24 @@ function without(geojson, prop) {
 
 // Boot app.js in jsdom with fetch stubbed to serve `geojson`, no Leaflet present
 // (so renderMaps short-circuits and the data TABLE is the parse-path evidence).
-async function render(geojson) {
+async function render(geojson, { url = "https://example.test/web/index.html" } = {}) {
   const html = readFileSync(INDEX, "utf-8");
   const appSource = readFileSync(APP_JS, "utf-8");
   const i18nSource = readFileSync(I18N_JS, "utf-8");
   const dom = new JSDOM(html, {
     runScripts: "outside-only",
     pretendToBeVisual: true,
-    url: "https://example.test/web/index.html",
+    url,
     virtualConsole: new VirtualConsole(),
   });
   const { window } = dom;
+  const fetchTargets = [];
   // app.js fetches both the dataset and the web locale catalogs (FIX-13's
   // single-sourced translations); serve the committed catalogs for locales/*
   // and the fixture under test for everything else.
   window.fetch = (url) => {
     const target = String(url);
+    fetchTargets.push(target);
     const locale = target.match(/locales\/([a-z]{2,3})\.json$/);
     if (locale) {
       const raw = JSON.parse(readFileSync(join(LOCALES_DIR, `${locale[1]}.json`), "utf-8"));
@@ -127,7 +130,29 @@ async function render(geojson) {
   const doc = window.document;
   const body = doc.getElementById("data-body");
   const failed = !!body.querySelector("td[colspan]"); // app.js fail() marker
-  return { doc, window, body, failed, html: body.innerHTML };
+  return { doc, window, body, failed, html: body.innerHTML, fetchTargets };
+}
+
+async function embedFetchTargets(url, geojson) {
+  const dom = new JSDOM(
+    '<!doctype html><div id="embed-map"></div><p id="embed-caption"></p>' +
+      '<ul id="embed-hotspots"></ul><p id="embed-source"></p><a id="embed-fulllink"></a>',
+    { runScripts: "outside-only", pretendToBeVisual: true, url }
+  );
+  const targets = [];
+  dom.window.fetch = (target) => {
+    targets.push(String(target));
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(clone(geojson)) });
+  };
+  dom.window.eval(readFileSync(EMBED_JS, "utf-8"));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  dom.window.close();
+  return targets;
+}
+
+function datasetTarget(rendered) {
+  return rendered.fetchTargets.find((target) => !target.includes("/locales/"));
 }
 
 function cellsFor(doc, segmentId) {
@@ -138,6 +163,12 @@ function cellsFor(doc, segmentId) {
 }
 
 async function main() {
+  for (const script of [APP_JS, EMBED_JS]) {
+    const source = readFileSync(script, "utf-8");
+    if (/\b(?:innerHTML|outerHTML|insertAdjacentHTML|document\.write)\b/.test(source)) {
+      die(`${script} must not reinterpret translation or dataset text as HTML`);
+    }
+  }
   const schema = JSON.parse(readFileSync(SCHEMA, "utf-8"));
   const requiredProps = new Set(schema.$defs.properties.required);
   const requiredMeta = new Set(schema.$defs.metadata.required);
@@ -183,6 +214,18 @@ async function main() {
     const ci = `${p.rate_ci_low.toFixed(2)} – ${p.rate_ci_high.toFixed(2)}`;
     if (cells[2] !== ci) die(`row ${p.segment_id}: interval not rendered (got "${cells[2]}")`);
   }
+  if (!base.doc.querySelector('.lede strong') || !base.doc.querySelector('.lede em')) {
+    die("safe translation renderer dropped the lede's semantic emphasis");
+  }
+  if (base.doc.querySelector('.lede a')?.getAttribute("href") !== "#data-table") {
+    die("safe translation renderer dropped the lede's audited table link");
+  }
+  if (base.doc.querySelectorAll('[data-i18n="legend"] > li').length !== 4) {
+    die("safe translation renderer dropped the four-item evidence legend");
+  }
+  if (base.doc.querySelectorAll('footer [data-i18n="footer"] a').length !== 3) {
+    die("safe translation renderer dropped an audited footer link");
+  }
   console.log(
     `contract: app.js parsed the fixture and rendered ${rows} segments with correct ` +
       `rate / interval / n / name.`
@@ -220,7 +263,45 @@ async function main() {
     die("removing embedded metadata did not change the metadata-driven summary");
   }
 
-  console.log("contract: OK — web consumer honors the published dataset schema.");
+  const hostileMeta = clone(fixture);
+  hostileMeta.metadata.city = '<img src=x onerror="alert(1)">';
+  hostileMeta.metadata.dataset_note = "Real data: reviewed fixture";
+  const hostileRendered = await render(hostileMeta);
+  if (hostileRendered.doc.querySelector(".real-note img")) {
+    die("dataset metadata created executable markup in the provenance banner");
+  }
+  if (!hostileRendered.doc.querySelector(".real-note strong")?.textContent.includes("<img")) {
+    die("dataset metadata was not preserved as literal provenance text");
+  }
+
+  const datasetCases = [
+    ["?city=riverside", "../data/published/riverside.geojson"],
+    ["?data=../data/published/riverside.geojson", "../data/published/riverside.geojson"],
+    ["?data=/data/published/riverside.geojson", "../data/published/riverside.geojson"],
+    ["?data=https://attacker.example/private.geojson", "../data/published/davis.geojson"],
+    ["?data=../../data/raw/private.geojson", "../data/published/davis.geojson"],
+    ["?data=../data/published/../../raw/private.geojson", "../data/published/davis.geojson"],
+    ["?data=../data/published/riverside.geojson&data=../data/published/davis.geojson", "../data/published/davis.geojson"],
+    ["?city=../../private", "../data/published/davis.geojson"],
+  ];
+  for (const [query, expected] of datasetCases) {
+    const url = `https://example.test/web/index.html${query}`;
+    const appRendered = await render(fixture, { url });
+    if (datasetTarget(appRendered) !== expected) {
+      die(`app.js did not fail closed for dataset query ${query}`);
+    }
+    const embedTargets = await embedFetchTargets(
+      `https://example.test/web/embed.html${query}`,
+      fixture
+    );
+    if (embedTargets[0] !== expected) {
+      die(`embed.js did not fail closed for dataset query ${query}`);
+    }
+  }
+
+  console.log(
+    "contract: OK — web consumers honor the published schema and restrict query-selected data to public GeoJSON slugs."
+  );
 }
 
 main().catch((e) => die(e && e.stack ? e.stack : String(e)));

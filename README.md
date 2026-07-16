@@ -566,9 +566,15 @@ lands in front of a city. Full statement: [`docs/ACCESSIBILITY.md`](docs/ACCESSI
   still pending and is named honestly as such. Risk level and significance are conveyed in text and
   pattern, never by color alone; the report form is fully keyboard-operable with clear labels and error
   text.
+- The nationwide FARS studio's custom map states and mode-comparison points are implemented as
+  named roving-focus controls with arrow/Home/End navigation and Enter/Space activation. Native
+  selectors and semantic matrix, comparison, five-year profile, and complete-ledger tables expose the
+  same state-by-mode evidence. The automated gates and a targeted rendered-browser keyboard and
+  narrow-viewport pass are green; required human NVDA/VoiceOver verification remains pending.
 - A **non-visual equivalent** of the map is provided as an accessible, sortable list and table carrying
   the same ranked locations, rates, intervals, and significance flags, so every finding is reachable
-  without seeing the map.
+  without seeing the local map; the national studio uses its redundant semantic tables for the same
+  purpose.
 - Accessibility is a **merge-blocking CI gate**; a regression fails the build. The ACR is regenerated
   and re-committed on each release, the same audit-as-artifact discipline applied to the statistics.
 
