@@ -14,12 +14,37 @@
 
   // Which published dataset to load. Query input selects a filename slug only;
   // it can never choose an origin, directory, query string, or fragment.
+  function hasEncodedDatasetSelector() {
+    return window.location.search
+      .replace(/^\?/, "")
+      .split("&")
+      .some(function (part) {
+        var separator = part.indexOf("=");
+        var rawName = separator === -1 ? part : part.slice(0, separator);
+        var rawValue = separator === -1 ? "" : part.slice(separator + 1);
+        var name;
+        try {
+          name = decodeURIComponent(rawName.replace(/\+/g, " "));
+        } catch (_error) {
+          return false;
+        }
+        return (name === "data" || name === "city") && /%/.test(rawName + rawValue);
+      });
+  }
+
   function resolveDatasetSlug() {
     try {
       var params = new URLSearchParams(window.location.search);
       var dataValues = params.getAll("data");
       var cityValues = params.getAll("city");
-      if (dataValues.length > 1 || cityValues.length > 1) return "davis";
+      if (
+        dataValues.length > 1 ||
+        cityValues.length > 1 ||
+        (dataValues.length && cityValues.length) ||
+        hasEncodedDatasetSelector()
+      ) {
+        return "davis";
+      }
       var data = dataValues[0] || "";
       var match = /^(?:\.\.\/|\/)?data\/published\/([a-z0-9][a-z0-9_-]*)\.geojson$/i.exec(data);
       if (match) return match[1].toLowerCase();
@@ -344,14 +369,18 @@
   function addSegment(which, latlngs, style, tip, label) {
     var line = window.L.polyline(latlngs, style);
     if (label) {
-      line.bindTooltip(label, {
+      var labelContent = document.createElement("span");
+      labelContent.textContent = label;
+      line.bindTooltip(labelContent, {
         permanent: true,
         direction: "top",
         className: "map-label",
         opacity: 1,
       });
     } else if (tip) {
-      line.bindTooltip(tip, { sticky: true });
+      var tipContent = document.createElement("span");
+      tipContent.textContent = tip;
+      line.bindTooltip(tipContent, { sticky: true });
     }
     line.addTo(maps[which]);
     if (label) line.openTooltip();

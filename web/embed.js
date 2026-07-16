@@ -16,12 +16,37 @@
 (function () {
   "use strict";
 
+  function hasEncodedDatasetSelector() {
+    return window.location.search
+      .replace(/^\?/, "")
+      .split("&")
+      .some(function (part) {
+        var separator = part.indexOf("=");
+        var rawName = separator === -1 ? part : part.slice(0, separator);
+        var rawValue = separator === -1 ? "" : part.slice(separator + 1);
+        var name;
+        try {
+          name = decodeURIComponent(rawName.replace(/\+/g, " "));
+        } catch (_error) {
+          return false;
+        }
+        return (name === "data" || name === "city") && /%/.test(rawName + rawValue);
+      });
+  }
+
   function resolveDatasetSlug() {
     try {
       var params = new URLSearchParams(window.location.search);
       var dataValues = params.getAll("data");
       var cityValues = params.getAll("city");
-      if (dataValues.length > 1 || cityValues.length > 1) return "davis";
+      if (
+        dataValues.length > 1 ||
+        cityValues.length > 1 ||
+        (dataValues.length && cityValues.length) ||
+        hasEncodedDatasetSelector()
+      ) {
+        return "davis";
+      }
       var data = dataValues[0] || "";
       var match = /^(?:\.\.\/|\/)?data\/published\/([a-z0-9][a-z0-9_-]*)\.geojson$/i.exec(data);
       if (match) return match[1].toLowerCase();
@@ -99,16 +124,16 @@
           p.rate_ci_low != null && p.rate_ci_high != null
             ? " (95% CI " + p.rate_ci_low + "–" + p.rate_ci_high + ")"
             : "";
-        line.bindTooltip(
+        var tooltipContent = document.createElement("span");
+        tooltipContent.textContent =
           (p.name || p.segment_id) +
-            (sig ? " — ★ significant hotspot" : "") +
-            "\nrate " +
-            (p.rate == null ? "n/a" : p.rate) +
-            ci +
-            ", n=" +
-            p.n,
-          { sticky: true }
-        );
+          (sig ? " — ★ significant hotspot" : "") +
+          "\nrate " +
+          (p.rate == null ? "n/a" : p.rate) +
+          ci +
+          ", n=" +
+          p.n;
+        line.bindTooltip(tooltipContent, { sticky: true });
         latlngs.forEach(function (ll) {
           bounds.extend(ll);
         });

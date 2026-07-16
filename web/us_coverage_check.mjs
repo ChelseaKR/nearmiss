@@ -273,7 +273,7 @@ async function assertLocaleRootFollowsLoadedScript() {
 
 async function main() {
   const appSource = readFileSync(APP, "utf-8");
-  if (/\b(?:innerHTML|outerHTML|insertAdjacentHTML|document\.write)\b/.test(appSource)) {
+  if (/\b(?:innerHTML|outerHTML|insertAdjacentHTML|document\.write|DOMParser)\b/.test(appSource)) {
     die("national runtime must not reinterpret translated or artifact text as HTML");
   }
   await assertLocaleRootFollowsLoadedScript();
