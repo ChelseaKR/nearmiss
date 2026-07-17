@@ -251,7 +251,7 @@ cannot defensibly remove is more honest than removing it with a model we cannot 
   and their dates (§3), rates (§4), small-count intervals and the Wald prohibition (§5),
   "hot because dangerous vs. hot because busy" (§7), KDE vs. Getis-Ord Gi\* (§8), and the
   synthetic-fixture validation including the busy-but-safe decoys (§9).
-- [`docs/adr/0001-record-architecture-decisions.md`](./0001-record-architecture-decisions.md) — the
+- [`docs/adr/0000-record-architecture-decisions.md`](./0000-record-architecture-decisions.md) — the
   ADR practice this record follows.
 - Garwood, F. (1936). Fiducial limits for the Poisson distribution. *Biometrika* — exact Poisson
   rate interval.

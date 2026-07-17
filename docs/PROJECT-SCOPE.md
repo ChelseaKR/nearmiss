@@ -102,7 +102,7 @@ Primary docs checked:
 - `docs/SUBMISSIONS.md`
 - `docs/THREAT-MODEL.md`
 - `docs/accessibility/ACR.md`
-- `docs/adr/0001-record-architecture-decisions.md`
+- `docs/adr/0000-record-architecture-decisions.md`
 - `docs/adr/0002-exposure-normalization-and-confidence-intervals.md`
 - `docs/adr/0003-pure-python-statistics-and-planar-geometry.md`
 - `docs/adr/0004-standards-applicability.md`
