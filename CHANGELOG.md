@@ -58,6 +58,24 @@ every entry.
 
 ### Added
 
+- [`docs/adr/0013-keep-python-311-floor.md`](docs/adr/0013-keep-python-311-floor.md) — an accepted
+  exception ADR recording *why* `requires-python = ">=3.11"` stays (Debian-12-class system Pythons,
+  the merge-blocking 3.11 CI matrix leg, the "runs anywhere Python 3.11+ runs" property) and the
+  triggers that would revisit it.
+- A declared `[tool.coverage.report] fail_under = 90` floor in `pyproject.toml`, mirroring the floor
+  `make test` already enforces on the command line so it also holds for coverage runs that omit the
+  flag (measured 90.44% branch coverage at the time of declaration).
+
+### Changed
+
+- The README standards-conformance table now uses the portfolio's canonical standard names
+  (e.g. "Code Quality" instead of `CODE-QUALITY`, "Responsible-Tech Framework" instead of
+  `RESPONSIBLE-TECH`) so the automated conformance checker recognizes every declared row; the
+  AI Evaluation row's `N/A` now carries its reason inline. Applicability calls are unchanged.
+- The seed ADR is renumbered `0001-` → `0000-record-architecture-decisions.md` to match the
+  canonical seed filename in `docs/standards/DOCUMENTATION-STANDARD.md`; its decision content is
+  unchanged and in-repo cross-references were updated.
+
 - A distinctive “NearMiss Conflict Atlas” identity across the national studio, retained local
   methods prototypes, and branded 404: a clearance-mark road symbol, asphalt/interstate/brake
   palette, self-hosted Overpass/Atkinson Hyperlegible/Fragment Mono typography, compact evidence-first
