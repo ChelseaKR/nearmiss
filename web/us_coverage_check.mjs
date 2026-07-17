@@ -57,6 +57,24 @@ const EXPECTED_ARTIFACT_PINS = {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
+function mapStateCenter(document, state) {
+  const path = document.querySelector(`#us-map .map-state-group[data-state="${state}"] path.map-state`);
+  const coordinates = (path?.getAttribute("d")?.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+  if (!path || coordinates.length < 2 || coordinates.length % 2 !== 0) {
+    die(`map path for ${state} is missing or malformed`);
+  }
+  const xs = [];
+  const ys = [];
+  for (let index = 0; index < coordinates.length; index += 2) {
+    xs.push(coordinates[index]);
+    ys.push(coordinates[index + 1]);
+  }
+  return {
+    x: (Math.min(...xs) + Math.max(...xs)) / 2,
+    y: (Math.min(...ys) + Math.max(...ys)) / 2,
+  };
+}
+
 function die(message) {
   console.error(`us-coverage contract: FAIL — ${message}`);
   process.exit(1);
@@ -649,6 +667,15 @@ async function main() {
       CHECKED_ARTIFACT.accounting.state_mode_cell_count
   ) {
     die("linked map or matrix did not render the complete national reviewed scope");
+  }
+  const california = mapStateCenter(doc, "CA");
+  const florida = mapStateCenter(doc, "FL");
+  const maine = mapStateCenter(doc, "ME");
+  const northDakota = mapStateCenter(doc, "ND");
+  const newYork = mapStateCenter(doc, "NY");
+  const texas = mapStateCenter(doc, "TX");
+  if (!(maine.y < florida.y && northDakota.y < texas.y && california.x < newYork.x)) {
+    die("national map orientation is invalid; northern states must be above southern states and west left of east");
   }
   if (
     doc.querySelectorAll('#us-map .map-state-group[tabindex="0"]').length !== 1 ||

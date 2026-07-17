@@ -1271,7 +1271,7 @@
   function insetRaw(position, state) {
     var longitude = position[0];
     if (state === "AK" && longitude > 0) longitude -= 360;
-    return [longitude, -position[1]];
+    return [longitude, position[1]];
   }
 
   function fittedProjection(features, rawProjection, box) {
@@ -1290,10 +1290,11 @@
     var sourceHeight = Math.max(0.000001, maxY - minY);
     var scale = Math.min(box.width / sourceWidth, box.height / sourceHeight);
     var xOffset = box.x + (box.width - sourceWidth * scale) / 2 - minX * scale;
-    var yOffset = box.y + (box.height - sourceHeight * scale) / 2 - minY * scale;
+    var yOffset = box.y + (box.height - sourceHeight * scale) / 2 + maxY * scale;
     return function (position, state) {
       var raw = rawProjection(position, state);
-      return [xOffset + raw[0] * scale, yOffset + raw[1] * scale];
+      // Geographic projections are north-positive; SVG's y-axis points down.
+      return [xOffset + raw[0] * scale, yOffset - raw[1] * scale];
     };
   }
 

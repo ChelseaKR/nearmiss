@@ -274,6 +274,12 @@ ledger for the item-by-item map.
 - Documentation audit and project-scope statement (`docs/DOCUMENTATION-AUDIT.md`,
   `docs/PROJECT-SCOPE.md`, #61).
 
+### Fixed
+
+- Correct the national map's SVG coordinate transform so northern states render above southern
+  states. Raw geographic projections now use one north-positive convention and the shared SVG
+  fitter performs the single y-axis inversion; Alaska and Hawaii retain their correct orientation.
+
 ### Changed
 
 - Repository, package, citation, and public-page metadata now identify
