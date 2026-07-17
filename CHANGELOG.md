@@ -58,8 +58,8 @@ every entry.
 
 ### Added
 
-- A distinctive “NearMiss Conflict Atlas” identity across the national studio, Davis demo, report
-  form, embed, share surface, and branded 404: a clearance-mark road symbol, asphalt/interstate/brake
+- A distinctive “NearMiss Conflict Atlas” identity across the national studio, retained local
+  methods prototypes, and branded 404: a clearance-mark road symbol, asphalt/interstate/brake
   palette, self-hosted Overpass/Atkinson Hyperlegible/Fragment Mono typography, compact evidence-first
   hierarchy, and an earlier mobile map replace the previous generic dashboard treatment.
 - A narrowly scoped solo-maintainer REVIEW-GATE policy for pre-1.0 public previews. Mandatory
@@ -129,11 +129,22 @@ every entry.
   are permanently labeled `demonstration`; `partner_city` requires both measured coverage and an
   explicit partner organization plus review reference, never report volume alone.
 
+### Removed
+
+- Retire the Davis and Riverside synthetic city experiences, hotspot embed, disconnected browser
+  submission prototype, Leaflet runtime, and synthetic published artifacts from the production site.
+  The national FARS atlas is now the sole public product; `/web/index.html` remains only as a
+  `noindex` compatibility redirect. All synthetic configs, known-answer fixtures, local interfaces,
+  teaching material, and CI contracts remain in the repository for reproducibility.
+- Replace broad production web/data globs with an exact national-runtime and reviewed-FARS allowlist.
+  Deployment and the recurring live sentinel now prove that retired synthetic surfaces remain absent
+  while continuing to hash-verify every national release and runtime dependency.
+
 ### Security
 
-- The script-tag embed loader now chooses only canonical, constant iframe URLs for the Davis and
-  Riverside public artifacts. A publisher-controlled or mutated loader `src`, and an unknown but
-  syntactically valid dataset slug, can no longer influence iframe navigation.
+- The retained source-only embed loader now chooses only fixed same-origin paths for the Davis and
+  Riverside fixtures. A mutated loader `src`, unknown dataset slug, or conflicting selector can no
+  longer influence iframe navigation or send the local methods fixture to the retired public URL.
 - Production publication now obtains AWS authority only after rebuilding and byte-comparing the exact
   reviewed artifact, through a GitHub environment restricted to the exact `main` branch with
   administrator bypass disabled. The live verifier rejects wrong MIME metadata, unreviewed 404 bodies,

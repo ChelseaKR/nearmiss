@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex, follow" />
+    <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#152A30" />
     <link rel="icon" href="/web/vendor/brand/clearance-mark.svg" type="image/svg+xml" />
-    <title>nearmiss hotspot map (embed)</title>
+    <title>nearmiss synthetic hotspot fixture (local embed)</title>
     <meta
       name="description"
-      content="Embeddable nearmiss hotspot widget: exposure-normalized road-hazard rates with statistically significant hotspots, for advocacy sites."
+      content="Source-only nearmiss synthetic fixture for locally testing exposure-normalized road-hazard hotspot methods."
     />
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="embed.css" />
@@ -18,10 +18,17 @@
   <body class="embed">
     <a class="skip-link" href="#main">Skip to the hotspot list</a>
     <main id="main" class="embed-main">
-      <h1 class="visually-hidden">nearmiss exposure-normalized hazard hotspots</h1>
+      <h1 class="visually-hidden">nearmiss synthetic exposure-normalized hazard hotspot fixture</h1>
 
       <div class="embed-brand">
-        <a class="brand-lockup" href="https://nearmiss.chelseakr.com" target="_blank" rel="noopener" aria-label="nearmiss Conflict Atlas">
+        <a
+          id="embed-brand-link"
+          class="brand-lockup"
+          href="/web/davis-demo.html?city=davis"
+          target="_blank"
+          rel="noopener"
+          aria-label="Open the nearmiss local synthetic methods demo"
+        >
           <svg class="clearance-mark" viewBox="0 0 48 32" aria-hidden="true" focusable="false">
             <path class="clearance-path clearance-path-a" d="M3 27 17 13h5" />
             <path class="clearance-path clearance-path-b" d="M45 5 31 19h-5" />
@@ -41,10 +48,9 @@
       <p id="embed-caption" class="embed-caption" aria-live="polite">Loading hotspot data…</p>
 
       <p class="embed-disclaimer" role="note">
-        Community counter-data for advocacy and planning —
-        <strong>not for safety-critical routing</strong> or navigation. These are
-        exposure-normalized relative rates from historical reports, not real-time
-        street conditions.
+        Source-only synthetic fixture for methods development —
+        <strong>not historical observations and not for safety-critical routing</strong>
+        or navigation.
       </p>
 
       <!-- Non-visual equivalent: nothing here is conveyed by color alone. -->
@@ -54,9 +60,13 @@
       </section>
 
       <p class="embed-footer">
-        <span id="embed-source">Exposure-normalized rates · open data</span>
-        <a id="embed-fulllink" href="https://nearmiss.chelseakr.com" target="_blank" rel="noopener"
-          >View the full map, data & methods →</a
+        <span id="embed-source">Exposure-normalized rates · synthetic fixture</span>
+        <a
+          id="embed-fulllink"
+          href="/web/davis-demo.html?city=davis"
+          target="_blank"
+          rel="noopener"
+          >Open the full local methods demo →</a
         >
       </p>
     </main>

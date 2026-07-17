@@ -95,6 +95,10 @@ mechanisms with their direction of effect. EN/ES is treated as a first-class seg
 third parties for the first time; a bug or design gap in aggregation/withholding could re-identify a
 reporter's home, workplace, or routine.
 
+**Deployment update (2026-07-16):** that browser form is now source-only and absent from the
+production artifact. The risk remains applicable to CLI/operator intake and would become a public
+surface again only after a new reviewed deployment decision.
+
 **How do we test for it?** See the full DPIA: [`docs/DPIA.md`](DPIA.md), and the threat model's T1/T2
 and [residual-risk register](THREAT-MODEL.md#residual-risk-register) RR-1/RR-2. Data inventory,
 retention, lawful-basis screening, and named gaps (including the currently-unaddressed lack of a

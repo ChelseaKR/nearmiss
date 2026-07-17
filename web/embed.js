@@ -8,10 +8,10 @@
  * significance by a dashed pattern AND text, never by color alone, and a text
  * list of the significant hotspots is rendered as the non-visual equivalent.
  *
- * An explicit public-artifact allowlist accepts ?city=<slug> or
+ * An explicit source-fixture allowlist accepts ?city=<slug> or
  * ?data=../data/published/<slug>.geojson. Query input cannot choose another
- * origin or directory. The provenance line and the
- * "view full" link are driven by the dataset's own embedded metadata.
+ * origin or directory. The provenance line is driven by the dataset's own
+ * embedded metadata; the local full-demo links preserve the allowlisted fixture.
  */
 (function () {
   "use strict";
@@ -64,12 +64,24 @@
       : "../data/published/davis.geojson";
   }
 
-  var DATA_URL = datasetUrlForSlug(resolveDatasetSlug());
+  function demoUrlForSlug(slug) {
+    return slug === "riverside"
+      ? "/web/davis-demo.html?city=riverside"
+      : "/web/davis-demo.html?city=davis";
+  }
+
+  var DATA_SLUG = resolveDatasetSlug();
+  var DATA_URL = datasetUrlForSlug(DATA_SLUG);
+  var DEMO_URL = demoUrlForSlug(DATA_SLUG);
 
   var mapEl = document.getElementById("embed-map");
   var captionEl = document.getElementById("embed-caption");
   var listEl = document.getElementById("embed-hotspots");
   var sourceEl = document.getElementById("embed-source");
+  var brandLinkEl = document.getElementById("embed-brand-link");
+  var fullLinkEl = document.getElementById("embed-fulllink");
+  if (brandLinkEl) brandLinkEl.setAttribute("href", DEMO_URL);
+  if (fullLinkEl) fullLinkEl.setAttribute("href", DEMO_URL);
 
   function widthFor(value, max, lo, hi) {
     if (!max || max <= 0) return lo;
@@ -94,10 +106,8 @@
         (meta.city ? meta.city + " · " : "") +
         "exposure-normalized hazard rate" +
         unit +
-        " · open data";
+        " · synthetic fixture";
     }
-    var full = document.getElementById("embed-fulllink");
-    if (full && meta.city) full.setAttribute("href", "https://nearmiss.chelseakr.com");
 
     var maxRate = features.reduce(function (m, f) {
       return Math.max(m, f.properties.rate || 0);

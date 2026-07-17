@@ -55,7 +55,7 @@ def _running_server(root: Path) -> Iterator[str]:
 def _make_root(tmp_path: Path) -> Path:
     """A served tree with one public artifact, one private raw report, one dotfile."""
     (tmp_path / "web").mkdir()
-    (tmp_path / "web" / "index.html").write_text("<h1>public map</h1>", encoding="utf-8")
+    (tmp_path / "web" / "davis-demo.html").write_text("<h1>public map</h1>", encoding="utf-8")
     (tmp_path / "data" / "raw" / "davis").mkdir(parents=True)
     (tmp_path / "data" / "raw" / "davis" / "reports.json").write_text("SECRET", encoding="utf-8")
     (tmp_path / ".env").write_text("TOKEN=should-never-be-served", encoding="utf-8")
@@ -247,7 +247,7 @@ def test_request_log_is_json_with_expected_fields_and_no_protected_leak(tmp_path
     obs.configure_logging(stream=buf)
 
     with _running_server(root) as base:
-        assert _fetch(f"{base}/web/index.html")[0] == 200
+        assert _fetch(f"{base}/web/davis-demo.html")[0] == 200
         # The 403-no-leak guard still holds on the wire (reinforced, not weakened).
         raw_status, raw_body = _fetch(f"{base}/data/raw/davis/reports.json")
         assert raw_status == 403
@@ -279,7 +279,7 @@ def test_request_log_is_json_with_expected_fields_and_no_protected_leak(tmp_path
         by_path.setdefault(str(record["path"]), []).append(record)
 
     # The public artifact is logged with its real, non-sensitive path.
-    assert by_path["/web/index.html"][0]["status"] == 200
+    assert by_path["/web/davis-demo.html"][0]["status"] == 200
     assert by_path["/web/missing.html"][0]["status"] == 404
     # Both refused requests collapse to the redaction token — never their path.
     assert len(by_path["<blocked>"]) == 2

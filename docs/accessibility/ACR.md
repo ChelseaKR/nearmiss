@@ -1,7 +1,8 @@
 # Accessibility Conformance Report (ACR)
 
 > **⚠ STALE (updated 2026-07-16):** this report's date (below) and every table in it describe only
-> `index.html` + `app.js` + `style.css` — the surfaces that existed on 2026-06-17. **The public
+> the former `index.html` + `app.js` + `style.css` surface (now retained source-only as
+> `davis-demo.html`) — the surfaces that existed on 2026-06-17. **The public
 > submission form (`web/submit.html` / `submit.js`) and the embeddable hotspot widget
 > (`web/embed.html` / `embed.js` / `nearmiss-embed.js`), shipped 2026-06-29 (#18), are not evaluated
 > anywhere in this document.** Both pages pass the same automated gates as `index.html` today
@@ -13,6 +14,8 @@
 > (`P2-3` in `audit-2026-07-05/nearmiss-REMEDIATION.md`) and was judged out of scope for this pass;
 > this banner exists so the gap is loud rather than silently implied-covered by an unchanged document.
 > Do not read this ACR as certifying `submit.html` or `embed.html`.
+> As of 2026-07-16 those synthetic methods, submission, and embed surfaces remain source/CI fixtures
+> but are no longer included in the production static artifact.
 >
 > The nationwide FARS evidence studio (`web/us-coverage.html` / `us-coverage.js` /
 > `us-coverage-studio.css`) is also outside this ACR's evaluated scope. It adds a linked national SVG
@@ -39,7 +42,8 @@
 > **Status at v0.1.0 — implementation exists, passes the structural gate, and now passes an automated
 > axe-core run; the manual screen-reader review (NVDA + VoiceOver) is still pending, so per-criterion
 > verdicts that depend on assistive-technology testing remain a target.** An accessible implementation
-> **exists**: the framework-free `web/` UI (`index.html` + `app.js` + `style.css`) presents a
+> **exists**: the framework-free source-only `web/` methods UI (`davis-demo.html` + `app.js` +
+> `style.css`) presents a
 > supplementary SVG map paired with an **authoritative sortable data table** as the non-visual
 > equivalent; significance and confidence are stated in **text, not color**; it provides a skip link and
 > semantic `<th scope>` headers. Two automated gates now run: the committed **structural** gate

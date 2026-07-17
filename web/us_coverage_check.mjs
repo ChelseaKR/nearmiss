@@ -10,7 +10,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..");
 const APEX = join(repoRoot, "index.html");
 const PAGE = join(here, "us-coverage.html");
-const DAVIS_HOME = join(here, "index.html");
+const LEGACY_HOME = join(here, "index.html");
 const NATIONAL_ROUTE = "/fars/national/";
 const NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/";
 const APP = join(here, "us-coverage.js");
@@ -291,6 +291,32 @@ async function assertLocaleRootFollowsLoadedScript() {
   dom.window.close();
 }
 
+function assertStrictLanguageRedirect(document, selector, label) {
+  const source = document.querySelector(selector)?.textContent;
+  if (!source) die(`${label} has no strict language-preserving redirect`);
+  const redirectTarget = (search) => {
+    let target = "";
+    Function("window", "URLSearchParams", source)(
+      { location: { search, replace: (value) => { target = value; } } },
+      URLSearchParams
+    );
+    return target;
+  };
+  const cases = new Map([
+    ["", "/fars/national/"],
+    ["?lang=en", "/fars/national/?lang=en"],
+    ["?lang=es&state=CA&year=2024", "/fars/national/?lang=es"],
+    ["?lang=es&lang=en", "/fars/national/"],
+    ["?lang=ES", "/fars/national/"],
+    ["?year=2024&state=CA", "/fars/national/"],
+  ]);
+  for (const [query, expected] of cases) {
+    if (redirectTarget(query) !== expected) {
+      die(`${label} did not preserve only one strict supported language for ${query || "an empty query"}`);
+    }
+  }
+}
+
 async function main() {
   const appSource = readFileSync(APP, "utf-8");
   if (/\b(?:innerHTML|outerHTML|insertAdjacentHTML|document\.write|DOMParser)\b/.test(appSource)) {
@@ -336,36 +362,52 @@ async function main() {
   if (!apex.querySelector('a[href="/fars/national/"]')) {
     die("apex fallback does not target the canonical national route");
   }
-  if (!apex.querySelector("main")) die("apex fallback content has no main landmark");
-
-  const redirectSource = apex.querySelector("script[data-apex-redirect]")?.textContent;
-  if (!redirectSource) die("apex has no strict language-preserving redirect");
-  const apexTarget = (search) => {
-    let target = "";
-    Function("window", "URLSearchParams", redirectSource)(
-      { location: { search, replace: (value) => { target = value; } } },
-      URLSearchParams
-    );
-    return target;
-  };
-  const apexCases = new Map([
-    ["?lang=en", "/fars/national/?lang=en"],
-    ["?lang=es&state=CA&year=2024", "/fars/national/?lang=es"],
-    ["?lang=es&lang=en", "/fars/national/"],
-    ["?lang=ES", "/fars/national/"],
-    ["?year=2024&state=CA", "/fars/national/"],
-  ]);
-  for (const [query, expected] of apexCases) {
-    if (apexTarget(query) !== expected) {
-      die(`apex did not preserve only one strict supported language for ${query}`);
-    }
+  if (apex.querySelector('a[href="/web/index.html"]')) {
+    die("apex fallback still advertises the retired synthetic demo");
   }
+  if (!apex.querySelector("main")) die("apex fallback content has no main landmark");
+  assertStrictLanguageRedirect(apex, "script[data-apex-redirect]", "apex");
+
+  const legacyHome = new JSDOM(readFileSync(LEGACY_HOME, "utf-8")).window.document;
+  if (legacyHome.querySelector('link[rel~="canonical"]')?.getAttribute("href") !== NATIONAL_CANONICAL) {
+    die("retired demo does not canonicalize to the national ledger");
+  }
+  if (legacyHome.querySelector('meta[name="robots"]')?.getAttribute("content") !== "noindex, nofollow") {
+    die("retired demo is not explicitly noindex and nofollow");
+  }
+  if (
+    legacyHome.querySelector('meta[http-equiv="refresh"]')?.getAttribute("content") !==
+    "0; url=/fars/national/"
+  ) {
+    die("retired demo does not immediately redirect to the national ledger");
+  }
+  if (
+    !legacyHome.querySelector("main h1") ||
+    !legacyHome.querySelector('a[href="/fars/national/"]') ||
+    !legacyHome.querySelector('a[href="/fars/national/?lang=es"][hreflang="es"]')
+  ) {
+    die("retired demo has no accessible English and Spanish national fallback");
+  }
+  if (legacyHome.querySelector("script[src], link[rel=stylesheet]")) {
+    die("retired demo still loads the synthetic application");
+  }
+  assertStrictLanguageRedirect(
+    legacyHome,
+    "script[data-legacy-demo-redirect]",
+    "retired demo"
+  );
 
   const coverageSource = new JSDOM(readFileSync(PAGE, "utf-8")).window.document;
   assertNationalMetadata(coverageSource, "nationwide page");
   if (coverageSource.querySelector("base")) die("nationwide page relies on a path-rewriting base element");
   if (coverageSource.querySelector(".skip-link")?.getAttribute("href") !== "#main") {
     die("nationwide page skip link no longer targets its main landmark");
+  }
+  if (coverageSource.querySelector(".brand-lockup")?.getAttribute("href") !== NATIONAL_ROUTE) {
+    die("nationwide brand lockup does not resolve to the canonical national home");
+  }
+  if (coverageSource.querySelector('a[href="/web/index.html"]')) {
+    die("nationwide page still links to the retired synthetic demo");
   }
   for (const dependency of [
     "/web/style.css",
@@ -462,19 +504,6 @@ async function main() {
     die("forced-colors mode does not retain system-colored focus indicators for dense views");
   }
 
-  const home = new JSDOM(readFileSync(DAVIS_HOME, "utf-8")).window.document;
-  const nationalCta = home.querySelector(`.national-cta a[href="${NATIONAL_ROUTE}"]`);
-  if (!nationalCta) {
-    die("Davis homepage has no prominent link to the nationwide evidence ledger");
-  }
-  if (
-    !home.querySelector(".national-cta").textContent.includes("synthetic demo") ||
-    !nationalCta.textContent.includes("2020–2024") ||
-    !nationalCta.textContent.includes("nationwide US")
-  ) {
-    die("Davis CTA does not distinguish synthetic local data from nationwide reviewed evidence");
-  }
-
   if (CHECKED_INDEX_BYTES.byteLength !== 5273 || digest(CHECKED_INDEX_BYTES) !== "594b13a65f5b88661db8acb21c73fc55ddc61ba94e5a659cdd27463c178f50f5") {
     die("checked release index drifted from its reviewed bytes");
   }
@@ -512,19 +541,6 @@ async function main() {
       digest(bytes) !== expected[1]
     ) {
       die(`checked ${release.dataset_year} artifact does not match its release-index pin`);
-    }
-  }
-
-  for (const locale of ["en", "es"]) {
-    const cta = JSON.parse(readFileSync(join(LOCALES, `${locale}.json`), "utf-8"))[
-      "web.app.us_coverage_cta"
-    ];
-    if (
-      !cta.includes('href="/fars/national/"') ||
-      !cta.includes("2020–2024") ||
-      !(locale === "en" ? cta.includes("synthetic demo") : cta.includes("demostración sintética"))
-    ) {
-      die(`${locale} catalog does not distinguish the Davis demo from national evidence`);
     }
   }
 

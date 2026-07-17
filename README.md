@@ -47,6 +47,8 @@ community-owned evidence base.
 > accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
 > pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
 > (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta. The national
+> studio is the sole deployed product; the Davis/Riverside methods UI, embed, and submission form are
+> retained as local, synthetic test surfaces and are not published at the production origin. The
 > studio is a time-bounded, owner-attested public preview under
 > [ADR 0012](docs/adr/0012-solo-maintainer-provisional-review-attestation.md); that disposition is
 > not a manual screen-reader result or a WCAG/ACR conformance claim.
@@ -295,8 +297,8 @@ nearmiss publish --config config/davis-demo.toml
 # Regenerate every figure and table in the briefs from raw inputs (the reproducibility proof)
 make reproduce
 
-# Serve the accessible map with its equivalent sortable list/table view (read-only)
-nearmiss serve                              # WCAG 2.2 AA; data view is the non-visual equivalent
+# Serve the source-only synthetic methods UI with its equivalent data table (read-only)
+nearmiss serve  # open /web/davis-demo.html; national preview: /web/us-coverage.html
 ```
 
 Every published number can be traced from a brief figure back through a notebook cell, a statistic, a
@@ -636,7 +638,7 @@ If you believe a published artifact leaks identifying precision, treat it as a s
 | [`schema/`](schema/) | [`report.schema.json`](schema/report.schema.json) (intake) and [`dataset.schema.md`](schema/dataset.schema.md) (published GeoJSON) |
 | [`src/nearmiss/`](src/nearmiss/) | intake, pipeline stages, exposure, statistics, publish, brief, accessible server, config |
 | [`notebooks/`](notebooks/) | deterministic analysis notebooks; the reproducibility backbone |
-| [`web/`](web/) | framework-free WCAG 2.2 AA map UI with list/table equivalent; public submission form (`submit.html`); embeddable hotspot widget (`embed.html` + `nearmiss-embed.js`) |
+| [`web/`](web/) | deployed nationwide FARS studio plus source-only synthetic methods UI, submission prototype, and embed fixtures exercised locally and in CI |
 | [`data/`](data/) | `raw/` (private, gitignored) and `published/` (open GeoJSON + data card) |
 | [`tests/`](tests/) | pytest suites and planted-hotspot fixtures with known answers |
 | [`docs/`](docs/) | [METHODOLOGY](docs/METHODOLOGY.md), [DATA-CARD](docs/DATA-CARD.md), [LIVE-INTEGRITY](docs/LIVE-INTEGRITY.md), [COVERAGE-TIERS](docs/COVERAGE-TIERS.md), [ADAPTING](docs/ADAPTING.md), [THREAT-MODEL](docs/THREAT-MODEL.md), [SUBMISSIONS](docs/SUBMISSIONS.md), [INTAKE-AND-ABUSE](docs/INTAKE-AND-ABUSE.md), [ACCESSIBILITY](docs/ACCESSIBILITY.md), [ADRs](docs/adr/), [audits](docs/audits/), [accessibility ACR](docs/accessibility/ACR.md) |

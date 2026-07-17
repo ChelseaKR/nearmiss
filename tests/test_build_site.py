@@ -81,12 +81,11 @@ def _assert_national_apex(html: str) -> None:
     assert "window.location.replace(`/fars/national/${query}`)" in redirect
     assert NATIONAL_ROUTE in document.links
     assert f"{NATIONAL_ROUTE}?lang=es" in document.links
-    assert "/web/index.html" in document.links
+    assert "/web/index.html" not in document.links
     assert "/data/published/fars-state-mode-index-v2.json" in document.links
     assert "/data/published/fars-2024-state-mode-r2.json" in document.links
     assert "/data/published/fars-release-corrections.json" in document.links
     assert "/data/published/" not in document.links
-    assert document.links.index(NATIONAL_ROUTE) < document.links.index("/web/index.html")
 
 
 def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
@@ -94,29 +93,78 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     manifest = build_site(out, SHA)
     files = set(manifest["files"])
 
-    assert "index.html" in files
-    assert "404.html" in files
-    assert "web/index.html" in files
-    assert "web/app.js" in files
-    assert "web/us-coverage.html" in files
-    assert NATIONAL_MANIFEST_PATH in files
-    assert "web/us-coverage.js" in files
-    assert "web/us-coverage.css" in files
-    assert "web/brand.css" in files
-    assert "web/vendor/brand/clearance-mark.svg" in files
-    assert "web/vendor/fonts/overpass-latin-wght-normal.woff2" in files
-    assert "web/vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2" in files
-    assert "web/vendor/fonts/fragment-mono-latin-400-normal.woff2" in files
-    assert "web/vendor/leaflet/leaflet.js" in files
-    assert "data/published/davis.geojson" in files
-    assert "data/published/fars-state-mode-index.json" in files
-    assert "data/published/fars-state-mode-index-v2.json" in files
-    assert "data/published/fars-release-corrections.json" in files
-    for year in range(2020, 2025):
-        assert f"data/published/fars-{year}-state-mode.json" in files
-    assert "data/published/fars-2024-state-mode-r2.json" in files
-    assert "data/published/us-state-boundaries-2024.json" in files
-    assert "deployment.json" in files
+    expected = {
+        ".nojekyll",
+        "404.html",
+        "CNAME",
+        "deployment.json",
+        "index.html",
+        NATIONAL_MANIFEST_PATH,
+        "web/index.html",
+        "web/us-coverage.html",
+        "web/us-coverage.js",
+        "web/i18n.js",
+        "web/brand.css",
+        "web/style.css",
+        "web/us-coverage.css",
+        "web/us-coverage-studio.css",
+        "web/locales/en.json",
+        "web/locales/es.json",
+        "web/vendor/brand/clearance-mark.svg",
+        "web/vendor/fonts/LICENSE-atkinson-hyperlegible-next.txt",
+        "web/vendor/fonts/LICENSE-fragment-mono.txt",
+        "web/vendor/fonts/LICENSE-overpass.txt",
+        "web/vendor/fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2",
+        "web/vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2",
+        "web/vendor/fonts/fragment-mono-latin-400-normal.woff2",
+        "web/vendor/fonts/fragment-mono-latin-ext-400-normal.woff2",
+        "web/vendor/fonts/overpass-latin-ext-wght-normal.woff2",
+        "web/vendor/fonts/overpass-latin-wght-normal.woff2",
+        "data/published/fars-state-mode-index.json",
+        "data/published/fars-state-mode-index-v2.json",
+        "data/published/fars-release-corrections.json",
+        "data/published/fars-2020-state-mode.json",
+        "data/published/fars-2021-state-mode.json",
+        "data/published/fars-2022-state-mode.json",
+        "data/published/fars-2023-state-mode.json",
+        "data/published/fars-2024-state-mode.json",
+        "data/published/fars-2024-state-mode-r2.json",
+        "data/published/us-state-boundaries-2024.json",
+    }
+    assert files == expected
+
+    retired = {
+        "web/app.js",
+        "web/davis-demo.html",
+        "web/embed.css",
+        "web/embed.html",
+        "web/embed.js",
+        "web/nearmiss-embed.js",
+        "web/share-card.js",
+        "web/submit.html",
+        "web/submit.js",
+        "web/vendor/leaflet/images/layers-2x.png",
+        "web/vendor/leaflet/images/layers.png",
+        "web/vendor/leaflet/images/marker-icon-2x.png",
+        "web/vendor/leaflet/images/marker-icon.png",
+        "web/vendor/leaflet/images/marker-shadow.png",
+        "web/vendor/leaflet/leaflet.css",
+        "web/vendor/leaflet/leaflet.js",
+        "data/published/davis.geojson",
+        "data/published/davis.corridors.geojson",
+        "data/published/davis.metadata.json",
+        "data/published/davis-rates.svg",
+        "data/published/davis-ranked.md",
+        "data/published/davis-sensitivity.md",
+        "data/published/riverside.geojson",
+        "data/published/riverside.corridors.geojson",
+        "data/published/riverside.metadata.json",
+        "data/published/riverside-rates.svg",
+        "data/published/riverside-ranked.md",
+        "data/published/riverside-sensitivity.md",
+        "data/published/preregistration/README.md",
+    }
+    assert retired.isdisjoint(files)
     assert not any(path.startswith("data/raw/") for path in files)
     assert not any(path.startswith("config/") for path in files)
     assert not any(path.startswith("src/") for path in files)
@@ -133,6 +181,30 @@ def test_source_and_built_apex_promote_national_surface(tmp_path: Path) -> None:
     assert built == source
     _assert_national_apex(source)
     _assert_national_apex(built)
+
+
+def test_public_catalogs_contain_only_national_messages(tmp_path: Path) -> None:
+    out = tmp_path / "site"
+    build_site(out, SHA)
+    built_catalogs: dict[str, dict[str, str]] = {}
+
+    for locale in build_site_module.PUBLIC_WEB_LOCALES:
+        source = json.loads((PROJECT_ROOT / "web" / "locales" / locale).read_text(encoding="utf-8"))
+        built = json.loads((out / "web" / "locales" / locale).read_text(encoding="utf-8"))
+        expected = {
+            key: value
+            for key, value in source.items()
+            if key.startswith(build_site_module.PUBLIC_WEB_MESSAGE_PREFIX)
+        }
+        assert built == expected
+        assert built
+        assert all(key.startswith(build_site_module.PUBLIC_WEB_MESSAGE_PREFIX) for key in built)
+        assert any(
+            not key.startswith(build_site_module.PUBLIC_WEB_MESSAGE_PREFIX) for key in source
+        )
+        built_catalogs[locale] = built
+
+    assert set(built_catalogs["en.json"]) == set(built_catalogs["es.json"])
 
 
 def test_reviewed_not_found_document_is_exact_and_branded(tmp_path: Path) -> None:
@@ -158,8 +230,6 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
         "index.html": NATIONAL_CANONICAL,
         "web/us-coverage.html": NATIONAL_CANONICAL,
         NATIONAL_MANIFEST_PATH: NATIONAL_CANONICAL,
-        "web/index.html": "https://nearmiss.chelseakr.com/web/index.html",
-        "web/submit.html": "https://nearmiss.chelseakr.com/web/submit.html",
     }
 
     for relative, canonical in expected.items():
@@ -188,12 +258,35 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
         ), relative
         assert document.meta_properties["og:url"] == [canonical], relative
 
-    embed = _ApexDocument()
-    embed.feed((out / "web/embed.html").read_text(encoding="utf-8"))
-    embed.close()
-    assert embed.meta_names["robots"] == ["noindex, follow"]
-    assert embed.canonicals == []
-    assert "og:url" not in embed.meta_properties
+
+def test_legacy_web_index_is_a_noindex_national_redirect(tmp_path: Path) -> None:
+    out = tmp_path / "site"
+    build_site(out, SHA)
+    html = (out / "web/index.html").read_text(encoding="utf-8")
+    document = _ApexDocument()
+    document.feed(html)
+    document.close()
+
+    assert document.canonicals == [NATIONAL_CANONICAL]
+    assert len(document.meta_names["robots"]) == 1
+    assert "noindex" in document.meta_names["robots"][0].casefold()
+    assert len(document.refreshes) == 1
+    assert document.refreshes[0].casefold().startswith("0;")
+    assert NATIONAL_ROUTE in document.refreshes[0]
+    assert NATIONAL_ROUTE in document.links
+    assert "riverside" not in html.casefold()
+
+
+def test_source_only_html_prototypes_are_noindex_and_noncanonical() -> None:
+    for relative in ("web/davis-demo.html", "web/submit.html", "web/embed.html"):
+        document = _ApexDocument()
+        document.feed((PROJECT_ROOT / relative).read_text(encoding="utf-8"))
+        document.close()
+
+        assert len(document.meta_names["robots"]) == 1, relative
+        assert "noindex" in document.meta_names["robots"][0].casefold(), relative
+        assert document.canonicals == [], relative
+        assert "og:url" not in document.meta_properties, relative
 
 
 def test_canonical_national_route_is_a_byte_identical_real_page(tmp_path: Path) -> None:
@@ -272,7 +365,6 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
         "web/us-coverage.css|web/us-coverage.css",
         "web/us-coverage-studio.css|web/us-coverage-studio.css",
         "web/style.css|web/style.css",
-        "data/published/davis.geojson|data/published/davis.geojson",
         "data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json",
         "data/published/fars-2024-state-mode.json|data/published/fars-2024-state-mode.json",
         "data/published/fars-state-mode-index-v2.json|data/published/fars-state-mode-index-v2.json",
@@ -281,6 +373,12 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
     }
     for spec in required_specs:
         assert f"'{spec}'" in workflow
+    assert "'data/published/davis.geojson|data/published/davis.geojson'" not in workflow
+    assert "'data/published/riverside.geojson|data/published/riverside.geojson'" not in workflow
+    assert "'web/app.js|web/app.js'" not in workflow
+    assert "'web/embed.html|web/embed.html'" not in workflow
+    assert "'web/submit.html|web/submit.html'" not in workflow
+    assert "'web/vendor/leaflet/leaflet.js|web/vendor/leaflet/leaflet.js'" not in workflow
     assert '[ "$live_sha" != "$expected_sha" ]' in workflow
     assert '[ "$live_sha" != "$manifest_artifact_sha" ]' in workflow
     assert (
@@ -364,34 +462,29 @@ def test_pages_builder_runs_without_site_packages(tmp_path: Path) -> None:
 
 
 def _minimal_site_source(root: Path) -> None:
-    (root / "web" / "vendor").mkdir(parents=True)
-    (root / "web" / "locales").mkdir()
     (root / "data" / "published").mkdir(parents=True)
     (root / "index.html").write_text("index", encoding="utf-8")
     (root / "404.html").write_text("not found", encoding="utf-8")
     (root / "CNAME").write_text("example.test\n", encoding="utf-8")
-    (root / "web" / "index.html").write_text("web", encoding="utf-8")
-    (root / "web" / "us-coverage.html").write_text("national", encoding="utf-8")
-    (root / "web" / "vendor" / "safe.js").write_text("safe", encoding="utf-8")
-    (root / "web" / "locales" / "en.json").write_text("{}", encoding="utf-8")
+    for relative in build_site_module.PUBLIC_WEB_FILES:
+        destination = root / "web" / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        content = "{}" if destination.suffix == ".json" else "public"
+        destination.write_text(content, encoding="utf-8")
+    for locale in build_site_module.PUBLIC_WEB_LOCALES:
+        destination = root / "web" / "locales" / locale
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text('{"web.coverage.title":"National evidence"}', encoding="utf-8")
 
 
 def _copy_current_fars_release_set(destination: Path) -> None:
     source = PROJECT_ROOT / "data" / "published"
-    names = {
-        "fars-state-mode-index.json",
-        "fars-state-mode-index-v2.json",
-        "fars-release-corrections.json",
-    }
-    for index_name in ("fars-state-mode-index.json", "fars-state-mode-index-v2.json"):
-        index = json.loads((source / index_name).read_text(encoding="utf-8"))
-        names.update(release["artifact_path"] for release in index["releases"])
-    for name in names:
+    for name in build_site_module.PUBLIC_FARS_FILES:
         (destination / name).write_bytes((source / name).read_bytes())
 
 
 @pytest.mark.skipif(not hasattr(os, "symlink"), reason="symlinks unavailable")
-def test_build_rejects_published_symlink_escape(
+def test_build_ignores_unallowlisted_published_symlink_escape(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = tmp_path / "repo"
@@ -403,19 +496,45 @@ def test_build_rejects_published_symlink_escape(
     _copy_current_fars_release_set(root / "data" / "published")
     monkeypatch.setattr(build_site_module, "ROOT", root)
 
+    out = tmp_path / "site"
+    manifest = build_site_module.build_site(out, SHA)
+
+    assert "data/published/escape.json" not in manifest["files"]
+    assert not (out / "data" / "published" / "escape.json").exists()
+
+
+@pytest.mark.skipif(not hasattr(os, "symlink"), reason="symlinks unavailable")
+def test_build_rejects_symlink_for_allowlisted_published_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "repo"
+    _minimal_site_source(root)
+    published = root / "data" / "published"
+    _copy_current_fars_release_set(published)
+    boundary = published / "us-state-boundaries-2024.json"
+    private = root / "data" / "raw" / "precise.json"
+    private.parent.mkdir(parents=True)
+    private.write_text('{"precise": true}', encoding="utf-8")
+    boundary.unlink()
+    boundary.symlink_to(private)
+    monkeypatch.setattr(build_site_module, "ROOT", root)
+
     with pytest.raises(ValueError, match="refusing symlink"):
         build_site_module.build_site(tmp_path / "site", SHA)
 
 
 @pytest.mark.skipif(not hasattr(os, "symlink"), reason="symlinks unavailable")
-def test_build_rejects_symlink_inside_copied_web_tree(
+def test_build_rejects_symlink_for_allowlisted_web_file(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = tmp_path / "repo"
     _minimal_site_source(root)
     private = root / "private.js"
     private.write_text("private", encoding="utf-8")
-    (root / "web" / "vendor" / "escape.js").symlink_to(private)
+    public_script = root / "web" / "us-coverage.js"
+    public_script.unlink()
+    public_script.symlink_to(private)
+    _copy_current_fars_release_set(root / "data" / "published")
     monkeypatch.setattr(build_site_module, "ROOT", root)
 
     with pytest.raises(ValueError, match="refusing symlink"):

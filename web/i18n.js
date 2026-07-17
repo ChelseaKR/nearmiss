@@ -1,11 +1,11 @@
-/* nearmiss shared web i18n loader — used by both index.html (app.js) and
- * submit.html (submit.js).
+/* nearmiss shared web i18n loader — used by the national studio and retained
+ * source-only methods/submission prototypes.
  *
  * The web UI's translations are single-sourced from the gettext PO catalogs:
- * tools/po2json.py compiles the `web.*` msgids into the committed, static
- * web/locales/<lang>.json catalogs this loader fetches. There is no build step
- * and no hand-maintained translation table in the JS — adding a locale means
- * committing one more locales/<lang>.json (and a language button), nothing else.
+ * tools/po2json.py compiles the `web.*` msgids into committed shared source
+ * catalogs. The production site builder emits only the `web.coverage.*`
+ * namespace; local prototypes read the full source catalogs. There is no
+ * hand-maintained translation table in the JS.
  *
  * Keys in the JSON are the full msgids (e.g. "web.app.title"). Each page creates
  * a namespaced view — NearmissI18n.create("web.app.") — so its call sites keep

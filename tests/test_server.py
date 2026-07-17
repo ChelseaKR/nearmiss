@@ -42,7 +42,7 @@ def _running_server(root: Path) -> Iterator[str]:
 def _make_root(tmp_path: Path) -> Path:
     """A served tree with one public artifact, one private raw report, one dotfile."""
     (tmp_path / "web").mkdir()
-    (tmp_path / "web" / "index.html").write_text("<h1>public map</h1>", encoding="utf-8")
+    (tmp_path / "web" / "davis-demo.html").write_text("<h1>public map</h1>", encoding="utf-8")
     (tmp_path / "data" / "raw" / "davis").mkdir(parents=True)
     (tmp_path / "data" / "raw" / "davis" / "reports.json").write_text("SECRET", encoding="utf-8")
     (tmp_path / ".env").write_text("TOKEN=should-never-be-served", encoding="utf-8")
@@ -61,7 +61,7 @@ def _fetch(url: str, method: str = "GET") -> tuple[int, bytes]:
 def test_public_served_but_private_store_and_dotfiles_forbidden(tmp_path: Path) -> None:
     root = _make_root(tmp_path)
     with _running_server(root) as base:
-        public_status, public_body = _fetch(f"{base}/web/index.html")
+        public_status, public_body = _fetch(f"{base}/web/davis-demo.html")
         assert public_status == 200
         assert b"public map" in public_body
 
@@ -82,7 +82,7 @@ def test_public_served_but_private_store_and_dotfiles_forbidden(tmp_path: Path) 
         assert _fetch(f"{base}/%2eenv")[0] == 403
 
         # HEAD enforces the same authorization as GET (no metadata leak either).
-        assert _fetch(f"{base}/web/index.html", method="HEAD")[0] == 200
+        assert _fetch(f"{base}/web/davis-demo.html", method="HEAD")[0] == 200
         assert _fetch(f"{base}/data/raw/davis/reports.json", method="HEAD")[0] == 403
 
 
@@ -113,7 +113,7 @@ def test_is_blocked_path_normalizes_and_bounds_prefixes() -> None:
         ("/.git/config", True),  # dotdir
         ("/web/nested/.hidden", True),  # dotfile anywhere in the path
         ("/data/rawish/ok.json", False),  # prefix must be a path boundary, not a substring
-        ("/web/index.html", False),
+        ("/web/davis-demo.html", False),
         ("/data/published/davis.geojson", False),
         # Percent-encoding must be decoded before the check — the file resolver
         # (SimpleHTTPRequestHandler.translate_path) unquotes first, so an encoded
@@ -155,4 +155,6 @@ def test_serve_wires_host_port_and_handles_keyboard_interrupt(
     assert captured["address"] == ("127.0.0.1", 54321)
     out = capsys.readouterr().out
     assert "serving" in out
+    assert "http://127.0.0.1:54321/web/davis-demo.html" in out
+    assert "/web/index.html" not in out
     assert "stopped" in out

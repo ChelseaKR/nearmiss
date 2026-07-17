@@ -313,8 +313,11 @@ Finally, serve the accessible map and its equivalent sortable data table (read-o
 published artifacts:
 
 ```bash
-nearmiss serve                # serves the repo; open the web view in a browser
+nearmiss serve                # open /web/davis-demo.html in a browser
 ```
+
+The local national preview is `/web/us-coverage.html`. The production-only
+`/fars/national/` route is created later by the allowlisted site builder.
 
 Reproducibility check: `make reproduce` rebuilds the published dataset and asserts a clean
 `git diff` on `data/published/`. If your run is deterministic, re-running it changes nothing.

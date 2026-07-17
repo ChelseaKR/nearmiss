@@ -1,12 +1,14 @@
 # Web — the accessible map UI
 
-A **dependency-light** map interface targeting **WCAG 2.2 Level AA**, built to be auditable and to load
-fast on a phone from the roadside. It reads only published artifacts; it never touches a precise raw
-report.
+A **dependency-light** set of map interfaces targeting **WCAG 2.2 Level AA**, built to be auditable.
+The production artifact reads only reviewed nationwide FARS releases; it never touches a precise raw
+report. Synthetic city interfaces remain in the source tree as local known-answer demonstrations.
 
-**Production site:** [NearMiss Conflict Atlas](https://nearmiss.chelseakr.com)
+**Production site:** [NearMiss Conflict Atlas](https://nearmiss.chelseakr.com) — the real-data national
+FARS studio is the sole deployed product. Davis, Riverside, the report form, and the embed are not
+copied into the production artifact.
 
-## The two maps (this is the point)
+## The two maps (local methods demonstration)
 
 The page shows the **same reports mapped two ways** on a real [OpenStreetMap](https://www.openstreetmap.org/copyright)
 basemap:
@@ -21,17 +23,23 @@ that *is* — is the original argument of this project, made visible. The map li
 no runtime fetch of code), so the only third-party network call is the OSM tile request, attributed in
 the footer.
 
-## Data source and the honest provenance banner
+## Local data source and provenance banner
 
 The page defaults to the committed synthetic demo (`../data/published/davis.geojson`). An explicit
-allowlist maps `?city=<slug>` or `?data=../data/published/<slug>.geojson` to the published Davis and
-Riverside artifacts. Unknown slugs, other origins or directories, queries, fragments, traversal, and
-duplicate selectors fail closed to the Davis default; adding another published city requires adding
+allowlist maps `?city=<slug>` or `?data=../data/published/<slug>.geojson` to the committed Davis and
+Riverside fixtures. Unknown slugs, other origins or directories, queries, fragments, traversal, and
+duplicate selectors fail closed to the Davis default; adding another local city requires adding
 its constant artifact path to the allowlist. The
 provenance banner and the page title are driven by the dataset's **own embedded `metadata`**, never hard-coded: a
 `dataset_note` that mentions "synthetic"/"demo" shows the amber demo warning; any other note shows a
 green **real data** banner naming the city, exposure unit, and source. The page can therefore never
 mislabel what it is actually showing. See [`docs/REAL-DATA.md`](../docs/REAL-DATA.md).
+
+These files are source and CI fixtures, not public evidence. Use `nearmiss serve` from a local checkout,
+then open `/web/davis-demo.html` for the methods demonstration or `/web/us-coverage.html` for the
+national preview. The production-only `/fars/national/` route does not exist on the source server. A
+real city requires a separately reviewed publication decision; copying an artifact into
+`data/published/` does not make it part of the production site.
 
 Core commitments (see [`docs/ACCESSIBILITY.md`](../docs/ACCESSIBILITY.md) and the
 [ACR](../docs/accessibility/ACR.md)):
@@ -48,30 +56,32 @@ Core commitments (see [`docs/ACCESSIBILITY.md`](../docs/ACCESSIBILITY.md) and th
   available for the same evidence.
 - **Honest legends.** A raw-count layer is labeled "report volume," never "danger."
 
-Automated accessibility is a **merge-blocking CI gate** (`make accessibility` + axe). All four HTML
-pages below are included in those checks. A targeted rendered-browser keyboard and 390×844 reflow
+Automated accessibility is a **merge-blocking CI gate** (`make accessibility` + axe). The deployed
+national page and retained source-only HTML prototypes are included in those checks. A targeted
+rendered-browser keyboard and 390×844 reflow
 review of the nationwide studio is recorded; the uninterrupted full keyboard/200% zoom checks and the
 required human NVDA/VoiceOver release gate have not yet been completed.
 
 ## Pages
 
-| File | What it is |
-| --- | --- |
-| `index.html` + `app.js` | the Davis two-map view + authoritative data table (above) |
-| `us-coverage.html` + `us-coverage.js` | the nationwide annual FARS evidence studio: linked map, matrix, rank, mode and state comparisons, inspector, five-year profile, printable brief, and complete state × involved-mode ledger; a hash-bound release index exposes only published years, with explicit suppression and release provenance |
-| `submit.html` + `submit.js` | the **public submission form** — accessible, serverless-honest; builds a schema-valid report for the moderation queue (see [`docs/SUBMISSIONS.md`](../docs/SUBMISSIONS.md)) |
-| `embed.html` + `embed.js` + `embed.css` | the **embeddable hotspot widget** (below) |
-| `nearmiss-embed.js` | one-line `<script>`-tag loader that injects the widget as a sandboxed iframe |
+| File | Role | Production |
+| --- | --- | --- |
+| `index.html` | noindex compatibility redirect to the national route | Yes |
+| `us-coverage.html` + `us-coverage.js` | nationwide annual FARS evidence studio | Yes |
+| `davis-demo.html` + `app.js` + the synthetic city artifacts | Davis/Riverside two-map known-answer methods demonstration | No — local/CI only |
+| `submit.html` + `submit.js` | schema-valid report-export prototype | No — local/CI only |
+| `embed.html` + `embed.js` + `nearmiss-embed.js` | synthetic hotspot embed prototype | No — local/CI only |
 
-## Embeddable hotspot widget
+## Embed prototype (local only)
 
-A self-contained, framework-free widget an advocacy site can drop in to show the
-exposure-normalized hotspot map. Two ways to embed:
+A self-contained, framework-free widget remains available for local method development. It must not
+be syndicated as evidence: its default Davis and Riverside inputs are synthetic planted-truth
+fixtures, not historical reports.
 
 **iframe** (simplest, fully sandboxed):
 
 ```html
-<iframe src="https://nearmiss.chelseakr.com/web/embed.html?city=davis"
+<iframe src="/web/embed.html?city=davis"
         title="nearmiss hazard hotspot map" width="100%" height="380"
         style="border:1px solid #d3dae2;border-radius:6px"></iframe>
 ```
@@ -79,12 +89,14 @@ exposure-normalized hotspot map. Two ways to embed:
 **script tag** (injects the sandboxed iframe for you):
 
 ```html
-<script src="https://nearmiss.chelseakr.com/web/nearmiss-embed.js"
+<script src="/web/nearmiss-embed.js"
         data-city="davis" data-height="380" async></script>
 ```
 
-The widget accepts `?city=`/`?data=` selectors from an explicit allowlist of the
-published Davis and Riverside artifacts, renders only aggregated data (no tracking, no cookies),
+The local widget accepts `?city=`/`?data=` selectors from an explicit allowlist of the
+Davis and Riverside fixtures, renders only aggregated data (no tracking, no cookies),
 encodes magnitude by line thickness and significance by a dashed pattern **and** text
 (never color alone), and ships a text list of the significant hotspots as the
-non-visual equivalent plus a link back to the full map, data, and methods.
+non-visual equivalent. The script loader resolves `/web/embed.html` on the same local origin and
+never calls the retired public demo URL; unsupported, conflicting, or malformed selectors fall back
+to the Davis fixture. It is retained to exercise the implementation, not as a deployable claim.

@@ -1,20 +1,21 @@
-# Public submissions & the moderation queue
+# Submission prototype & the moderation queue
 
-**Status:** implemented (phase-1 slice). This is the working subset of the
-[contributor intake & abuse design](INTAKE-AND-ABUSE.md): a public way to submit
-a near-miss, plus the moderation queue that gates it. The expensive
+**Status:** implemented as a source-only, local prototype (phase-1 slice); it is
+not included in the production static artifact. This is the working subset of the
+[contributor intake & abuse design](INTAKE-AND-ABUSE.md): a form that builds a
+schema-valid near-miss report, plus the moderation queue that gates it. The expensive
 network-edge defenses in that design (rate limiting, proof-of-work, trust tiers)
 remain future work and are called out below.
 
-> One hard invariant governs everything here: **a public submission never
+> One hard invariant governs everything here: **a submission never
 > reaches the dataset until a human approves it**, and even then it only becomes
 > public through the normal aggregate-and-withhold publish path. Nothing a
 > contributor sends is shown as-is.
 
-## The contributor path (the form)
+## The form prototype (local only)
 
 [`web/submit.html`](../web/submit.html) + [`web/submit.js`](../web/submit.js) is
-a framework-free, WCAG 2.2 AA accessible form (native controls, full keyboard
+a framework-free, WCAG 2.2 AA accessible source fixture (native controls, full keyboard
 operation, labels and error text, ≥ 24 px targets, no visual CAPTCHA — it passes
 the same `tools/a11y_check.py` structural gate and the `axe-core` run as the rest
 of the site). It collects exactly the fields the
@@ -25,14 +26,12 @@ of the site). It collects exactly the fields the
 - a **hazard type** and a **severity** (required);
 - optional **mode**, **language**, and a **note**.
 
-On submit, the form builds a schema-valid report (a fresh UUID, the local event
-time with offset, `schema_version`) and — because the published site is static
-and serverless by default — hands it back to the contributor to **download or
-copy** and send to the maintainers (or a local advocacy org), who run
-`nearmiss submit`. A deployment that has a serverless intake endpoint can instead
+On submit, the local form builds a schema-valid report (a fresh UUID, the local event
+time with offset, `schema_version`) and hands it back to the operator to **download or
+copy**, then enqueue with `nearmiss submit`. The supported production site does not expose this
+form or an intake endpoint. A downstream deployment with its own reviewed serverless intake can
 set `data-endpoint` on the `<form>` and the same payload is `POST`ed directly;
-if that request fails, the form falls back to the offline copy so a curbside
-submission is never lost.
+if that request fails, the form falls back to the offline copy.
 
 ### Privacy posture (what we collect, and don't)
 

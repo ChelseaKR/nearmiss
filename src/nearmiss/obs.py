@@ -5,7 +5,7 @@ request:
 
     {"ts":"2026-06-30T18:00:00+00:00","level":"info","msg":"request",
      "service":"nearmiss","request_id":"...","method":"GET",
-     "path":"/web/index.html","status":200,"latency_ms":1.2}
+     "path":"/web/davis-demo.html","status":200,"latency_ms":1.2}
 
 and the ``nearmiss run`` pipeline command emits one line per pipeline stage:
 

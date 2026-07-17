@@ -1,7 +1,8 @@
-"""The recurring production sentinel is exact, bounded, and privacy-negative."""
+"""The production sentinel binds exact bytes and denies private or retired paths."""
 
 from __future__ import annotations
 
+import hashlib
 import http.client
 import json
 import shutil
@@ -135,12 +136,23 @@ def test_exact_site_and_reviewed_404s_pass(expected_site: Path) -> None:
     assert summary.default_year == 2024
     assert summary.default_source_revision.startswith("reviewed-")
     assert summary.private_probe_count == len(live.PRIVATE_PATH_PROBES)
+    assert summary.retired_probe_count == len(live.RETIRED_PUBLIC_PATH_PROBES)
+    assert not set(live.RETIRED_PUBLIC_PATH_PROBES).intersection(expected_manifest["files"])
     assert any(
         target.startswith("/.well-known/nearmiss-guaranteed-missing-")
         for target, _ in fetcher.targets
     )
     assert any(urlsplit(target).path == "/fars/national/" for target, _ in fetcher.targets)
+    assert {urlsplit(target).path.removeprefix("/") for target, _ in fetcher.targets}.issuperset(
+        live.RETIRED_PUBLIC_PATH_PROBES
+    )
     assert all(f"verify={CACHE_TOKEN}" in target for target, _ in fetcher.targets)
+
+
+def test_pages_deploy_denies_every_retired_public_path() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    for path in live.RETIRED_PUBLIC_PATH_PROBES:
+        assert f"'{path}'" in workflow
 
 
 def test_unreviewed_uniform_404_body_fails(expected_site: Path) -> None:
@@ -188,10 +200,9 @@ def test_required_public_file_rejects_non_200(expected_site: Path, status: int) 
         "/web/us-coverage.js",
         "/web/us-coverage.css",
         "/deployment.json",
-        "/data/published/davis.geojson",
-        "/data/published/davis-rates.svg",
+        "/data/published/fars-state-mode-index-v2.json",
+        "/data/published/us-state-boundaries-2024.json",
         "/web/vendor/fonts/overpass-latin-wght-normal.woff2",
-        "/web/vendor/leaflet/images/layers.png",
     ],
 )
 def test_correct_public_bytes_with_wrong_mime_fail(expected_site: Path, path: str) -> None:
@@ -235,6 +246,43 @@ def test_private_probe_rejects_served_or_redirected_path(expected_site: Path, st
     )
     with pytest.raises(LiveSiteVerificationError, match="did not match the reviewed 404"):
         _verify(expected_site, fetcher)
+
+
+@pytest.mark.parametrize("status", [200, 301, 302])
+@pytest.mark.parametrize("path", live.RETIRED_PUBLIC_PATH_PROBES)
+def test_retired_public_path_rejects_served_or_redirected_path(
+    expected_site: Path,
+    path: str,
+    status: int,
+) -> None:
+    fetcher = MemoryFetcher(expected_site)
+    fetcher.overrides[f"/{path}"] = FetchResult(status, b"retired surface", "text/plain")
+
+    with pytest.raises(LiveSiteVerificationError, match="retired public path"):
+        _verify(expected_site, fetcher)
+
+
+def test_retired_public_path_must_not_be_manifested(
+    expected_site: Path,
+    tmp_path: Path,
+) -> None:
+    retired_site = tmp_path / "retired-site"
+    shutil.copytree(expected_site, retired_site)
+    retired_path = "data/published/davis.geojson"
+    retired_payload = b'{"type":"FeatureCollection","features":[]}\n'
+    destination = retired_site / retired_path
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(retired_payload)
+    manifest_path = retired_site / "site-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["files"][retired_path] = hashlib.sha256(retired_payload).hexdigest()
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(LiveSiteVerificationError, match="must not be listed"):
+        _verify(retired_site, MemoryFetcher(retired_site))
 
 
 def test_guaranteed_missing_baseline_must_be_404(expected_site: Path) -> None:
@@ -723,7 +771,7 @@ def test_retry_loop_uses_fresh_tokens_and_stops_after_success(
         observed.append(str(kwargs["cache_token"]))
         if len(observed) == 1:
             raise LiveSiteVerificationError("not converged")
-        return live.LiveSiteSummary(SHA, 46, 1, 2024, "reviewed", 9)
+        return live.LiveSiteSummary(SHA, 36, 1, 2024, "reviewed", 9, 29)
 
     monkeypatch.setattr(live_cli, "verify_live_site", verify)
     monkeypatch.setattr(

@@ -411,9 +411,9 @@ crowdsourced near-miss reports and open per-segment counts are both sparse, so e
 inventing a denominator. Sacramento has denser incident coverage and a regional count program, so it
 normalizes more fully.
 
-To put a real city on the live website, copy its published GeoJSON into `data/published/` (e.g.
-`data/published/sacramento.geojson`), add its slug and constant path to the web runtime's explicit
-allowlist, and open the map with `?city=sacramento` (or the explicit
+To evaluate a real city in the local methods UI, copy its published GeoJSON into `data/published/`
+(e.g. `data/published/sacramento.geojson`), add its slug and constant path to the local web runtime's
+explicit allowlist, and open the map with `?city=sacramento` (or the explicit
 `?data=../data/published/sacramento.geojson` form). Dataset selectors are restricted to allowlisted
 filename slugs inside `data/published/`; origins, other directories, traversal, queries, fragments,
 and duplicates fail closed to the Davis default. The web app reads the dataset's own embedded `metadata`,
@@ -421,15 +421,17 @@ so the provenance banner
 and title switch automatically: a `dataset_note` mentioning "synthetic"/"demo" shows the amber demo
 warning, anything else shows a green **real data** banner with the city, exposure unit, and source. No
 other rendering code is needed — the synthetic demo stays correctly labeled, and a real dataset announces itself
-as real.
+as real. The production builder intentionally publishes only the reviewed national FARS ledger; a
+city-data deployment requires a separate product, privacy, provenance, and release review rather
+than appearing merely because a file exists in `data/published/`.
 
 ## Network egress note
 
 If you run this in a restricted environment (e.g. Claude Code on the web with a strict egress
 allowlist), the BikeMaps and OSM hosts may be blocked, returning `403 Host not in allowlist`. Either
 add `bikemaps.org` (and your OSM/Overpass host) to the environment's network egress settings, or fetch
-the data where the network is open and commit/transfer the resulting files. The live website is
-unaffected — visitors' browsers load OSM tiles directly.
+the data where the network is open and commit/transfer the resulting files. The national production
+site is unaffected because it does not deploy the local city UI or its OSM tile runtime.
 
 ## Putting it together
 
@@ -441,7 +443,7 @@ python tools/fetch_osm_streets.py --city victoria --out data/raw/victoria/street
 # 3. Exposure (real; your counts/model) -> exposure.json   <-- the remaining real work
 # 4. Point a config at the three inputs (copy config/davis-demo.toml), then:
 nearmiss run --config config/victoria.toml
-nearmiss serve   # open web/index.html — the two maps now show real reports
+nearmiss serve   # open web/davis-demo.html — the local two-map method UI shows the artifact
 ```
 
 Steps 1 and 2 are solved today. **Step 3 (exposure) is the remaining real work** — and it is the

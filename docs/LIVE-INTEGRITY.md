@@ -13,7 +13,8 @@ The sentinel verifies:
   byte for byte and by SHA-256;
 - every annual FARS artifact declared by the canonical release index;
 - English and Spanish year-specific share URLs; and
-- representative private, source, fixture, debug, and run-manifest paths still return HTTP 404.
+- representative private, source, fixture, debug, run-manifest, and retired synthetic-product paths
+  still return HTTP 404.
 
 Responses are size- and time-bounded, compression and redirects are not accepted, the production
 origin is fixed in code, and bounded retries cover normal CloudFront edge convergence. The production
@@ -22,7 +23,7 @@ verification. The cache policy keys only the verifier's `verify` query nonce; ap
 not multiply otherwise identical static objects. The sentinel never shares the deployment concurrency
 group: a read must not block or replace a queued production deploy. If `main` moves while a check is
 running, the job emits a warning and yields so it can be rerun against one unambiguous deployed
-commit.
+commit. It reports private-path and retired-surface probe counts separately.
 
 The shared artifact keeps `.nojekyll` and `CNAME` hash-bound for the legacy GitHub Pages mirror. The
 CloudFront deployment explicitly excludes and deletes both host-control objects from its private S3
@@ -32,8 +33,9 @@ document.
 ## Run it on demand
 
 Open **Actions → live integrity sentinel → Run workflow** on `main`. A successful run prints one JSON
-line with the source SHA, public file and byte counts, default FARS year/source revision, and negative
-probe count. It does not download or inspect private ingestion storage and needs no secret.
+line with the source SHA, public file and byte counts, default FARS year/source revision, and separate
+private-path and retired-surface probe counts. It does not download or inspect private ingestion
+storage and needs no secret.
 
 ## Respond to a failure
 
