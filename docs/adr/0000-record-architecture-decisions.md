@@ -50,7 +50,9 @@ Concretely:
 
 - **Location.** ADRs live in `docs/adr/` as Markdown files, one decision per file.
 - **Naming.** Files are named `NNNN-title-in-kebab-case.md`, where `NNNN` is a zero-padded,
-  monotonically increasing serial number. This document is `0001-record-architecture-decisions.md`.
+  monotonically increasing serial number. This document is `0000-record-architecture-decisions.md`
+  (renumbered from `0001-` on 2026-07-16 to match the canonical seed filename required by
+  `docs/standards/DOCUMENTATION-STANDARD.md`; the decision content is unchanged).
 - **Structure.** Each ADR has a title, a **Status**, and the sections **Context**, **Decision**, and
   **Consequences** (the Nygard core). MADR-style metadata — date, deciders, and optional
   *Considered options* / *Pros and cons* — may be added when a decision had real alternatives worth

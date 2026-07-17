@@ -169,6 +169,13 @@ markers = [
   "slow: marks a test as slow (deselect with '-m \"not slow\"')",
 ]
 
+[tool.coverage.report]
+# Merge-blocking branch-coverage floor (QUALITY-AND-METRICS). `make test`
+# already passes the same floor explicitly on the command line; declaring it
+# here makes the 90% floor hold for any coverage run that omits the flag.
+# Measured 90.44% total (branch) on 2026-07-16, 1694 tests passing.
+fail_under = 90
+
 # ---------------------------------------------------------------------------
 # Mutation testing — mutmut. ADVISORY ONLY (backlog #15), never a merge gate.
 #

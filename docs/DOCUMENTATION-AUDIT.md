@@ -83,7 +83,7 @@ Workflow files checked:
 
 | Category | Count | Representative files |
 | --- | ---: | --- |
-| architecture and interfaces | 5 | `docs/adr/0001-record-architecture-decisions.md`, `docs/adr/0002-exposure-normalization-and-confidence-intervals.md`, `docs/adr/0003-pure-python-statistics-and-planar-geometry.md`, `docs/adr/0004-standards-applicability.md`, `schema/dataset.schema.md` |
+| architecture and interfaces | 5 | `docs/adr/0000-record-architecture-decisions.md`, `docs/adr/0002-exposure-normalization-and-confidence-intervals.md`, `docs/adr/0003-pure-python-statistics-and-planar-geometry.md`, `docs/adr/0004-standards-applicability.md`, `schema/dataset.schema.md` |
 | entry points and repo process | 10 | `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`, `CHANGELOG.md`, `CITATION.cff`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `LICENSE`, `NOTICE`, plus 2 more |
 | examples and guides | 2 | `docs/teaching/FACILITATOR-GUIDE.es.md`, `docs/teaching/FACILITATOR-GUIDE.md` |
 | other docs | 22 | `data/README.md`, `data/published/davis-ranked.md`, `data/published/riverside-ranked.md`, `docs/ADAPTING.md`, `docs/DATA-CARD.md`, `docs/DPIA.md`, `docs/I18N.md`, `docs/INTAKE-AND-ABUSE.md`, plus 14 more |
@@ -124,7 +124,7 @@ Full hand-authored doc inventory checked by this pass:
 - `docs/SUBMISSIONS.md`
 - `docs/THREAT-MODEL.md`
 - `docs/accessibility/ACR.md`
-- `docs/adr/0001-record-architecture-decisions.md`
+- `docs/adr/0000-record-architecture-decisions.md`
 - `docs/adr/0002-exposure-normalization-and-confidence-intervals.md`
 - `docs/adr/0003-pure-python-statistics-and-planar-geometry.md`
 - `docs/adr/0004-standards-applicability.md`
