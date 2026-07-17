@@ -1,6 +1,6 @@
 # Definition of Done — nearmiss
 
-Last reviewed: 2026-07-12. Recheck quarterly and whenever a gate, release
+Last reviewed: 2026-07-16. Recheck quarterly and whenever a gate, release
 surface, or standards-applicability decision changes.
 
 This instantiates the portfolio Quality & Metrics standard for nearmiss: a
@@ -52,9 +52,13 @@ merge.
 - A statistical-method change includes a known-answer or differential test and
   does not claim external validity without the documented statistician/real-data
   review.
-- A new interactive component receives keyboard and screen-reader review; the
-  dated manual NVDA/VoiceOver evidence remains an honest open review gate until
-  a human performs it.
+- A new interactive component receives keyboard and screen-reader review. Until
+  a human performs the dated NVDA/VoiceOver checks, those rows remain honestly
+  **Not performed**. For a one-person, explicitly labeled public preview only,
+  [`ADR 0012`](docs/adr/0012-solo-maintainer-provisional-review-attestation.md)
+  permits a provisional REVIEW disposition when exact synthetic/browser evidence,
+  unperformed checks, residual-risk acceptance by the accountable owner, rollback,
+  and expiry are committed. It is not a manual pass or a conformance finding.
 - User-visible behavior, methods, schemas, and assumptions update the changelog
   and relevant documentation.
 
@@ -71,6 +75,8 @@ Before a version is called released:
 The release workflow exists, but the first signed tag and PyPI Trusted
 Publisher setup remain owner actions. Until they occur, this repository is
 pre-release beta and must not claim that the release gate has been exercised.
+An ADR-0012 public preview is likewise not a stable release and does not satisfy
+an outstanding ACR or assistive-technology review.
 
 ## Ownership and protection
 

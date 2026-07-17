@@ -31,7 +31,7 @@ PRIVATE_PATH_PROBES = (
     "data/published/fars-2023-debug.json",
     "data/published/fars-2024-state-mode.run.json",
 )
-HOST_CONTROL_PATHS = frozenset({".nojekyll"})
+HOST_CONTROL_PATHS = frozenset({".nojekyll", "CNAME"})
 
 _SHA1_RE = re.compile(r"^[0-9a-f]{40}$", re.ASCII)
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$", re.ASCII)

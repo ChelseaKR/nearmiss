@@ -118,6 +118,9 @@ automated gates and a targeted rendered-browser keyboard and 390×844 reflow pas
 not a completed conformance finding: human NVDA/VoiceOver review and the 200% zoom pass remain pending
 and are tracked in
 [`docs/audits/2026-07-16-national-evidence-studio-a11y.md`](audits/2026-07-16-national-evidence-studio-a11y.md).
+That record uses the solo-maintainer policy in
+[`ADR 0012`](adr/0012-solo-maintainer-provisional-review-attestation.md) to permit a bounded public
+preview with owner-accepted residual risk. It does not convert any pending check into a pass.
 
 ---
 
@@ -187,7 +190,7 @@ not forced into English to report a hazard on their own street; we are part of t
 
 ## 6. Testing: automated and manual
 
-Conformance is verified, not asserted. Two layers, both required.
+Conformance is verified, not asserted. Two layers, both required for a conformance claim.
 
 **Automated.** [axe-core](https://github.com/dequelabs/axe-core) runs against the rendered map,
 table, report form, and brief pages in CI on every pull request. axe catches the machine-checkable
@@ -213,7 +216,11 @@ Manual review is logged in [`docs/audits/`](audits/) so each release has a recor
 checked, with what tool, and what was found. Keyboard-only testing (no pointer) is part of every
 manual pass. For the nationwide evidence studio, a targeted browser keyboard and narrow-viewport pass
 is recorded; the uninterrupted full keyboard/200% zoom checks and required NVDA/VoiceOver passes
-remain pending, and the pre-release record does not count them as completed.
+remain pending, and the pre-release record does not count them as completed. While this portfolio has
+one accountable maintainer, ADR 0012 allows synthetic/browser evidence plus explicit owner attestation
+to provisionally satisfy the REVIEW-GATE for a time-bounded public preview. The audit must identify
+the exact evidence, unperformed checks, residual risk, rollback, and expiry; the underlying human work
+stays open.
 
 ---
 
@@ -232,9 +239,12 @@ that blocks the merge.
   source) is a normal test in the suite, so the equivalent view cannot silently rot.
 
 Manual screen-reader review is **not** fully automatable and therefore is not a per-PR status
-check; it is a release-blocking step in the release checklist, recorded in `docs/audits/`. The
-rule is simple: automated accessibility checks block every merge; manual screen-reader review
-blocks every release.
+check; it is a stable-release and conformance gate recorded in `docs/audits/`. Automated
+accessibility checks block every merge. A one-person, explicitly labeled public preview may proceed
+only through ADR 0012's provisional REVIEW disposition: all AUTO-GATEs stay mandatory; a dated
+artifact records exact synthetic/browser evidence, checks not performed, owner-accepted residual
+risk, rollback, and expiry. That disposition is neither a manual pass nor permission to claim WCAG,
+Section 508, or ACR conformance.
 
 ---
 
@@ -247,13 +257,15 @@ Honesty about limits is a hard rule for the statistics; it applies here too.
   experience for a non-visual user. The **table is the equivalent of record**; if the two ever
   disagree, the table is correct and the map is the bug.
 - nearmiss is maintained by **one person**. There is no in-house accessibility team and no paid
-  external audit. The mitigations are the automated gate, documented manual NVDA/VoiceOver
-  passes, an honest ACR, and a fast path for users to report barriers (section 10). Reports
+  external audit. The current mitigations are the automated gates, a provisional review record that
+  keeps unperformed NVDA/VoiceOver checks visible, an honest ACR, and a fast path for users to report
+  barriers (section 10). Reports
   from real assistive-technology users are weighted heavily and are the most valuable kind of
   feedback this project can get.
-- Manual review currently covers NVDA + Firefox and VoiceOver + Safari. JAWS, TalkBack, and
-  other combinations are not yet in the regular cycle; barriers found there are still triaged
-  and fixed, and any divergence is recorded in the ACR rather than hidden.
+- The required manual matrix is NVDA + Firefox and VoiceOver + Safari, but those checks have not yet
+  been performed for the national studio. JAWS, TalkBack, and other combinations are also not yet in
+  the regular cycle; barriers found there are still triaged and fixed, and any divergence is recorded
+  in the ACR rather than hidden.
 
 These limitations are stated in the ACR as well, so a reader of the formal report sees the same
 caveats a reader of this statement sees.
@@ -275,8 +287,10 @@ template. It contains the standard tables:
 The ACR is treated as an **audit artifact, regenerated and re-committed on each release** — the
 same audit-as-artifact discipline applied to the statistics, where every published number records
 its method and source. A release whose accessibility behavior changed but whose ACR did not is a
-defect. The ACR carries its own evaluation date, the methods used (axe + manual NVDA/VoiceOver),
-and the version of the site evaluated, so a city reviewer can see exactly what was tested and when.
+defect. The ACR carries its own evaluation date, the methods actually used, the checks still
+outstanding, and the version of the site evaluated, so a city reviewer can see exactly what was
+tested and when. A provisional public preview does not alter an ACR row or count a planned manual
+method as performed.
 
 An ACR is a self-assessment by the maintainer, not a third-party certification, and it says so on
 its face. Conformance claims in the ACR are scoped to the evaluated release.

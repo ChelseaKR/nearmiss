@@ -26,6 +26,13 @@
 > See the explicitly incomplete
 > [`2026-07-16 national evidence studio review`](../audits/2026-07-16-national-evidence-studio-a11y.md).
 > Do not read this ACR as certifying `us-coverage.html`.
+>
+> That component may be deployed as a time-bounded **public preview** under the solo-maintainer
+> provisional REVIEW policy in
+> [`ADR 0012`](../adr/0012-solo-maintainer-provisional-review-attestation.md). The disposition records
+> accountable-owner risk acceptance; it does not change this ACR, turn any target into a supported
+> finding, or imply that NVDA, VoiceOver, an uninterrupted human keyboard pass, or actual browser zoom
+> was performed. No WCAG, Section 508, VPAT, or ACR conformance claim follows from that deployment.
 
 ## Voluntary Product Accessibility Template (VPAT) Version 2.5 — Revised Section 508 Edition
 

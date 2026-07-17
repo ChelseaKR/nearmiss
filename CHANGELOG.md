@@ -62,6 +62,10 @@ every entry.
   form, embed, share surface, and branded 404: a clearance-mark road symbol, asphalt/interstate/brake
   palette, self-hosted Overpass/Atkinson Hyperlegible/Fragment Mono typography, compact evidence-first
   hierarchy, and an earlier mobile map replace the previous generic dashboard treatment.
+- A narrowly scoped solo-maintainer REVIEW-GATE policy for pre-1.0 public previews. Mandatory
+  AUTO-GATEs remain unchanged; provisional disposition requires exact synthetic/browser evidence,
+  explicit accountable-owner residual-risk acceptance, unperformed checks, rollback, and expiry.
+  It cannot be cited as a manual screen-reader result, ACR/WCAG conformance, or a stable release.
 - A canonical `nearmiss.chelseakr.com` production origin on private, versioned S3 behind CloudFront
   OAC, ACM TLS, Route 53 aliases, deterministic route rewriting, explicit browser-safe MIME metadata,
   forced client revalidation, a verifier-only cache key, and exact-artifact GitHub OIDC deployment.

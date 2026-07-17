@@ -236,8 +236,8 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
     publish = workflow.index("Publish the exact artifact to the private origin")
     assert rebuild < authenticate < publish
     assert "diff --recursive --brief _expected-site _site" in workflow
-    assert workflow.count("s3://${{ vars.NEARMISS_S3_BUCKET }}/.nojekyll") == 2
-    assert "--delete --exclude '.nojekyll' --cache-control" in workflow
+    assert workflow.count("for host_control in .nojekyll CNAME") == 2
+    assert "--delete --exclude '.nojekyll' --exclude 'CNAME'" in workflow
     assert "public, max-age=0, must-revalidate" in workflow
     for mime_spec in (
         "*.html|text/html; charset=utf-8",

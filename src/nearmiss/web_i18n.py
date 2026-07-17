@@ -169,6 +169,7 @@ _COVERAGE_IDS: tuple[str, ...] = (
     N_("web.coverage.title"),
     N_("web.coverage.skip"),
     N_("web.coverage.back"),
+    N_("web.coverage.accessibility_status"),
     N_("web.coverage.real_data_badge"),
     N_("web.coverage.eyebrow"),
     N_("web.coverage.h1"),

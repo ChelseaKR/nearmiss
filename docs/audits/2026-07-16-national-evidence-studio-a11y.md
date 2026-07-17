@@ -5,11 +5,15 @@
 `web/us-coverage-studio.css`, the EN/ES catalogs, and `web/us_coverage_check.mjs`
 **Release / commit:** baseline `faad0a1`; remediation is the PR #110 head containing this record
 **Target:** WCAG 2.2 Level AA and Revised Section 508 functional performance criteria
-**Summary verdict:** **Incomplete — not a conformance result.** The structural and axe gates pass.
-A rendered-browser simulation and independent review found six interaction/semantics defects in `faad0a1`; they were
-remediated and the focused regression, 200%-equivalent layout proxy, and 400%-equivalent reflow
-stress proxy pass. The required human NVDA and VoiceOver reviews, an uninterrupted end-to-end
-keyboard pass, and an actual browser 200% zoom check have not been performed.
+**Summary verdict:** **Incomplete — not a conformance result; provisionally allowed as a public
+preview through 2026-08-15.** The structural and axe gates pass. A rendered-browser simulation and
+separate agent-assisted source/interaction review found six interaction/semantics defects in
+`faad0a1`; they were remediated and the focused regression, 200%-equivalent layout proxy, and
+400%-equivalent reflow stress proxy pass. The required human NVDA and VoiceOver reviews, an
+uninterrupted end-to-end keyboard pass, and an actual browser 200% zoom check have not been performed.
+The bounded deployment disposition is an owner-attested REVIEW status under
+[`ADR 0012`](../adr/0012-solo-maintainer-provisional-review-attestation.md), not a completed manual
+review.
 
 This file is a pre-release checklist and evidence placeholder, not proof that a manual accessibility
 audit occurred. A pending row must not be cited as a pass. Replace each pending row with the exact
@@ -29,7 +33,9 @@ is actually performed.
 | 400%-equivalent reflow stress proxy | 320×640 CSS viewport, ES, all five views, selected five-year profile, four brief cards | **Pass as an automated proxy only** | No document-level horizontal overflow, one-column studio/filter layout, no tested button/select/summary below 24×24 CSS px |
 | Actual 200% browser zoom | Browser zoom and environment to be recorded | **Not performed** | CSS-viewport proxies are not being represented as an actual browser-zoom result |
 | NVDA + Firefox | Windows, NVDA version, and Firefox version to be recorded | **Not performed** | No human screen-reader evidence |
-| VoiceOver + Safari | macOS, VoiceOver version, and Safari version to be recorded | **Not performed** | No human screen-reader evidence |
+| VoiceOver + Safari (macOS) | macOS, VoiceOver version, and Safari version to be recorded | **Not performed** | No human screen-reader evidence |
+| VoiceOver + Safari (iOS) | iOS device/OS, VoiceOver version, and Safari version to be recorded | **Not performed** | No human mobile screen-reader evidence |
+| Accountable-owner preview attestation | Chelsea Kelly-Reif; release conversation, 2026-07-16; exact statements recorded below | **Provisionally satisfied for public preview only** | Accepts the residual risk in this artifact through 2026-08-15; does not attest that any unperformed check occurred |
 
 ## Implemented mechanisms observed in source
 
@@ -123,10 +129,11 @@ Record results for the remaining steps with no pointer:
 
 ## Human screen-reader review — pending
 
-NVDA + Firefox and VoiceOver + Safari have **not** been run against this component. The manual pass
-must cover headings and landmarks, button name/role/value, map and plot navigation, table navigation,
-dynamic loading and selection announcements, focus stability, language switching, and the equivalence
-of every visualized value with the semantic tables.
+NVDA + Firefox, VoiceOver + Safari on macOS, and VoiceOver + Safari on iOS have **not** been run
+against this component. The manual pass must cover headings and landmarks, button name/role/value,
+map and plot navigation, table navigation, dynamic loading and selection announcements, focus
+stability, language switching, and the equivalence of every visualized value with the semantic
+tables.
 
 Particular questions to resolve:
 
@@ -138,10 +145,74 @@ Particular questions to resolve:
   both screen readers?
 - Are polite status messages announced once, at the useful time, without interrupting table reading?
 
+## Solo-maintainer provisional attestation
+
+This is the dated committed record required by ADR 0012. NearMiss is a one-person portfolio project;
+the accountable human owner is **Chelsea Kelly-Reif**. All automated gates remain mandatory. The
+evidence accepted for this disposition is exactly the evidence-status table and remediation loop in
+this file: source/DOM inspection, structural and rendered axe checks, targeted in-app Chromium flows,
+and CSS-viewport layout proxies. The Chromium version was not exposed by the harness and is recorded
+that way rather than guessed.
+
+### Conversation attestation and deploy direction
+
+The owner's verbatim statements in the 2026-07-16 release conversation were:
+
+> “i attest. how do i attest”
+
+> “i think we should redo our standards to allow for synthetic attestation, at least while my
+> portfolio is a 1 person team”
+
+> “make it public and continue, then host it at nearmiss.chelseakr.com, deploy, and give it its own
+> distinctive brand identity - right now, whole site looks a generic chatgpt site”
+
+The first statement is the owner's explicit attestation; the second directs adoption of the bounded
+solo-maintainer policy; the third directs public deployment. This record construes the attestation
+only as acceptance of the residual risks below for the pre-1.0 public preview. It does **not** say that
+the owner ran NVDA, VoiceOver, an uninterrupted no-pointer session, or actual browser zoom, and it does
+not attest to WCAG, Section 508, VPAT, or ACR conformance.
+
+### Checks not performed and residual risk accepted
+
+The following work remains unperformed:
+
+- NVDA with Firefox on Windows;
+- VoiceOver with Safari on macOS, and VoiceOver with Safari on iOS for the mobile surface;
+- one uninterrupted human keyboard-only primary-task walkthrough;
+- actual 200% browser zoom in a named browser; and
+- assistive-technology confirmation of EN/ES language changes, table navigation, roving SVG control
+  names/roles/states, redraw focus, and polite status timing.
+
+The owner accepts that the scripted evidence may miss an announcement, navigation, focus, zoom, or
+language defect that appears only with live assistive technology or human use. In particular, the
+behavior of SVG `role="button"` controls across the required screen-reader/browser pairings and the
+timing/duplication of live-region announcements are unknown. Native view/action buttons were
+pointer-activated in the harness where it could not synthesize their native keyboard click; that is
+not evidence of an uninterrupted keyboard-only human journey.
+
+### Scope, rollback, and expiry
+
+- **Scope:** the national evidence studio component in this record, deployed as part of the project's
+  explicitly pre-1.0 beta public preview at `https://nearmiss.chelseakr.com`. It is not a stable/GA
+  release, procurement artifact, completed ACR, or claim about unevaluated surfaces.
+- **Rollback:** if a user cannot reach a primary task or equivalent evidence value, if a semantic
+  table disagrees with its visual view, if an applicable AUTO-GATE regresses, or if a material
+  accessibility defect is confirmed, withdraw the affected preview and restore the last-known-good
+  versioned public artifact, then invalidate the CDN cache. If there is no acceptable interactive
+  predecessor, keep the immutable public data and accessibility-reporting channel available while
+  the affected interaction is removed or repaired.
+- **Expiry:** **2026-08-15**. Earlier recheck is mandatory on any material interaction/semantics
+  change, accessibility report, AUTO-GATE regression, new active maintainer, or move beyond public
+  preview. At expiry, a subsequent deployment requires fresh green evidence and a new explicit owner
+  attestation, or the preview must be withdrawn. Adding a second maintainer ends this exception and
+  restores the normal independent REVIEW path.
+
 ## Release disposition
 
-**Blocked on required human review.** Automated, data-contract, targeted browser-interaction, and
-layout-proxy evidence are green, but this record contains no NVDA or VoiceOver pass, no uninterrupted
-human no-pointer pass, and no actual 200% browser-zoom result. Under the project's accessibility
-policy, it cannot serve as the completed manual accessibility artifact for a production release and
-must not be represented as verified conformance.
+**Provisionally allowed for the bounded public preview through 2026-08-15 under ADR 0012.** Automated,
+data-contract, targeted browser-interaction, and layout-proxy evidence are green, and the accountable
+owner explicitly attested to the residual risk and directed public deployment. This disposition does
+not unblock a stable/GA release or a conformance claim: the record still contains no NVDA or
+VoiceOver pass, no uninterrupted human no-pointer pass, and no actual 200% browser-zoom result. It
+cannot serve as a completed manual accessibility artifact and must not be represented as verified
+WCAG, Section 508, VPAT, or ACR conformance.

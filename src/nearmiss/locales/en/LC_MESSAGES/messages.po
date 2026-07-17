@@ -730,6 +730,9 @@ msgstr "Revision {revision} · SHA-256 {sha}"
 msgid "web.coverage.correction_ledger"
 msgstr "Release correction ledger"
 
+msgid "web.coverage.accessibility_status"
+msgstr "Accessibility status and open review"
+
 msgid "web.coverage.data_h"
 msgstr "State × involved-mode evidence"
 
@@ -743,10 +746,10 @@ msgid "web.coverage.download"
 msgstr "Download public JSON"
 
 msgid "web.coverage.eyebrow"
-msgstr "US evidence ledger · official source"
+msgstr "Public preview · US evidence ledger"
 
 msgid "web.coverage.footer"
-msgstr "Official fatal-crash context, published with explicit limits. nearmiss remains an exposure-normalized near-miss product; these counts are a separate national context layer."
+msgstr "Public preview: automated accessibility gates pass; manual NVDA and VoiceOver review remains open. Fatal-crash context is published with explicit limits. nearmiss remains an exposure-normalized near-miss product; these counts are a separate national context layer."
 
 msgid "web.coverage.filter_scope"
 msgstr "State loads the five-year profile. Year and visualization focus drive the national views; publication status filters the matrix and ledger. The complete ledger has its own mode filter below."

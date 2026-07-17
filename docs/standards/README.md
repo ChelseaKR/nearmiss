@@ -2,7 +2,7 @@
 
 The cross-cutting rigor for every repo in this portfolio, stated **once**. A repo references these documents and records only its own project-specific *values and findings*; it never restates the rigor. This is the "reference, don't repeat" rule, and it is load-bearing — when a target moves (an OWASP/WCAG/ISO revision), it moves in one place.
 
-## The enforcement model (binary, no exceptions)
+## The enforcement model (binary; provisional is a REVIEW disposition)
 
 Every control in every standard is exactly one of two kinds. There is no third "aspirational" category.
 
@@ -10,6 +10,14 @@ Every control in every standard is exactly one of two kinds. There is no third "
 - **REVIEW-GATE** — requires human judgment; paired with a checklist line and a **committed, dated artifact** that is regenerated on release.
 
 `QUALITY-AND-METRICS-STANDARD.md` is the **spine**: it owns the ISO/IEC 25010:2023 vocabulary, the DORA delivery-health backbone, and the merge-gate model, and it points to each domain standard below rather than restating it.
+
+For a portfolio with exactly one accountable maintainer, a REVIEW-GATE may carry a
+**provisionally satisfied** disposition for a staged or explicitly labeled public preview only. That
+is not a third gate type and never changes an AUTO-GATE. It requires synthetic/browser evidence plus
+an explicit human-owner attestation, exact results and unperformed checks, accepted residual risk,
+rollback, and expiry; it cannot support a conformance or stable-release claim. The complete protocol
+is in `QUALITY-AND-METRICS-STANDARD.md`; accessibility-specific constraints are in
+`ACCESSIBILITY-STANDARD.md`.
 
 ## The documents
 
@@ -40,4 +48,4 @@ Every control in every standard is exactly one of two kinds. There is no third "
 
 The portfolio already proves every target here is achievable — `civic-ai-eval-harness`, `govchat-eval`, `habitable`, and `trans-docs-navigator` ship most of the maximized posture today. The work these standards describe is **propagation, not invention**.
 
-Last verified: 2026-06-21 · Recheck cadence: per ISO 25010 / WCAG / OWASP ASVS / NIST AI RMF revision, or quarterly.
+Last verified: 2026-07-16 · Recheck cadence: per ISO 25010 / WCAG / OWASP ASVS / NIST AI RMF revision, or quarterly.

@@ -46,6 +46,12 @@ checks block merges and releases. The artifacts here are the committed *proof* t
 it found. A failing or honestly-caveated artifact is information, not an embarrassment to hide; a
 *Partially Supports* row with a named gap and a remediation status is more credible than a wall of green.
 
+For a one-person public preview, an artifact may record a **provisionally satisfied REVIEW-GATE** under
+[`ADR 0012`](../adr/0012-solo-maintainer-provisional-review-attestation.md). It must preserve the exact
+AUTO-GATE and synthetic/browser results, checks not performed, named owner attestation, accepted
+residual risk, preview boundary, rollback, and expiry. “Provisional” is not a manual test result or a
+conformance claim; assistive-technology rows remain **Not performed** until a person runs them.
+
 ---
 
 ## Naming and date convention

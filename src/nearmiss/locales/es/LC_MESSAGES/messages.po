@@ -730,6 +730,9 @@ msgstr "Revisión {revision} · SHA-256 {sha}"
 msgid "web.coverage.correction_ledger"
 msgstr "Registro de correcciones de publicación"
 
+msgid "web.coverage.accessibility_status"
+msgstr "Estado de accesibilidad y revisión pendiente"
+
 msgid "web.coverage.data_h"
 msgstr "Evidencia de estado × modo involucrado"
 
@@ -743,10 +746,10 @@ msgid "web.coverage.download"
 msgstr "Descargar JSON público"
 
 msgid "web.coverage.eyebrow"
-msgstr "Registro de evidencia de EE. UU. · fuente oficial"
+msgstr "Vista previa pública · Registro de evidencia de EE. UU."
 
 msgid "web.coverage.footer"
-msgstr "Contexto oficial de choques fatales, publicado con límites explícitos. nearmiss sigue siendo un producto de cuasi-accidentes normalizado por exposición; estos conteos son una capa separada de contexto nacional."
+msgstr "Vista previa pública: las verificaciones automáticas de accesibilidad pasan; la revisión manual con NVDA y VoiceOver sigue pendiente. El contexto de choques fatales se publica con límites explícitos. nearmiss sigue siendo un producto de cuasi-accidentes normalizado por exposición; estos conteos son una capa nacional separada."
 
 msgid "web.coverage.filter_scope"
 msgstr "El estado carga el perfil de cinco años. El año y el enfoque de visualización controlan las vistas nacionales; el estado de publicación filtra la matriz y el registro. El registro completo tiene su propio filtro de modo abajo."

@@ -23,9 +23,10 @@ group: a read must not block or replace a queued production deploy. If `main` mo
 running, the job emits a warning and yields so it can be rerun against one unambiguous deployed
 commit.
 
-The shared artifact keeps `.nojekyll` hash-bound for the legacy GitHub Pages mirror. The CloudFront
-deployment explicitly excludes and deletes that host-control object from its private S3 origin, while
-the live sentinel requires its canonical public URL to return the reviewed 404 document.
+The shared artifact keeps `.nojekyll` and `CNAME` hash-bound for the legacy GitHub Pages mirror. The
+CloudFront deployment explicitly excludes and deletes both host-control objects from its private S3
+origin, while the live sentinel requires their canonical public URLs to return the reviewed 404
+document.
 
 ## Run it on demand
 

@@ -14,8 +14,10 @@
 # The accessibility job runs the STRUCTURAL gate (tools/a11y_check.py) AND a
 # real automated axe-core run (jsdom) via `npm run axe` on every CI run.
 # Manual NVDA/VoiceOver review is a conformance TARGET tracked in
-# docs/accessibility/ACR.md and required in the PR per docs/ACCESSIBILITY.md; it
-# is inherently human and remains intentionally OUT of CI scope.
+# docs/accessibility/ACR.md. It is inherently human and remains intentionally
+# OUT of CI scope. A one-person public preview may use ADR 0012's expiring,
+# owner-attested provisional REVIEW disposition; it is not a manual pass or a
+# conformance result, and every automated gate remains mandatory.
 
 name: ci
 
@@ -623,9 +625,12 @@ jobs:
       - name: Publish the exact artifact to the private origin
         run: |
           cache_control='public, max-age=0, must-revalidate'
-          aws s3 rm "s3://${{ vars.NEARMISS_S3_BUCKET }}/.nojekyll" --only-show-errors
+          for host_control in .nojekyll CNAME; do
+            aws s3 rm "s3://${{ vars.NEARMISS_S3_BUCKET }}/$host_control" --only-show-errors
+          done
           aws s3 sync _site "s3://${{ vars.NEARMISS_S3_BUCKET }}/" \
-            --delete --exclude '.nojekyll' --cache-control "$cache_control" --only-show-errors
+            --delete --exclude '.nojekyll' --exclude 'CNAME' \
+            --cache-control "$cache_control" --only-show-errors
 
           # Do not delegate browser-significant MIME metadata to runner-local
           # /etc/mime.types. CloudFront sends nosniff, so a correct payload with
@@ -648,7 +653,9 @@ jobs:
               --content-type "$content_type" --cache-control "$cache_control" \
               --only-show-errors
           done
-          aws s3 rm "s3://${{ vars.NEARMISS_S3_BUCKET }}/.nojekyll" --only-show-errors
+          for host_control in .nojekyll CNAME; do
+            aws s3 rm "s3://${{ vars.NEARMISS_S3_BUCKET }}/$host_control" --only-show-errors
+          done
 
       - name: Invalidate and wait for the public edge
         env:

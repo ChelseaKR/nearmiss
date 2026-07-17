@@ -728,6 +728,9 @@ msgstr ""
 msgid "web.app.us_coverage_cta"
 msgstr ""
 
+msgid "web.coverage.accessibility_status"
+msgstr ""
+
 msgid "web.coverage.accessible_table"
 msgstr ""
 

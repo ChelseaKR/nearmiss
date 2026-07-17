@@ -97,7 +97,7 @@ class MemoryFetcher:
                 (self.root / "fars" / "national" / "index.html").read_bytes(),
                 "text/html",
             )
-        elif path == "/.nojekyll":
+        elif path in {"/.nojekyll", "/CNAME"}:
             result = self.not_found
         else:
             candidate = self.root / path.removeprefix("/")
@@ -244,9 +244,10 @@ def test_guaranteed_missing_baseline_must_be_404(expected_site: Path) -> None:
         _verify(expected_site, fetcher)
 
 
-def test_host_control_must_remain_non_retrievable(expected_site: Path) -> None:
+@pytest.mark.parametrize("path", ["/.nojekyll", "/CNAME"])
+def test_host_control_must_remain_non_retrievable(expected_site: Path, path: str) -> None:
     fetcher = MemoryFetcher(expected_site)
-    fetcher.overrides["/.nojekyll"] = FetchResult(200, b"", "application/octet-stream")
+    fetcher.overrides[path] = FetchResult(200, b"", "application/octet-stream")
     with pytest.raises(LiveSiteVerificationError, match="host-control"):
         _verify(expected_site, fetcher)
 

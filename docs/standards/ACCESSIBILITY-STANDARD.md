@@ -4,7 +4,7 @@ The canonical accessibility floor for everything in this portfolio that renders 
 
 **Floor:** WCAG 2.2 Level AA. Not 2.0, not 2.1 — 2.2, because it is backward-compatible (2.2 AA ⊇ 2.1 AA ⊇ 2.0 AA) and is the standard EN 301 549 v4.1.1 will harmonize to under the EU EAA. Where a repo already exceeds this (`personal-site` ships some AAA), the higher bar is enforced, not relaxed. *Rejected: targeting 2.1 AA "because that's what ADA Title II mandates today" — the 6 new 2.2 SC are cheap to meet on greenfield and expensive to retrofit; we pay now.*
 
-**Enforcement is binary.** Automated tooling mechanically catches ~30–57% of WCAG violations. That ~30–57% is **AUTO-GATED** (merge-blocking CI). The remainder requires human judgment and is **REVIEW-GATED** (a checklist item + a committed, dated artifact). There is no "aspirational" third category. A control that is neither auto-gated nor backed by a committed review artifact does not exist.
+**Enforcement is binary.** Automated tooling mechanically catches ~30–57% of WCAG violations. That ~30–57% is **AUTO-GATED** (merge-blocking CI). The remainder requires human judgment and is **REVIEW-GATED** (a checklist item + a committed, dated artifact). There is no "aspirational" third category. A control that is neither auto-gated nor backed by a committed review artifact does not exist. A one-person portfolio may use the time-bounded provisional REVIEW disposition in §2.3 for an explicitly labeled public preview; it does not weaken an AUTO-GATE or turn synthetic evidence into human testing or conformance.
 
 This document is the single source of accessibility rigor. Repos record only project-specific values and findings (route lists, ignore-list justifications, the dated screen-reader walkthrough, the ACR). Reference, don't repeat.
 
@@ -157,7 +157,7 @@ A real violation that cannot be fixed (third-party embed, upstream library bug) 
 
 ## 2. REVIEW-GATES (human judgment + committed artifact)
 
-Each is paired with a checklist item in the repo's `docs/RESPONSIBLE-TECH-AUDITS.md` (Accessibility audit, framework §E) and a **dated, committed artifact**, regenerated/refreshed per release. A review gate with no committed artifact is not a gate.
+Each is paired with a checklist item in the repo's `docs/RESPONSIBLE-TECH-AUDITS.md` (Accessibility audit, framework §E) and a **dated, committed artifact**, regenerated/refreshed per release. A review gate with no committed artifact is not a gate. For a stable release or a conformance claim, the review itself must be completed; §2.3 can authorize only a provisional public preview.
 
 | Review gate | Artifact (committed, dated) | Cadence |
 |---|---|---|
@@ -181,7 +181,7 @@ A screen-reader pass means these AT/browser pairings, because AT behavior diverg
 
 JAWS + Chrome/Edge is the enterprise baseline; add it for any repo with a named government/enterprise client. NVDA and VoiceOver are free, so cost is never the reason a row is skipped.
 
-**Resolve the pending rows now:** `habitable`, `nearmiss`, and `queer-the-stacks` carry pending NVDA/VoiceOver walkthrough rows in their audit docs. Each must ship a completed, dated walkthrough artifact (or a clean N/A-with-reason per §0) before its next release tag. A "pending" row is a failing review gate, not a placeholder.
+**Resolve the pending rows now:** `habitable`, `nearmiss`, and `queer-the-stacks` carry pending NVDA/VoiceOver walkthrough rows in their audit docs. Each must ship a completed, dated walkthrough artifact (or a clean N/A-with-reason per §0) before its next stable release tag. A "pending" row is not a pass. A solo-maintainer public preview may carry it only as an explicitly provisional REVIEW disposition under §2.3; the row remains **Not performed** and cannot support a conformance claim.
 
 ### 2.2 The 6 WCAG 2.2 AA success criteria — explicit handling
 
@@ -197,6 +197,36 @@ These are new in 2.2 and most are partly review-gated because tooling under-cove
 | **3.3.8 Accessible Authentication (Min)** | no cognitive-function-test gate without an alternative | REVIEW (auth flows; N/A where no auth) |
 
 > SC **4.1.1 Parsing** is obsolete in 2.2 — do **not** gate on it. The three AAA additions (2.4.12, 2.4.13, 3.3.9) are not required at AA; `personal-site` may opt in where already met.
+
+### 2.3 Solo-maintainer provisional REVIEW disposition (public preview only)
+
+When the portfolio has exactly one accountable maintainer, synthetic/browser evidence plus an
+explicit attestation by that human owner may **provisionally satisfy** an accessibility REVIEW-GATE
+for a staged or explicitly labeled public preview. The committed dated artifact and PR checklist must
+record:
+
+1. the exact candidate revision, surface, primary tasks, and REVIEW-GATE in scope;
+2. every applicable AUTO-GATE and its result, all green without waiver or bypass;
+3. exact synthetic/browser methods, environments and available versions, results, and evidence;
+4. every human, assistive-technology, browser-zoom, device, language, or user check not performed;
+5. the named accountable owner, date/source of explicit attestation, and accepted residual risks;
+6. the public-preview/staged boundary, rollback procedure and triggers, expiry, and earlier recheck
+   triggers; and
+7. public wording that makes no WCAG, ACR/VPAT, Section 508, certification, procurement, or complete
+   conformance claim.
+
+Synthetic means a scripted or agent-driven approximation of an interaction; it does **not** mean a
+fabricated human result. An AI agent, CI job, or browser harness cannot attest for the owner. NVDA,
+VoiceOver, JAWS, TalkBack, keyboard-only, or zoom rows stay **Not performed** unless a person actually
+performed that check in the named environment. The exception is unavailable for stable/GA releases
+or when a law, contract, customer, or safety requirement names a human, independent, or specially
+qualified reviewer.
+
+The disposition expires on the artifact's stated date and earlier on any material interaction change,
+accessibility report, AUTO-GATE regression, new active maintainer, or move beyond preview. Renewal
+requires fresh green evidence and a new explicit owner attestation. A project adopting this rule must
+record it in an ADR; NearMiss does so in
+[`ADR 0012`](../adr/0012-solo-maintainer-provisional-review-attestation.md).
 
 ---
 
@@ -250,4 +280,4 @@ A no-HTML repo records one line: the N/A declaration. Nothing more.
 
 ---
 
-Last verified: 2026-06-21 · Recheck cadence: on any WCAG 2.x revision, EN 301 549 publication (v4.1.1 watch), ADA Title II deadline change, or axe-core / pa11y / Lighthouse major release — and at minimum annually. Confirm current standard and tool versions at build time.
+Last verified: 2026-07-16 · Recheck cadence: on any WCAG 2.x revision, EN 301 549 publication (v4.1.1 watch), ADA Title II deadline change, or axe-core / pa11y / Lighthouse major release — and at minimum annually. Confirm current standard and tool versions at build time.

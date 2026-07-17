@@ -20,7 +20,8 @@ What lives here (the analysis still runs entirely offline without any of it):
   `repo:ChelseaKR/nearmiss:environment:production` is therefore a main-only deployment identity.
   The deploy job downloads the reviewed artifact, checks out the exact source into a separate
   directory, rebuilds with `python -S`, and byte-compares both trees **before** requesting its OIDC
-  token. A failed transfer or non-deterministic build therefore cannot mutate the origin.
+  token. The Pages-only `.nojekyll` and `CNAME` controls are excluded and deleted from the canonical
+  origin. A failed transfer or non-deterministic build therefore cannot mutate the origin.
 
 - Pull requests exercise the exact `build-pages` assembly and both artifact-upload paths. On `main`,
   dependency-gated deploy jobs publish that one reviewed artifact to GitHub Pages and the canonical
