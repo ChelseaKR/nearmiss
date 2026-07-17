@@ -35,7 +35,7 @@ version: 0.1.0
 date-released: '2026-06-16'
 license: Apache-2.0
 repository-code: https://github.com/ChelseaKR/nearmiss
-url: https://github.com/ChelseaKR/nearmiss
+url: https://nearmiss.chelseakr.com
 keywords:
   - road safety
   - near miss
@@ -63,6 +63,6 @@ preferred-citation:
   version: 0.1.0
   date-released: '2026-06-16'
   license: Apache-2.0
-  url: https://github.com/ChelseaKR/nearmiss
+  url: https://nearmiss.chelseakr.com/fars/national/
   repository: https://github.com/ChelseaKR/nearmiss
   # doi: TODO — assign a DOI (e.g. via Zenodo) for the published dataset release.

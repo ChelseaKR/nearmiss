@@ -13,9 +13,10 @@
 [![Accessibility target: WCAG 2.2 AA](https://img.shields.io/badge/accessibility-WCAG%202.2%20AA%20target-blue.svg)](docs/ACCESSIBILITY.md)
 [![Conventional Commits](https://img.shields.io/badge/commits-conventional-fe5196.svg)](https://www.conventionalcommits.org/)
 [![Cite this](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
-[![Live demo](https://img.shields.io/badge/live-demo-nearmiss.chelseakr.com-success.svg)](https://nearmiss.chelseakr.com)
+[![Live site](https://img.shields.io/badge/live-nearmiss.chelseakr.com-success.svg)](https://nearmiss.chelseakr.com)
 
-**Live demo (accessible map + data view):** <https://nearmiss.chelseakr.com>
+**Live public preview:** [NearMiss Conflict Atlas](https://nearmiss.chelseakr.com) — real, reviewed
+2020–2024 NHTSA FARS evidence for all 50 states and DC.
 
 </div>
 

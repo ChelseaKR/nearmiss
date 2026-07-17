@@ -2,6 +2,8 @@
 
 This index is the handoff point for the documentation sweep last reviewed on 2026-07-08. It keeps the project map, audit record, and main operating docs in one place.
 
+**Live public preview:** [NearMiss Conflict Atlas](https://nearmiss.chelseakr.com)
+
 ## Documentation Audit
 
 - [Project scope](PROJECT-SCOPE.md) names the product, users, code and data surfaces, safety boundaries, and out-of-scope items.

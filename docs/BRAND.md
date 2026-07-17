@@ -4,6 +4,8 @@ NearMiss is a road-evidence instrument, not a chat product and not an official g
 Its identity comes from conflict diagrams, highway wayfinding, survey marks, and transportation
 atlases. The national layer's product name is **NearMiss Conflict Atlas**.
 
+The canonical production site is [nearmiss.chelseakr.com](https://nearmiss.chelseakr.com).
+
 ## Identity thesis
 
 The signature clearance mark shows two trajectories that approach but stop short. It is the only

@@ -22,7 +22,8 @@ flag it explicitly in your pull request.
 
 ### Annual public FARS context
 
-The nationwide evidence ledger uses a separate aggregate-only release set:
+The [live nationwide evidence ledger](https://nearmiss.chelseakr.com/fars/national/) uses a separate
+aggregate-only release set:
 
 - `fars-YYYY-state-mode.json` is the immutable revision-1 artifact; a later reviewed revision uses
   `fars-YYYY-state-mode-rN.json`. Every one of
@@ -34,6 +35,8 @@ The nationwide evidence ledger uses a separate aggregate-only release set:
   fixed-year geography crosswalk. It also binds the exact annual source-contract digest, semantic
   regime, crash/person mapping versions, and state-code system so cross-year comparisons cannot
   silently assume that classification stayed unchanged.
+  The [live release index](https://nearmiss.chelseakr.com/data/published/fars-state-mode-index-v2.json)
+  exposes those reviewed public contracts directly.
 - `fars-state-mode-index.json` and `fars-2024-state-mode.json` retain the immutable first publication.
   `fars-release-corrections.json` pins those exact bytes and their replacements after the 2024 source
   stage was corrected from `final` to NHTSA's `annual_report_file` classification.

@@ -276,6 +276,10 @@ ledger for the item-by-item map.
 
 ### Changed
 
+- Repository, package, citation, and public-page metadata now identify
+  `https://nearmiss.chelseakr.com` as the production site. Indexable HTML entry points carry
+  consistent canonical, Open Graph URL, site identity, description, and summary-card metadata;
+  iframe and not-found utility responses remain explicitly non-indexable without canonical URLs.
 - FIX-02 changes every published `getis_ord_z` / `getis_ord_significant` value (a dataset content
   change, not a schema change) — see the per-city `dataset_version` bump below. The EXP-09 benchmark
   scorecards are re-scored under the network weights; the reporting-bias regime honestly worsens

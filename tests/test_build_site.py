@@ -26,6 +26,8 @@ class _ApexDocument(HTMLParser):
         super().__init__()
         self.refreshes: list[str] = []
         self.canonicals: list[str] = []
+        self.meta_names: dict[str, list[str]] = {}
+        self.meta_properties: dict[str, list[str]] = {}
         self.links: list[str] = []
         self.main_landmarks = 0
         self.redirect_scripts: list[str] = []
@@ -34,8 +36,15 @@ class _ApexDocument(HTMLParser):
     def handle_starttag(self, tag: str, attrs_list: list[tuple[str, str | None]]) -> None:
         attrs = {key.casefold(): value or "" for key, value in attrs_list}
         normalized_tag = tag.casefold()
-        if normalized_tag == "meta" and attrs.get("http-equiv", "").casefold() == "refresh":
-            self.refreshes.append(attrs.get("content", ""))
+        if normalized_tag == "meta":
+            name = attrs.get("name", "").casefold()
+            property_name = attrs.get("property", "").casefold()
+            if name:
+                self.meta_names.setdefault(name, []).append(attrs.get("content", ""))
+            if property_name:
+                self.meta_properties.setdefault(property_name, []).append(attrs.get("content", ""))
+            if attrs.get("http-equiv", "").casefold() == "refresh":
+                self.refreshes.append(attrs.get("content", ""))
         elif normalized_tag == "link" and "canonical" in attrs.get("rel", "").casefold().split():
             self.canonicals.append(attrs.get("href", ""))
         elif normalized_tag == "a":
@@ -135,9 +144,56 @@ def test_reviewed_not_found_document_is_exact_and_branded(tmp_path: Path) -> Non
     assert built == source
     html = built.decode("utf-8")
     assert 'content="noindex"' in html
+    assert 'rel="canonical"' not in html
+    assert 'property="og:url"' not in html
     assert 'href="/web/brand.css"' in html
     assert 'href="/fars/national/"' in html
     assert "Private inputs, working files, and" in html
+
+
+def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> None:
+    out = tmp_path / "site"
+    build_site(out, SHA)
+    expected = {
+        "index.html": NATIONAL_CANONICAL,
+        "web/us-coverage.html": NATIONAL_CANONICAL,
+        NATIONAL_MANIFEST_PATH: NATIONAL_CANONICAL,
+        "web/index.html": "https://nearmiss.chelseakr.com/web/index.html",
+        "web/submit.html": "https://nearmiss.chelseakr.com/web/submit.html",
+    }
+
+    for relative, canonical in expected.items():
+        document = _ApexDocument()
+        document.feed((out / relative).read_text(encoding="utf-8"))
+        document.close()
+
+        assert document.canonicals == [canonical], relative
+        assert document.meta_names["description"] and all(document.meta_names["description"]), (
+            relative
+        )
+        assert document.meta_names["twitter:card"] == ["summary"], relative
+        assert document.meta_names["twitter:title"] and all(document.meta_names["twitter:title"]), (
+            relative
+        )
+        assert document.meta_names["twitter:description"] and all(
+            document.meta_names["twitter:description"]
+        ), relative
+        assert document.meta_properties["og:type"] == ["website"], relative
+        assert document.meta_properties["og:site_name"] == ["NearMiss Conflict Atlas"], relative
+        assert document.meta_properties["og:title"] and all(document.meta_properties["og:title"]), (
+            relative
+        )
+        assert document.meta_properties["og:description"] and all(
+            document.meta_properties["og:description"]
+        ), relative
+        assert document.meta_properties["og:url"] == [canonical], relative
+
+    embed = _ApexDocument()
+    embed.feed((out / "web/embed.html").read_text(encoding="utf-8"))
+    embed.close()
+    assert embed.meta_names["robots"] == ["noindex, follow"]
+    assert embed.canonicals == []
+    assert "og:url" not in embed.meta_properties
 
 
 def test_canonical_national_route_is_a_byte_identical_real_page(tmp_path: Path) -> None:

@@ -7,7 +7,8 @@ there is no always-on component to keep paid.
 What lives here (the analysis still runs entirely offline without any of it):
 
 - [`aws-static-site.yml`](aws-static-site.yml) provisions the canonical
-  `nearmiss.chelseakr.com` origin: a private, versioned S3 bucket, CloudFront with OAC and TLS,
+  [nearmiss.chelseakr.com](https://nearmiss.chelseakr.com) origin: a private, versioned S3 bucket,
+  CloudFront with OAC and TLS,
   Route 53 A/AAAA aliases, directory-route rewriting, security headers, and a narrowly scoped
   GitHub OIDC deployment role. The `production` GitHub environment can publish only the exact
   artifact assembled by the dependency-gated `build-pages` job; no static AWS key is stored.
