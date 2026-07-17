@@ -1,0 +1,1023 @@
+/* NearMiss Conflict Atlas identity.
+   The visual language comes from roadway conflict diagrams, survey marks, and
+   US wayfinding—not chat products or generic dashboard chrome. */
+
+@font-face {
+  font-family: "Overpass";
+  src: url("/web/vendor/fonts/overpass-latin-ext-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20CF, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Overpass";
+  src: url("/web/vendor/fonts/overpass-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  src: url("/web/vendor/fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20CF, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  src: url("/web/vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Fragment Mono";
+  src: url("/web/vendor/fonts/fragment-mono-latin-ext-400-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20CF, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Fragment Mono";
+  src: url("/web/vendor/fonts/fragment-mono-latin-400-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --atlas-stock: #f3f6f2;
+  --asphalt: #152a30;
+  --interstate-blue: #145b73;
+  --brake-red: #b93a2b;
+  --centerline: #e0b33e;
+  --guardrail: #5e706f;
+  --atlas-sheet: #ffffff;
+  --atlas-rule: #aebdb9;
+  --atlas-blue-wash: #dce8eb;
+  --atlas-yellow-wash: #f8efcf;
+  --brand-display: "Overpass", "Arial Narrow", sans-serif;
+  --brand-body: "Atkinson Hyperlegible Next", "Segoe UI", sans-serif;
+  --brand-data: "Fragment Mono", ui-monospace, monospace;
+}
+
+html {
+  accent-color: var(--interstate-blue);
+}
+
+body {
+  color: var(--asphalt);
+  background: var(--atlas-stock);
+  font-family: var(--brand-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+legend,
+button,
+select,
+input,
+textarea {
+  font-family: var(--brand-body);
+}
+
+h1,
+h2,
+h3,
+.map-title,
+.brand-lockup-copy strong {
+  font-family: var(--brand-display);
+}
+
+code,
+pre,
+.count-cell,
+.release-facts dd,
+.evidence-summary dd {
+  font-family: var(--brand-data);
+  font-weight: 400;
+}
+
+a {
+  color: var(--interstate-blue);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+button,
+select,
+input,
+textarea,
+fieldset,
+figure,
+.bottom-line,
+.demo-note,
+.real-note,
+.national-cta,
+.privacy-note,
+.result,
+.leaflet-map,
+.map-label,
+.cell-status,
+.proof-year,
+.real-data-badge {
+  border-radius: 0 !important;
+}
+
+button,
+select,
+input,
+textarea {
+  min-block-size: 2.75rem;
+}
+
+button {
+  font-weight: 700;
+}
+
+.brand-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-block-size: 4.25rem;
+  margin-block-end: 1.5rem;
+  border-block-end: 1px solid var(--atlas-rule);
+}
+
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--asphalt);
+  text-decoration: none;
+}
+
+.clearance-mark {
+  inline-size: 2.75rem;
+  block-size: 2rem;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.clearance-path {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: square;
+  stroke-linejoin: bevel;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: clearance-trace 420ms cubic-bezier(0.2, 0.75, 0.25, 1) forwards;
+}
+
+.clearance-path-a {
+  stroke: var(--interstate-blue);
+}
+
+.clearance-path-b {
+  stroke: var(--brake-red);
+  animation-delay: 70ms;
+}
+
+@keyframes clearance-trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.brand-lockup-copy {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.brand-lockup-copy strong {
+  color: var(--asphalt);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.085em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.brand-lockup-copy > span {
+  padding-inline-start: 0.6rem;
+  border-inline-start: 1px solid var(--atlas-rule);
+  color: var(--guardrail);
+  font: 400 0.68rem/1.1 var(--brand-data);
+  letter-spacing: 0.065em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body:not(.coverage-page):not(.embed) header,
+body:not(.coverage-page):not(.embed) main,
+body:not(.coverage-page):not(.embed) footer {
+  max-width: 72rem;
+}
+
+body:not(.coverage-page):not(.embed) header {
+  border-block-start: 0.35rem solid var(--asphalt);
+  padding-block-start: 0;
+}
+
+body:not(.coverage-page):not(.embed) header h1 {
+  max-width: 24ch;
+  margin-block: 0;
+  font-size: clamp(2.25rem, 5vw, 4.5rem);
+  font-weight: 720;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+
+body:not(.coverage-page):not(.embed) header .lede {
+  color: var(--guardrail);
+  font-size: 1.08rem;
+}
+
+body:not(.coverage-page):not(.embed) section > h2 {
+  margin-block-end: 0.55rem;
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  font-weight: 720;
+  letter-spacing: -0.025em;
+}
+
+.bottom-line,
+.national-cta,
+.privacy-note {
+  border: 1px solid var(--atlas-rule);
+  border-inline-start: 0.35rem solid var(--interstate-blue);
+  background: var(--atlas-sheet);
+}
+
+.demo-note {
+  border-color: #765b16;
+  border-inline-start: 0.35rem solid var(--centerline);
+  background: var(--atlas-yellow-wash);
+  color: #49380d;
+}
+
+figure,
+.leaflet-map,
+.table-wrap,
+fieldset,
+.result {
+  border-color: var(--atlas-rule);
+  background: var(--atlas-sheet);
+}
+
+.map-toggle button,
+.lang-switch button,
+.print-control button,
+.form-actions button,
+#use-location,
+.share-card-controls button {
+  border-color: var(--asphalt);
+  background: var(--atlas-sheet);
+  color: var(--asphalt);
+}
+
+.map-toggle button[aria-pressed="true"],
+.lang-switch button[aria-pressed="true"],
+.form-actions button[type="submit"] {
+  border-color: var(--asphalt);
+  background: var(--asphalt);
+  color: var(--atlas-sheet);
+}
+
+table thead,
+#data-table thead th {
+  background: var(--asphalt);
+  color: var(--atlas-sheet);
+}
+
+footer {
+  margin-block-start: 3rem;
+  padding-block-start: 1.25rem;
+  border-block-start: 1px solid var(--atlas-rule);
+  color: var(--guardrail);
+}
+
+/* Compact identity for the embeddable evidence widget. */
+.embed-brand {
+  display: flex;
+  align-items: center;
+  min-block-size: 3.5rem;
+  padding-inline: 0.6rem;
+  border-block-start: 0.3rem solid var(--asphalt);
+  border-block-end: 1px solid var(--atlas-rule);
+  background: var(--atlas-stock);
+}
+
+.embed .brand-lockup-copy > span {
+  display: none;
+}
+
+.embed .clearance-mark {
+  inline-size: 2.2rem;
+}
+
+.embed-map,
+.embed-disclaimer {
+  border-radius: 0;
+}
+
+.embed-disclaimer {
+  border-inline-start-color: var(--centerline);
+  background: var(--atlas-yellow-wash);
+}
+
+/* National Conflict Atlas: get the evidence instrument into the opening view. */
+.coverage-page {
+  --paper: var(--atlas-stock);
+  --sheet: var(--atlas-sheet);
+  --street-fog: var(--atlas-blue-wash);
+  --survey-ink: var(--asphalt);
+  --measured: var(--interstate-blue);
+  --measured-deep: var(--interstate-blue);
+  --signal: var(--brake-red);
+  --uncertain: #715713;
+  --uncertain-soft: var(--atlas-yellow-wash);
+  --muted-ink: var(--guardrail);
+  --rule: var(--atlas-rule);
+  --focus: #005fcc;
+  background: var(--atlas-stock) !important;
+  color: var(--asphalt);
+  font-family: var(--brand-body);
+}
+
+.coverage-page button,
+.coverage-page select,
+.coverage-page input,
+.coverage-page textarea,
+.coverage-page .view-switcher button,
+.coverage-page .hero-action,
+.coverage-page .secondary-action,
+.coverage-page .release-card,
+.coverage-page .visual-stage,
+.coverage-page .state-inspector,
+.coverage-page .national-map-shell,
+.coverage-page .matrix-wrap,
+.coverage-page .scatter-plot,
+.coverage-page .brief-builder,
+.coverage-page .brief-card,
+.coverage-page .plain-state-list li {
+  border-radius: 0 !important;
+}
+
+.coverage-page .release-card,
+.coverage-page .state-inspector,
+.coverage-page .brief-builder {
+  box-shadow: none !important;
+}
+
+.coverage-header {
+  padding: 0 clamp(1rem, 3vw, 3.5rem) 1.5rem;
+  border-block-start: 0.35rem solid var(--asphalt);
+  background: var(--atlas-stock);
+}
+
+.coverage-nav {
+  min-block-size: 4.25rem;
+  border-block-end-color: var(--atlas-rule);
+}
+
+.coverage-page .wordmark > .brand-lockup-copy {
+  display: flex;
+  inline-size: auto;
+  block-size: auto;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: normal;
+  transform: none;
+}
+
+.coverage-page .wordmark strong {
+  font: 800 1.05rem/1 var(--brand-display);
+  letter-spacing: 0.085em;
+}
+
+.real-data-badge {
+  border-color: var(--interstate-blue);
+  background: transparent;
+  color: var(--interstate-blue);
+  font-family: var(--brand-data);
+  font-weight: 400;
+}
+
+.hero-grid {
+  display: block;
+  max-width: 94rem;
+  padding-block-start: clamp(1.25rem, 3vw, 2.2rem);
+}
+
+.hero-copy {
+  display: grid;
+  grid-template-columns: minmax(21rem, 0.85fr) minmax(28rem, 1.15fr);
+  grid-template-areas:
+    "eyebrow lede"
+    "title lede"
+    "title caveat"
+    "action caveat";
+  column-gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+}
+
+.hero-copy .coverage-eyebrow {
+  grid-area: eyebrow;
+}
+
+.coverage-header h1 {
+  grid-area: title;
+  max-width: 15ch;
+  font: 720 clamp(2.8rem, 5vw, 5.2rem)/0.94 var(--brand-display);
+  letter-spacing: -0.04em;
+}
+
+.coverage-header .lede {
+  grid-area: lede;
+  margin: 0;
+  color: var(--guardrail);
+  font-size: clamp(1rem, 1.25vw, 1.17rem);
+  line-height: 1.5;
+}
+
+.hero-copy .coverage-caveat {
+  grid-area: caveat;
+}
+
+.hero-copy .hero-action {
+  grid-area: action;
+  justify-self: start;
+}
+
+.coverage-eyebrow,
+.section-kicker,
+.panel-kicker,
+.release-card-topline {
+  color: var(--interstate-blue);
+  font-family: var(--brand-data);
+  font-weight: 400;
+  letter-spacing: 0.075em;
+}
+
+.coverage-caveat {
+  border: 1px solid #a78427;
+  border-inline-start: 0.35rem solid var(--centerline);
+  background: var(--atlas-yellow-wash);
+  color: #49380d;
+}
+
+.hero-action,
+.secondary-action,
+.brief-actions button {
+  border-color: var(--asphalt);
+  background: var(--asphalt);
+  color: var(--atlas-sheet);
+}
+
+.coverage-page main {
+  padding-inline: clamp(1rem, 3vw, 3.5rem);
+}
+
+.coverage-page section {
+  margin-block: clamp(1.5rem, 3vw, 3rem);
+}
+
+.section-heading-row h2,
+.brief-builder h2,
+.evidence-lab > div:first-child h2,
+.data-ledger h2 {
+  font: 720 clamp(2rem, 3.7vw, 3.35rem)/0.98 var(--brand-display);
+}
+
+.section-heading-row {
+  margin-block-end: 0.8rem;
+}
+
+.view-switcher {
+  display: grid;
+  grid-template-columns: repeat(5, max-content);
+  gap: 0;
+  border-block-end: 1px solid var(--asphalt);
+}
+
+.view-switcher button {
+  min-block-size: 2.75rem;
+  margin-block-end: -1px;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--atlas-rule);
+  border-block-end-color: var(--asphalt);
+  background: var(--atlas-sheet);
+  color: var(--asphalt);
+}
+
+.view-switcher button + button {
+  border-inline-start: 0;
+}
+
+.view-switcher button[aria-pressed="true"] {
+  border-color: var(--asphalt);
+  border-block-end: 0.3rem solid var(--centerline);
+  background: var(--asphalt);
+  color: var(--atlas-sheet);
+}
+
+.coverage-filters {
+  inset-block-start: 0;
+  margin-block: 0.75rem;
+  padding: 0.7rem;
+  border: 1px solid var(--asphalt);
+  border-block-start: 0.3rem solid var(--asphalt);
+  background: var(--atlas-stock);
+  backdrop-filter: none;
+}
+
+.coverage-filters label,
+.plot-controls label,
+.compare-selectors label {
+  color: var(--guardrail);
+  font-family: var(--brand-data);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.coverage-filters select,
+.coverage-filters button,
+.plot-controls select,
+.compare-selectors select {
+  border-color: var(--asphalt);
+  background: var(--atlas-sheet);
+  color: var(--asphalt);
+}
+
+.ledger-controls {
+  display: grid;
+  gap: 0.28rem;
+  inline-size: min(22rem, 100%);
+  flex: 0 0 min(22rem, 100%);
+}
+
+.ledger-controls label {
+  color: var(--guardrail);
+  font-family: var(--brand-data);
+  font-size: 0.76rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ledger-controls select {
+  inline-size: 100%;
+  min-block-size: 2.8rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--asphalt);
+  border-radius: 0;
+  background: var(--atlas-sheet);
+  color: var(--asphalt);
+}
+
+.studio-layout {
+  gap: 0;
+  border: 1px solid var(--asphalt);
+}
+
+.visual-stage,
+.state-inspector {
+  border: 0;
+}
+
+.state-inspector {
+  border-inline-start: 0.3rem solid var(--brake-red);
+  background: var(--atlas-sheet);
+}
+
+.view-panel {
+  min-block-size: 38rem;
+}
+
+.panel-heading h3,
+.state-inspector h3 {
+  font-family: var(--brand-display);
+  font-weight: 720;
+}
+
+.national-map-shell,
+.scatter-plot {
+  background: var(--atlas-sheet);
+}
+
+.map-gradient {
+  background: linear-gradient(90deg, var(--atlas-blue-wash), var(--interstate-blue));
+}
+
+.map-state {
+  transition: stroke-width 140ms ease, opacity 140ms ease;
+}
+
+.map-state-group:hover .map-state,
+.map-state-group:focus .map-state,
+.map-state.is-selected {
+  filter: none;
+  stroke: var(--brake-red);
+}
+
+.clearance-cursor {
+  pointer-events: none;
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: square;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 28;
+  stroke-dashoffset: 28;
+  animation: clearance-cue 180ms ease-out forwards;
+}
+
+.clearance-cursor-a {
+  stroke: var(--centerline);
+}
+
+.clearance-cursor-b {
+  stroke: var(--brake-red);
+}
+
+@keyframes clearance-cue {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.matrix-cell {
+  background: rgba(20, 91, 115, var(--cell-alpha));
+}
+
+.matrix-cell.is-unpublished {
+  background:
+    repeating-linear-gradient(135deg, transparent 0 6px, rgba(94, 112, 111, 0.34) 6px 8px),
+    var(--atlas-stock);
+  color: var(--guardrail);
+}
+
+.matrix-cell.is-selected {
+  color: var(--atlas-sheet);
+  background: var(--brake-red);
+  box-shadow: none;
+}
+
+.matrix-cell-button,
+.rank-item button {
+  position: relative;
+}
+
+.matrix-cell.is-selected .matrix-cell-button::before,
+.matrix-cell.is-selected .matrix-cell-button::after,
+.rank-item button[aria-current="true"]::before,
+.rank-item button[aria-current="true"]::after {
+  content: "";
+  position: absolute;
+  inline-size: 0.75rem;
+  border-block-start: 0.18rem solid var(--centerline);
+  transform: rotate(-45deg);
+}
+
+.matrix-cell.is-selected .matrix-cell-button::before,
+.rank-item button[aria-current="true"]::before {
+  inset-block-start: 0.45rem;
+  inset-inline-start: 0.35rem;
+}
+
+.matrix-cell.is-selected .matrix-cell-button::after,
+.rank-item button[aria-current="true"]::after {
+  inset-block-end: 0.45rem;
+  inset-inline-end: 0.35rem;
+  border-color: var(--brake-red);
+}
+
+.matrix-cell.is-selected .matrix-cell-button::after {
+  border-color: var(--atlas-sheet);
+}
+
+.rank-item button:hover,
+.rank-item button[aria-current="true"],
+#coverage-table tbody tr.is-selected {
+  border-color: var(--brake-red);
+  background: #fbece8;
+}
+
+.rank-bar,
+.comparison-track span,
+.plot-point {
+  background: var(--interstate-blue);
+  fill: var(--interstate-blue);
+}
+
+.plot-point:hover,
+.plot-point:focus,
+.plot-point.is-selected {
+  fill: var(--brake-red);
+  stroke: var(--asphalt);
+}
+
+.state-inspector,
+.brief-builder,
+.release-card {
+  background: var(--atlas-sheet);
+}
+
+.brief-builder {
+  border-block-start: 0.3rem solid var(--asphalt);
+}
+
+.release-card {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.25fr) minmax(0, 1fr);
+  gap: 0.65rem 1.25rem;
+  max-width: none;
+  margin-block: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--asphalt);
+  border-block-start: 0.3rem solid var(--interstate-blue);
+}
+
+.release-card::before,
+.release-card::after {
+  display: none;
+}
+
+.release-card-topline,
+.release-card h2,
+.release-card .release-note {
+  grid-column: 1;
+}
+
+.release-card h2 {
+  margin: 0;
+  font-family: var(--brand-display);
+}
+
+.release-facts {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-color: var(--atlas-rule);
+  background: var(--atlas-rule);
+}
+
+.release-facts div {
+  background: var(--atlas-sheet);
+}
+
+.release-facts dd {
+  font-family: var(--brand-data);
+  font-weight: 400;
+}
+
+.cell-status,
+.proof-year {
+  font-family: var(--brand-data);
+  font-weight: 400;
+}
+
+.interpretation-grid article {
+  border-color: var(--interstate-blue);
+  background: var(--atlas-blue-wash);
+}
+
+.interpretation-grid .cannot {
+  border-color: var(--centerline);
+  background: var(--atlas-yellow-wash);
+}
+
+.coverage-page footer {
+  background: var(--asphalt);
+  color: var(--atlas-stock);
+}
+
+@media (max-width: 76rem) {
+  .state-inspector {
+    border-inline-start: 0;
+    border-block-start: 0.3rem solid var(--brake-red);
+  }
+}
+
+@media (max-width: 62rem) {
+  .hero-copy {
+    display: block;
+  }
+
+  .coverage-header h1 {
+    max-width: 17ch;
+    font-size: clamp(2.8rem, 9vw, 4.6rem);
+  }
+
+  .coverage-header .lede {
+    margin-block-start: 1rem;
+  }
+
+  .release-card {
+    grid-template-columns: 1fr;
+  }
+
+  .release-card-topline,
+  .release-card h2,
+  .release-card .release-note,
+  .release-facts {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .ledger-controls {
+    inline-size: min(28rem, 100%);
+    flex-basis: auto;
+  }
+}
+
+@media (max-width: 44rem) {
+  .brand-masthead {
+    align-items: flex-start;
+  }
+
+  .brand-lockup-copy {
+    display: grid;
+    gap: 0.18rem;
+  }
+
+  .brand-lockup-copy > span {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  body:not(.coverage-page):not(.embed) header h1 {
+    font-size: clamp(2.2rem, 12vw, 3.4rem);
+  }
+
+  .coverage-header {
+    padding-block-end: 1rem;
+  }
+
+  .coverage-nav {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+  }
+
+  .coverage-page .brand-lockup-copy > span {
+    display: none;
+  }
+
+  .coverage-page .nav-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: end;
+  }
+
+  .coverage-header h1 {
+    font-size: clamp(2.5rem, 12vw, 3.5rem);
+    line-height: 0.96;
+  }
+
+  .coverage-header .lede {
+    font-size: 0.96rem;
+    line-height: 1.4;
+  }
+
+  .hero-copy .coverage-caveat {
+    margin-block-start: 1rem;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .hero-copy .hero-action {
+    display: none;
+  }
+
+  .coverage-page section {
+    margin-block: 1.25rem;
+  }
+
+  .section-heading-row h2,
+  .brief-builder h2,
+  .evidence-lab > div:first-child h2,
+  .data-ledger h2 {
+    font-size: clamp(1.85rem, 9vw, 2.45rem);
+  }
+
+  .section-intro {
+    margin-block: 0.5rem;
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+
+  .view-switcher {
+    display: flex;
+    flex-wrap: nowrap;
+    inline-size: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--asphalt);
+  }
+
+  .view-switcher button {
+    flex: 0 0 auto;
+    min-inline-size: 6.25rem;
+    border-block: 0;
+  }
+
+  .coverage-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    padding: 0.55rem;
+  }
+
+  .coverage-filters button[type="reset"] {
+    grid-column: 1 / -1;
+  }
+
+  .ledger-controls {
+    inline-size: 100%;
+  }
+
+  .coverage-regime-caution {
+    max-width: none;
+    font-size: 0.88rem;
+  }
+
+  .view-panel {
+    min-block-size: 30rem;
+  }
+
+  .release-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .release-card .release-note {
+    margin-block-end: 0;
+  }
+}
+
+@media (max-width: 22rem) {
+  .coverage-filters,
+  .release-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .coverage-filters button[type="reset"] {
+    grid-column: 1;
+  }
+}
+
+@media (forced-colors: active) {
+  .clearance-path,
+  .clearance-cursor {
+    stroke: CanvasText;
+  }
+
+  .view-switcher button[aria-pressed="true"] {
+    border-block-end-color: Highlight;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clearance-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .clearance-cursor {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .map-state {
+    transition: none;
+  }
+}
+
+@media print {
+  .clearance-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .brand-masthead,
+  .embed-brand {
+    border-color: #000;
+  }
+}

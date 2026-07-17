@@ -94,7 +94,7 @@ There is no third category. A control is **AUTO-GATED** (mechanically checkable,
 - **Commitments:** zero automated violations at AA, a recorded manual walkthrough per primary task, and an accessibility statement (ACR/VPAT 2.4 format).
 - **Enforcement:** thresholds and the SR-matrix checklist are owned by `ACCESSIBILITY-STANDARD.md`; this audit supplies the narrative. In summary:
   - **AUTO-GATE** — axe zero critical/serious/moderate; Lighthouse a11y ≥ 0.9 (≥ 95 where self-declared, e.g. `gtfs-scorecard` MUST wire it); **`pa11y-ci` graduated from advisory to blocking** with a curated, justified ignore list — this kills the `continue-on-error`/`|| true` pattern in `civic-ai-eval-harness`, `govchat-eval`, `civic-rag`, `fare-assistant`. The structural Python/lint checker remains the hard gate; the browser engine is now also blocking.
-  - **REVIEW-GATE** — committed screen-reader walkthrough (NVDA+Firefox/Chrome, VoiceOver+Safari macOS/iOS) + ACR per release; ARIA APG pattern audit for any custom widget. Resolve the pending NVDA/VoiceOver rows in `habitable`, `nearmiss`, `queer-the-stacks`.
+  - **REVIEW-GATE** — committed screen-reader walkthrough (NVDA+Firefox/Chrome, VoiceOver+Safari macOS/iOS) + ACR per stable release; ARIA APG pattern audit for any custom widget. Resolve the pending NVDA/VoiceOver rows in `habitable`, `nearmiss`, `queer-the-stacks`. A solo-maintainer public preview may use `ACCESSIBILITY-STANDARD.md` §2.3's expiring provisional REVIEW disposition, but every assistive-technology row stays **Not performed** and no conformance claim follows.
 
 ## F. Security audit
 **Frame:** this audit adds the *narrative* threat model and the residual-risk register on top of the mechanical scanners. Gates live in `SECURITY-AND-SUPPLY-CHAIN-STANDARD.md` and `CI-CD-STANDARD.md`; target posture is **OWASP ASVS 5.0 Level 2** for any PII-holding or externally-exposed system.
@@ -173,4 +173,4 @@ Every `N/A` line carries a reason. A missing audit section is a defect; a justif
 
 ---
 
-Last verified: 2026-06-21 · Recheck cadence: quarterly, and immediately on any revision to NIST AI RMF / AI 600-1, ISO 42001, EU AI Act enforcement phases, WCAG, or OWASP ASVS / LLM Top 10. (Confirm current framework versions at build time.)
+Last verified: 2026-07-16 · Recheck cadence: quarterly, and immediately on any revision to NIST AI RMF / AI 600-1, ISO 42001, EU AI Act enforcement phases, WCAG, or OWASP ASVS / LLM Top 10. (Confirm current framework versions at build time.)

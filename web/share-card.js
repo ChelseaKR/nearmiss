@@ -36,7 +36,7 @@
   var FAMILY = 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
   var CAVEAT = "exposure-normalized rates · open data";
-  var URL_TEXT = "nearmiss.report";
+  var URL_TEXT = "nearmiss.chelseakr.com";
 
   function hasRate(p) {
     return p && p.rate !== null && p.rate !== undefined;

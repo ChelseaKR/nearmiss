@@ -209,7 +209,7 @@ quickly on one thing.
 | Lint | `make lint` | `ruff` — style, imports, common bugs. |
 | Types | `make type` | `mypy --strict` — no untyped or loosely typed code. |
 | Tests | `make test` | `pytest` over deterministic components, with synthetic fixtures whose answers are **known** (planted hotspots recovered, interval coverage checks). |
-| Accessibility | `make accessibility` | `axe` automated checks on the map, table, form, legends, and charts. Manual NVDA/VoiceOver review is required for UI changes and is a merge-blocking gate; note your manual result in the PR. |
+| Accessibility | `make accessibility` | Mandatory automated checks on the map, table, form, legends, and charts. Record the manual NVDA/VoiceOver result in the PR; a solo-maintainer public preview may instead use the bounded provisional REVIEW disposition in [ADR 0012](docs/adr/0012-solo-maintainer-provisional-review-attestation.md), without describing synthetic evidence as a manual pass or conformance. |
 | Security | `make security` | `pip-audit`, `gitleaks`, and CodeQL-equivalent checks. Pinned, hashed deps verified. |
 | Everything | `make verify` | All of the above. This is the gate. |
 
@@ -224,7 +224,9 @@ Notes that save you a round trip:
   not a test.
 - **Accessibility is not optional for UI work.** Risk level and significance must be conveyed
   in text and pattern, never by color alone. Every map finding must be reachable through the
-  equivalent sortable list/table. An axe pass plus a manual screen-reader pass is the bar.
+  equivalent sortable list/table. Mandatory AUTO-GATE evidence plus a manual screen-reader pass is
+  the release bar. A one-person public preview can use ADR 0012's expiring owner-attested REVIEW
+  disposition, but the unperformed screen-reader work stays open.
 - If a gate is failing for a reason you believe is environmental, say so in the PR rather than
   disabling the check. We fix the gate; we do not route around it.
 
@@ -418,9 +420,10 @@ description and check the boxes that apply.
       (planted hotspot, known exposure, or interval-coverage check).
 - [ ] Changes are **deterministic** — seeded, reproducible, and re-runnable via
       `make reproduce` where figures or tables are affected.
-- [ ] UI changes pass `axe` **and** a manual NVDA/VoiceOver pass; risk and significance are in
-      text and pattern, not color alone; every finding is reachable via the list/table
-      equivalent. The manual result is noted in the PR.
+- [ ] UI changes pass every accessibility AUTO-GATE; risk and significance are in text and pattern,
+      not color alone; and every finding is reachable via the list/table equivalent. The PR records
+      either the actual manual NVDA/VoiceOver result or ADR 0012's provisional public-preview fields:
+      synthetic evidence, unperformed checks, owner-accepted residual risk, rollback, and expiry.
 - [ ] Commits use **Conventional Commits** and are **DCO signed off** (`git commit -s`).
 - [ ] If the schema changed: the schema is **versioned**, the **CHANGELOG** is updated, a
       **migration** plus its test is included, and an **ADR** is added.

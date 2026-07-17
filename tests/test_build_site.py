@@ -18,7 +18,7 @@ SHA = "a" * 40
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 NATIONAL_ROUTE = "/fars/national/"
 NATIONAL_MANIFEST_PATH = "fars/national/index.html"
-NATIONAL_CANONICAL = "https://nearmiss.report/fars/national/"
+NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/"
 
 
 class _ApexDocument(HTMLParser):
@@ -86,12 +86,18 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     files = set(manifest["files"])
 
     assert "index.html" in files
+    assert "404.html" in files
     assert "web/index.html" in files
     assert "web/app.js" in files
     assert "web/us-coverage.html" in files
     assert NATIONAL_MANIFEST_PATH in files
     assert "web/us-coverage.js" in files
     assert "web/us-coverage.css" in files
+    assert "web/brand.css" in files
+    assert "web/vendor/brand/clearance-mark.svg" in files
+    assert "web/vendor/fonts/overpass-latin-wght-normal.woff2" in files
+    assert "web/vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2" in files
+    assert "web/vendor/fonts/fragment-mono-latin-400-normal.woff2" in files
     assert "web/vendor/leaflet/leaflet.js" in files
     assert "data/published/davis.geojson" in files
     assert "data/published/fars-state-mode-index.json" in files
@@ -100,6 +106,7 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     for year in range(2020, 2025):
         assert f"data/published/fars-{year}-state-mode.json" in files
     assert "data/published/fars-2024-state-mode-r2.json" in files
+    assert "data/published/us-state-boundaries-2024.json" in files
     assert "deployment.json" in files
     assert not any(path.startswith("data/raw/") for path in files)
     assert not any(path.startswith("config/") for path in files)
@@ -119,6 +126,20 @@ def test_source_and_built_apex_promote_national_surface(tmp_path: Path) -> None:
     _assert_national_apex(built)
 
 
+def test_reviewed_not_found_document_is_exact_and_branded(tmp_path: Path) -> None:
+    out = tmp_path / "site"
+    build_site(out, SHA)
+    source = (build_site_module.ROOT / "404.html").read_bytes()
+    built = (out / "404.html").read_bytes()
+
+    assert built == source
+    html = built.decode("utf-8")
+    assert 'content="noindex"' in html
+    assert 'href="/web/brand.css"' in html
+    assert 'href="/fars/national/"' in html
+    assert "Private inputs, working files, and" in html
+
+
 def test_canonical_national_route_is_a_byte_identical_real_page(tmp_path: Path) -> None:
     out = tmp_path / "site"
     manifest = build_site(out, SHA)
@@ -135,10 +156,12 @@ def test_canonical_national_route_is_a_byte_identical_real_page(tmp_path: Path) 
     assert 'class="skip-link" href="#main"' in html
 
     dependencies = {
+        "web/brand.css",
         "web/style.css",
         "web/us-coverage.css",
         "web/i18n.js",
         "web/us-coverage.js",
+        "web/vendor/brand/clearance-mark.svg",
         "data/published/fars-2024-state-mode-r2.json",
         "data/published/fars-state-mode-index-v2.json",
         "data/published/fars-release-corrections.json",
@@ -147,6 +170,19 @@ def test_canonical_national_route_is_a_byte_identical_real_page(tmp_path: Path) 
     assert dependencies <= set(manifest["files"])
     for path in dependencies:
         assert f'="/{path}"' in html
+
+    font_dependencies = {
+        "web/vendor/fonts/overpass-latin-wght-normal.woff2",
+        "web/vendor/fonts/overpass-latin-ext-wght-normal.woff2",
+        "web/vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2",
+        "web/vendor/fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2",
+        "web/vendor/fonts/fragment-mono-latin-400-normal.woff2",
+        "web/vendor/fonts/fragment-mono-latin-ext-400-normal.woff2",
+    }
+    assert font_dependencies <= set(manifest["files"])
+    brand_css = (out / "web" / "brand.css").read_text(encoding="utf-8")
+    for path in font_dependencies:
+        assert f'url("/{path}")' in brand_css
 
 
 def test_deployment_stamp_and_manifest_hashes_are_exact(tmp_path: Path) -> None:
@@ -168,6 +204,7 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
     workflow = (PROJECT_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     required_specs = {
         "index.html|",
+        "404.html|404.html",
         "deployment.json|deployment.json",
         "web/index.html|web/index.html",
         "web/us-coverage.html|web/us-coverage.html",
@@ -177,17 +214,63 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
         "web/locales/en.json|web/locales/en.json",
         "web/locales/es.json|web/locales/es.json",
         "web/us-coverage.css|web/us-coverage.css",
+        "web/us-coverage-studio.css|web/us-coverage-studio.css",
         "web/style.css|web/style.css",
         "data/published/davis.geojson|data/published/davis.geojson",
         "data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json",
         "data/published/fars-2024-state-mode.json|data/published/fars-2024-state-mode.json",
         "data/published/fars-state-mode-index-v2.json|data/published/fars-state-mode-index-v2.json",
         "data/published/fars-release-corrections.json|data/published/fars-release-corrections.json",
+        "data/published/us-state-boundaries-2024.json|data/published/us-state-boundaries-2024.json",
     }
     for spec in required_specs:
         assert f"'{spec}'" in workflow
     assert '[ "$live_sha" != "$expected_sha" ]' in workflow
     assert '[ "$live_sha" != "$manifest_artifact_sha" ]' in workflow
+    assert (
+        'boundary_sha256="705219b3339077f1d03466391bb286fe7f1841298fc0bcce948de1d8c66df25d"'
+        in workflow
+    )
+    rebuild = workflow.index("Rebuild and byte-verify before obtaining deploy authority")
+    authenticate = workflow.index("Authenticate to AWS with GitHub OIDC")
+    publish = workflow.index("Publish the exact artifact to the private origin")
+    assert rebuild < authenticate < publish
+    assert "diff --recursive --brief _expected-site _site" in workflow
+    assert workflow.count("for host_control in .nojekyll CNAME") == 2
+    assert "--delete --exclude '.nojekyll' --exclude 'CNAME'" in workflow
+    assert "public, max-age=0, must-revalidate" in workflow
+    for mime_spec in (
+        "*.html|text/html; charset=utf-8",
+        "*.js|application/javascript; charset=utf-8",
+        "*.css|text/css; charset=utf-8",
+        "*.json|application/json; charset=utf-8",
+        "*.geojson|application/geo+json",
+        "*.svg|image/svg+xml",
+        "*.woff2|font/woff2",
+        "*.png|image/png",
+    ):
+        assert f"'{mime_spec}'" in workflow
+
+
+def test_cloudfront_origin_fails_closed_before_dns_cutover() -> None:
+    template = (PROJECT_ROOT / "infra" / "aws-static-site.yml").read_text(encoding="utf-8")
+    runbook = (PROJECT_ROOT / "infra" / "README.md").read_text(encoding="utf-8")
+
+    assert 'Default: "false"' in template
+    assert "Condition: PublishDnsRecords" in template
+    assert "ResponsePagePath: /404.html" in template
+    assert "ErrorCode: 403" in template
+    assert "ErrorCode: 404" in template
+    assert "BucketOwnerEnforced" in template
+    assert "BlockPublicPolicy: true" in template
+    assert "environment:production" in template
+    assert "Header: Cache-Control" in template
+    assert "Value: public, max-age=0, must-revalidate" in template
+    assert "QueryStringBehavior: whitelist" in template
+    assert "- verify" in template
+    assert "CachePolicyId: !Ref SiteCachePolicy" in template
+    assert "us-east-1" in runbook
+    assert "exact `main` branch policy" in runbook
 
 
 def test_build_is_byte_stable_for_same_commit(tmp_path: Path) -> None:
@@ -229,6 +312,7 @@ def _minimal_site_source(root: Path) -> None:
     (root / "web" / "locales").mkdir()
     (root / "data" / "published").mkdir(parents=True)
     (root / "index.html").write_text("index", encoding="utf-8")
+    (root / "404.html").write_text("not found", encoding="utf-8")
     (root / "CNAME").write_text("example.test\n", encoding="utf-8")
     (root / "web" / "index.html").write_text("web", encoding="utf-8")
     (root / "web" / "us-coverage.html").write_text("national", encoding="utf-8")

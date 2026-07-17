@@ -350,7 +350,7 @@ msgid "web.app.data_h"
 msgstr "Ranked segments"
 
 msgid "web.app.demo"
-msgstr "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not real reports. The method is the point: swap in real reports with no code change."
+msgstr "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not real reports. The method is the point; only explicitly reviewed and allowlisted artifacts can be selected."
 
 msgid "web.app.demo_real"
 msgstr "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {source}"
@@ -518,7 +518,7 @@ msgid "web.app.print_caveat"
 msgstr "Rates are shown with 95% confidence intervals. Segments without a trustworthy exposure denominator are shown as uncertain and are never ranked as if certain."
 
 msgid "web.app.print_footer"
-msgstr "nearmiss — near-miss rates, normalized by exposure · https://nearmiss.report"
+msgstr "nearmiss — near-miss rates, normalized by exposure · https://nearmiss.chelseakr.com"
 
 msgid "web.app.print_generated_label"
 msgstr "Generated:"
@@ -730,6 +730,9 @@ msgstr "Revision {revision} · SHA-256 {sha}"
 msgid "web.coverage.correction_ledger"
 msgstr "Release correction ledger"
 
+msgid "web.coverage.accessibility_status"
+msgstr "Accessibility status and open review"
+
 msgid "web.coverage.data_h"
 msgstr "State × involved-mode evidence"
 
@@ -743,13 +746,16 @@ msgid "web.coverage.download"
 msgstr "Download public JSON"
 
 msgid "web.coverage.eyebrow"
-msgstr "US evidence ledger · official source"
+msgstr "Public preview · US evidence ledger"
 
 msgid "web.coverage.footer"
-msgstr "Official fatal-crash context, published with explicit limits. nearmiss remains an exposure-normalized near-miss product; these counts are a separate national context layer."
+msgstr "Public preview: automated accessibility gates pass; manual NVDA and VoiceOver review remains open. Fatal-crash context is published with explicit limits. nearmiss remains an exposure-normalized near-miss product; these counts are a separate national context layer."
 
 msgid "web.coverage.filter_scope"
-msgstr "State loads the five-year profile. Year, mode, and publication status refine the selected-year detail below."
+msgstr "State loads the five-year profile. Year and visualization focus drive the national views; publication status filters the matrix and ledger. The complete ledger has its own mode filter below."
+
+msgid "web.coverage.focus_mode_label"
+msgstr "Visualization focus"
 
 msgid "web.coverage.h1"
 msgstr "Fatal-crash burden, state by state"
@@ -762,6 +768,9 @@ msgstr "Selected-year state evidence"
 
 msgid "web.coverage.ledger_empty"
 msgstr "Choose a state above to show its selected-year evidence."
+
+msgid "web.coverage.ledger_mode_label"
+msgstr "Filter ledger by mode"
 
 msgid "web.coverage.load_error"
 msgstr "The reviewed release index or selected public artifact could not be loaded or did not pass its contract. No counts are shown."
@@ -963,3 +972,261 @@ msgstr "US evidence ledger — nearmiss"
 
 msgid "web.coverage.year_label"
 msgstr "Year"
+
+msgid "web.coverage.release_card_h"
+msgstr "A hash-bound annual projection"
+
+msgid "web.coverage.release_note"
+msgstr "Source bytes, the annual contract, and accounting proof are verified before any count appears."
+
+msgid "web.coverage.accessible_table"
+msgstr "Open the accessible comparison table"
+
+msgid "web.coverage.add_to_brief"
+msgstr "Add to brief"
+
+msgid "web.coverage.all_states"
+msgstr "All states + DC"
+
+msgid "web.coverage.boundary_checksum_label"
+msgstr "Boundary file SHA-256"
+
+msgid "web.coverage.boundary_download"
+msgstr "Download Census boundary GeoJSON"
+
+msgid "web.coverage.boundary_source_label"
+msgstr "Map boundaries"
+
+msgid "web.coverage.brief_cleared"
+msgstr "Brief cleared."
+
+msgid "web.coverage.brief_count"
+msgstr "{count} fatal crashes involving {mode} in {year}."
+
+msgid "web.coverage.brief_empty"
+msgstr "No evidence saved yet. Select a state, then add it from the inspector."
+
+msgid "web.coverage.brief_h"
+msgstr "Evidence brief"
+
+msgid "web.coverage.brief_intro"
+msgstr "Save up to four states. The printable brief keeps the year, mode, publication status, exact release, source, and ‘counts are not risk’ limit attached."
+
+msgid "web.coverage.brief_kicker"
+msgstr "Carry the caveat with the number"
+
+msgid "web.coverage.brief_removed"
+msgstr "State removed from the brief."
+
+msgid "web.coverage.brief_saved"
+msgstr "State added to the brief."
+
+msgid "web.coverage.brief_unpublished"
+msgstr "{mode}: no numeric count published."
+
+msgid "web.coverage.cells_value"
+msgstr "{published} of {total}"
+
+msgid "web.coverage.clear_brief"
+msgstr "Clear brief"
+
+msgid "web.coverage.compare_a"
+msgstr "First state"
+
+msgid "web.coverage.compare_b"
+msgstr "Second state"
+
+msgid "web.coverage.compare_empty"
+msgstr "Choose two states to compare."
+
+msgid "web.coverage.compare_h"
+msgstr "Compare two states without adding modes"
+
+msgid "web.coverage.compare_intro"
+msgstr "Every mode keeps an independent scale because one crash may contribute to multiple rows."
+
+msgid "web.coverage.compare_kicker"
+msgstr "Side by side"
+
+msgid "web.coverage.compare_with"
+msgstr "Compare this state"
+
+msgid "web.coverage.copy_failed"
+msgstr "Couldn’t copy automatically. Copy the address from your browser."
+
+msgid "web.coverage.copy_view"
+msgstr "Copy link to this view"
+
+msgid "web.coverage.explore_action"
+msgstr "Explore the evidence"
+
+msgid "web.coverage.inspector_empty"
+msgstr "Select a map area, matrix cell, rank bar, plot point, or state control to inspect its six publication cells."
+
+msgid "web.coverage.inspector_h"
+msgstr "Choose a state"
+
+msgid "web.coverage.inspector_kicker"
+msgstr "Selected evidence"
+
+msgid "web.coverage.inspector_rank"
+msgstr "{mode} rank among published numeric cells: {rank} of {total}."
+
+msgid "web.coverage.map_caption"
+msgstr "{mode}: {published} of 51 jurisdictions have numeric published counts. Geography is for orientation; counts are not exposure-normalized risk."
+
+msgid "web.coverage.map_h"
+msgstr "Fatal-crash burden across the United States"
+
+msgid "web.coverage.map_intro"
+msgstr "Select a road-user mode to read the same reviewed counts geographically. Color is scaled within that mode; hatching means suppressed or zero."
+
+msgid "web.coverage.map_keyboard_hint"
+msgstr "Keyboard: Tab enters the map once. Arrow keys, Home, and End move through jurisdictions in alphabetical order; Enter or Space selects."
+
+msgid "web.coverage.map_kicker"
+msgstr "Whole-country view"
+
+msgid "web.coverage.map_legend_high"
+msgstr "Higher published count"
+
+msgid "web.coverage.map_legend_low"
+msgstr "Lower published count"
+
+msgid "web.coverage.map_legend_unpublished"
+msgstr "Suppressed or zero"
+
+msgid "web.coverage.map_state_published"
+msgstr "{state}: {count} fatal crashes involving {mode}"
+
+msgid "web.coverage.map_state_unpublished"
+msgstr "{state}: suppressed or zero for {mode}"
+
+msgid "web.coverage.matrix_caption"
+msgstr "Matrix of {states} jurisdictions and six involved modes: {published} of {total} cells publish a numeric count."
+
+msgid "web.coverage.matrix_cell_published"
+msgstr "{state}, {mode}: {count} fatal crashes, published."
+
+msgid "web.coverage.matrix_cell_unpublished"
+msgstr "{state}, {mode}: not published; suppressed or zero."
+
+msgid "web.coverage.matrix_coverage"
+msgstr "{published} of {total} published"
+
+msgid "web.coverage.matrix_h"
+msgstr "State × involved-mode matrix"
+
+msgid "web.coverage.matrix_intro"
+msgstr "Each column has its own scale. Hatched cells are not published and are never treated as zero."
+
+msgid "web.coverage.matrix_keyboard_hint"
+msgstr "Keyboard: after the matrix scroll region and mode filters, Tab enters the cell grid once. Arrow keys move between cells; Home and End move to the first and last mode; Enter or Space selects."
+
+msgid "web.coverage.matrix_kicker"
+msgstr "Publication landscape"
+
+msgid "web.coverage.print_brief"
+msgstr "Print brief"
+
+msgid "web.coverage.rank_h"
+msgstr "Rank one involved mode"
+
+msgid "web.coverage.rank_intro"
+msgstr "Only numeric cells are ranked. This is burden, not exposure-normalized risk or safety."
+
+msgid "web.coverage.rank_keyboard_hint"
+msgstr "Keyboard: Tab enters the ranking once. Arrow keys, Home, and End move through states; Enter or Space selects."
+
+msgid "web.coverage.rank_item"
+msgstr "Rank {rank}: {state}, {count} fatal crashes involving {mode}."
+
+msgid "web.coverage.rank_kicker"
+msgstr "Published burden"
+
+msgid "web.coverage.rank_title"
+msgstr "{mode}: published fatal-crash counts"
+
+msgid "web.coverage.rank_unpublished"
+msgstr "{count} jurisdictions have no published numeric {mode} count (suppressed or zero)"
+
+msgid "web.coverage.real_data_badge"
+msgstr "Source: NHTSA FARS · Verified artifact"
+
+msgid "web.coverage.remove_brief"
+msgstr "Remove {state} from brief"
+
+msgid "web.coverage.save_comparison"
+msgstr "Save both states to brief"
+
+msgid "web.coverage.scale_label"
+msgstr "Scale"
+
+msgid "web.coverage.scale_linear"
+msgstr "Linear"
+
+msgid "web.coverage.scale_log"
+msgstr "Log"
+
+msgid "web.coverage.scatter_caption"
+msgstr "{comparable} jurisdictions have both numeric counts; {excluded} remain outside the plot because one or both cells are not published."
+
+msgid "web.coverage.scatter_empty"
+msgstr "No jurisdictions have both counts published."
+
+msgid "web.coverage.scatter_h"
+msgstr "Compare two involved modes"
+
+msgid "web.coverage.scatter_intro"
+msgstr "States appear only when both cells are published. Missing values stay outside the plot."
+
+msgid "web.coverage.scatter_keyboard_hint"
+msgstr "Keyboard: Tab enters the plot once. Arrow keys, Home, and End move through states; Enter or Space selects."
+
+msgid "web.coverage.scatter_kicker"
+msgstr "Count relationship"
+
+msgid "web.coverage.scatter_point"
+msgstr "{state}: {xcount} {xmode} fatal crashes; {ycount} {ymode} fatal crashes."
+
+msgid "web.coverage.scatter_title"
+msgstr "{x} and {y}: published-count relationship"
+
+msgid "web.coverage.secondary_mode"
+msgstr "Second mode"
+
+msgid "web.coverage.studio_h"
+msgstr "One evidence set, five ways to inspect it"
+
+msgid "web.coverage.studio_intro"
+msgstr "Every view is driven by the same reviewed state-by-mode cells for the selected year. A selection in one view follows you into the others."
+
+msgid "web.coverage.studio_kicker"
+msgstr "Explore · compare · cite"
+
+msgid "web.coverage.summary_cases"
+msgstr "Distinct fatal crashes"
+
+msgid "web.coverage.summary_cells"
+msgstr "Numerically published cells"
+
+msgid "web.coverage.view_compare"
+msgstr "Compare states"
+
+msgid "web.coverage.view_copied"
+msgstr "Link to this view copied."
+
+msgid "web.coverage.view_label"
+msgstr "Evidence view"
+
+msgid "web.coverage.view_map"
+msgstr "Map"
+
+msgid "web.coverage.view_matrix"
+msgstr "Matrix"
+
+msgid "web.coverage.view_rank"
+msgstr "Rank"
+
+msgid "web.coverage.view_scatter"
+msgstr "Compare modes"

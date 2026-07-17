@@ -25,6 +25,8 @@ const here = dirname(fileURLToPath(import.meta.url)); // web/
 const repoRoot = join(here, "..");
 const INDEX = join(here, "index.html");
 const APP_JS = join(here, "app.js");
+const EMBED_JS = join(here, "embed.js");
+const EMBED_LOADER_JS = join(here, "nearmiss-embed.js");
 const I18N_JS = join(here, "i18n.js");
 const LOCALES_DIR = join(here, "locales");
 const FIXTURE = join(repoRoot, "data", "published", "davis.geojson");
@@ -92,24 +94,78 @@ function without(geojson, prop) {
   return copy;
 }
 
+function installLeafletStub(window, tooltipContents) {
+  const map = {
+    fitBounds() {},
+    getCenter() {
+      return [0, 0];
+    },
+    getZoom() {
+      return 1;
+    },
+    on() {},
+    removeLayer() {},
+    setView() {},
+  };
+  window.L = {
+    latLngBounds() {
+      return {
+        extend() {},
+        isValid() {
+          return true;
+        },
+      };
+    },
+    map() {
+      return map;
+    },
+    polyline() {
+      return {
+        addTo() {
+          return this;
+        },
+        bindTooltip(content) {
+          tooltipContents.push(content);
+          return this;
+        },
+        openTooltip() {
+          return this;
+        },
+      };
+    },
+    tileLayer() {
+      return {
+        addTo() {},
+      };
+    },
+  };
+}
+
 // Boot app.js in jsdom with fetch stubbed to serve `geojson`, no Leaflet present
 // (so renderMaps short-circuits and the data TABLE is the parse-path evidence).
-async function render(geojson) {
+async function render(
+  geojson,
+  { leaflet = false, url = "https://example.test/web/index.html" } = {}
+) {
   const html = readFileSync(INDEX, "utf-8");
   const appSource = readFileSync(APP_JS, "utf-8");
   const i18nSource = readFileSync(I18N_JS, "utf-8");
   const dom = new JSDOM(html, {
     runScripts: "outside-only",
     pretendToBeVisual: true,
-    url: "https://example.test/web/index.html",
+    url,
     virtualConsole: new VirtualConsole(),
   });
   const { window } = dom;
+  const fetchTargets = [];
+  const tooltipContents = [];
+  if (leaflet) installLeafletStub(window, tooltipContents);
   // app.js fetches both the dataset and the web locale catalogs (FIX-13's
   // single-sourced translations); serve the committed catalogs for locales/*
   // and the fixture under test for everything else.
   window.fetch = (url) => {
     const target = String(url);
+    fetchTargets.push(target);
     const locale = target.match(/locales\/([a-z]{2,3})\.json$/);
     if (locale) {
       const raw = JSON.parse(readFileSync(join(LOCALES_DIR, `${locale[1]}.json`), "utf-8"));
@@ -127,7 +183,48 @@ async function render(geojson) {
   const doc = window.document;
   const body = doc.getElementById("data-body");
   const failed = !!body.querySelector("td[colspan]"); // app.js fail() marker
-  return { doc, window, body, failed, html: body.innerHTML };
+  return { doc, window, body, failed, html: body.innerHTML, fetchTargets, tooltipContents };
+}
+
+async function renderEmbed(url, geojson, { leaflet = false } = {}) {
+  const dom = new JSDOM(
+    '<!doctype html><div id="embed-map"></div><p id="embed-caption"></p>' +
+      '<ul id="embed-hotspots"></ul><p id="embed-source"></p><a id="embed-fulllink"></a>',
+    { runScripts: "outside-only", pretendToBeVisual: true, url }
+  );
+  const targets = [];
+  const tooltipContents = [];
+  if (leaflet) installLeafletStub(dom.window, tooltipContents);
+  dom.window.fetch = (target) => {
+    targets.push(String(target));
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(clone(geojson)) });
+  };
+  dom.window.eval(readFileSync(EMBED_JS, "utf-8"));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  dom.window.close();
+  return { targets, tooltipContents };
+}
+
+function renderEmbedLoader(attributes) {
+  const dom = new JSDOM(
+    '<!doctype html><div id="host"><script id="loader" ' +
+      'src="https://nearmiss.chelseakr.com/web/nearmiss-embed.js"></script></div>',
+    { runScripts: "outside-only", url: "https://publisher.example/article" }
+  );
+  const loader = dom.window.document.getElementById("loader");
+  Object.entries(attributes).forEach(([name, value]) => loader.setAttribute(name, value));
+  dom.window.eval(readFileSync(EMBED_LOADER_JS, "utf-8"));
+  const iframe = dom.window.document.querySelector("iframe");
+  const result = iframe
+    ? { src: iframe.src, title: iframe.title, sandbox: iframe.getAttribute("sandbox") }
+    : null;
+  dom.window.close();
+  return result;
+}
+
+function datasetTarget(rendered) {
+  return rendered.fetchTargets.find((target) => !target.includes("/locales/"));
 }
 
 function cellsFor(doc, segmentId) {
@@ -138,6 +235,12 @@ function cellsFor(doc, segmentId) {
 }
 
 async function main() {
+  for (const script of [APP_JS, EMBED_JS, EMBED_LOADER_JS, I18N_JS]) {
+    const source = readFileSync(script, "utf-8");
+    if (/\b(?:innerHTML|outerHTML|insertAdjacentHTML|document\.write|DOMParser)\b/.test(source)) {
+      die(`${script} must not reinterpret translation or dataset text as HTML`);
+    }
+  }
   const schema = JSON.parse(readFileSync(SCHEMA, "utf-8"));
   const requiredProps = new Set(schema.$defs.properties.required);
   const requiredMeta = new Set(schema.$defs.metadata.required);
@@ -183,6 +286,18 @@ async function main() {
     const ci = `${p.rate_ci_low.toFixed(2)} – ${p.rate_ci_high.toFixed(2)}`;
     if (cells[2] !== ci) die(`row ${p.segment_id}: interval not rendered (got "${cells[2]}")`);
   }
+  if (!base.doc.querySelector('.lede strong') || !base.doc.querySelector('.lede em')) {
+    die("safe translation renderer dropped the lede's semantic emphasis");
+  }
+  if (base.doc.querySelector('.lede a')?.getAttribute("href") !== "#data-table") {
+    die("safe translation renderer dropped the lede's audited table link");
+  }
+  if (base.doc.querySelectorAll('[data-i18n="legend"] > li').length !== 4) {
+    die("safe translation renderer dropped the four-item evidence legend");
+  }
+  if (base.doc.querySelectorAll('footer [data-i18n="footer"] a').length !== 3) {
+    die("safe translation renderer dropped an audited footer link");
+  }
   console.log(
     `contract: app.js parsed the fixture and rendered ${rows} segments with correct ` +
       `rate / interval / n / name.`
@@ -220,7 +335,117 @@ async function main() {
     die("removing embedded metadata did not change the metadata-driven summary");
   }
 
-  console.log("contract: OK — web consumer honors the published dataset schema.");
+  const hostileMeta = clone(fixture);
+  hostileMeta.metadata.city = '<img src=x onerror="alert(1)">';
+  hostileMeta.metadata.dataset_note = "Real data: reviewed fixture";
+  const hostileRendered = await render(hostileMeta);
+  if (hostileRendered.doc.querySelector(".real-note img")) {
+    die("dataset metadata created executable markup in the provenance banner");
+  }
+  if (!hostileRendered.doc.querySelector(".real-note strong")?.textContent.includes("<img")) {
+    die("dataset metadata was not preserved as literal provenance text");
+  }
+
+  const hostileMap = clone(fixture);
+  hostileMap.features[0].properties.name = '<img src=x onerror="alert(1)">';
+  const hostileAppMap = await render(hostileMap, { leaflet: true });
+  const hostileEmbedMap = await renderEmbed(
+    "https://example.test/web/embed.html?city=davis",
+    hostileMap,
+    { leaflet: true }
+  );
+  for (const [consumer, contents] of [
+    ["app.js", hostileAppMap.tooltipContents],
+    ["embed.js", hostileEmbedMap.tooltipContents],
+  ]) {
+    if (!contents.length || contents.some((content) => content.nodeType !== 1)) {
+      die(`${consumer} did not bind tooltip text through DOM elements`);
+    }
+    if (
+      contents.some((content) => content.querySelector("img")) ||
+      !contents.some((content) => content.textContent.includes("<img"))
+    ) {
+      die(`${consumer} reinterpreted hostile dataset labels as tooltip markup`);
+    }
+  }
+
+  const i18nFetchTargets = [];
+  base.window.fetch = (target) => {
+    i18nFetchTargets.push(String(target));
+    return Promise.reject(new Error("unsupported locale must not be fetched"));
+  };
+  const isolatedI18n = base.window.NearmissI18n.create("web.app.");
+  await isolatedI18n.load("__proto__");
+  await isolatedI18n.load("constructor");
+  isolatedI18n.setLang("__proto__");
+  if (i18nFetchTargets.length || isolatedI18n.lang() !== "en" || isolatedI18n.loaded("__proto__")) {
+    die("i18n loader did not reject unsupported prototype-like locale names");
+  }
+
+  const datasetCases = [
+    ["?city=riverside", "../data/published/riverside.geojson"],
+    ["?data=../data/published/riverside.geojson", "../data/published/riverside.geojson"],
+    ["?data=/data/published/riverside.geojson", "../data/published/riverside.geojson"],
+    ["?data=https://attacker.example/private.geojson", "../data/published/davis.geojson"],
+    ["?data=../../data/raw/private.geojson", "../data/published/davis.geojson"],
+    ["?data=../data/published/../../raw/private.geojson", "../data/published/davis.geojson"],
+    ["?data=../data/published/%252e%252e%252fprivate.geojson", "../data/published/davis.geojson"],
+    ["?data=..%2Fdata%2Fpublished%2Friverside.geojson", "../data/published/davis.geojson"],
+    ["?data=..%5Cdata%5Cpublished%5Criverside.geojson", "../data/published/davis.geojson"],
+    ["?data=..\\data\\published\\riverside.geojson", "../data/published/davis.geojson"],
+    ["?data=../data/published/riverside.geojson%3Fraw=1", "../data/published/davis.geojson"],
+    ["?data=../data/published/riverside.geojson%23raw", "../data/published/davis.geojson"],
+    ["?data=javascript:alert(1)", "../data/published/davis.geojson"],
+    ["?data=../data/published/riverside.geojson&data=../data/published/davis.geojson", "../data/published/davis.geojson"],
+    ["?city=riverside&data=../data/published/riverside.geojson", "../data/published/davis.geojson"],
+    ["?city=unlisted", "../data/published/davis.geojson"],
+    ["?city=../../private", "../data/published/davis.geojson"],
+  ];
+  for (const [query, expected] of datasetCases) {
+    const url = `https://example.test/web/index.html${query}`;
+    const appRendered = await render(fixture, { url });
+    if (datasetTarget(appRendered) !== expected) {
+      die(`app.js did not fail closed for dataset query ${query}`);
+    }
+    const embedded = await renderEmbed(
+      `https://example.test/web/embed.html${query}`,
+      fixture
+    );
+    if (embedded.targets[0] !== expected) {
+      die(`embed.js did not fail closed for dataset query ${query}`);
+    }
+  }
+
+  const loaderCases = [
+    [{ "data-city": "riverside" }, "https://nearmiss.chelseakr.com/web/embed.html?city=riverside"],
+    [
+      { "data-data": "../data/published/riverside.geojson" },
+      "https://nearmiss.chelseakr.com/web/embed.html?city=riverside",
+    ],
+    [{ "data-data": "../../data/raw/private.geojson" }, "https://nearmiss.chelseakr.com/web/embed.html"],
+    [
+      { "data-city": "riverside", "data-data": "../data/published/riverside.geojson" },
+      "https://nearmiss.chelseakr.com/web/embed.html",
+    ],
+  ];
+  for (const [attributes, expected] of loaderCases) {
+    const loaded = renderEmbedLoader(attributes);
+    if (!loaded || loaded.src !== expected) {
+      die(`nearmiss-embed.js did not canonicalize ${JSON.stringify(attributes)}`);
+    }
+    if (!loaded.sandbox?.includes("allow-scripts")) {
+      die("nearmiss-embed.js dropped the iframe security boundary");
+    }
+  }
+
+  const hostileLoader = renderEmbedLoader({ "data-title": '<img src=x onerror="alert(1)">' });
+  if (!hostileLoader || hostileLoader.title !== '<img src=x onerror="alert(1)">') {
+    die("nearmiss-embed.js did not preserve a hostile title as literal text");
+  }
+
+  console.log(
+    "contract: OK — web consumers honor the published schema and restrict query-selected data to public GeoJSON slugs."
+  );
 }
 
 main().catch((e) => die(e && e.stack ? e.stack : String(e)));

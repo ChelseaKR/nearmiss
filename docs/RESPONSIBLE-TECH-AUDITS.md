@@ -144,8 +144,11 @@ most likely to need this exact map — could be unable to read the findings.
 
 **How do we test for it?** Structural gate (`tools/a11y_check.py`, merge-blocking) + automated
 axe-core (jsdom, merge-blocking via `npm ci && npm run axe` in CI, fixed 2026-07-05 to install from the
-committed lockfile — see P0-3 in the remediation log). Manual NVDA/VoiceOver review and browser-rendered
-gates (Lighthouse, pa11y) are **not yet in place** — named honestly in the ACR rather than implied.
+committed lockfile — see P0-3 in the remediation log). Manual NVDA/VoiceOver review is **not yet in
+place** and remains marked **Not performed**. The national studio has additional rendered-browser
+evidence and a provisional solo-maintainer public-preview disposition under
+[`ADR 0012`](adr/0012-solo-maintainer-provisional-review-attestation.md); neither is represented as a
+screen-reader result or conformance.
 
 **What do we commit to?** WCAG 2.2 AA target; a non-visual table equivalent to every map finding; risk
 conveyed in text/pattern, never color alone; a committed ACR (VPAT 2.5 Rev 508).
@@ -156,7 +159,8 @@ conveyed in text/pattern, never color alone; a committed ACR (VPAT 2.5 Rev 508).
   2026-06-29 submission form and embed widget** (report date 2026-06-17, predates both surfaces). Not
   re-issued as part of this pass — flagged explicitly as a carried-forward gap (P2-3 in the remediation
   plan is the full re-audit; that is M-effort and out of scope for this pass, so the honest move here
-  is naming the staleness, not silently leaving the ACR looking current).
+  is naming the staleness, not silently leaving the ACR looking current). A provisional public-preview
+  record may permit deployment but cannot update an ACR row or claim this REVIEW-GATE was performed.
 
 ## F. Security audit
 

@@ -12,13 +12,15 @@ const APEX = join(repoRoot, "index.html");
 const PAGE = join(here, "us-coverage.html");
 const DAVIS_HOME = join(here, "index.html");
 const NATIONAL_ROUTE = "/fars/national/";
-const NATIONAL_CANONICAL = "https://nearmiss.report/fars/national/";
+const NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/";
 const APP = join(here, "us-coverage.js");
+const STUDIO_STYLE = join(here, "us-coverage-studio.css");
 const I18N = join(here, "i18n.js");
 const LOCALES = join(here, "locales");
 const INDEX = join(repoRoot, "data", "published", "fars-state-mode-index-v2.json");
 const LEGACY_INDEX = join(repoRoot, "data", "published", "fars-state-mode-index.json");
 const CORRECTIONS = join(repoRoot, "data", "published", "fars-release-corrections.json");
+const BOUNDARIES = join(repoRoot, "data", "published", "us-state-boundaries-2024.json");
 const YEARS = [2020, 2021, 2022, 2023, 2024];
 const ARTIFACTS = Object.fromEntries(
   YEARS.map((year) => [
@@ -35,6 +37,7 @@ const ARTIFACTS = Object.fromEntries(
 const CHECKED_INDEX_BYTES = readFileSync(INDEX);
 const LEGACY_INDEX_BYTES = readFileSync(LEGACY_INDEX);
 const CORRECTION_BYTES = readFileSync(CORRECTIONS);
+const CHECKED_BOUNDARY_BYTES = readFileSync(BOUNDARIES);
 const CHECKED_ARTIFACT_BYTES_BY_YEAR = Object.fromEntries(
   YEARS.map((year) => [year, readFileSync(ARTIFACTS[year])])
 );
@@ -42,6 +45,7 @@ const CHECKED_ARTIFACT_BYTES = CHECKED_ARTIFACT_BYTES_BY_YEAR[2024];
 const CHECKED_INDEX = JSON.parse(CHECKED_INDEX_BYTES.toString("utf-8"));
 const CHECKED_ARTIFACT = JSON.parse(CHECKED_ARTIFACT_BYTES.toString("utf-8"));
 const CHECKED_RELEASE_2024 = CHECKED_INDEX.releases.find((release) => release.dataset_year === 2024);
+const EXPECTED_MODES = CHECKED_INDEX.contract.modes;
 const EXPECTED_ARTIFACT_PINS = {
   2020: [27589, "db4c50d998d20bc2f341b1943c883f6d6d3c805db4bb7117564619119499290c"],
   2021: [27630, "de7406ca0980e9d092eb25a230fe17fb2500f07b3b36f781dc3e4b35b7983168"],
@@ -116,6 +120,7 @@ async function boot({
   deferredLocales = [],
   deferredArtifacts = [],
   failArtifactYears = [],
+  boundaryBytes = CHECKED_BOUNDARY_BYTES,
   url = "https://example.test/web/us-coverage.html",
 } = {}) {
   const dom = new JSDOM(readFileSync(PAGE, "utf-8"), {
@@ -147,7 +152,9 @@ async function boot({
     }
     if (failFetch) return Promise.resolve({ ok: false, status: 503 });
     let bytes;
-    if (target.endsWith("fars-state-mode-index-v2.json")) {
+    if (target.endsWith("us-state-boundaries-2024.json")) {
+      bytes = boundaryBytes;
+    } else if (target.endsWith("fars-state-mode-index-v2.json")) {
       bytes = indexBytes;
     } else {
       const match = target.match(/fars-([0-9]{4})-state-mode(?:-r[2-9][0-9]*)?\.json$/);
@@ -267,6 +274,10 @@ async function assertLocaleRootFollowsLoadedScript() {
 }
 
 async function main() {
+  const appSource = readFileSync(APP, "utf-8");
+  if (/\b(?:innerHTML|outerHTML|insertAdjacentHTML|document\.write|DOMParser)\b/.test(appSource)) {
+    die("national runtime must not reinterpret translated or artifact text as HTML");
+  }
   await assertLocaleRootFollowsLoadedScript();
   const apex = new JSDOM(readFileSync(APEX, "utf-8")).window.document;
   const refresh = apex.querySelector('meta[http-equiv="refresh"]');
@@ -325,6 +336,7 @@ async function main() {
   for (const dependency of [
     "/web/style.css",
     "/web/us-coverage.css",
+    "/web/us-coverage-studio.css",
     "/web/i18n.js",
     "/web/us-coverage.js",
   ]) {
@@ -340,6 +352,80 @@ async function main() {
   }
   if (!coverageSource.querySelector('a[href$="fars-release-corrections.json"]')) {
     die("nationwide page has no correction-ledger download");
+  }
+  if (!coverageSource.querySelector('a[href="/data/published/us-state-boundaries-2024.json"]')) {
+    die("nationwide page has no reviewed Census-boundary download");
+  }
+  const focusModeSource = coverageSource.getElementById("mode-filter");
+  const ledgerModeSource = coverageSource.getElementById("ledger-mode-filter");
+  if (
+    !focusModeSource?.required ||
+    Array.from(focusModeSource.options).some((option) => option.value === "") ||
+    focusModeSource.value !== "pedalcyclist"
+  ) {
+    die("visualization focus is not a required specific mode with a pedalcyclist fallback");
+  }
+  if (
+    !ledgerModeSource ||
+    !ledgerModeSource.closest(".data-ledger") ||
+    ledgerModeSource.options[0]?.value !== "" ||
+    coverageSource.querySelector('label[for="ledger-mode-filter"]')?.getAttribute("data-i18n") !==
+      "ledger_mode_label"
+  ) {
+    die("complete ledger does not expose its own all-modes filter");
+  }
+  for (const [view, hintId] of [
+    ["map", "map-keyboard-hint"],
+    ["matrix", "matrix-keyboard-hint"],
+    ["rank", "rank-keyboard-hint"],
+    ["scatter", "scatter-keyboard-hint"],
+  ]) {
+    const hint = coverageSource.getElementById(hintId);
+    if (
+      !hint ||
+      hint.getAttribute("data-i18n") !== `${view}_keyboard_hint` ||
+      !hint.textContent.trim() ||
+      hint.classList.contains("visually-hidden")
+    ) {
+      die(`${view} view does not expose concise visible keyboard instructions`);
+    }
+  }
+  if (!coverageSource.getElementById("matrix-keyboard-hint").textContent.includes("mode filters")) {
+    die("matrix keyboard instructions do not distinguish its scroll, filter, and roving-grid stops");
+  }
+  const comparisonRegionSource = coverageSource.getElementById("state-comparison");
+  if (
+    comparisonRegionSource.getAttribute("tabindex") !== "0" ||
+    comparisonRegionSource.getAttribute("role") !== "region" ||
+    comparisonRegionSource.getAttribute("aria-labelledby") !== "compare-heading" ||
+    comparisonRegionSource.getAttribute("aria-describedby") !== "compare-intro"
+  ) {
+    die("state comparison overflow is not exposed as a named keyboard-reachable region");
+  }
+  for (const button of coverageSource.querySelectorAll("[data-view]")) {
+    const view = button.getAttribute("data-view");
+    if (button.getAttribute("aria-controls") !== `${view}-panel`) {
+      die(`${view} view control is not programmatically related to its panel`);
+    }
+  }
+  for (const id of ["coverage-status", "state-profile-status", "brief-status"]) {
+    const status = coverageSource.getElementById(id);
+    if (
+      !status ||
+      status.getAttribute("role") !== "status" ||
+      status.getAttribute("aria-live") !== "polite" ||
+      status.getAttribute("aria-atomic") !== "true"
+    ) {
+      die(`${id} does not expose one atomic polite status contract`);
+    }
+  }
+  const studioStyle = readFileSync(STUDIO_STYLE, "utf-8");
+  if (
+    !studioStyle.includes(".map-state-group:focus .map-state,\n  .plot-point:focus") ||
+    !studioStyle.includes("stroke: Highlight;") ||
+    !studioStyle.includes(".matrix-cell-button:focus-visible,\n  .rank-item button:focus-visible")
+  ) {
+    die("forced-colors mode does not retain system-colored focus indicators for dense views");
   }
 
   const home = new JSDOM(readFileSync(DAVIS_HOME, "utf-8")).window.document;
@@ -369,6 +455,12 @@ async function main() {
     digest(CORRECTION_BYTES) !== "783e238ae6eab3404dfcee4b5323c536d6653ac59ea9e6a6beb36fe8d91fb4f6"
   ) {
     die("release correction ledger drifted from its reviewed bytes");
+  }
+  if (
+    CHECKED_BOUNDARY_BYTES.byteLength !== 323232 ||
+    digest(CHECKED_BOUNDARY_BYTES) !== "705219b3339077f1d03466391bb286fe7f1841298fc0bcce948de1d8c66df25d"
+  ) {
+    die("Census state-boundary artifact drifted from its reviewed bytes");
   }
   if (
     CHECKED_INDEX.releases.length !== YEARS.length ||
@@ -427,6 +519,7 @@ async function main() {
     "https://example.test/web/locales/en.json",
     "https://example.test/web/locales/es.json",
     "/data/published/fars-state-mode-index-v2.json",
+    "/data/published/us-state-boundaries-2024.json",
     ...YEARS.map((year) =>
       `/data/published/fars-${year}-state-mode${year === 2024 ? "-r2" : ""}.json`
     ),
@@ -462,6 +555,7 @@ async function main() {
     "https://example.test/web/locales/en.json",
     "/data/published/fars-state-mode-index-v2.json",
     "/data/published/fars-2024-state-mode-r2.json",
+    "/data/published/us-state-boundaries-2024.json",
   ]);
   if (
     window.location.pathname !== "/web/us-coverage.html" ||
@@ -469,14 +563,14 @@ async function main() {
   ) {
     die("legacy national route did not boot with root-absolute runtime fetches");
   }
-  if (renderedRows(doc).length !== 0 || !doc.getElementById("state-profile-wrap").hidden) {
-    die("the state-first empty state exposed annual or profile values before selection");
+  if (renderedRows(doc).length !== CHECKED_ARTIFACT.accounting.state_mode_cell_count) {
+    die("the whole-country default did not expose every reviewed state-by-mode row");
   }
-  if (!doc.getElementById("coverage-status").textContent.includes("Choose a state")) {
-    die("the empty selected-year ledger does not direct the reader to state selection");
+  if (!doc.getElementById("state-profile-wrap").hidden) {
+    die("the whole-country default exposed a five-year profile before state selection");
   }
-  if (doc.querySelector("#coverage-filters select")?.id !== "state-filter") {
-    die("state selection is not the primary filter control");
+  if (!doc.getElementById("coverage-status").textContent.includes("306")) {
+    die("the whole-country status does not report all reviewed cells");
   }
   if (doc.querySelector("main > section") !== doc.getElementById("coverage-filters").closest("section")) {
     die("state selection and profile are not the first main-content workflow");
@@ -488,6 +582,16 @@ async function main() {
   const yearOptions = Array.from(doc.getElementById("year-filter").options, (option) => option.value);
   if (JSON.stringify(yearOptions) !== JSON.stringify(YEARS.map(String))) {
     die(`selector did not expose all published years: ${yearOptions.join(", ")}`);
+  }
+  const focusModeOptions = Array.from(doc.getElementById("mode-filter").options, (option) => option.value);
+  const ledgerModeOptions = Array.from(doc.getElementById("ledger-mode-filter").options, (option) => option.value);
+  if (
+    JSON.stringify(focusModeOptions) !== JSON.stringify(EXPECTED_MODES) ||
+    doc.getElementById("mode-filter").value !== "pedalcyclist" ||
+    JSON.stringify(ledgerModeOptions) !== JSON.stringify(["", ...EXPECTED_MODES]) ||
+    doc.getElementById("ledger-mode-filter").value !== ""
+  ) {
+    die("visual focus and ledger mode controls do not expose their distinct defaults and inventories");
   }
   if (doc.getElementById("summary-year").textContent !== "2024") {
     die("reviewed release did not render its selected year");
@@ -504,6 +608,15 @@ async function main() {
   if (!doc.querySelector(".coverage-regime-caution").textContent.includes("2020–2021")) {
     die("page omitted the cross-regime comparison caution");
   }
+  if (doc.querySelectorAll('[data-i18n="can_list"] > li').length !== 3) {
+    die("safe translation renderer did not preserve the three-item capability list");
+  }
+  if (doc.querySelectorAll('[data-i18n="cannot_list"] > li').length !== 3) {
+    die("safe translation renderer did not preserve the three-item limitation list");
+  }
+  if (!doc.querySelector('[data-i18n="caveat"] > strong')) {
+    die("safe translation renderer did not preserve the count caveat emphasis");
+  }
   if (!doc.getElementById("artifact-download").href.endsWith("fars-2024-state-mode-r2.json")) {
     die("reviewed release did not bind its annual download link");
   }
@@ -513,10 +626,98 @@ async function main() {
   if (doc.getElementById("summary-retention").textContent !== "48,154 / 48,524") {
     die("published/total contribution accounting was not rendered from the artifact");
   }
+  if (
+    doc.querySelectorAll("#us-map .map-state-group").length !== CHECKED_ARTIFACT.accounting.state_count ||
+    doc.querySelectorAll("#matrix-body tr").length !== CHECKED_ARTIFACT.accounting.state_count ||
+    doc.querySelectorAll("#matrix-body .matrix-cell").length !==
+      CHECKED_ARTIFACT.accounting.state_mode_cell_count
+  ) {
+    die("linked map or matrix did not render the complete national reviewed scope");
+  }
+  if (
+    doc.querySelectorAll('#us-map .map-state-group[tabindex="0"]').length !== 1 ||
+    doc.querySelectorAll('#matrix-body .matrix-cell-button[tabindex="0"]').length !== 1 ||
+    doc.querySelectorAll('#rank-list button[tabindex="0"]').length !== 1 ||
+    doc.querySelectorAll('#scatter-plot .plot-point[tabindex="0"]').length !== 1
+  ) {
+    die("dense national visualizations do not expose one predictable roving keyboard entry each");
+  }
+  const visiblePanels = doc.querySelectorAll("[data-panel]:not([hidden])");
+  const pressedViews = doc.querySelectorAll('[data-view][aria-pressed="true"]');
+  if (
+    visiblePanels.length !== 1 ||
+    pressedViews.length !== 1 ||
+    pressedViews[0].getAttribute("aria-controls") !== visiblePanels[0].id ||
+    doc.querySelectorAll("[data-panel][hidden]").length !== 4
+  ) {
+    die("view switcher does not expose exactly one pressed control and one active panel");
+  }
+  for (const [selector, hintId] of [
+    ["#us-map .map-state-group", "map-keyboard-hint"],
+    ["#matrix-body .matrix-cell-button", "matrix-keyboard-hint"],
+    ["#rank-list button[data-focus-key]", "rank-keyboard-hint"],
+    ["#scatter-plot .plot-point", "scatter-keyboard-hint"],
+  ]) {
+    const items = Array.from(doc.querySelectorAll(selector));
+    if (
+      !items.length ||
+      !doc.getElementById(hintId).textContent.startsWith("Keyboard:") ||
+      items.some((item) => item.getAttribute("aria-describedby") !== hintId)
+    ) {
+      die(`${hintId} is not associated with every generated roving item`);
+    }
+  }
+  const initialMapFocus = doc.querySelector('#us-map .map-state-group[tabindex="0"]');
+  initialMapFocus.focus();
+  initialMapFocus.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+  if (
+    doc.activeElement === initialMapFocus ||
+    !doc.activeElement.classList.contains("map-state-group") ||
+    doc.activeElement.getAttribute("tabindex") !== "0"
+  ) {
+    die("national map arrow-key navigation did not advance its roving focus");
+  }
+  const boundary = JSON.parse(CHECKED_BOUNDARY_BYTES.toString("utf-8"));
+  if (
+    doc.getElementById("boundary-source").href !== boundary.source.distribution_url ||
+    doc.getElementById("boundary-source").textContent !== boundary.source.name ||
+    doc.getElementById("boundary-checksum").textContent !== digest(CHECKED_BOUNDARY_BYTES)
+  ) {
+    die("national map did not display its reviewed Census source and artifact digest");
+  }
 
   select(doc, "state-filter", "CA");
   await settle();
   if (renderedRows(doc).length !== 6) die("California filter did not render six canonical modes");
+  for (const [selector, expectedMode] of [
+    ['#us-map .map-state-group[aria-current="true"]', null],
+    ['#matrix-body .matrix-cell-button[aria-current="true"]', "pedalcyclist"],
+    ['#rank-list button[aria-current="true"]', null],
+    ['#scatter-plot .plot-point[aria-current="true"]', null],
+  ]) {
+    const currentItems = doc.querySelectorAll(selector);
+    if (
+      currentItems.length !== 1 ||
+      currentItems[0].getAttribute("data-state") !== "CA" ||
+      (expectedMode && currentItems[0].getAttribute("data-mode") !== expectedMode)
+    ) {
+      die(`${selector} did not expose the linked selection with aria-current`);
+    }
+  }
+  const comparisonTable = doc.querySelector("#state-comparison table.comparison-table");
+  if (
+    !comparisonTable ||
+    comparisonTable.closest('[role="region"][tabindex="0"]')?.id !== "state-comparison" ||
+    !comparisonTable.querySelector("caption")?.textContent.trim() ||
+    comparisonTable.querySelectorAll('thead th[scope="col"]').length !== 3 ||
+    comparisonTable.querySelectorAll("tbody tr").length !== 6 ||
+    comparisonTable.querySelectorAll('tbody th[scope="row"]').length !== 6 ||
+    comparisonTable.querySelectorAll('.comparison-track[aria-hidden="true"]').length !== 12 ||
+    !comparisonTable.querySelector("thead")?.textContent.includes("California") ||
+    !comparisonTable.querySelector("thead")?.textContent.includes("Texas")
+  ) {
+    die("state comparison is not exposed as a captioned table with scoped state and mode headers");
+  }
   if (
     window.location.pathname !== "/web/us-coverage.html" ||
     !window.location.search.includes("state=CA") ||
@@ -568,8 +769,37 @@ async function main() {
   if (renderedRows(doc).length !== 6) die("California published-status filter did not retain six rows");
   select(doc, "status-filter", "");
   select(doc, "mode-filter", "pedestrian");
-  if (renderedRows(doc).length !== 1) die("pedestrian filter escaped the selected state");
-  select(doc, "mode-filter", "");
+  if (
+    renderedRows(doc).length !== 6 ||
+    window.NearmissUSCoverage.getState().primaryMode !== "pedestrian" ||
+    doc.querySelectorAll("#matrix-body .matrix-cell.is-filtered").length !== 0 ||
+    !window.location.search.includes("mode=pedestrian")
+  ) {
+    die("visualization focus incorrectly filtered the complete ledger or evidence matrix");
+  }
+  const matrixFirstRow = doc.getElementById("matrix-body").firstElementChild;
+  const urlBeforeLedgerFilter = window.location.href;
+  select(doc, "ledger-mode-filter", "motorcyclist");
+  if (
+    renderedRows(doc).length !== 1 ||
+    window.NearmissUSCoverage.getState().primaryMode !== "pedestrian" ||
+    doc.getElementById("mode-filter").value !== "pedestrian" ||
+    doc.getElementById("matrix-body").firstElementChild !== matrixFirstRow ||
+    window.location.href !== urlBeforeLedgerFilter
+  ) {
+    die("ledger mode filter changed visualization focus, rerendered the matrix, or entered the URL");
+  }
+  select(doc, "ledger-mode-filter", "");
+  if (renderedRows(doc).length !== 6) die("all-modes ledger default did not restore the selected-state rows");
+  doc.querySelector('[data-focus-key="matrix-mode:motorcyclist"]').click();
+  if (
+    window.NearmissUSCoverage.getState().primaryMode !== "motorcyclist" ||
+    doc.getElementById("mode-filter").value !== "motorcyclist" ||
+    renderedRows(doc).length !== 6 ||
+    doc.querySelectorAll("#matrix-body .matrix-cell.is-filtered").length !== 0
+  ) {
+    die("matrix mode click did not change visual focus without filtering the evidence scope");
+  }
 
   select(doc, "state-filter", "VT");
   await settle();
@@ -593,6 +823,19 @@ async function main() {
   doc.querySelector('[data-lang="es"]').click();
   await settle();
   if (doc.documentElement.lang !== "es") die("Spanish control did not update document language");
+  for (const hintId of [
+    "map-keyboard-hint",
+    "matrix-keyboard-hint",
+    "rank-keyboard-hint",
+    "scatter-keyboard-hint",
+  ]) {
+    if (!doc.getElementById(hintId).textContent.startsWith("Teclado:")) {
+      die(`${hintId} did not render its visible Spanish keyboard instructions`);
+    }
+  }
+  if (!doc.getElementById("matrix-keyboard-hint").textContent.includes("filtros de modo")) {
+    die("Spanish matrix instructions do not distinguish its separate keyboard stops");
+  }
   if (doc.getElementById("release-stage").textContent !== "Archivo del informe anual (ARF)") {
     die("Spanish locale rerender did not surface the exact ARF status");
   }
@@ -601,6 +844,13 @@ async function main() {
   }
   if (!doc.querySelector(".coverage-regime-caution").textContent.includes("régimen semántico")) {
     die("Spanish catalog omitted the semantic-regime caution");
+  }
+  if (
+    doc.querySelector('label[for="mode-filter"]').textContent !== "Enfoque de visualización" ||
+    doc.querySelector('label[for="ledger-mode-filter"]').textContent !== "Filtrar registro por modo" ||
+    doc.getElementById("ledger-mode-filter").options[0].textContent !== "Todos los modos"
+  ) {
+    die("Spanish catalog did not distinguish visualization focus from ledger filtering");
   }
   if (
     !doc.querySelector("#profile-early-body .profile-regime-label").textContent.includes("codificación anterior") ||
@@ -622,11 +872,18 @@ async function main() {
   });
   doc.getElementById("coverage-filters").dispatchEvent(new window.Event("reset", { bubbles: true }));
   await settle();
-  if (window.location.search.includes("state=") || renderedRows(doc).length || !doc.getElementById("state-profile-wrap").hidden) {
-    die("reset did not return to the state-first empty state and remove the URL state");
+  if (
+    window.location.search.includes("state=") ||
+    window.location.search.includes("mode=") ||
+    renderedRows(doc).length !== CHECKED_ARTIFACT.accounting.state_mode_cell_count ||
+    !doc.getElementById("state-profile-wrap").hidden ||
+    doc.getElementById("mode-filter").value !== "pedalcyclist" ||
+    doc.getElementById("ledger-mode-filter").value !== ""
+  ) {
+    die("reset did not restore pedalcyclist focus, the all-modes ledger, and the whole-country URL");
   }
   rendered.dom.window.close();
-  console.log("us-coverage contract: state-first exact five-year profile, suppression, seam, and EN/ES passed.");
+  console.log("us-coverage contract: whole-country ledger, exact five-year profile, suppression, seam, and EN/ES passed.");
 
   const multiyear = await boot();
   const multiyearOptions = Array.from(multiyear.doc.getElementById("year-filter").options, (option) => option.value);
@@ -692,6 +949,76 @@ async function main() {
     die("shared year/language/state URL did not survive reload");
   }
   reloaded.dom.window.close();
+
+  const studioLink = await boot({
+    url:
+      "https://example.test/fars/national/?year=2022&lang=en&view=scatter&mode=motorcyclist&secondary=pedestrian&state=TX&a=TX&b=CA&scale=log&saved=CA,TX,NY",
+  });
+  const linkedState = studioLink.window.NearmissUSCoverage.getState();
+  if (
+    studioLink.doc.getElementById("summary-year").textContent !== "2022" ||
+    linkedState.view !== "scatter" ||
+    linkedState.primaryMode !== "motorcyclist" ||
+    linkedState.secondaryMode !== "pedestrian" ||
+    linkedState.selectedState !== "TX" ||
+    linkedState.compareA !== "TX" ||
+    linkedState.compareB !== "CA" ||
+    linkedState.scale !== "log" ||
+    linkedState.saved.join(",") !== "CA,TX,NY" ||
+    studioLink.doc.getElementById("mode-filter").value !== "motorcyclist" ||
+    studioLink.doc.getElementById("ledger-mode-filter").value !== "" ||
+    studioLink.doc.getElementById("scatter-panel").hidden ||
+    studioLink.doc.querySelectorAll("#brief-items .brief-card").length !== 3
+  ) {
+    die("validated studio deep link did not restore its exact year and linked visible state");
+  }
+  const linkedPoint = studioLink.doc.querySelector(
+    '#scatter-plot [data-focus-key="scatter:TX"]'
+  );
+  linkedPoint.focus();
+  linkedPoint.dispatchEvent(
+    new studioLink.window.KeyboardEvent("keydown", { key: "Enter", bubbles: true })
+  );
+  await settle();
+  if (studioLink.doc.activeElement?.getAttribute("data-focus-key") !== "scatter:TX") {
+    die("scatter keyboard activation lost focus during its linked-view redraw");
+  }
+  const compareFromInspector = studioLink.doc.querySelector(".inspector-actions button:first-child");
+  compareFromInspector.focus();
+  compareFromInspector.click();
+  if (
+    studioLink.window.NearmissUSCoverage.getState().view !== "compare" ||
+    studioLink.doc.getElementById("compare-panel").hidden ||
+    studioLink.doc.getElementById("compare-a").value !== "TX" ||
+    studioLink.doc.activeElement !== studioLink.doc.getElementById("compare-a") ||
+    !studioLink.window.location.search.includes("view=compare")
+  ) {
+    die("inspector comparison action did not switch views and restore focus to the first state");
+  }
+  let removeButtons = Array.from(studioLink.doc.querySelectorAll("#brief-items .remove-brief"));
+  removeButtons[2].click();
+  if (
+    studioLink.doc.activeElement !== studioLink.doc.querySelectorAll("#brief-items .remove-brief")[1] ||
+    !studioLink.doc.activeElement.getAttribute("aria-label").includes("Texas")
+  ) {
+    die("removing the last brief card did not focus the previous remove action");
+  }
+  removeButtons = Array.from(studioLink.doc.querySelectorAll("#brief-items .remove-brief"));
+  removeButtons[0].click();
+  if (
+    studioLink.doc.activeElement !== studioLink.doc.querySelector("#brief-items .remove-brief") ||
+    !studioLink.doc.activeElement.getAttribute("aria-label").includes("Texas")
+  ) {
+    die("removing a brief card did not focus the next remove action");
+  }
+  studioLink.doc.activeElement.click();
+  if (
+    studioLink.doc.querySelector("#brief-items .remove-brief") ||
+    studioLink.doc.activeElement !== studioLink.doc.getElementById("clear-brief")
+  ) {
+    die("removing the only brief card did not focus the clear-brief action");
+  }
+  studioLink.dom.window.close();
 
   const localeRace = await boot({
     deferredLocales: ["es"],
@@ -839,6 +1166,28 @@ async function main() {
     await boot({ url: "https://example.test/web/us-coverage.html?lang=en&lang=es" }),
     "ambiguous requested language"
   );
+  const studioParameterCases = [
+    ["view=globe", "unsupported requested view"],
+    ["view=map&view=rank", "ambiguous requested view"],
+    ["mode=bicycle", "unsupported requested mode"],
+    ["mode=pedestrian&mode=pedalcyclist", "ambiguous requested mode"],
+    ["secondary=bicycle", "unsupported requested secondary mode"],
+    ["secondary=pedestrian&secondary=motorcyclist", "ambiguous requested secondary mode"],
+    ["scale=sqrt", "unsupported requested scale"],
+    ["scale=linear&scale=log", "ambiguous requested scale"],
+    ["a=ca", "unsupported requested comparison state A"],
+    ["a=CA&a=NY", "ambiguous requested comparison state A"],
+    ["b=ZZ", "unsupported requested comparison state B"],
+    ["b=CA&b=NY", "ambiguous requested comparison state B"],
+    ["saved=CA,CA", "invalid requested saved-state list"],
+    ["saved=CA&saved=NY", "ambiguous requested saved-state list"],
+  ];
+  for (const [query, label] of studioParameterCases) {
+    assertError(
+      await boot({ url: `https://example.test/web/us-coverage.html?year=2024&${query}` }),
+      label
+    );
+  }
   const oneYearIndex = releaseSubsetIndex([2024]);
   assertError(
     await boot({
@@ -892,6 +1241,15 @@ async function main() {
   assertError(
     await boot({ indexBytes: wrongRevisionBytes, trustedIndexBytes: wrongRevisionBytes }),
     "current index with the superseded contract revision"
+  );
+
+  const changedBoundary = Buffer.from(CHECKED_BOUNDARY_BYTES);
+  const boundaryNameOffset = changedBoundary.indexOf(Buffer.from('"Alabama"'));
+  if (boundaryNameOffset < 0) die("could not construct Census boundary drift fixture");
+  changedBoundary[boundaryNameOffset + 1] = "X".charCodeAt(0);
+  assertError(
+    await boot({ boundaryBytes: changedBoundary }),
+    "Census boundary artifact digest drift"
   );
 
   assertError(await boot({ disableCrypto: true }), "missing Web Crypto digest support");

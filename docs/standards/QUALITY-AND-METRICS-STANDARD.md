@@ -4,7 +4,7 @@ This is the canonical definition of the quality attributes every project targets
 
 Projects override the *values* (a hobby logger needs less than a public benefits tool) but not the *structure*.
 
-> **On "100% enforcement."** A metric is enforced when failing it **blocks the merge** — not when a dashboard shows it red after the fact. The honest ceiling: everything mechanically checkable is a hard CI gate; everything requiring judgment (genuine bias, accessibility-of-experience, ethical edge cases) is a *required human sign-off gate* with a checklist and a committed artifact. We enforce 100% of the checkable set automatically and 100% of the judgment set via blocking review. We never pretend a judgment call is fully automatable, and there is **no third "aspirational" category**.
+> **On "100% enforcement."** A metric is enforced when failing it **blocks the merge** — not when a dashboard shows it red after the fact. The honest ceiling: everything mechanically checkable is a hard CI gate; everything requiring judgment (genuine bias, accessibility-of-experience, ethical edge cases) is a *required accountable-human sign-off gate* with a checklist and a committed artifact. We enforce 100% of the checkable set automatically and 100% of the judgment set via blocking review. We never pretend a judgment call is fully automatable, and there is **no third "aspirational" category**. A one-person portfolio may use the narrow provisional REVIEW disposition below for a public preview; that records accepted risk rather than inventing a completed review.
 
 ## Sibling standards (reference, don't repeat)
 
@@ -25,14 +25,36 @@ This document is the index. Each row below is enforced **in** the named standard
 
 ---
 
-## The enforcement model (binary, no exceptions)
+## The enforcement model (binary; provisional is a REVIEW disposition)
 
 Every control in every standard is exactly one of:
 
 - **AUTO-GATE** — mechanically checkable, **merge-blocking in CI**, required status check under branch protection. Example: `pytest --cov-fail-under=85`.
-- **REVIEW-GATE** — requires human judgment, paired with **(a)** a checklist item in the PR template and **(b)** a committed artifact (signed walkthrough, ACR, threat model, risk register). The transition is blocked until the box is checked and the artifact is in the diff or linked.
+- **REVIEW-GATE** — requires human judgment, paired with **(a)** a checklist item in the PR template and **(b)** a committed artifact (signed walkthrough, ACR, threat model, risk register). The transition is blocked until the box is checked and the artifact is in the diff or linked, except for the bounded provisional public-preview disposition below.
 
 A control that is "run but `|| true`," "advisory," or "on the roadmap" is a **defect**. The portfolio has live instances of this defect (`pip-audit || true` in `ledger`/`nearmiss`; `continue-on-error` pa11y in the eval harnesses; `tracesSampleRate: 0` in `davis`); the owning standards close each one.
+
+### Solo-maintainer provisional REVIEW disposition
+
+While the portfolio has exactly one accountable maintainer, that human owner may provisionally
+satisfy a REVIEW-GATE for a staged or explicitly labeled public preview. This is temporary risk
+acceptance inside the REVIEW category, not an automatic pass, an independent review, or a third gate.
+Every use requires all of the following in a dated committed artifact and in the PR checklist:
+
+1. all applicable AUTO-GATEs green for the exact candidate, without waiver or bypass;
+2. the exact revision, surface, review gate, method, environment/tool version, result, and durable
+   evidence;
+3. an explicit list of checks not performed, with no synthetic result represented as human work;
+4. the named human owner, date/source of explicit attestation, and accepted residual risk;
+5. public-preview/staged scope, rollback procedure and triggers, an expiry date, and earlier recheck
+   triggers; and
+6. public wording that withholds conformance, certification, procurement, and stable/GA claims.
+
+An AI agent, CI system, or browser harness may supply evidence but cannot be the accountable owner or
+sign for one. The exception never overrides a law, contract, customer requirement, safety-critical
+review, or other control that names an independent or specially qualified reviewer. It ends when a
+second maintainer becomes active. The project records its adoption and expiry behavior in an ADR; for
+NearMiss that record is `docs/adr/0012-solo-maintainer-provisional-review-attestation.md`.
 
 ---
 
@@ -148,6 +170,9 @@ Every repo ships a checked-in `DEFINITION_OF_DONE.md` at root, CODEOWNER-protect
 - New custom interactive component → ARIA APG audit; screen-reader walkthrough (`ACCESSIBILITY`).
 - New AI feature → NIST AI RMF risk register + EU AI Act / ISO 42001 impact assessment (`AI-EVALUATION`).
 
+A solo-maintainer preview may mark one of these REVIEW items **provisionally satisfied** only through
+the protocol above. The underlying review stays outstanding and must not be reported as performed.
+
 **RELEASE-GATE:** performance baseline regression passed; runbook updated; ACR + SBOM + provenance regenerated ("audit-as-artifact"); rollback documented.
 
 **Branch protection (per `CI-CD-STANDARD.md`, org rulesets preferred):** PR required (≥1 approval, ≥2 for Safety/Security-critical paths), last-pusher cannot self-approve, stale reviews dismissed, CODEOWNERS routing `.github/workflows/` + Safety-critical files to a required reviewer, required status checks in **strict** mode, **signed commits**, **linear history**, **block force-pushes**, **no admin bypass on `main`**. Merge queue on high-velocity branches.
@@ -169,7 +194,7 @@ Each repo's `ROADMAP.md` carries a **Metrics** table with this exact shape so en
 | Screen-reader walkthrough | per release | committed checklist + ACR | REVIEW | — |
 | Threat model | per new surface | committed `THREATS.md`/ADR | REVIEW | — |
 
-A metric is **AUTO-GATE** or **REVIEW-GATE** — never "aspirational." If it cannot be made merge-blocking, it is review-gated with a checklist item and a committed artifact.
+A metric is **AUTO-GATE** or **REVIEW-GATE** — never "aspirational." If it cannot be made merge-blocking, it is review-gated with a checklist item and a committed artifact. “Provisionally satisfied” is a time-bounded REVIEW status, not a different gate or a completed review.
 
 ---
 
@@ -186,4 +211,4 @@ A standard that does not apply to a repo must be recorded as **N/A-with-reason**
 
 ---
 
-Last verified: 2026-06-21 · Recheck cadence: quarterly, or on any new revision of ISO/IEC 25010, the DORA annual report, WCAG, OWASP ASVS, or OpenSSF Baseline — whichever is sooner.
+Last verified: 2026-07-16 · Recheck cadence: quarterly, or on any new revision of ISO/IEC 25010, the DORA annual report, WCAG, OWASP ASVS, or OpenSSF Baseline — whichever is sooner.

@@ -21,10 +21,12 @@ the footer.
 
 ## Data source and the honest provenance banner
 
-The page defaults to the committed synthetic demo (`../data/published/davis.geojson`) but is
-source-agnostic: `?city=<slug>` loads `../data/published/<slug>.geojson` and `?data=<relative-path>`
-loads an explicit file, so a real city goes live by URL with no code change. The provenance banner and
-the page title are driven by the dataset's **own embedded `metadata`**, never hard-coded: a
+The page defaults to the committed synthetic demo (`../data/published/davis.geojson`). An explicit
+allowlist maps `?city=<slug>` or `?data=../data/published/<slug>.geojson` to the published Davis and
+Riverside artifacts. Unknown slugs, other origins or directories, queries, fragments, traversal, and
+duplicate selectors fail closed to the Davis default; adding another published city requires adding
+its constant artifact path to the allowlist. The
+provenance banner and the page title are driven by the dataset's **own embedded `metadata`**, never hard-coded: a
 `dataset_note` that mentions "synthetic"/"demo" shows the amber demo warning; any other note shows a
 green **real data** banner naming the city, exposure unit, and source. The page can therefore never
 mislabel what it is actually showing. See [`docs/REAL-DATA.md`](../docs/REAL-DATA.md).
@@ -34,21 +36,27 @@ Core commitments (see [`docs/ACCESSIBILITY.md`](../docs/ACCESSIBILITY.md) and th
 
 - **A non-visual equivalent.** Every finding on the map is also reachable in an accessible, sortable
   **list and table** carrying the same ranked locations, rates, intervals, and significance flags.
+  The nationwide studio likewise mirrors its map, matrix, rank, and comparison graphics in semantic
+  state-by-mode, comparison, five-year profile, and complete-ledger tables.
 - **Never color alone.** Risk level and statistical significance are conveyed in text and pattern, not
   only hue.
-- **Keyboard-operable and labeled.** The report form and all controls are fully keyboard-operable with
-  clear labels and error text.
+- **Keyboard-operable and labeled by design.** The report form uses native labeled controls with clear
+  error text. Nationwide map states and comparison-plot points use a single roving tab stop with
+  arrow/Home/End navigation and Enter/Space activation, with native selectors and table controls
+  available for the same evidence.
 - **Honest legends.** A raw-count layer is labeled "report volume," never "danger."
 
-Accessibility is a **merge-blocking CI gate** (axe + manual NVDA/VoiceOver review). All four pages
-below are checked by `make accessibility` and the `axe` run.
+Automated accessibility is a **merge-blocking CI gate** (`make accessibility` + axe). All four HTML
+pages below are included in those checks. A targeted rendered-browser keyboard and 390×844 reflow
+review of the nationwide studio is recorded; the uninterrupted full keyboard/200% zoom checks and the
+required human NVDA/VoiceOver release gate have not yet been completed.
 
 ## Pages
 
 | File | What it is |
 | --- | --- |
 | `index.html` + `app.js` | the Davis two-map view + authoritative data table (above) |
-| `us-coverage.html` + `us-coverage.js` | the nationwide annual FARS state × involved-mode evidence ledger; a hash-bound release index exposes only published years, with explicit suppression and release provenance |
+| `us-coverage.html` + `us-coverage.js` | the nationwide annual FARS evidence studio: linked map, matrix, rank, mode and state comparisons, inspector, five-year profile, printable brief, and complete state × involved-mode ledger; a hash-bound release index exposes only published years, with explicit suppression and release provenance |
 | `submit.html` + `submit.js` | the **public submission form** — accessible, serverless-honest; builds a schema-valid report for the moderation queue (see [`docs/SUBMISSIONS.md`](../docs/SUBMISSIONS.md)) |
 | `embed.html` + `embed.js` + `embed.css` | the **embeddable hotspot widget** (below) |
 | `nearmiss-embed.js` | one-line `<script>`-tag loader that injects the widget as a sandboxed iframe |
@@ -61,7 +69,7 @@ exposure-normalized hotspot map. Two ways to embed:
 **iframe** (simplest, fully sandboxed):
 
 ```html
-<iframe src="https://nearmiss.report/web/embed.html?city=davis"
+<iframe src="https://nearmiss.chelseakr.com/web/embed.html?city=davis"
         title="nearmiss hazard hotspot map" width="100%" height="380"
         style="border:1px solid #d3dae2;border-radius:6px"></iframe>
 ```
@@ -69,12 +77,12 @@ exposure-normalized hotspot map. Two ways to embed:
 **script tag** (injects the sandboxed iframe for you):
 
 ```html
-<script src="https://nearmiss.report/web/nearmiss-embed.js"
+<script src="https://nearmiss.chelseakr.com/web/nearmiss-embed.js"
         data-city="davis" data-height="380" async></script>
 ```
 
-The widget is source-agnostic the same way the main page is (`?city=`/`?data=`),
-renders only the published, aggregated dataset (no tracking, no cookies), encodes
-magnitude by line thickness and significance by a dashed pattern **and** text
+The widget accepts `?city=`/`?data=` selectors from an explicit allowlist of the
+published Davis and Riverside artifacts, renders only aggregated data (no tracking, no cookies),
+encodes magnitude by line thickness and significance by a dashed pattern **and** text
 (never color alone), and ships a text list of the significant hotspots as the
 non-visual equivalent plus a link back to the full map, data, and methods.

@@ -1,6 +1,6 @@
 # Standards and metrics ledger
 
-Last measured: 2026-07-12 · Owner: Chelsea Kelly-Reif · Review cadence: per
+Last measured: 2026-07-16 · Owner: Chelsea Kelly-Reif · Review cadence: per
 release and quarterly.
 
 Feature and research hypotheses live in [`RESEARCH-ROADMAP.md`](RESEARCH-ROADMAP.md)
@@ -26,7 +26,7 @@ N/A-with-reason—never an unowned aspiration.
 | EN/ES catalog parity | 100% keys and placeholders; catalogs compile | `make i18n` | AUTO | Maintainer |
 | Server log privacy / health | Blocked paths redacted; liveness 200; readiness fails closed | `tests/test_observability.py`, `tests/test_server.py` | AUTO | Maintainer |
 | City-scale performance | Recheck the committed 300/6,000 and 800/20,000 baselines; investigate >10% regression | `make bench`; [`PERFORMANCE.md`](PERFORMANCE.md) | REVIEW | Maintainer |
-| Screen-reader walkthrough | Dated NVDA and VoiceOver evidence per release | [`accessibility/ACR.md`](accessibility/ACR.md) manual-test rows | REVIEW | Human reviewer |
+| Screen-reader walkthrough | Dated NVDA and VoiceOver evidence per stable release; provisional owner-attested evidence permitted for a bounded solo-maintainer public preview | [`accessibility/ACR.md`](accessibility/ACR.md) manual-test rows; [`ADR 0012`](adr/0012-solo-maintainer-provisional-review-attestation.md) | REVIEW | Maintainer / human reviewer |
 | Threat model / DPIA | Review on every new collection, publication, or network surface | [`THREAT-MODEL.md`](THREAT-MODEL.md), [`DPIA.md`](DPIA.md) | REVIEW | Maintainer |
 | Statistical validity | Method changes carry known-answer/differential evidence; external-validity claims require specialist review | [`METHODOLOGY.md`](METHODOLOGY.md), preregistration sign-off | REVIEW | Statistician / maintainer |
 | AI evaluation / GenAI telemetry | N/A—deterministic statistics and rules only; no model, prompt, retrieval, embedding, or AI ranking path | ADR 0004 plus dependency/import scan | N/A | Maintainer |
@@ -43,7 +43,9 @@ invented zeroes.
 ## Open review and owner actions
 
 - Complete and commit actual NVDA/VoiceOver evidence; an automated agent cannot
-  perform or sign a human assistive-technology walkthrough.
+  perform or sign a human assistive-technology walkthrough. ADR 0012's provisional
+  public-preview disposition records owner-accepted residual risk but does not close
+  this work or change any **Not performed** row.
 - Approve the preregistered scoring rule with a real statistician after the
   evaluation window; fixture success is not predictive-validity evidence.
 - Configure PyPI Trusted Publishing and exercise the signed tag workflow for the

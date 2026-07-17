@@ -8,26 +8,63 @@
  * significance by a dashed pattern AND text, never by color alone, and a text
  * list of the significant hotspots is rendered as the non-visual equivalent.
  *
- * Source-agnostic: ?city=<slug> loads ../data/published/<slug>.geojson and
- * ?data=<same-origin path> loads an explicit file, so a host points it at any
- * published dataset by URL. The provenance line and the "view full" link are
- * driven by the dataset's own embedded metadata.
+ * An explicit public-artifact allowlist accepts ?city=<slug> or
+ * ?data=../data/published/<slug>.geojson. Query input cannot choose another
+ * origin or directory. The provenance line and the
+ * "view full" link are driven by the dataset's own embedded metadata.
  */
 (function () {
   "use strict";
 
-  function resolveDataUrl() {
+  function hasEncodedDatasetSelector() {
+    return window.location.search
+      .replace(/^\?/, "")
+      .split("&")
+      .some(function (part) {
+        var separator = part.indexOf("=");
+        var rawName = separator === -1 ? part : part.slice(0, separator);
+        var rawValue = separator === -1 ? "" : part.slice(separator + 1);
+        var name;
+        try {
+          name = decodeURIComponent(rawName.replace(/\+/g, " "));
+        } catch (_error) {
+          return false;
+        }
+        return (name === "data" || name === "city") && /%/.test(rawName + rawValue);
+      });
+  }
+
+  function resolveDatasetSlug() {
     try {
       var params = new URLSearchParams(window.location.search);
-      var data = params.get("data");
-      if (data && !/^[a-z]+:|^\/\//i.test(data)) return data; // same-origin relative only
-      var city = params.get("city");
-      if (city && /^[a-z0-9_-]+$/i.test(city)) return "../data/published/" + city + ".geojson";
+      var dataValues = params.getAll("data");
+      var cityValues = params.getAll("city");
+      if (
+        dataValues.length > 1 ||
+        cityValues.length > 1 ||
+        (dataValues.length && cityValues.length) ||
+        hasEncodedDatasetSelector()
+      ) {
+        return "davis";
+      }
+      var data = dataValues[0] || "";
+      var match = /^(?:\.\.\/|\/)?data\/published\/([a-z0-9][a-z0-9_-]*)\.geojson$/i.exec(data);
+      if (match) return match[1].toLowerCase();
+      var city = cityValues[0] || "";
+      if (/^[a-z0-9][a-z0-9_-]*$/i.test(city)) return city.toLowerCase();
     } catch (e) {
       /* old browser — use the default */
     }
-    return "../data/published/davis.geojson";
+    return "davis";
   }
+
+  function datasetUrlForSlug(slug) {
+    return slug === "riverside"
+      ? "../data/published/riverside.geojson"
+      : "../data/published/davis.geojson";
+  }
+
+  var DATA_URL = datasetUrlForSlug(resolveDatasetSlug());
 
   var mapEl = document.getElementById("embed-map");
   var captionEl = document.getElementById("embed-caption");
@@ -60,7 +97,7 @@
         " · open data";
     }
     var full = document.getElementById("embed-fulllink");
-    if (full && meta.city) full.setAttribute("href", "https://nearmiss.report");
+    if (full && meta.city) full.setAttribute("href", "https://nearmiss.chelseakr.com");
 
     var maxRate = features.reduce(function (m, f) {
       return Math.max(m, f.properties.rate || 0);
@@ -92,16 +129,16 @@
           p.rate_ci_low != null && p.rate_ci_high != null
             ? " (95% CI " + p.rate_ci_low + "–" + p.rate_ci_high + ")"
             : "";
-        line.bindTooltip(
+        var tooltipContent = document.createElement("span");
+        tooltipContent.textContent =
           (p.name || p.segment_id) +
-            (sig ? " — ★ significant hotspot" : "") +
-            "\nrate " +
-            (p.rate == null ? "n/a" : p.rate) +
-            ci +
-            ", n=" +
-            p.n,
-          { sticky: true }
-        );
+          (sig ? " — ★ significant hotspot" : "") +
+          "\nrate " +
+          (p.rate == null ? "n/a" : p.rate) +
+          ci +
+          ", n=" +
+          p.n;
+        line.bindTooltip(tooltipContent, { sticky: true });
         latlngs.forEach(function (ll) {
           bounds.extend(ll);
         });
@@ -117,7 +154,7 @@
       .sort(function (a, b) {
         return (b.properties.rate || 0) - (a.properties.rate || 0);
       });
-    listEl.innerHTML = "";
+    listEl.textContent = "";
     if (hotspots.length) {
       hotspots.forEach(function (f) {
         var p = f.properties;
@@ -148,7 +185,7 @@
     }
   }
 
-  fetch(resolveDataUrl())
+  fetch(DATA_URL)
     .then(function (r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();

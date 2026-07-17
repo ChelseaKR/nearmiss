@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">NearMiss clearance mark</title>
+  <desc id="desc">Two roadway trajectories stop just short of one another.</desc>
+  <rect width="64" height="64" fill="#f3f6f2" />
+  <path d="M8 52 26 34h7" fill="none" stroke="#145b73" stroke-width="7" stroke-linecap="square" stroke-linejoin="bevel" />
+  <path d="M56 12 38 30h-7" fill="none" stroke="#b93a2b" stroke-width="7" stroke-linecap="square" stroke-linejoin="bevel" />
+</svg>

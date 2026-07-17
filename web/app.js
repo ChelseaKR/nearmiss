@@ -12,27 +12,57 @@
 (function () {
   "use strict";
 
-  // Which published dataset to load. Defaults to the committed synthetic demo,
-  // but the page is source-agnostic: ?city=<slug> loads ../data/published/<slug>.geojson
-  // and ?data=<path> loads an explicit file, so a real city (once published into
-  // data/published/) goes live by URL with no code change. The provenance banner
-  // and title below are driven by the dataset's own embedded metadata, so they
-  // are always truthful about what is actually loaded.
-  function resolveDataUrl() {
+  // Which published dataset to load. Query input selects an allowlisted filename
+  // slug only; it can never choose an origin, directory, query string, or fragment.
+  function hasEncodedDatasetSelector() {
+    return window.location.search
+      .replace(/^\?/, "")
+      .split("&")
+      .some(function (part) {
+        var separator = part.indexOf("=");
+        var rawName = separator === -1 ? part : part.slice(0, separator);
+        var rawValue = separator === -1 ? "" : part.slice(separator + 1);
+        var name;
+        try {
+          name = decodeURIComponent(rawName.replace(/\+/g, " "));
+        } catch (_error) {
+          return false;
+        }
+        return (name === "data" || name === "city") && /%/.test(rawName + rawValue);
+      });
+  }
+
+  function resolveDatasetSlug() {
     try {
       var params = new URLSearchParams(window.location.search);
-      var data = params.get("data");
-      // Only same-origin relative paths (no scheme, no protocol-relative URL).
-      if (data && !/^[a-z]+:|^\/\//i.test(data)) return data;
-      var city = params.get("city");
-      if (city && /^[a-z0-9_-]+$/i.test(city)) return "../data/published/" + city + ".geojson";
+      var dataValues = params.getAll("data");
+      var cityValues = params.getAll("city");
+      if (
+        dataValues.length > 1 ||
+        cityValues.length > 1 ||
+        (dataValues.length && cityValues.length) ||
+        hasEncodedDatasetSelector()
+      ) {
+        return "davis";
+      }
+      var data = dataValues[0] || "";
+      var match = /^(?:\.\.\/|\/)?data\/published\/([a-z0-9][a-z0-9_-]*)\.geojson$/i.exec(data);
+      if (match) return match[1].toLowerCase();
+      var city = cityValues[0] || "";
+      if (/^[a-z0-9][a-z0-9_-]*$/i.test(city)) return city.toLowerCase();
     } catch (e) {
       /* no URLSearchParams (very old browser) — fall through to the default */
     }
-    return "../data/published/davis.geojson";
+    return "davis";
   }
 
-  var DATA_URL = resolveDataUrl();
+  function datasetUrlForSlug(slug) {
+    return slug === "riverside"
+      ? "../data/published/riverside.geojson"
+      : "../data/published/davis.geojson";
+  }
+
+  var DATA_URL = datasetUrlForSlug(resolveDatasetSlug());
   // Initial UI language: ?lang=xx if present (deep-linkable), else English. The
   // language buttons switch it at runtime.
   var lang = window.NearmissI18n.langFromQuery("en");
@@ -55,6 +85,114 @@
     return s.replace(/\{(\w+)\}/g, function (_, k) {
       return obj[k];
     });
+  }
+
+  function safeTranslationHref(value) {
+    switch (value) {
+      case "#data-table":
+        return "#data-table";
+      case "/fars/national/":
+        return "/fars/national/";
+      case "https://github.com/ChelseaKR/nearmiss":
+        return "https://github.com/ChelseaKR/nearmiss";
+      case "https://chelseakr.com":
+        return "https://chelseakr.com";
+      case "https://www.openstreetmap.org/copyright":
+        return "https://www.openstreetmap.org/copyright";
+      default:
+        return null;
+    }
+  }
+
+  function decodedTranslationText(value) {
+    return value.replace(/&(amp|gt|lt|quot|#39);/g, function (_, entity) {
+      switch (entity) {
+        case "amp":
+          return "&";
+        case "gt":
+          return ">";
+        case "lt":
+          return "<";
+        case "quot":
+          return '"';
+        default:
+          return "'";
+      }
+    });
+  }
+
+  function plainTranslation(value) {
+    return decodedTranslationText(value);
+  }
+
+  function renderTranslation(element, translated) {
+    var tokenPattern = /<\/?(?:strong|em|code|li)>|<a href="[^"]+">|<\/a>/g;
+    var stack = [{ node: element, tag: null }];
+    var cursor = 0;
+    var match;
+    element.textContent = "";
+
+    function failClosed() {
+      element.textContent = plainTranslation(translated);
+    }
+
+    while ((match = tokenPattern.exec(translated)) !== null) {
+      var parent = stack[stack.length - 1].node;
+      if (match.index > cursor) {
+        parent.appendChild(
+          document.createTextNode(decodedTranslationText(translated.slice(cursor, match.index)))
+        );
+      }
+      var token = match[0];
+      if (token.charAt(1) === "/") {
+        var closingTag = token.slice(2, -1);
+        if (stack.length === 1 || stack[stack.length - 1].tag !== closingTag) {
+          failClosed();
+          return;
+        }
+        stack.pop();
+      } else {
+        var tag = token.slice(1, token.indexOf(" ") === -1 ? -1 : token.indexOf(" "));
+        var child;
+        if (tag === "a") {
+          var hrefMatch = /^<a href="([^"]+)">$/.exec(token);
+          var href = hrefMatch ? safeTranslationHref(hrefMatch[1]) : null;
+          if (!href) {
+            failClosed();
+            return;
+          }
+          child = document.createElement("a");
+          child.setAttribute("href", href);
+        } else if (tag === "li") {
+          if (element.tagName !== "UL" || stack.length !== 1) {
+            failClosed();
+            return;
+          }
+          child = document.createElement("li");
+        } else if (tag === "strong") {
+          child = document.createElement("strong");
+        } else if (tag === "em") {
+          child = document.createElement("em");
+        } else if (tag === "code") {
+          child = document.createElement("code");
+        } else {
+          failClosed();
+          return;
+        }
+        parent.appendChild(child);
+        stack.push({ node: child, tag: tag });
+      }
+      cursor = tokenPattern.lastIndex;
+    }
+    if (stack.length !== 1) {
+      failClosed();
+      return;
+    }
+    if (cursor < translated.length) {
+      element.appendChild(
+        document.createTextNode(decodedTranslationText(translated.slice(cursor)))
+      );
+    }
   }
   function fmt(v) {
     return v === null || v === undefined ? t("none") : Number(v).toFixed(2);
@@ -243,14 +381,18 @@
   function addSegment(which, latlngs, style, tip, label) {
     var line = window.L.polyline(latlngs, style);
     if (label) {
-      line.bindTooltip(label, {
+      var labelContent = document.createElement("span");
+      labelContent.textContent = label;
+      line.bindTooltip(labelContent, {
         permanent: true,
         direction: "top",
         className: "map-label",
         opacity: 1,
       });
     } else if (tip) {
-      line.bindTooltip(tip, { sticky: true });
+      var tipContent = document.createElement("span");
+      tipContent.textContent = tip;
+      line.bindTooltip(tipContent, { sticky: true });
     }
     line.addTo(maps[which]);
     if (label) line.openTooltip();
@@ -394,7 +536,7 @@
     document.documentElement.lang = lang;
     document.title = t("title");
     document.querySelectorAll("[data-i18n]").forEach(function (el) {
-      el.innerHTML = t(el.getAttribute("data-i18n"));
+      renderTranslation(el, t(el.getAttribute("data-i18n")));
     });
     // R2: translated tooltips on the table column headers (glossary on hover).
     document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
@@ -419,7 +561,7 @@
     if (city) document.title = tpl(t("titleCity"), { city: city });
     if (synthetic) {
       note.className = "demo-note";
-      note.innerHTML = tpl(t("demo_synth"), { city: city || "demo" });
+      renderTranslation(note, tpl(t("demo_synth"), { city: city || "demo" }));
     } else {
       note.className = "real-note";
       // Keep the banner sentence fully in the active language; the source note is
@@ -428,7 +570,7 @@
       // it doesn't read as a second, English sentence (R16).
       var cleaned = rawNote.replace(/^\s*(real data|datos reales)\s*:?\s*/i, "");
       var source = cleaned ? t("source_label") + " " + cleaned : "";
-      note.innerHTML = tpl(t("demo_real"), { city: city, unit: unit, source: source });
+      renderTranslation(note, tpl(t("demo_real"), { city: city, unit: unit, source: source }));
     }
   }
 

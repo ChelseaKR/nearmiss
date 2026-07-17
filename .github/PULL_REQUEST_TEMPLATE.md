@@ -32,9 +32,12 @@ Closes #
       fixture whose answer is known** (planted hotspot, known exposure, or interval-coverage check).
 - [ ] **Lint** passes (`make lint` — `ruff`).
 - [ ] **Types** pass (`make type` — `mypy --strict`); no untyped or loosely typed code.
-- [ ] **Accessibility gate** — for UI changes, `axe` passes **and** a manual NVDA/VoiceOver pass was
-      done; risk and significance are conveyed in text and pattern, not color alone, and everything
-      is reachable via the list/table equivalent. Manual result noted below.
+- [ ] **Accessibility gate** — for UI changes, every AUTO-GATE passes; risk and significance are
+      conveyed in text and pattern, not color alone; and everything is reachable via the list/table
+      equivalent. The REVIEW disposition below is either a completed manual NVDA/VoiceOver pass or a
+      public-preview-only provisional owner attestation satisfying
+      [`ADR 0012`](../docs/adr/0012-solo-maintainer-provisional-review-attestation.md). Synthetic
+      evidence is not reported as a manual pass.
 - [ ] **Security** passes (`make security` — `pip-audit`, `gitleaks`, CodeQL-equivalent); deps remain
       **pinned and hashed**, or changed only via the documented bump path (not a hand edit).
 - [ ] **Conventional Commits** used and commits are **DCO signed off** (`git commit -s`).
@@ -57,7 +60,19 @@ Closes #
 
 ## Accessibility note (UI changes only)
 
-<!-- Which screen reader and browser you tested, and the result. Write "n/a" if no UI change. -->
+<!--
+Write "n/a" only when there is no UI change. Otherwise complete every field. Do not list a planned or
+synthetic check as performed.
+
+REVIEW disposition: completed / provisional public preview / blocked
+Manual checks actually performed (AT + browser + versions + result):
+Synthetic/browser evidence (exact method/environment/result):
+Checks not performed:
+Residual risk and accountable-owner acceptance (name/date/source):
+Preview scope and rollback procedure/triggers:
+Expiry and earlier recheck triggers:
+Conformance language: confirm that provisional evidence is not cited as WCAG/ACR/508 conformance
+-->
 
 ## Reviewer-facing notes
 

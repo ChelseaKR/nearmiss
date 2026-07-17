@@ -12,11 +12,12 @@ nearmiss maintainers
 
 ## Context
 
-The Pages deployment job verifies the exact source commit, critical runtime files, release index and
-annual artifacts immediately after every push to `main`. That check does not run again until another
-deployment. A later hosting, cache, DNS, or publication-boundary regression could therefore remain
-undetected, including an accidentally served repository path that was never part of the allowlisted
-artifact.
+The canonical CloudFront deployment verifies the exact source commit, the complete remotely
+retrievable artifact, release index, annual artifacts, directory routing, and representative negative
+privacy paths immediately after every push to `main`. The legacy Pages deployment separately verifies
+its critical runtime surface. Neither check runs again until another deployment. A later hosting,
+cache, DNS, or publication-boundary regression could therefore remain undetected, including an
+accidentally served repository path that was never part of the allowlisted artifact.
 
 Adding a scheduled workflow creates a new explicit GitHub Actions `permissions:` boundary. The
 documentation standard requires this ADR for that change.
@@ -28,7 +29,7 @@ the workflow only `contents: read`; grant no Pages write, identity token, enviro
 or notification authority.
 
 The verifier rebuilds the exact allowlisted site with Python site packages disabled, then performs
-bounded read-only HTTPS requests to the fixed `nearmiss.report` origin. It requires the live manifest,
+bounded read-only HTTPS requests to the fixed `nearmiss.chelseakr.com` origin. It requires the live manifest,
 deployment record, apex, every remotely retrievable manifest file, annual FARS release pin and
 localized share shell to match that exact build. It also requests the public `/fars/national/`
 directory route and binds that response to its manifest-listed `fars/national/index.html` bytes. The
@@ -38,10 +39,12 @@ compression, non-public DNS answers, oversized responses, malformed paths and am
 closed.
 
 The sentinel has its own concurrency group, so it cannot block or replace a queued production deploy.
-Bounded retries and per-attempt cache tokens cover an ordinary deployment already in progress. If
-`main` moves during a sentinel run, the result is reported as a warning and yields to the deployment
-rather than mislabeling normal convergence as corruption. Otherwise a stable mismatch fails the
-workflow.
+The production job waits for a wildcard CloudFront invalidation before verification, and bounded
+retries cover ordinary edge convergence. The CloudFront cache policy keys the verifier's `verify`
+query nonce and no other query parameter, so each integrity run gets an independent cache entry
+without letting application-filter URLs amplify the cache. If `main` moves during a sentinel run, the
+result is reported as a warning and yields to the deployment rather than mislabeling normal
+convergence as corruption. Otherwise a stable mismatch fails the workflow.
 
 ## Consequences
 
@@ -49,8 +52,9 @@ workflow.
 - The check has no authority to repair, redeploy, open an issue, or inspect private ingestion storage.
 - GitHub Actions provides retention and notification for a failed run; third-party alerting and real
   browser monitoring remain separate future work.
-- Daily public reads add negligible traffic but depend on GitHub Actions, DNS and GitHub Pages being
-  available. A platform outage can make the sentinel red without changing repository bytes.
+- Daily public reads add negligible traffic but depend on GitHub Actions, Route 53, CloudFront, and the
+  private S3 origin being available. A platform outage can make the sentinel red without changing
+  repository bytes.
 - A main push that races the read remains free to deploy; the sentinel either converges during its
   bounded retries or explicitly classifies a moved ref as a rerun condition.
 

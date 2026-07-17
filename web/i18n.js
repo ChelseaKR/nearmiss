@@ -49,25 +49,46 @@
   }
 
   function create(namespace) {
-    // lang -> { shortKey: translation }, already stripped of the namespace.
-    var catalogs = {};
+    // Array-backed catalogs avoid treating locale names or catalog msgids as
+    // JavaScript object properties. Both arrive through fetched JSON, so keeping
+    // them as values also makes prototype-key injection impossible.
+    var catalogs = [];
     var current = FALLBACK;
 
+    function catalogFor(lang) {
+      for (var index = 0; index < catalogs.length; index += 1) {
+        if (catalogs[index].lang === lang) return catalogs[index].messages;
+      }
+      return null;
+    }
+
+    function messageFrom(messages, key) {
+      if (!messages) return null;
+      for (var index = 0; index < messages.length; index += 1) {
+        if (messages[index].key === key) return messages[index].value;
+      }
+      return null;
+    }
+
     function ingest(lang, raw) {
-      var out = {};
+      if (!isSupported(lang)) return;
+      var messages = [];
       Object.keys(raw || {}).forEach(function (fullKey) {
-        if (fullKey.indexOf(namespace) === 0) {
-          out[fullKey.slice(namespace.length)] = raw[fullKey];
+        if (fullKey.indexOf(namespace) === 0 && typeof raw[fullKey] === "string") {
+          messages.push({ key: fullKey.slice(namespace.length), value: raw[fullKey] });
         }
       });
-      catalogs[lang] = out;
+      catalogs = catalogs.filter(function (catalog) {
+        return catalog.lang !== lang;
+      });
+      catalogs.push({ lang: lang, messages: messages });
     }
 
     return {
       // Fetch and cache locales/<lang>.json. Resolves even on failure (an empty
       // catalog), so the caller transparently falls back to English.
       load: function (lang) {
-        if (catalogs[lang]) return Promise.resolve();
+        if (!isSupported(lang) || catalogFor(lang)) return Promise.resolve();
         return fetch(LOCALE_ROOT + lang + ".json")
           .then(function (r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
@@ -81,21 +102,21 @@
           });
       },
       setLang: function (lang) {
-        current = lang;
+        current = isSupported(lang) ? lang : FALLBACK;
       },
       lang: function () {
         return current;
       },
       loaded: function (lang) {
-        return Object.prototype.hasOwnProperty.call(catalogs, lang);
+        return Boolean(catalogFor(lang));
       },
       // Look up a short key in the current locale, then English, then echo the
       // key so a stray call is visible rather than silently blank.
       t: function (key) {
-        var active = catalogs[current];
-        if (active && active[key] != null) return active[key];
-        var fallback = catalogs[FALLBACK];
-        return fallback && fallback[key] != null ? fallback[key] : key;
+        var active = messageFrom(catalogFor(current), key);
+        if (active !== null) return active;
+        var fallback = messageFrom(catalogFor(FALLBACK), key);
+        return fallback !== null ? fallback : key;
       },
     };
   }

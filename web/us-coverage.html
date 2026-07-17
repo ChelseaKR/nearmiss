@@ -3,56 +3,83 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>US evidence ledger — nearmiss</title>
+    <meta name="theme-color" content="#152A30" />
+    <link rel="icon" href="/web/vendor/brand/clearance-mark.svg" type="image/svg+xml" />
+    <title>US evidence studio — nearmiss</title>
     <meta
       name="description"
-      content="Auditable annual FARS fatal-crash burden counts by state and involved road-user mode, with a small-cell publication rule and source provenance."
+      content="Explore reviewed 2020–2024 NHTSA FARS fatal-crash burden counts across all 50 states and DC with linked national map, matrix, rank, comparison, profile, and provenance views."
     />
-    <link rel="canonical" href="https://nearmiss.report/fars/national/" />
+    <link rel="canonical" href="https://nearmiss.chelseakr.com/fars/national/" />
     <link rel="stylesheet" href="/web/style.css" />
     <link rel="stylesheet" href="/web/us-coverage.css" />
+    <link rel="stylesheet" href="/web/us-coverage-studio.css" />
+    <link rel="stylesheet" href="/web/brand.css" />
   </head>
   <body class="coverage-page">
     <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
 
     <header class="coverage-header">
-      <div class="coverage-nav">
-        <a href="/web/index.html" data-i18n="back">← Davis near-miss demo</a>
-        <div class="lang-switch" role="group" aria-label="Language / Idioma">
-          <button type="button" data-lang="en" aria-pressed="true">English</button>
-          <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      <nav class="coverage-nav" aria-label="Primary">
+        <a class="wordmark brand-lockup" href="/web/index.html" aria-label="nearmiss home">
+          <svg class="clearance-mark" viewBox="0 0 48 32" aria-hidden="true" focusable="false">
+            <path class="clearance-path clearance-path-a" d="M3 27 17 13h5" />
+            <path class="clearance-path clearance-path-b" d="M45 5 31 19h-5" />
+          </svg>
+          <span class="brand-lockup-copy">
+            <strong>nearmiss</strong>
+            <span>Conflict Atlas</span>
+          </span>
+        </a>
+        <div class="nav-actions">
+          <span class="real-data-badge" data-i18n="real_data_badge">Source: NHTSA FARS · Verified artifact</span>
+          <div class="lang-switch" role="group" aria-label="Language / Idioma">
+            <button type="button" data-lang="en" aria-pressed="true">English</button>
+            <button type="button" data-lang="es" aria-pressed="false">Español</button>
+          </div>
+        </div>
+      </nav>
+
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="coverage-eyebrow" data-i18n="eyebrow">Public preview · US evidence ledger</p>
+          <h1 data-i18n="h1">Fatal-crash burden, state by state</h1>
+          <p class="lede" data-i18n="lede">
+            Choose a state or DC to inspect its reviewed 2020–2024 FARS profile, then refine the
+            selected-year detail. Every value remains tied to its exact release, small-cell
+            publication rule, and source.
+          </p>
+          <p class="coverage-caveat" data-i18n="caveat">
+            <strong>Counts are not risk.</strong> They do not account for population, trips, miles,
+            or exposure. Modes can overlap in one crash, so mode counts are not additive and do not
+            imply fault or causation.
+          </p>
+          <a class="hero-action" href="#studio" data-i18n="explore_action">Explore the evidence</a>
         </div>
       </div>
-      <p class="coverage-eyebrow" data-i18n="eyebrow">US evidence ledger · official source</p>
-      <h1 data-i18n="h1">Fatal-crash burden, state by state</h1>
-      <p class="lede" data-i18n="lede">
-        Choose a state or DC to inspect its reviewed 2020–2024 FARS profile, then refine the
-        selected-year detail. Every value remains tied to its exact release, small-cell publication
-        rule, and source.
-      </p>
-      <p class="coverage-caveat" data-i18n="caveat">
-        <strong>Counts are not risk.</strong> They do not account for population, trips, miles, or
-        exposure. Modes can overlap in one crash, so mode counts are not additive and do not imply
-        fault or causation.
-      </p>
     </header>
 
     <main id="main">
-      <section aria-labelledby="data-heading">
-        <div class="section-kicker" data-i18n="table_kicker">Auditable counts</div>
-        <h2 id="data-heading" data-i18n="data_h">State × involved-mode evidence</h2>
-        <p data-i18n="data_intro">
-          A published count is the number of distinct fatal crashes with at least one person in that
-          mode. A missing public cell is labeled “Not published (suppressed or zero)”—never zero.
-        </p>
+      <section id="studio" class="studio-section" aria-labelledby="studio-heading">
+        <div class="section-heading-row">
+          <div>
+            <p class="section-kicker" data-i18n="studio_kicker">Explore · compare · cite</p>
+            <h2 id="studio-heading" data-i18n="studio_h">One evidence set, five ways to inspect it</h2>
+            <p class="section-intro" data-i18n="studio_intro">
+              The national map and every analytic view are driven by the same 306 reviewed
+              state-by-mode cells. A selection in one view follows you into the others.
+            </p>
+          </div>
+          <div class="view-switcher" role="group" aria-label="Evidence view" data-i18n-aria="view_label">
+            <button type="button" data-view="map" aria-controls="map-panel" aria-pressed="true" data-i18n="view_map">Map</button>
+            <button type="button" data-view="matrix" aria-controls="matrix-panel" aria-pressed="false" data-i18n="view_matrix">Matrix</button>
+            <button type="button" data-view="rank" aria-controls="rank-panel" aria-pressed="false" data-i18n="view_rank">Rank</button>
+            <button type="button" data-view="scatter" aria-controls="scatter-panel" aria-pressed="false" data-i18n="view_scatter">Compare modes</button>
+            <button type="button" data-view="compare" aria-controls="compare-panel" aria-pressed="false" data-i18n="view_compare">Compare states</button>
+          </div>
+        </div>
 
         <form id="coverage-filters" class="coverage-filters">
-          <div class="state-filter-control">
-            <label for="state-filter" data-i18n="state_label">State</label>
-            <select id="state-filter" name="state">
-              <option value="" data-i18n="choose_state">Choose a state or DC</option>
-            </select>
-          </div>
           <div>
             <label for="year-filter" data-i18n="year_label">Year</label>
             <select id="year-filter" name="year">
@@ -60,9 +87,15 @@
             </select>
           </div>
           <div>
-            <label for="mode-filter" data-i18n="mode_label">Involved road-user mode</label>
-            <select id="mode-filter" name="mode">
-              <option value="" data-i18n="all_modes">All modes</option>
+            <label for="state-filter" data-i18n="state_label">State</label>
+            <select id="state-filter" name="state">
+              <option value="" data-i18n="all_states">All states + DC</option>
+            </select>
+          </div>
+          <div>
+            <label for="mode-filter" data-i18n="focus_mode_label">Visualization focus</label>
+            <select id="mode-filter" name="mode" required>
+              <option value="pedalcyclist" data-i18n="mode_pedalcyclist">Pedalcyclist</option>
             </select>
           </div>
           <div>
@@ -73,11 +106,194 @@
               <option value="suppressed_or_zero" data-i18n="status_not_published">Not published</option>
             </select>
           </div>
-          <button type="reset" data-i18n="reset">Reset filters</button>
+          <button type="reset" data-i18n="reset">Reset</button>
         </form>
+
         <p class="filter-scope" data-i18n="filter_scope">
-          State loads the five-year profile. Year, mode, and publication status refine the
-          selected-year detail below.
+          State loads the five-year profile. Year and visualization focus drive the national
+          views; publication status filters the matrix and ledger. The complete ledger has its own
+          mode filter below.
+        </p>
+        <p id="coverage-status" class="coverage-status" role="status" aria-live="polite" aria-atomic="true" data-i18n="loading">
+          Loading the reviewed artifact…
+        </p>
+
+        <div class="studio-layout">
+          <div class="visual-stage">
+            <section id="map-panel" class="view-panel" data-panel="map" aria-labelledby="map-heading">
+              <div class="panel-heading">
+                <div>
+                  <p class="panel-kicker" data-i18n="map_kicker">Whole-country view</p>
+                  <h3 id="map-heading" data-i18n="map_h">Fatal-crash burden across the United States</h3>
+                </div>
+                <p data-i18n="map_intro">
+                  Select a road-user mode to read the same reviewed counts geographically. Color is
+                  scaled within that mode; hatching means suppressed or zero.
+                </p>
+              </div>
+              <p id="map-keyboard-hint" class="filter-scope" data-i18n="map_keyboard_hint">
+                Keyboard: Tab enters the map once. Arrow keys, Home, and End move through jurisdictions in alphabetical order; Enter or Space selects.
+              </p>
+              <div class="national-map-shell">
+                <div
+                  id="us-map"
+                  class="us-map"
+                  role="region"
+                  aria-labelledby="map-heading map-caption"
+                ></div>
+                <div class="map-legend">
+                  <div class="map-gradient" aria-hidden="true"></div>
+                  <span data-i18n="map_legend_low">Lower published count</span>
+                  <span data-i18n="map_legend_high">Higher published count</span>
+                  <span class="map-hatch" aria-hidden="true"></span>
+                  <span data-i18n="map_legend_unpublished">Suppressed or zero</span>
+                </div>
+                <p id="map-caption" class="map-caption" data-i18n="caption_loading">
+                  Loading state evidence…
+                </p>
+              </div>
+            </section>
+
+            <section id="matrix-panel" class="view-panel" data-panel="matrix" aria-labelledby="matrix-heading" hidden>
+              <div class="panel-heading">
+                <div>
+                  <p class="panel-kicker" data-i18n="matrix_kicker">Publication landscape</p>
+                  <h3 id="matrix-heading" data-i18n="matrix_h">State × involved-mode matrix</h3>
+                </div>
+                <p data-i18n="matrix_intro">
+                  Each column has its own scale. Hatched cells are not published and are never treated as zero.
+                </p>
+              </div>
+              <p id="matrix-keyboard-hint" class="filter-scope" data-i18n="matrix_keyboard_hint">
+                Keyboard: after the matrix scroll region and mode filters, Tab enters the cell grid once. Arrow keys move between cells; Home and End move to the first and last mode; Enter or Space selects.
+              </p>
+              <div class="matrix-wrap" tabindex="0" role="region" aria-labelledby="matrix-heading matrix-caption">
+                <table id="evidence-matrix" class="evidence-matrix">
+                  <caption id="matrix-caption" data-i18n="caption_loading">Loading state evidence…</caption>
+                  <thead id="matrix-head">
+                    <tr>
+                      <th scope="col" data-i18n="th_state">State</th>
+                      <th scope="col" colspan="6" data-i18n="mode_label">Involved road-user mode</th>
+                    </tr>
+                  </thead>
+                  <tbody id="matrix-body">
+                    <tr><td colspan="7" data-i18n="loading">Loading the reviewed artifact…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section id="rank-panel" class="view-panel" data-panel="rank" aria-labelledby="rank-heading" hidden>
+              <div class="panel-heading">
+                <div>
+                  <p class="panel-kicker" data-i18n="rank_kicker">Published burden</p>
+                  <h3 id="rank-heading" data-i18n="rank_h">Rank one involved mode</h3>
+                </div>
+                <p data-i18n="rank_intro">
+                  Only numeric cells are ranked. This is burden, not exposure-normalized risk or safety.
+                </p>
+              </div>
+              <p id="rank-keyboard-hint" class="filter-scope" data-i18n="rank_keyboard_hint">
+                Keyboard: Tab enters the ranking once. Arrow keys, Home, and End move through states; Enter or Space selects.
+              </p>
+              <ol id="rank-list" class="rank-list"></ol>
+              <details class="unpublished-drawer">
+                <summary id="rank-unpublished-summary"></summary>
+                <ul id="rank-unpublished" class="plain-state-list"></ul>
+              </details>
+            </section>
+
+            <section id="scatter-panel" class="view-panel" data-panel="scatter" aria-labelledby="scatter-heading" hidden>
+              <div class="panel-heading">
+                <div>
+                  <p class="panel-kicker" data-i18n="scatter_kicker">Count relationship</p>
+                  <h3 id="scatter-heading" data-i18n="scatter_h">Compare two involved modes</h3>
+                </div>
+                <p data-i18n="scatter_intro">
+                  States appear only when both cells are published. Missing values stay outside the plot.
+                </p>
+              </div>
+              <p id="scatter-keyboard-hint" class="filter-scope" data-i18n="scatter_keyboard_hint">
+                Keyboard: Tab enters the plot once. Arrow keys, Home, and End move through states; Enter or Space selects.
+              </p>
+              <div class="plot-controls">
+                <div>
+                  <label for="secondary-mode" data-i18n="secondary_mode">Second mode</label>
+                  <select id="secondary-mode"></select>
+                </div>
+                <fieldset>
+                  <legend data-i18n="scale_label">Scale</legend>
+                  <label><input type="radio" name="scale" value="linear" checked /> <span data-i18n="scale_linear">Linear</span></label>
+                  <label><input type="radio" name="scale" value="log" /> <span data-i18n="scale_log">Log</span></label>
+                </fieldset>
+              </div>
+              <div id="scatter-plot" class="scatter-plot"></div>
+              <details class="scatter-table-drawer">
+                <summary data-i18n="accessible_table">Open the accessible comparison table</summary>
+                <div class="table-wrap" tabindex="0" role="region" aria-labelledby="scatter-heading scatter-caption">
+                  <table id="scatter-table">
+                    <caption id="scatter-caption"></caption>
+                    <thead id="scatter-table-head">
+                      <tr>
+                        <th scope="col" data-i18n="th_state">State</th>
+                        <th scope="col" colspan="2" data-i18n="mode_label">Involved road-user mode</th>
+                      </tr>
+                    </thead>
+                    <tbody id="scatter-table-body">
+                      <tr><td colspan="3" data-i18n="loading">Loading the reviewed artifact…</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            </section>
+
+            <section id="compare-panel" class="view-panel" data-panel="compare" aria-labelledby="compare-heading" hidden>
+              <div class="panel-heading">
+                <div>
+                  <p class="panel-kicker" data-i18n="compare_kicker">Side by side</p>
+                  <h3 id="compare-heading" data-i18n="compare_h">Compare two states without adding modes</h3>
+                </div>
+                <p id="compare-intro" data-i18n="compare_intro">
+                  Every mode keeps an independent scale because one crash may contribute to multiple rows.
+                </p>
+              </div>
+              <div class="compare-selectors">
+                <div>
+                  <label for="compare-a" data-i18n="compare_a">First state</label>
+                  <select id="compare-a"></select>
+                </div>
+                <div>
+                  <label for="compare-b" data-i18n="compare_b">Second state</label>
+                  <select id="compare-b"></select>
+                </div>
+              </div>
+              <div
+                id="state-comparison"
+                class="state-comparison"
+                tabindex="0"
+                role="region"
+                aria-labelledby="compare-heading"
+                aria-describedby="compare-intro"
+              ></div>
+              <button type="button" id="save-comparison" class="secondary-action" data-i18n="save_comparison">
+                Save comparison to brief
+              </button>
+            </section>
+          </div>
+
+          <aside id="state-inspector" class="state-inspector" aria-labelledby="inspector-heading">
+            <p class="panel-kicker" data-i18n="inspector_kicker">Selected evidence</p>
+            <h3 id="inspector-heading" data-i18n="inspector_h">Choose a state</h3>
+            <div id="inspector-content" class="inspector-content">
+              <p data-i18n="inspector_empty">Select a matrix cell, rank bar, plot point, or state control to inspect its six publication cells.</p>
+            </div>
+          </aside>
+        </div>
+
+        <p class="coverage-caveat coverage-regime-caution" data-i18n="regime_caution">
+          <strong>Compare years with care.</strong> FARS person-type coding uses one reviewed
+          semantic regime for 2020–2021 and another for 2022–2024. Each result stays pinned to its
+          annual mapping contract, so a cross-regime change can reflect coding as well as outcomes.
         </p>
 
         <section id="state-profile" class="state-profile" aria-labelledby="profile-heading" aria-busy="false">
@@ -87,7 +303,7 @@
             Each year is kept separate. The coding seam marks two reviewed FARS person-type
             regimes, so values on opposite sides should not be read as one continuous series.
           </p>
-          <p id="state-profile-status" class="state-profile-status" aria-live="polite" data-i18n="profile_empty">
+          <p id="state-profile-status" class="state-profile-status" role="status" aria-live="polite" aria-atomic="true" data-i18n="profile_empty">
             Choose a state above to load its five-year profile.
           </p>
           <div
@@ -118,20 +334,88 @@
           </div>
         </section>
 
-        <div class="selected-year-ledger">
-          <div class="section-kicker" data-i18n="selected_year_kicker">Selected-year detail</div>
-          <h3 id="selected-year-heading" data-i18n="selected_year_h">Mode-by-mode evidence for the selected year</h3>
-        </div>
+        <aside class="release-card" aria-labelledby="release-card-title">
+          <div class="release-card-topline">
+            <span class="release-signal" aria-hidden="true"></span>
+            <span data-i18n="release_stage_label">Release status</span>
+            <strong id="release-stage">—</strong>
+          </div>
+          <h2 id="release-card-title" data-i18n="release_card_h">A hash-bound annual projection</h2>
+          <dl class="release-facts">
+            <div>
+              <dt data-i18n="summary_year">Dataset year</dt>
+              <dd id="summary-year">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_scope">Geographic scope</dt>
+              <dd id="summary-scope">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_cases">Distinct fatal crashes</dt>
+              <dd id="summary-cases">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_cells">Numerically published cells</dt>
+              <dd id="summary-cells">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_threshold">Small-cell publication floor</dt>
+              <dd id="summary-threshold">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_retention">Published contributions</dt>
+              <dd id="summary-retention">—</dd>
+            </div>
+          </dl>
+          <p class="release-note" data-i18n="release_note">
+            Source bytes, the annual contract, and accounting proof are verified before any count appears.
+          </p>
+        </aside>
+      </section>
 
-        <p id="coverage-status" class="coverage-status" aria-live="polite" data-i18n="loading">
-          Loading the published artifact…
+      <section id="brief-builder" class="brief-builder" aria-labelledby="brief-heading">
+        <div>
+          <p class="section-kicker" data-i18n="brief_kicker">Carry the caveat with the number</p>
+          <h2 id="brief-heading" data-i18n="brief_h">Evidence brief</h2>
+          <p data-i18n="brief_intro">
+            Save up to four states. The printable brief keeps the year, mode, publication status,
+            source, and “counts are not risk” limit attached.
+          </p>
+        </div>
+        <div class="brief-actions">
+          <button type="button" id="copy-view" data-i18n="copy_view">Copy this view</button>
+          <button type="button" id="print-brief" data-i18n="print_brief">Print brief</button>
+          <button type="button" id="clear-brief" data-i18n="clear_brief">Clear brief</button>
+        </div>
+        <p id="brief-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+        <div id="brief-items" class="brief-items">
+          <p class="brief-empty" data-i18n="brief_empty">No evidence saved yet. Select a state, then add it from the inspector.</p>
+        </div>
+        <p class="brief-caveat" data-i18n="caveat">
+          <strong>Counts are not risk.</strong> They do not account for population, trips, miles,
+          or exposure. Modes can overlap in one crash, so mode counts are not additive and do not
+          imply fault or causation.
         </p>
-        <div
-          class="table-wrap coverage-table-wrap"
-          tabindex="0"
-          role="region"
-          aria-labelledby="selected-year-heading coverage-caption"
-        >
+      </section>
+
+      <section class="data-ledger" aria-labelledby="data-heading">
+        <div class="section-heading-row compact">
+          <div>
+            <p class="section-kicker" data-i18n="table_kicker">Auditable rows</p>
+            <h2 id="data-heading" data-i18n="data_h">Complete state × mode evidence ledger</h2>
+            <p data-i18n="data_intro">
+              A published count is the number of distinct fatal crashes with at least one person in
+              that mode. A non-published cell is labeled “suppressed or zero”—never zero.
+            </p>
+          </div>
+          <div class="ledger-controls">
+            <label for="ledger-mode-filter" data-i18n="ledger_mode_label">Filter ledger by mode</label>
+            <select id="ledger-mode-filter" name="ledger-mode">
+              <option value="" data-i18n="all_modes">All modes</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap coverage-table-wrap" tabindex="0" role="region" aria-labelledby="data-heading coverage-caption">
           <table id="coverage-table">
             <caption id="coverage-caption" data-i18n="caption_loading">Loading state evidence…</caption>
             <thead>
@@ -144,139 +428,73 @@
               </tr>
             </thead>
             <tbody id="coverage-body">
-              <tr>
-                <td colspan="5" data-i18n="loading">Loading the published artifact…</td>
-              </tr>
+              <tr><td colspan="5" data-i18n="loading">Loading the reviewed artifact…</td></tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <section class="proof-section" aria-labelledby="proof-heading">
-        <div class="section-kicker" data-i18n="proof_kicker">Release proof</div>
-        <h2 id="proof-heading" data-i18n="proof_h">Five years, with publication status made explicit</h2>
-        <p data-i18n="proof_intro">
-          Official source archives are pinned for 2020–2024. Only years whose reviewed public
-          artifacts appear in the release index can be selected; unavailable years are never
-          silently treated as zero.
-        </p>
-        <p class="coverage-caveat coverage-regime-caution" data-i18n="regime_caution">
-          <strong>Compare years with care.</strong> FARS person-type coding uses one reviewed
-          semantic regime for 2020–2021 and another for 2022–2024. Each result stays pinned to its
-          annual mapping contract, so a cross-regime change can reflect coding as well as outcomes.
-        </p>
-        <ol class="proof-rail">
-          <li data-year="2020">
-            <span class="proof-year">2020</span>
-            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
-            <span class="proof-result" data-i18n="result_published">State counts published</span>
-          </li>
-          <li data-year="2021">
-            <span class="proof-year">2021</span>
-            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
-            <span class="proof-result" data-i18n="result_published">State counts published</span>
-          </li>
-          <li data-year="2022">
-            <span class="proof-year">2022</span>
-            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
-            <span class="proof-result" data-i18n="result_published">State counts published</span>
-          </li>
-          <li data-year="2023">
-            <span class="proof-year">2023</span>
-            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
-            <span class="proof-result" data-i18n="result_published">State counts published</span>
-          </li>
-          <li class="is-current" data-year="2024">
-            <span class="proof-year">2024</span>
-            <span class="proof-source" data-i18n="source_pinned">Source pinned</span>
-            <span class="proof-result" data-i18n="result_published">State counts published</span>
-          </li>
-        </ol>
-      </section>
+      <section class="evidence-lab" aria-labelledby="evidence-lab-heading">
+        <div>
+          <p class="section-kicker" data-i18n="provenance_kicker">Trace the evidence</p>
+          <h2 id="evidence-lab-heading" data-i18n="provenance_h">Source and deployment provenance</h2>
+          <p data-i18n="provenance_intro">
+            The public JSON and release index carry source, mapping, semantic-regime, small-cell
+            publication, and accounting proof. Deployment files bind the published page back to an
+            exact source commit.
+          </p>
+        </div>
 
-      <section class="summary-section" aria-labelledby="summary-heading">
-        <h2 id="summary-heading" class="visually-hidden" data-i18n="summary_h">Dataset summary</h2>
-        <dl class="evidence-summary">
-          <div>
-            <dt data-i18n="summary_year">Dataset year</dt>
-            <dd id="summary-year">—</dd>
-          </div>
-          <div>
-            <dt data-i18n="summary_scope">Geographic scope</dt>
-            <dd id="summary-scope">—</dd>
-          </div>
-          <div>
-            <dt data-i18n="summary_threshold">Small-cell publication floor</dt>
-            <dd id="summary-threshold">—</dd>
-          </div>
-          <div>
-            <dt data-i18n="summary_retention">Published contributions</dt>
-            <dd id="summary-retention">—</dd>
-          </div>
-        </dl>
-      </section>
+        <div class="interpretation-grid">
+          <article>
+            <h3 data-i18n="can_h">What this can answer</h3>
+            <ul data-i18n="can_list">
+              <li>How many fatal crashes involved each mode in a state in the selected year.</li>
+              <li>Which cells met the small-cell publication floor.</li>
+              <li>Which official release and transformation produced the counts.</li>
+            </ul>
+          </article>
+          <article class="cannot">
+            <h3 data-i18n="cannot_h">What this cannot answer</h3>
+            <ul data-i18n="cannot_list">
+              <li>Risk, rate, fault, causation, or a safety ranking.</li>
+              <li>Near misses, nonfatal crashes, counties, streets, or intersections.</li>
+              <li>Whether a non-published cell is zero or suppressed.</li>
+            </ul>
+          </article>
+        </div>
 
-      <section class="interpretation-grid">
-        <article>
-          <h2 data-i18n="can_h">What this can answer</h2>
-          <ul data-i18n="can_list">
-            <li>How many fatal crashes involved each mode in a state in the selected year.</li>
-            <li>Which cells met the small-cell publication floor.</li>
-            <li>Which official release and transformation produced the counts.</li>
-          </ul>
-        </article>
-        <article class="cannot">
-          <h2 data-i18n="cannot_h">What this cannot answer</h2>
-          <ul data-i18n="cannot_list">
-            <li>Risk, rate, fault, causation, or a safety ranking.</li>
-            <li>Near misses, nonfatal crashes, counties, streets, or intersections.</li>
-            <li>Whether a non-published cell is zero or suppressed.</li>
-          </ul>
-        </article>
-      </section>
+        <details class="release-proof">
+          <summary data-i18n="proof_h">Five years, with publication status made explicit</summary>
+          <p data-i18n="proof_intro">
+            Official source archives are pinned for 2020–2024. Only years whose reviewed public
+            artifacts appear in the release index can be selected; unavailable years are never
+            silently treated as zero.
+          </p>
+          <ol class="proof-rail">
+            <li data-year="2020"><span class="proof-year">2020</span><span class="proof-source" data-i18n="source_pinned">Source pinned</span><span class="proof-result" data-i18n="result_published">State counts published</span></li>
+            <li data-year="2021"><span class="proof-year">2021</span><span class="proof-source" data-i18n="source_pinned">Source pinned</span><span class="proof-result" data-i18n="result_published">State counts published</span></li>
+            <li data-year="2022"><span class="proof-year">2022</span><span class="proof-source" data-i18n="source_pinned">Source pinned</span><span class="proof-result" data-i18n="result_published">State counts published</span></li>
+            <li data-year="2023"><span class="proof-year">2023</span><span class="proof-source" data-i18n="source_pinned">Source pinned</span><span class="proof-result" data-i18n="result_published">State counts published</span></li>
+            <li class="is-current" data-year="2024"><span class="proof-year">2024</span><span class="proof-source" data-i18n="source_pinned">Source pinned</span><span class="proof-result" data-i18n="result_published">State counts published</span></li>
+          </ol>
+        </details>
 
-      <section class="provenance" aria-labelledby="provenance-heading">
-        <div class="section-kicker" data-i18n="provenance_kicker">Trace the evidence</div>
-        <h2 id="provenance-heading" data-i18n="provenance_h">Source and deployment provenance</h2>
-        <p data-i18n="provenance_intro">
-          The public JSON and release index carry source, mapping, semantic-regime, small-cell
-          publication, and accounting proof. Deployment files bind the published page back to an
-          exact source commit.
-        </p>
         <dl class="provenance-list">
-          <div>
-            <dt data-i18n="source_label">Official source</dt>
-            <dd><a id="official-source" href="https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip" rel="external">NHTSA FARS</a></dd>
-          </div>
-          <div>
-            <dt data-i18n="revision_label">Source revision</dt>
-            <dd><code id="source-revision">—</code></dd>
-          </div>
-          <div>
-            <dt data-i18n="release_stage_label">Release status</dt>
-            <dd id="release-stage">—</dd>
-          </div>
-          <div>
-            <dt data-i18n="semantic_regime_label">Semantic regime</dt>
-            <dd><code id="semantic-regime">—</code></dd>
-          </div>
-          <div>
-            <dt data-i18n="mapping_versions_label">Mapping versions</dt>
-            <dd><code id="mapping-versions">—</code></dd>
-          </div>
-          <div>
-            <dt data-i18n="state_code_system_label">State-code system</dt>
-            <dd><code id="state-code-system">—</code></dd>
-          </div>
-          <div>
-            <dt data-i18n="annual_contract_label">Annual contract</dt>
-            <dd><code id="annual-contract">—</code></dd>
-          </div>
+          <div><dt data-i18n="source_label">Official source</dt><dd><a id="official-source" href="https://static.nhtsa.gov/nhtsa/downloads/FARS/2024/National/FARS2024NationalCSV.zip" rel="external">NHTSA FARS</a></dd></div>
+          <div><dt data-i18n="revision_label">Source revision</dt><dd><code id="source-revision">—</code></dd></div>
+          <div><dt data-i18n="semantic_regime_label">Semantic regime</dt><dd><code id="semantic-regime">—</code></dd></div>
+          <div><dt data-i18n="mapping_versions_label">Mapping versions</dt><dd><code id="mapping-versions">—</code></dd></div>
+          <div><dt data-i18n="state_code_system_label">State-code system</dt><dd><code id="state-code-system">—</code></dd></div>
+          <div><dt data-i18n="annual_contract_label">Annual contract</dt><dd><code id="annual-contract">—</code></dd></div>
+          <div><dt data-i18n="boundary_source_label">Map boundaries</dt><dd><a id="boundary-source" href="https://www2.census.gov/geo/tiger/GENZ2024/kml/cb_2024_us_state_20m.zip" rel="external">U.S. Census Bureau 2024 Cartographic Boundary Files</a></dd></div>
+          <div><dt data-i18n="boundary_checksum_label">Boundary file SHA-256</dt><dd><code id="boundary-checksum">—</code></dd></div>
         </dl>
         <ul class="provenance-links">
           <li><a id="artifact-download" href="/data/published/fars-2024-state-mode-r2.json" download data-i18n="download">Download public JSON</a></li>
           <li><a href="/data/published/fars-state-mode-index-v2.json" download data-i18n="release_index">Download release index</a></li>
           <li><a href="/data/published/fars-release-corrections.json" download data-i18n="correction_ledger">Release correction ledger</a></li>
+          <li><a href="/data/published/us-state-boundaries-2024.json" download data-i18n="boundary_download">Download Census boundary GeoJSON</a></li>
           <li><a href="/deployment.json" data-i18n="deployment">Deployment record</a></li>
           <li><a href="/site-manifest.json" data-i18n="manifest">Site file manifest</a></li>
           <li><a href="https://github.com/ChelseaKR/nearmiss/blob/main/src/nearmiss/fars_public_context.py" data-i18n="contract">Projection contract</a></li>
@@ -286,8 +504,17 @@
 
     <footer>
       <p data-i18n="footer">
-        Official fatal-crash context, published with explicit limits. nearmiss remains an
+        Public preview: automated accessibility gates pass; manual NVDA and VoiceOver review remains
+        open. Fatal-crash context is published with explicit limits. nearmiss remains an
         exposure-normalized near-miss product; these counts are a separate national context layer.
+      </p>
+      <p>
+        <a
+          href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/ACCESSIBILITY.md"
+          rel="external"
+          data-i18n="accessibility_status"
+          >Accessibility status and open review</a
+        >
       </p>
     </footer>
 

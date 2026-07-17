@@ -3,13 +3,15 @@
  * For sites that prefer a <script> tag to hand-writing an <iframe>. Drop this
  * where the widget should appear:
  *
- *   <script src="https://nearmiss.report/nearmiss-embed.js"
+ *   <script src="https://nearmiss.chelseakr.com/web/nearmiss-embed.js"
  *           data-city="davis"
  *           data-height="380"
  *           async></script>
  *
  * It injects a sandboxed <iframe> pointing at embed.html with the given city
- * (or ?data path). The iframe is the security boundary: the host page and the
+ * (or a validated data/published/<slug>.geojson path). The loader reduces either
+ * selector to a filename slug before constructing the iframe URL. The iframe is
+ * the security boundary: the host page and the
  * widget never share script context. Everything the widget shows is the same
  * open, aggregated published data the full site uses — no tracking, no cookies.
  */
@@ -34,8 +36,18 @@
 
   var src = base + "embed.html";
   var qs = [];
-  if (city && /^[a-z0-9_-]+$/i.test(city)) qs.push("city=" + encodeURIComponent(city));
-  else if (dataPath) qs.push("data=" + encodeURIComponent(dataPath));
+  var slug = null;
+  if (!(city && dataPath)) {
+    if (city && /^[a-z0-9][a-z0-9_-]*$/i.test(city)) {
+      slug = city.toLowerCase();
+    } else if (dataPath) {
+      var match = /^(?:\.\.\/|\/)?data\/published\/([a-z0-9][a-z0-9_-]*)\.geojson$/i.exec(
+        dataPath
+      );
+      if (match) slug = match[1].toLowerCase();
+    }
+  }
+  if (slug) qs.push("city=" + slug);
   if (qs.length) src += "?" + qs.join("&");
 
   var iframe = document.createElement("iframe");

@@ -112,6 +112,7 @@ def build_site(out: Path, source_sha: str) -> SiteManifest:
     out.mkdir(parents=True)
 
     _copy_file(ROOT / "index.html", out / "index.html", allowed_root=ROOT)
+    _copy_file(ROOT / "404.html", out / "404.html", allowed_root=ROOT)
     _copy_file(ROOT / "CNAME", out / "CNAME", allowed_root=ROOT)
     (out / ".nojekyll").write_text("", encoding="utf-8")
 

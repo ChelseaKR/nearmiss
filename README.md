@@ -10,12 +10,12 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230.svg)](https://docs.astral.sh/ruff/)
 [![Types: mypy strict](https://img.shields.io/badge/types-mypy%20strict-blue.svg)](https://mypy-lang.org/)
-[![WCAG 2.2 AA](https://img.shields.io/badge/accessibility-WCAG%202.2%20AA-success.svg)](docs/ACCESSIBILITY.md)
+[![Accessibility target: WCAG 2.2 AA](https://img.shields.io/badge/accessibility-WCAG%202.2%20AA%20target-blue.svg)](docs/ACCESSIBILITY.md)
 [![Conventional Commits](https://img.shields.io/badge/commits-conventional-fe5196.svg)](https://www.conventionalcommits.org/)
 [![Cite this](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
-[![Live demo](https://img.shields.io/badge/live-demo-nearmiss.report-success.svg)](https://nearmiss.report)
+[![Live demo](https://img.shields.io/badge/live-demo-nearmiss.chelseakr.com-success.svg)](https://nearmiss.chelseakr.com)
 
-**Live demo (accessible map + data view):** <https://nearmiss.report>
+**Live demo (accessible map + data view):** <https://nearmiss.chelseakr.com>
 
 </div>
 
@@ -45,7 +45,10 @@ community-owned evidence base.
 > `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
 > accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
 > pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
-> (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta.
+> (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta. The national
+> studio is a time-bounded, owner-attested public preview under
+> [ADR 0012](docs/adr/0012-solo-maintainer-provisional-review-attestation.md); that disposition is
+> not a manual screen-reader result or a WCAG/ACR conformance claim.
 
 ---
 
@@ -566,11 +569,21 @@ lands in front of a city. Full statement: [`docs/ACCESSIBILITY.md`](docs/ACCESSI
   still pending and is named honestly as such. Risk level and significance are conveyed in text and
   pattern, never by color alone; the report form is fully keyboard-operable with clear labels and error
   text.
+- The nationwide FARS studio's custom map states and mode-comparison points are implemented as
+  named roving-focus controls with arrow/Home/End navigation and Enter/Space activation. Native
+  selectors and semantic matrix, comparison, five-year profile, and complete-ledger tables expose the
+  same state-by-mode evidence. The automated gates and a targeted rendered-browser keyboard and
+  narrow-viewport pass are green; required human NVDA/VoiceOver verification remains pending.
 - A **non-visual equivalent** of the map is provided as an accessible, sortable list and table carrying
   the same ranked locations, rates, intervals, and significance flags, so every finding is reachable
-  without seeing the map.
+  without seeing the local map; the national studio uses its redundant semantic tables for the same
+  purpose.
 - Accessibility is a **merge-blocking CI gate**; a regression fails the build. The ACR is regenerated
   and re-committed on each release, the same audit-as-artifact discipline applied to the statistics.
+- The national studio's current **public-preview** disposition is recorded in the
+  [2026-07-16 component review](docs/audits/2026-07-16-national-evidence-studio-a11y.md): all automated
+  gates remain mandatory, NVDA/VoiceOver and actual browser zoom remain **Not performed**, and the
+  accountable owner's expiring risk acceptance permits preview deployment without changing the ACR.
 
 ## Observability
 

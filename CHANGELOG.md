@@ -58,6 +58,26 @@ every entry.
 
 ### Added
 
+- A distinctive “NearMiss Conflict Atlas” identity across the national studio, Davis demo, report
+  form, embed, share surface, and branded 404: a clearance-mark road symbol, asphalt/interstate/brake
+  palette, self-hosted Overpass/Atkinson Hyperlegible/Fragment Mono typography, compact evidence-first
+  hierarchy, and an earlier mobile map replace the previous generic dashboard treatment.
+- A narrowly scoped solo-maintainer REVIEW-GATE policy for pre-1.0 public previews. Mandatory
+  AUTO-GATEs remain unchanged; provisional disposition requires exact synthetic/browser evidence,
+  explicit accountable-owner residual-risk acceptance, unperformed checks, rollback, and expiry.
+  It cannot be cited as a manual screen-reader result, ACR/WCAG conformance, or a stable release.
+- A canonical `nearmiss.chelseakr.com` production origin on private, versioned S3 behind CloudFront
+  OAC, ACM TLS, Route 53 aliases, deterministic route rewriting, explicit browser-safe MIME metadata,
+  forced client revalidation, a verifier-only cache key, and exact-artifact GitHub OIDC deployment.
+  The existing `nearmiss.report` GitHub Pages mirror remains available during the transition.
+- Independent mode controls for truthful interaction semantics: “Visualization focus” is required and
+  defaults to pedalcyclists, while the complete evidence ledger retains its own all-modes filter and
+  the state-by-mode matrix always represents the full selected year.
+- A nationwide evidence studio over the reviewed 2020–2024 FARS release index: an official Census
+  state-boundary map, linked state × mode matrix, burden ranking, two-mode scatterplot, state
+  comparison, inspector, and printable evidence brief all share the same suppression-safe annual
+  cells. Deep links preserve the exact year and validated interaction state, while annual-contract,
+  release-stage, semantic-regime, correction-ledger, and boundary provenance stay visible.
 - An immutable 2024 FARS provenance correction: contract revision 2 classifies the exact pinned
   archive as NHTSA's `annual_report_file`, while the revision-1 artifact and release-index URLs remain
   byte-identical. A versioned artifact/index pair and machine-readable correction ledger bind both
@@ -108,6 +128,20 @@ every entry.
   supported capabilities, and the concrete inputs needed to unlock the next tier. Synthetic inputs
   are permanently labeled `demonstration`; `partner_city` requires both measured coverage and an
   explicit partner organization plus review reference, never report volume alone.
+
+### Security
+
+- Production publication now obtains AWS authority only after rebuilding and byte-comparing the exact
+  reviewed artifact, through a GitHub environment restricted to the exact `main` branch with
+  administrator bypass disabled. The live verifier rejects wrong MIME metadata, unreviewed 404 bodies,
+  hidden host-control objects, private-path response drift, or any manifest-bound byte mismatch.
+- Browser translations now build their small, audited markup vocabulary with DOM text nodes and
+  allowlisted links instead of reinterpreting catalog or dataset text as HTML. Locale catalogs keep
+  external keys as array values rather than object properties.
+- The local map and embed accept query-selected data only as filename slugs inside
+  `data/published/*.geojson`; external origins, other directories, traversal, queries, fragments, and
+  duplicate selectors fail closed to the Davis default. Contract tests exercise both valid selectors
+  and malicious path cases.
 
 ### Official outcome schema (`schema/official-outcome.schema.json`)
 

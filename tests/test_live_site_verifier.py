@@ -47,7 +47,25 @@ class MemoryFetcher:
         self.share_status: int | None = None
         self.baseline_status: int | None = None
         self.targets: list[tuple[str, int]] = []
-        self.not_found = FetchResult(404, b"custom-not-found\n" * 700, "text/html; charset=utf-8")
+        self.not_found = FetchResult(
+            404,
+            (root / "404.html").read_bytes(),
+            "text/html; charset=utf-8",
+        )
+
+    @staticmethod
+    def _content_type(path: Path) -> str:
+        return {
+            ".css": "text/css; charset=utf-8",
+            ".geojson": "application/geo+json",
+            ".html": "text/html; charset=utf-8",
+            ".js": "application/javascript; charset=utf-8",
+            ".json": "application/json; charset=utf-8",
+            ".md": "text/markdown; charset=utf-8",
+            ".png": "image/png",
+            ".svg": "image/svg+xml",
+            ".woff2": "font/woff2",
+        }.get(path.suffix.lower(), "application/octet-stream")
 
     def fetch(self, target: str, *, maximum_bytes: int) -> FetchResult:
         self.targets.append((target, maximum_bytes))
@@ -79,16 +97,16 @@ class MemoryFetcher:
                 (self.root / "fars" / "national" / "index.html").read_bytes(),
                 "text/html",
             )
-        elif path == "/.nojekyll":
+        elif path in {"/.nojekyll", "/CNAME"}:
             result = self.not_found
         else:
             candidate = self.root / path.removeprefix("/")
             if candidate.is_file():
-                suffix = candidate.suffix
-                content_type = (
-                    "application/json" if suffix == ".json" else "application/octet-stream"
+                result = FetchResult(
+                    200,
+                    candidate.read_bytes(),
+                    self._content_type(candidate),
                 )
-                result = FetchResult(200, candidate.read_bytes(), content_type)
             else:
                 result = self.not_found
         if len(result.body) > maximum_bytes:
@@ -105,22 +123,32 @@ def _verify(expected_site: Path, fetcher: MemoryFetcher) -> live.LiveSiteSummary
     )
 
 
-def test_exact_site_and_large_custom_404s_pass(expected_site: Path) -> None:
+def test_exact_site_and_reviewed_404s_pass(expected_site: Path) -> None:
     fetcher = MemoryFetcher(expected_site)
     summary = _verify(expected_site, fetcher)
 
     assert summary.source_sha == SHA
-    assert summary.file_count == 50
+    expected_manifest = json.loads(
+        (expected_site / "site-manifest.json").read_text(encoding="utf-8")
+    )
+    assert summary.file_count == len(expected_manifest["files"])
     assert summary.default_year == 2024
     assert summary.default_source_revision.startswith("reviewed-")
     assert summary.private_probe_count == len(live.PRIVATE_PATH_PROBES)
-    assert len(fetcher.not_found.body) > 4096
     assert any(
         target.startswith("/.well-known/nearmiss-guaranteed-missing-")
         for target, _ in fetcher.targets
     )
     assert any(urlsplit(target).path == "/fars/national/" for target, _ in fetcher.targets)
     assert all(f"verify={CACHE_TOKEN}" in target for target, _ in fetcher.targets)
+
+
+def test_unreviewed_uniform_404_body_fails(expected_site: Path) -> None:
+    fetcher = MemoryFetcher(expected_site)
+    fetcher.not_found = FetchResult(404, b"injected not found", "text/html; charset=utf-8")
+
+    with pytest.raises(LiveSiteVerificationError, match="manifest-bound reviewed document"):
+        _verify(expected_site, fetcher)
 
 
 @pytest.mark.parametrize(
@@ -150,6 +178,39 @@ def test_required_public_file_rejects_non_200(expected_site: Path, status: int) 
     fetcher = MemoryFetcher(expected_site)
     fetcher.overrides["/web/us-coverage.css"] = FetchResult(status, b"", "text/plain")
     with pytest.raises(LiveSiteVerificationError, match=rf"HTTP {status}"):
+        _verify(expected_site, fetcher)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/index.html",
+        "/web/us-coverage.js",
+        "/web/us-coverage.css",
+        "/deployment.json",
+        "/data/published/davis.geojson",
+        "/data/published/davis-rates.svg",
+        "/web/vendor/fonts/overpass-latin-wght-normal.woff2",
+        "/web/vendor/leaflet/images/layers.png",
+    ],
+)
+def test_correct_public_bytes_with_wrong_mime_fail(expected_site: Path, path: str) -> None:
+    fetcher = MemoryFetcher(expected_site)
+    fetcher.overrides[path] = FetchResult(
+        200,
+        (expected_site / path.removeprefix("/")).read_bytes(),
+        "text/plain; charset=utf-8",
+    )
+
+    with pytest.raises(LiveSiteVerificationError, match="invalid Content-Type"):
+        _verify(expected_site, fetcher)
+
+
+def test_404_requires_html_content_type(expected_site: Path) -> None:
+    fetcher = MemoryFetcher(expected_site)
+    fetcher.not_found = FetchResult(404, fetcher.not_found.body, "text/plain")
+
+    with pytest.raises(LiveSiteVerificationError, match=r"live 404 response.*Content-Type"):
         _verify(expected_site, fetcher)
 
 
@@ -183,9 +244,10 @@ def test_guaranteed_missing_baseline_must_be_404(expected_site: Path) -> None:
         _verify(expected_site, fetcher)
 
 
-def test_host_control_must_remain_non_retrievable(expected_site: Path) -> None:
+@pytest.mark.parametrize("path", ["/.nojekyll", "/CNAME"])
+def test_host_control_must_remain_non_retrievable(expected_site: Path, path: str) -> None:
     fetcher = MemoryFetcher(expected_site)
-    fetcher.overrides["/.nojekyll"] = FetchResult(200, b"", "application/octet-stream")
+    fetcher.overrides[path] = FetchResult(200, b"", "application/octet-stream")
     with pytest.raises(LiveSiteVerificationError, match="host-control"):
         _verify(expected_site, fetcher)
 
@@ -526,7 +588,7 @@ def test_production_fetcher_enforces_host_headers_status_and_close(
     )
     assert result == FetchResult(404, b"reviewed", "text/plain")
     connection = FakeHttpsConnection.instances[-1]
-    assert connection.host == "nearmiss.report"
+    assert connection.host == "nearmiss.chelseakr.com"
     assert connection.timeout <= 5
     assert connection.request_args is not None
     method, target, headers = connection.request_args
