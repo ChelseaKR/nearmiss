@@ -147,7 +147,17 @@ every entry.
   are permanently labeled `demonstration`; `partner_city` requires both measured coverage and an
   explicit partner organization plus review reference, never report volume alone.
 
-### Removed
+### Fixed
+
+- `docs/METHODOLOGY.md` no longer describes FIX-06 (per-hazard-type rate layers) and FIX-07
+  (low-confidence exclusion from the primary rate) as "PLANNED, not yet implemented" — both landed
+  in 0.2.0 (#37, #38), but the two claim blocks were never flipped, so the methodology doc
+  misdescribed the published method: it said low-confidence reports "are currently still counted in
+  the primary rate" when the published rate/CI has excluded them (with `rate_sensitivity_delta` and
+  `excluded_low_confidence_fraction` published) since 0.2.0. The corrected claims
+  (`rate-union-primary-plus-per-type-layers`, `low-confidence-excluded-from-primary`) now cite
+  behavioral tests as witnesses in `docs/CLAIMS.md` instead of bare source-file paths, so the
+  claims-parity gate anchors them to executed behavior rather than file existence.
 
 - Retire the Davis and Riverside synthetic city experiences, hotspot embed, disconnected browser
   submission prototype, Leaflet runtime, and synthetic published artifacts from the production site.
