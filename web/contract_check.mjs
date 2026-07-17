@@ -238,7 +238,29 @@ function cellsFor(doc, segmentId) {
   return Array.from(tr.children).map((c) => c.textContent);
 }
 
+function linksToPublicSite(source) {
+  const externalUrls = source.match(/(?:https?:)?\/\/[^\s"'`<>\\)]+/g) ?? [];
+  return externalUrls.some((candidate) => {
+    try {
+      return new URL(candidate, "https://source-fixture.invalid").hostname === "nearmiss.chelseakr.com";
+    } catch {
+      return false;
+    }
+  });
+}
+
 async function main() {
+  const productionLinkCases = [
+    ['href="https://nearmiss.chelseakr.com/web/embed.html"', true],
+    ['href="//nearmiss.chelseakr.com/web/embed.html"', true],
+    ['href="https://nearmiss.chelseakr.com.attacker.example/"', false],
+    ['href="https://attacker.example/nearmiss.chelseakr.com"', false],
+  ];
+  for (const [source, expected] of productionLinkCases) {
+    if (linksToPublicSite(source) !== expected) {
+      die(`production-link classifier failed closed for ${source}`);
+    }
+  }
   for (const script of [APP_JS, EMBED_JS, EMBED_LOADER_JS, I18N_JS]) {
     const source = readFileSync(script, "utf-8");
     if (/\b(?:innerHTML|outerHTML|insertAdjacentHTML|document\.write|DOMParser)\b/.test(source)) {
@@ -246,7 +268,7 @@ async function main() {
     }
   }
   for (const sourceFile of [EMBED_HTML, EMBED_JS, EMBED_LOADER_JS]) {
-    if (readFileSync(sourceFile, "utf-8").includes("https://nearmiss.chelseakr.com")) {
+    if (linksToPublicSite(readFileSync(sourceFile, "utf-8"))) {
       die(`${sourceFile} sent the source-only embed back to the retired public demo`);
     }
   }
