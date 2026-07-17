@@ -131,6 +131,9 @@ every entry.
 
 ### Security
 
+- The script-tag embed loader now chooses only canonical, constant iframe URLs for the Davis and
+  Riverside public artifacts. A publisher-controlled or mutated loader `src`, and an unknown but
+  syntactically valid dataset slug, can no longer influence iframe navigation.
 - Production publication now obtains AWS authority only after rebuilding and byte-comparing the exact
   reviewed artifact, through a GitHub environment restricted to the exact `main` branch with
   administrator bypass disabled. The live verifier rejects wrong MIME metadata, unreviewed 404 bodies,
