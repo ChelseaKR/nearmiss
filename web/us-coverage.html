@@ -3,27 +3,36 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#152A30" />
+    <link rel="icon" href="/web/vendor/brand/clearance-mark.svg" type="image/svg+xml" />
     <title>US evidence studio — nearmiss</title>
     <meta
       name="description"
       content="Explore reviewed 2020–2024 NHTSA FARS fatal-crash burden counts across all 50 states and DC with linked national map, matrix, rank, comparison, profile, and provenance views."
     />
-    <link rel="canonical" href="https://nearmiss.report/fars/national/" />
+    <link rel="canonical" href="https://nearmiss.chelseakr.com/fars/national/" />
     <link rel="stylesheet" href="/web/style.css" />
     <link rel="stylesheet" href="/web/us-coverage.css" />
     <link rel="stylesheet" href="/web/us-coverage-studio.css" />
+    <link rel="stylesheet" href="/web/brand.css" />
   </head>
   <body class="coverage-page">
     <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
 
     <header class="coverage-header">
       <nav class="coverage-nav" aria-label="Primary">
-        <a class="wordmark" href="/web/index.html" aria-label="nearmiss home">
-          <span aria-hidden="true">nm</span>
-          <strong>nearmiss</strong>
+        <a class="wordmark brand-lockup" href="/web/index.html" aria-label="nearmiss home">
+          <svg class="clearance-mark" viewBox="0 0 48 32" aria-hidden="true" focusable="false">
+            <path class="clearance-path clearance-path-a" d="M3 27 17 13h5" />
+            <path class="clearance-path clearance-path-b" d="M45 5 31 19h-5" />
+          </svg>
+          <span class="brand-lockup-copy">
+            <strong>nearmiss</strong>
+            <span>Conflict Atlas</span>
+          </span>
         </a>
         <div class="nav-actions">
-          <span class="real-data-badge" data-i18n="real_data_badge">Official real data</span>
+          <span class="real-data-badge" data-i18n="real_data_badge">Source: NHTSA FARS · Verified artifact</span>
           <div class="lang-switch" role="group" aria-label="Language / Idioma">
             <button type="button" data-lang="en" aria-pressed="true">English</button>
             <button type="button" data-lang="es" aria-pressed="false">Español</button>
@@ -47,44 +56,6 @@
           </p>
           <a class="hero-action" href="#studio" data-i18n="explore_action">Explore the evidence</a>
         </div>
-
-        <aside class="release-card" aria-labelledby="release-card-title">
-          <div class="release-card-topline">
-            <span class="release-signal" aria-hidden="true"></span>
-            <span data-i18n="release_stage_label">Release status</span>
-            <strong id="release-stage">—</strong>
-          </div>
-          <h2 id="release-card-title" data-i18n="release_card_h">A hash-bound annual projection</h2>
-          <dl class="release-facts">
-            <div>
-              <dt data-i18n="summary_year">Dataset year</dt>
-              <dd id="summary-year">—</dd>
-            </div>
-            <div>
-              <dt data-i18n="summary_scope">Geographic scope</dt>
-              <dd id="summary-scope">—</dd>
-            </div>
-            <div>
-              <dt data-i18n="summary_cases">Distinct fatal crashes</dt>
-              <dd id="summary-cases">—</dd>
-            </div>
-            <div>
-              <dt data-i18n="summary_cells">Numerically published cells</dt>
-              <dd id="summary-cells">—</dd>
-            </div>
-            <div>
-              <dt data-i18n="summary_threshold">Small-cell publication floor</dt>
-              <dd id="summary-threshold">—</dd>
-            </div>
-            <div>
-              <dt data-i18n="summary_retention">Published contributions</dt>
-              <dd id="summary-retention">—</dd>
-            </div>
-          </dl>
-          <p class="release-note" data-i18n="release_note">
-            Source bytes, the annual contract, and accounting proof are verified before any count appears.
-          </p>
-        </aside>
       </div>
     </header>
 
@@ -122,9 +93,9 @@
             </select>
           </div>
           <div>
-            <label for="mode-filter" data-i18n="mode_label">Focus mode</label>
-            <select id="mode-filter" name="mode">
-              <option value="" data-i18n="all_modes">All modes</option>
+            <label for="mode-filter" data-i18n="focus_mode_label">Visualization focus</label>
+            <select id="mode-filter" name="mode" required>
+              <option value="pedalcyclist" data-i18n="mode_pedalcyclist">Pedalcyclist</option>
             </select>
           </div>
           <div>
@@ -139,15 +110,10 @@
         </form>
 
         <p class="filter-scope" data-i18n="filter_scope">
-          State loads the five-year profile. Year, mode, and publication status refine the
-          selected-year national views and ledger.
+          State loads the five-year profile. Year and visualization focus drive the national
+          views; publication status filters the matrix and ledger. The complete ledger has its own
+          mode filter below.
         </p>
-        <p class="coverage-caveat coverage-regime-caution" data-i18n="regime_caution">
-          <strong>Compare years with care.</strong> FARS person-type coding uses one reviewed
-          semantic regime for 2020–2021 and another for 2022–2024. Each result stays pinned to its
-          annual mapping contract, so a cross-regime change can reflect coding as well as outcomes.
-        </p>
-
         <p id="coverage-status" class="coverage-status" role="status" aria-live="polite" aria-atomic="true" data-i18n="loading">
           Loading the reviewed artifact…
         </p>
@@ -324,6 +290,12 @@
           </aside>
         </div>
 
+        <p class="coverage-caveat coverage-regime-caution" data-i18n="regime_caution">
+          <strong>Compare years with care.</strong> FARS person-type coding uses one reviewed
+          semantic regime for 2020–2021 and another for 2022–2024. Each result stays pinned to its
+          annual mapping contract, so a cross-regime change can reflect coding as well as outcomes.
+        </p>
+
         <section id="state-profile" class="state-profile" aria-labelledby="profile-heading" aria-busy="false">
           <div class="section-kicker" data-i18n="profile_kicker">Five-year view</div>
           <h3 id="profile-heading" data-i18n="profile_h">Selected-state profile, 2020–2024</h3>
@@ -361,6 +333,44 @@
             </table>
           </div>
         </section>
+
+        <aside class="release-card" aria-labelledby="release-card-title">
+          <div class="release-card-topline">
+            <span class="release-signal" aria-hidden="true"></span>
+            <span data-i18n="release_stage_label">Release status</span>
+            <strong id="release-stage">—</strong>
+          </div>
+          <h2 id="release-card-title" data-i18n="release_card_h">A hash-bound annual projection</h2>
+          <dl class="release-facts">
+            <div>
+              <dt data-i18n="summary_year">Dataset year</dt>
+              <dd id="summary-year">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_scope">Geographic scope</dt>
+              <dd id="summary-scope">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_cases">Distinct fatal crashes</dt>
+              <dd id="summary-cases">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_cells">Numerically published cells</dt>
+              <dd id="summary-cells">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_threshold">Small-cell publication floor</dt>
+              <dd id="summary-threshold">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="summary_retention">Published contributions</dt>
+              <dd id="summary-retention">—</dd>
+            </div>
+          </dl>
+          <p class="release-note" data-i18n="release_note">
+            Source bytes, the annual contract, and accounting proof are verified before any count appears.
+          </p>
+        </aside>
       </section>
 
       <section id="brief-builder" class="brief-builder" aria-labelledby="brief-heading">
@@ -397,6 +407,12 @@
               A published count is the number of distinct fatal crashes with at least one person in
               that mode. A non-published cell is labeled “suppressed or zero”—never zero.
             </p>
+          </div>
+          <div class="ledger-controls">
+            <label for="ledger-mode-filter" data-i18n="ledger_mode_label">Filter ledger by mode</label>
+            <select id="ledger-mode-filter" name="ledger-mode">
+              <option value="" data-i18n="all_modes">All modes</option>
+            </select>
           </div>
         </div>
         <div class="table-wrap coverage-table-wrap" tabindex="0" role="region" aria-labelledby="data-heading coverage-caption">

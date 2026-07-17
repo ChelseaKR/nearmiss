@@ -931,7 +931,7 @@
 
   function selectedRows() {
     var state = document.getElementById("state-filter").value;
-    var mode = document.getElementById("mode-filter").value;
+    var mode = document.getElementById("ledger-mode-filter").value;
     var status = document.getElementById("status-filter").value;
     return rows.filter(function (row) {
       return (
@@ -949,7 +949,10 @@
     var focusKey = activeControl ? activeControl.getAttribute("data-focus-key") : null;
     viewState.selectedState = abbreviation;
     viewState.compareA = abbreviation;
-    if (mode) viewState.primaryMode = mode;
+    if (mode) {
+      requestedModeFromUrl = null;
+      viewState.primaryMode = mode;
+    }
     var stateSelect = document.getElementById("state-filter");
     if (stateSelect) stateSelect.value = abbreviation;
     var modeSelect = document.getElementById("mode-filter");
@@ -1039,15 +1042,33 @@
   function renderArtifactControls() {
     populateStateControl(viewState.selectedState || "");
     var modeSelect = document.getElementById("mode-filter");
-    var selectedMode = modeSelect.value || requestedModeFromUrl || "";
-    while (modeSelect.options.length > 1) modeSelect.remove(1);
+    var selectedMode = requestedModeFromUrl || viewState.primaryMode;
+    modeSelect.textContent = "";
     EXPECTED_MODES.forEach(function (mode) {
       var option = document.createElement("option");
       option.value = mode;
       option.textContent = modeLabel(mode);
       modeSelect.appendChild(option);
     });
-    modeSelect.value = selectedMode && EXPECTED_MODES.indexOf(selectedMode) >= 0 ? selectedMode : "";
+    modeSelect.value = EXPECTED_MODES.indexOf(selectedMode) >= 0 ? selectedMode : "pedalcyclist";
+    viewState.primaryMode = modeSelect.value;
+
+    var ledgerModeSelect = document.getElementById("ledger-mode-filter");
+    var selectedLedgerMode = ledgerModeSelect.value;
+    ledgerModeSelect.textContent = "";
+    var allModes = document.createElement("option");
+    allModes.value = "";
+    allModes.textContent = t("all_modes");
+    allModes.setAttribute("data-i18n", "all_modes");
+    ledgerModeSelect.appendChild(allModes);
+    EXPECTED_MODES.forEach(function (mode) {
+      var option = document.createElement("option");
+      option.value = mode;
+      option.textContent = modeLabel(mode);
+      ledgerModeSelect.appendChild(option);
+    });
+    ledgerModeSelect.value =
+      EXPECTED_MODES.indexOf(selectedLedgerMode) >= 0 ? selectedLedgerMode : "";
 
     var secondary = document.getElementById("secondary-mode");
     secondary.textContent = "";
@@ -1296,8 +1317,8 @@
   }
 
   function mapColor(value, max) {
-    var start = [220, 236, 235];
-    var end = [15, 81, 86];
+    var start = [220, 232, 235];
+    var end = [20, 91, 115];
     var ratio = Math.sqrt(value / Math.max(1, max));
     var channels = start.map(function (channel, index) {
       return Math.round(channel + (end[index] - channel) * ratio);
@@ -1337,9 +1358,9 @@
       patternUnits: "userSpaceOnUse",
       patternTransform: "rotate(35)",
     });
-    pattern.appendChild(svgElement("rect", { width: "8", height: "8", fill: "#fff2d4" }));
+    pattern.appendChild(svgElement("rect", { width: "8", height: "8", fill: "#f3f6f2" }));
     pattern.appendChild(
-      svgElement("line", { x1: "0", y1: "0", x2: "0", y2: "8", stroke: "#855710", "stroke-width": "2" })
+      svgElement("line", { x1: "0", y1: "0", x2: "0", y2: "8", stroke: "#5e706f", "stroke-width": "2" })
     );
     definitions.appendChild(pattern);
     svg.appendChild(definitions);
@@ -1412,6 +1433,22 @@
       var stateHeight = projected.bounds.maxY - projected.bounds.minY;
       var centerX = (projected.bounds.minX + projected.bounds.maxX) / 2;
       var centerY = (projected.bounds.minY + projected.bounds.maxY) / 2;
+      if (viewState.selectedState === feature.id) {
+        group.appendChild(
+          svgElement("path", {
+            d: "M" + (centerX - 19) + "," + (centerY + 19) + " L" + (centerX - 5) + "," + (centerY + 5),
+            class: "clearance-cursor clearance-cursor-a",
+            "aria-hidden": "true",
+          })
+        );
+        group.appendChild(
+          svgElement("path", {
+            d: "M" + (centerX + 19) + "," + (centerY - 19) + " L" + (centerX + 5) + "," + (centerY - 5),
+            class: "clearance-cursor clearance-cursor-b",
+            "aria-hidden": "true",
+          })
+        );
+      }
       if (["DC", "DE", "RI"].indexOf(feature.id) >= 0) {
         var locator = svgElement("circle", {
           cx: centerX,
@@ -1500,6 +1537,7 @@
         )
       );
       modeButton.addEventListener("click", function () {
+        requestedModeFromUrl = null;
         viewState.primaryMode = mode;
         document.getElementById("mode-filter").value = mode;
         renderAll();
@@ -1513,7 +1551,6 @@
     head.appendChild(headerRow);
 
     var statusFilter = document.getElementById("status-filter").value;
-    var modeFilter = document.getElementById("mode-filter").value;
     artifact.states.forEach(function (state, stateIndex) {
       var tr = document.createElement("tr");
       if (viewState.selectedState === state.state_abbreviation) tr.classList.add("is-selected");
@@ -1527,7 +1564,7 @@
         var td = document.createElement("td");
         td.className = "matrix-cell";
         if (row.status !== "published") td.classList.add("is-unpublished");
-        if ((statusFilter && row.status !== statusFilter) || (modeFilter && row.mode !== modeFilter)) {
+        if (statusFilter && row.status !== statusFilter) {
           td.classList.add("is-filtered");
         }
         if (viewState.selectedState === row.stateAbbreviation && focusMode() === mode) {
@@ -1920,6 +1957,28 @@
           points[nextIndex].focus();
         }
       });
+      if (viewState.selectedState === pair.state.state_abbreviation) {
+        svg.appendChild(
+          svgElement("line", {
+            x1: x - 19,
+            y1: y + 19,
+            x2: x - 6,
+            y2: y + 6,
+            class: "clearance-cursor clearance-cursor-a",
+            "aria-hidden": "true",
+          })
+        );
+        svg.appendChild(
+          svgElement("line", {
+            x1: x + 19,
+            y1: y - 19,
+            x2: x + 6,
+            y2: y - 6,
+            class: "clearance-cursor clearance-cursor-b",
+            "aria-hidden": "true",
+          })
+        );
+      }
       svg.appendChild(point);
       if (viewState.selectedState === pair.state.state_abbreviation) {
         svg.appendChild(
@@ -2463,20 +2522,26 @@
         updateStateUrl(state);
         renderAll();
         loadStateProfile(state);
-      } else {
+      } else if (event.target && event.target.id === "mode-filter") {
         requestedModeFromUrl = null;
-        var selectedMode = document.getElementById("mode-filter").value;
-        if (selectedMode) viewState.primaryMode = selectedMode;
+        viewState.primaryMode = event.target.value;
+        renderAll();
+        syncUrl();
+      } else {
         renderAll();
         syncUrl();
       }
+    });
+    document.getElementById("ledger-mode-filter").addEventListener("change", function () {
+      renderTable();
     });
     form.addEventListener("reset", function (event) {
       event.preventDefault();
       if (!releaseIndex) return;
       requestedModeFromUrl = null;
       document.getElementById("state-filter").value = "";
-      document.getElementById("mode-filter").value = "";
+      document.getElementById("mode-filter").value = "pedalcyclist";
+      document.getElementById("ledger-mode-filter").value = "";
       document.getElementById("status-filter").value = "";
       viewState.view = "map";
       viewState.primaryMode = "pedalcyclist";

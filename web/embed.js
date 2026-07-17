@@ -97,7 +97,7 @@
         " · open data";
     }
     var full = document.getElementById("embed-fulllink");
-    if (full && meta.city) full.setAttribute("href", "https://nearmiss.report");
+    if (full && meta.city) full.setAttribute("href", "https://nearmiss.chelseakr.com");
 
     var maxRate = features.reduce(function (m, f) {
       return Math.max(m, f.properties.rate || 0);

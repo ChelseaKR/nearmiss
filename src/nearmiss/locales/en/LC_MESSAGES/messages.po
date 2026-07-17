@@ -518,7 +518,7 @@ msgid "web.app.print_caveat"
 msgstr "Rates are shown with 95% confidence intervals. Segments without a trustworthy exposure denominator are shown as uncertain and are never ranked as if certain."
 
 msgid "web.app.print_footer"
-msgstr "nearmiss — near-miss rates, normalized by exposure · https://nearmiss.report"
+msgstr "nearmiss — near-miss rates, normalized by exposure · https://nearmiss.chelseakr.com"
 
 msgid "web.app.print_generated_label"
 msgstr "Generated:"
@@ -749,7 +749,10 @@ msgid "web.coverage.footer"
 msgstr "Official fatal-crash context, published with explicit limits. nearmiss remains an exposure-normalized near-miss product; these counts are a separate national context layer."
 
 msgid "web.coverage.filter_scope"
-msgstr "State loads the five-year profile. Year, mode, and publication status refine the selected-year national views and ledger."
+msgstr "State loads the five-year profile. Year and visualization focus drive the national views; publication status filters the matrix and ledger. The complete ledger has its own mode filter below."
+
+msgid "web.coverage.focus_mode_label"
+msgstr "Visualization focus"
 
 msgid "web.coverage.h1"
 msgstr "Fatal-crash burden, state by state"
@@ -762,6 +765,9 @@ msgstr "Selected-year state evidence"
 
 msgid "web.coverage.ledger_empty"
 msgstr "Choose a state above to show its selected-year evidence."
+
+msgid "web.coverage.ledger_mode_label"
+msgstr "Filter ledger by mode"
 
 msgid "web.coverage.load_error"
 msgstr "The reviewed release index or selected public artifact could not be loaded or did not pass its contract. No counts are shown."
@@ -1142,7 +1148,7 @@ msgid "web.coverage.rank_unpublished"
 msgstr "{count} jurisdictions have no published numeric {mode} count (suppressed or zero)"
 
 msgid "web.coverage.real_data_badge"
-msgstr "Official real data"
+msgstr "Source: NHTSA FARS · Verified artifact"
 
 msgid "web.coverage.remove_brief"
 msgstr "Remove {state} from brief"

@@ -3,7 +3,7 @@
  * For sites that prefer a <script> tag to hand-writing an <iframe>. Drop this
  * where the widget should appear:
  *
- *   <script src="https://nearmiss.report/nearmiss-embed.js"
+ *   <script src="https://nearmiss.chelseakr.com/web/nearmiss-embed.js"
  *           data-city="davis"
  *           data-height="380"
  *           async></script>

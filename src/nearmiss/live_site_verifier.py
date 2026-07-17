@@ -19,7 +19,7 @@ from urllib.parse import urlsplit
 
 from .fars_public_index import FARS_PUBLIC_INDEX_FILENAME, load_fars_public_release_index_bytes
 
-PRODUCTION_SITE_URL = "https://nearmiss.report"
+PRODUCTION_SITE_URL = "https://nearmiss.chelseakr.com"
 PRIVATE_PATH_PROBES = (
     ".git/HEAD",
     "config/davis.toml",
@@ -42,6 +42,16 @@ _MAX_ERROR_RESPONSE_BYTES = 64 * 1024
 _MAX_PUBLIC_FILES = 256
 _MAX_PUBLIC_TOTAL_BYTES = 64 * 1024 * 1024
 _CACHE_TOKEN_RE = re.compile(r"^[0-9a-f]{32}$", re.ASCII)
+_CONTENT_TYPES_BY_SUFFIX: Mapping[str, frozenset[str]] = {
+    ".css": frozenset({"text/css"}),
+    ".geojson": frozenset({"application/geo+json", "application/json"}),
+    ".html": frozenset({"text/html"}),
+    ".js": frozenset({"application/javascript", "text/javascript"}),
+    ".json": frozenset({"application/json"}),
+    ".png": frozenset({"image/png"}),
+    ".svg": frozenset({"image/svg+xml"}),
+    ".woff2": frozenset({"font/woff2"}),
+}
 
 
 class LiveSiteVerificationError(ValueError):
@@ -236,10 +246,56 @@ def _required(
     maximum_bytes: int,
     label: str,
 ) -> bytes:
+    return _required_result(
+        fetcher,
+        target,
+        maximum_bytes=maximum_bytes,
+        label=label,
+    ).body
+
+
+def _expected_content_types(path: str) -> frozenset[str] | None:
+    """Return the safe media types for a browser-significant public path."""
+    if path == "/" or path.endswith("/"):
+        return _CONTENT_TYPES_BY_SUFFIX[".html"]
+    name = path.rsplit("/", 1)[-1].lower()
+    for suffix, content_types in _CONTENT_TYPES_BY_SUFFIX.items():
+        if name.endswith(suffix):
+            return content_types
+    return None
+
+
+def _validate_content_type(
+    path: str,
+    content_type: str | None,
+    *,
+    label: str,
+) -> None:
+    """Reject MIME metadata that would break or unsafely reinterpret reviewed bytes."""
+    expected = _expected_content_types(path)
+    if expected is None:
+        return
+    media_type = "" if content_type is None else content_type.split(";", 1)[0].strip().lower()
+    if media_type not in expected:
+        allowed = ", ".join(sorted(expected))
+        actual = "missing" if content_type is None else repr(content_type)
+        raise LiveSiteVerificationError(
+            f"{label} returned invalid Content-Type {actual}; expected {allowed}"
+        )
+
+
+def _required_result(
+    fetcher: Fetcher,
+    target: str,
+    *,
+    maximum_bytes: int,
+    label: str,
+) -> FetchResult:
     result = fetcher.fetch(target, maximum_bytes=maximum_bytes)
     if result.status != 200:
         raise LiveSiteVerificationError(f"{label} returned HTTP {result.status}")
-    return result.body
+    _validate_content_type(urlsplit(target).path, result.content_type, label=label)
+    return result
 
 
 def _deployment(payload: bytes, *, expected_sha: str) -> None:
@@ -347,6 +403,7 @@ def _not_found_baseline(fetcher: Fetcher, *, cache_token: str) -> FetchResult:
         raise LiveSiteVerificationError(
             f"guaranteed-missing baseline returned HTTP {result.status} instead of 404"
         )
+    _validate_content_type("/404.html", result.content_type, label="live 404 response")
     return result
 
 
@@ -380,6 +437,10 @@ def verify_live_site(
         )
 
     not_found = _not_found_baseline(fetcher, cache_token=cache_token)
+    if not_found.body != expected_files["404.html"]:
+        raise LiveSiteVerificationError(
+            "live 404 response does not match the manifest-bound reviewed document"
+        )
     total = 0
     for path, expected_payload in expected_files.items():
         if path in HOST_CONTROL_PATHS:

@@ -12,7 +12,7 @@ const APEX = join(repoRoot, "index.html");
 const PAGE = join(here, "us-coverage.html");
 const DAVIS_HOME = join(here, "index.html");
 const NATIONAL_ROUTE = "/fars/national/";
-const NATIONAL_CANONICAL = "https://nearmiss.report/fars/national/";
+const NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/";
 const APP = join(here, "us-coverage.js");
 const STUDIO_STYLE = join(here, "us-coverage-studio.css");
 const I18N = join(here, "i18n.js");
@@ -45,6 +45,7 @@ const CHECKED_ARTIFACT_BYTES = CHECKED_ARTIFACT_BYTES_BY_YEAR[2024];
 const CHECKED_INDEX = JSON.parse(CHECKED_INDEX_BYTES.toString("utf-8"));
 const CHECKED_ARTIFACT = JSON.parse(CHECKED_ARTIFACT_BYTES.toString("utf-8"));
 const CHECKED_RELEASE_2024 = CHECKED_INDEX.releases.find((release) => release.dataset_year === 2024);
+const EXPECTED_MODES = CHECKED_INDEX.contract.modes;
 const EXPECTED_ARTIFACT_PINS = {
   2020: [27589, "db4c50d998d20bc2f341b1943c883f6d6d3c805db4bb7117564619119499290c"],
   2021: [27630, "de7406ca0980e9d092eb25a230fe17fb2500f07b3b36f781dc3e4b35b7983168"],
@@ -355,6 +356,24 @@ async function main() {
   if (!coverageSource.querySelector('a[href="/data/published/us-state-boundaries-2024.json"]')) {
     die("nationwide page has no reviewed Census-boundary download");
   }
+  const focusModeSource = coverageSource.getElementById("mode-filter");
+  const ledgerModeSource = coverageSource.getElementById("ledger-mode-filter");
+  if (
+    !focusModeSource?.required ||
+    Array.from(focusModeSource.options).some((option) => option.value === "") ||
+    focusModeSource.value !== "pedalcyclist"
+  ) {
+    die("visualization focus is not a required specific mode with a pedalcyclist fallback");
+  }
+  if (
+    !ledgerModeSource ||
+    !ledgerModeSource.closest(".data-ledger") ||
+    ledgerModeSource.options[0]?.value !== "" ||
+    coverageSource.querySelector('label[for="ledger-mode-filter"]')?.getAttribute("data-i18n") !==
+      "ledger_mode_label"
+  ) {
+    die("complete ledger does not expose its own all-modes filter");
+  }
   for (const [view, hintId] of [
     ["map", "map-keyboard-hint"],
     ["matrix", "matrix-keyboard-hint"],
@@ -564,6 +583,16 @@ async function main() {
   if (JSON.stringify(yearOptions) !== JSON.stringify(YEARS.map(String))) {
     die(`selector did not expose all published years: ${yearOptions.join(", ")}`);
   }
+  const focusModeOptions = Array.from(doc.getElementById("mode-filter").options, (option) => option.value);
+  const ledgerModeOptions = Array.from(doc.getElementById("ledger-mode-filter").options, (option) => option.value);
+  if (
+    JSON.stringify(focusModeOptions) !== JSON.stringify(EXPECTED_MODES) ||
+    doc.getElementById("mode-filter").value !== "pedalcyclist" ||
+    JSON.stringify(ledgerModeOptions) !== JSON.stringify(["", ...EXPECTED_MODES]) ||
+    doc.getElementById("ledger-mode-filter").value !== ""
+  ) {
+    die("visual focus and ledger mode controls do not expose their distinct defaults and inventories");
+  }
   if (doc.getElementById("summary-year").textContent !== "2024") {
     die("reviewed release did not render its selected year");
   }
@@ -740,8 +769,37 @@ async function main() {
   if (renderedRows(doc).length !== 6) die("California published-status filter did not retain six rows");
   select(doc, "status-filter", "");
   select(doc, "mode-filter", "pedestrian");
-  if (renderedRows(doc).length !== 1) die("pedestrian filter escaped the selected state");
-  select(doc, "mode-filter", "");
+  if (
+    renderedRows(doc).length !== 6 ||
+    window.NearmissUSCoverage.getState().primaryMode !== "pedestrian" ||
+    doc.querySelectorAll("#matrix-body .matrix-cell.is-filtered").length !== 0 ||
+    !window.location.search.includes("mode=pedestrian")
+  ) {
+    die("visualization focus incorrectly filtered the complete ledger or evidence matrix");
+  }
+  const matrixFirstRow = doc.getElementById("matrix-body").firstElementChild;
+  const urlBeforeLedgerFilter = window.location.href;
+  select(doc, "ledger-mode-filter", "motorcyclist");
+  if (
+    renderedRows(doc).length !== 1 ||
+    window.NearmissUSCoverage.getState().primaryMode !== "pedestrian" ||
+    doc.getElementById("mode-filter").value !== "pedestrian" ||
+    doc.getElementById("matrix-body").firstElementChild !== matrixFirstRow ||
+    window.location.href !== urlBeforeLedgerFilter
+  ) {
+    die("ledger mode filter changed visualization focus, rerendered the matrix, or entered the URL");
+  }
+  select(doc, "ledger-mode-filter", "");
+  if (renderedRows(doc).length !== 6) die("all-modes ledger default did not restore the selected-state rows");
+  doc.querySelector('[data-focus-key="matrix-mode:motorcyclist"]').click();
+  if (
+    window.NearmissUSCoverage.getState().primaryMode !== "motorcyclist" ||
+    doc.getElementById("mode-filter").value !== "motorcyclist" ||
+    renderedRows(doc).length !== 6 ||
+    doc.querySelectorAll("#matrix-body .matrix-cell.is-filtered").length !== 0
+  ) {
+    die("matrix mode click did not change visual focus without filtering the evidence scope");
+  }
 
   select(doc, "state-filter", "VT");
   await settle();
@@ -788,6 +846,13 @@ async function main() {
     die("Spanish catalog omitted the semantic-regime caution");
   }
   if (
+    doc.querySelector('label[for="mode-filter"]').textContent !== "Enfoque de visualización" ||
+    doc.querySelector('label[for="ledger-mode-filter"]').textContent !== "Filtrar registro por modo" ||
+    doc.getElementById("ledger-mode-filter").options[0].textContent !== "Todos los modos"
+  ) {
+    die("Spanish catalog did not distinguish visualization focus from ledger filtering");
+  }
+  if (
     !doc.querySelector("#profile-early-body .profile-regime-label").textContent.includes("codificación anterior") ||
     !doc.getElementById("profile-caption").textContent.includes("Vermont")
   ) {
@@ -809,10 +874,13 @@ async function main() {
   await settle();
   if (
     window.location.search.includes("state=") ||
+    window.location.search.includes("mode=") ||
     renderedRows(doc).length !== CHECKED_ARTIFACT.accounting.state_mode_cell_count ||
-    !doc.getElementById("state-profile-wrap").hidden
+    !doc.getElementById("state-profile-wrap").hidden ||
+    doc.getElementById("mode-filter").value !== "pedalcyclist" ||
+    doc.getElementById("ledger-mode-filter").value !== ""
   ) {
-    die("reset did not return to the whole-country default and remove the URL state");
+    die("reset did not restore pedalcyclist focus, the all-modes ledger, and the whole-country URL");
   }
   rendered.dom.window.close();
   console.log("us-coverage contract: whole-country ledger, exact five-year profile, suppression, seam, and EN/ES passed.");
@@ -897,6 +965,8 @@ async function main() {
     linkedState.compareB !== "CA" ||
     linkedState.scale !== "log" ||
     linkedState.saved.join(",") !== "CA,TX,NY" ||
+    studioLink.doc.getElementById("mode-filter").value !== "motorcyclist" ||
+    studioLink.doc.getElementById("ledger-mode-filter").value !== "" ||
     studioLink.doc.getElementById("scatter-panel").hidden ||
     studioLink.doc.querySelectorAll("#brief-items .brief-card").length !== 3
   ) {

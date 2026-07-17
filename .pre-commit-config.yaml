@@ -57,7 +57,12 @@ repos:
         exclude: ^web/vendor/
       - id: end-of-file-fixer
         exclude: ^web/vendor/
+      # CloudFormation intrinsic tags (`!Ref`, `!Sub`, `!GetAtt`, `!Equals`)
+      # are intentionally outside PyYAML's generic schema. AWS validates that
+      # template before stack updates; the build tests enforce its fail-closed
+      # hosting contract.
       - id: check-yaml
+        exclude: ^infra/aws-static-site\.yml$
       - id: check-json
       - id: check-merge-conflict
       - id: check-added-large-files

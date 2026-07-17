@@ -13,9 +13,9 @@
 [![WCAG 2.2 AA](https://img.shields.io/badge/accessibility-WCAG%202.2%20AA-success.svg)](docs/ACCESSIBILITY.md)
 [![Conventional Commits](https://img.shields.io/badge/commits-conventional-fe5196.svg)](https://www.conventionalcommits.org/)
 [![Cite this](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
-[![Live demo](https://img.shields.io/badge/live-demo-nearmiss.report-success.svg)](https://nearmiss.report)
+[![Live demo](https://img.shields.io/badge/live-demo-nearmiss.chelseakr.com-success.svg)](https://nearmiss.chelseakr.com)
 
-**Live demo (accessible map + data view):** <https://nearmiss.report>
+**Live demo (accessible map + data view):** <https://nearmiss.chelseakr.com>
 
 </div>
 

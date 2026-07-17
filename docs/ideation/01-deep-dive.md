@@ -35,8 +35,9 @@ dataset. The stages are small modules with one orchestrator:
 - **Serving** — `src/nearmiss/server.py`, a read-only stdlib server that blocks
   `data/raw/` and dotfiles, redacts blocked paths from its structured JSON log
   (`obs.py`), and exposes `/livez` / `/readyz`. The public site is static
-  (GitHub Pages, `CNAME` → nearmiss.report; `web/app.js` renders the two-map
-  counts-vs-rate contrast plus the authoritative sortable table).
+  (canonical CloudFront at `nearmiss.chelseakr.com`, with the legacy GitHub Pages
+  `CNAME` retained at `nearmiss.report`; `web/app.js` renders the two-map counts-vs-rate
+  contrast plus the authoritative sortable table).
 - **Config-over-code** — `src/nearmiss/config.py` + `config/*.toml` (two synthetic
   demo cities committed; `davis.toml` / `sacramento.toml` point at gitignored real
   inputs assembled by `make real` via `tools/fetch_bikemaps.py`,

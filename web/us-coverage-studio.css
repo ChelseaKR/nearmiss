@@ -2,27 +2,23 @@
    public FARS projection. Visual encodings always retain text/status parity. */
 
 .coverage-page {
-  --paper: #f6f8f5;
+  --paper: #f3f6f2;
   --sheet: #ffffff;
-  --street-fog: #dce6e5;
-  --survey-ink: #15343c;
-  --measured: #176b70;
-  --measured-deep: #0f5156;
-  --signal: #a83f2f;
-  --uncertain: #855710;
-  --uncertain-soft: #fff2d4;
-  --muted-ink: #51656a;
-  --rule: #b8c8c7;
+  --street-fog: #dce8eb;
+  --survey-ink: #152a30;
+  --measured: #145b73;
+  --measured-deep: #145b73;
+  --signal: #b93a2b;
+  --uncertain: #715713;
+  --uncertain-soft: #f8efcf;
+  --muted-ink: #5e706f;
+  --rule: #aebdb9;
   --focus: #005fcc;
   margin: 0;
   padding: 0;
-  background:
-    linear-gradient(rgba(21, 52, 60, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(21, 52, 60, 0.035) 1px, transparent 1px),
-    var(--paper);
-  background-size: 2rem 2rem;
+  background: var(--paper);
   color: var(--survey-ink);
-  font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  font-family: "Atkinson Hyperlegible Next", "Segoe UI", system-ui, sans-serif;
 }
 .coverage-page header,
 .coverage-page main,
@@ -65,21 +61,17 @@
   text-decoration: none;
 }
 
-.wordmark > span {
-  display: grid;
-  place-items: center;
-  inline-size: 2rem;
-  block-size: 2rem;
-  border-radius: 50% 50% 50% 0.25rem;
-  background: var(--survey-ink);
-  color: var(--paper);
-  font: 800 0.7rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: 0.04em;
-  transform: rotate(-8deg);
+.wordmark > .brand-lockup-copy {
+  display: flex;
+  align-items: baseline;
+  inline-size: auto;
+  block-size: auto;
+  background: transparent;
+  transform: none;
 }
 
 .wordmark strong {
-  font: 750 1.05rem/1 "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  font: 750 1.05rem/1 "Overpass", "Arial Narrow", sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -121,7 +113,7 @@
 .real-data-badge {
   padding: 0.45rem 0.65rem;
   border: 1px solid var(--measured);
-  border-radius: 999px;
+  border-radius: 0;
   background: #e4f2ef;
   color: var(--measured-deep);
 }
@@ -149,7 +141,7 @@
 .coverage-header h1 {
   max-width: 14ch;
   margin: 0;
-  font: 760 clamp(3.2rem, 8vw, 7.4rem)/0.88 "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  font: 720 clamp(2.8rem, 5vw, 5.2rem)/0.94 "Overpass", "Arial Narrow", sans-serif;
   letter-spacing: -0.055em;
   text-wrap: balance;
 }
@@ -199,7 +191,7 @@
   padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--survey-ink);
   background: var(--sheet);
-  box-shadow: 0.6rem 0.6rem 0 var(--street-fog);
+  box-shadow: none;
 }
 
 .release-card::before,
@@ -227,12 +219,12 @@
   block-size: 0.55rem;
   border-radius: 50%;
   background: var(--measured);
-  box-shadow: 0 0 0 0.25rem #d7ebe8;
+  box-shadow: none;
 }
 
 .release-card h2 {
   margin: 0.85rem 0 1.25rem;
-  font: 720 clamp(1.5rem, 3vw, 2.2rem)/1 "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  font: 720 clamp(1.5rem, 3vw, 2.2rem)/1 "Overpass", "Arial Narrow", sans-serif;
   letter-spacing: -0.025em;
 }
 
@@ -302,7 +294,7 @@
 .evidence-lab > div:first-child h2,
 .data-ledger h2 {
   margin: 0;
-  font: 730 clamp(2rem, 4vw, 3.7rem)/0.98 "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  font: 720 clamp(2rem, 4vw, 3.7rem)/0.98 "Overpass", "Arial Narrow", sans-serif;
   letter-spacing: -0.035em;
 }
 
@@ -326,7 +318,7 @@
   min-block-size: 2.7rem;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--sheet);
   color: var(--survey-ink);
   font-weight: 700;
@@ -351,7 +343,7 @@
   padding: 0.9rem;
   border: 1px solid var(--rule);
   background: rgba(246, 248, 245, 0.97);
-  backdrop-filter: blur(0.7rem);
+  backdrop-filter: none;
 }
 
 .coverage-filters label,
@@ -434,7 +426,7 @@
 .panel-heading h3,
 .state-inspector h3 {
   margin: 0;
-  font: 720 clamp(1.45rem, 3vw, 2.25rem)/1 "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  font: 720 clamp(1.45rem, 3vw, 2.25rem)/1 "Overpass", "Arial Narrow", sans-serif;
   letter-spacing: -0.025em;
 }
 
@@ -446,9 +438,7 @@
 
 .national-map-shell {
   border: 1px solid var(--rule);
-  background:
-    radial-gradient(circle at 50% 45%, rgba(23, 107, 112, 0.08), transparent 54%),
-    #fbfcfa;
+  background: var(--sheet);
 }
 
 .us-map {
@@ -535,7 +525,7 @@
 .map-gradient {
   block-size: 0.85rem;
   border: 1px solid var(--rule);
-  background: linear-gradient(90deg, #dceceb, var(--measured-deep));
+  background: linear-gradient(90deg, #dce8eb, var(--measured-deep));
 }
 
 .map-hatch {
@@ -659,7 +649,7 @@
 .matrix-cell {
   --cell-alpha: 0.12;
   min-inline-size: 6.5rem;
-  background: rgba(23, 107, 112, var(--cell-alpha));
+  background: rgba(20, 91, 115, var(--cell-alpha));
   text-align: center;
 }
 
@@ -683,7 +673,7 @@
 
 .evidence-matrix tr.is-selected th,
 .evidence-matrix tr.is-selected td {
-  box-shadow: inset 0 2px 0 var(--signal), inset 0 -2px 0 var(--signal);
+  border-block-color: var(--signal);
 }
 
 .matrix-cell.is-selected {
@@ -957,7 +947,7 @@
   position: sticky;
   inset-block-start: 6.5rem;
   padding: 1.2rem;
-  box-shadow: 0.35rem 0.35rem 0 var(--street-fog);
+  box-shadow: none;
 }
 
 .inspector-content {
@@ -1026,7 +1016,7 @@
   padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--survey-ink);
   background: var(--sheet);
-  box-shadow: 0.55rem 0.55rem 0 var(--street-fog);
+  box-shadow: none;
 }
 
 .brief-actions {
@@ -1064,7 +1054,7 @@
 .brief-card h3 {
   margin-block: 0 0.75rem;
   margin-inline: 0 2.5rem;
-  font: 720 1.45rem/1 "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  font: 720 1.45rem/1 "Overpass", "Arial Narrow", sans-serif;
 }
 
 .brief-card p {
@@ -1123,7 +1113,7 @@
   display: inline-block;
   padding: 0.16rem 0.45rem;
   border: 1px solid var(--measured);
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--measured-deep);
   font-size: 0.78rem;
   font-weight: 750;
@@ -1203,7 +1193,7 @@
   justify-self: start;
   padding: 0.18rem 0.45rem;
   border: 2px solid var(--muted-ink);
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--paper);
   font: 750 0.9rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
 }

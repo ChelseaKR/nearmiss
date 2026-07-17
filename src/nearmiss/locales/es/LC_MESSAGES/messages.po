@@ -518,7 +518,7 @@ msgid "web.app.print_caveat"
 msgstr "Las tasas se muestran con intervalos de confianza del 95%. Los segmentos sin un denominador de exposición confiable se muestran como inciertos y nunca se clasifican como si fueran ciertos."
 
 msgid "web.app.print_footer"
-msgstr "nearmiss — tasas de cuasi-accidentes, normalizadas por exposición · https://nearmiss.report"
+msgstr "nearmiss — tasas de cuasi-accidentes, normalizadas por exposición · https://nearmiss.chelseakr.com"
 
 msgid "web.app.print_generated_label"
 msgstr "Generado:"
@@ -749,7 +749,10 @@ msgid "web.coverage.footer"
 msgstr "Contexto oficial de choques fatales, publicado con límites explícitos. nearmiss sigue siendo un producto de cuasi-accidentes normalizado por exposición; estos conteos son una capa separada de contexto nacional."
 
 msgid "web.coverage.filter_scope"
-msgstr "El estado carga el perfil de cinco años. El año, el modo y el estado de publicación refinan las vistas nacionales y el registro del año seleccionado."
+msgstr "El estado carga el perfil de cinco años. El año y el enfoque de visualización controlan las vistas nacionales; el estado de publicación filtra la matriz y el registro. El registro completo tiene su propio filtro de modo abajo."
+
+msgid "web.coverage.focus_mode_label"
+msgstr "Enfoque de visualización"
 
 msgid "web.coverage.h1"
 msgstr "Carga de choques fatales, estado por estado"
@@ -762,6 +765,9 @@ msgstr "Evidencia estatal del año seleccionado"
 
 msgid "web.coverage.ledger_empty"
 msgstr "Elija un estado arriba para mostrar su evidencia del año seleccionado."
+
+msgid "web.coverage.ledger_mode_label"
+msgstr "Filtrar registro por modo"
 
 msgid "web.coverage.load_error"
 msgstr "El índice de versiones revisado o el artefacto público seleccionado no se pudo cargar o no aprobó su contrato. No se muestran conteos."
@@ -1142,7 +1148,7 @@ msgid "web.coverage.rank_unpublished"
 msgstr "{count} jurisdicciones no tienen un conteo numérico publicado para {mode} (suprimido o cero)"
 
 msgid "web.coverage.real_data_badge"
-msgstr "Datos oficiales reales"
+msgstr "Fuente: NHTSA FARS · Artefacto verificado"
 
 msgid "web.coverage.remove_brief"
 msgstr "Quitar {state} del resumen"

@@ -556,6 +556,122 @@ jobs:
         with:
           path: _site
 
+      - name: Upload immutable CloudFront artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: static-site-${{ github.sha }}
+          path: _site
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 7
+
+  deploy-cloudfront:
+    name: deploy nearmiss.chelseakr.com
+    if: github.event_name == 'push'
+    needs:
+      - lint
+      - type
+      - test
+      - qgis-plugin
+      - teaching
+      - i18n
+      - claims
+      - accessibility
+      - security
+      - zizmor
+      - reproducibility
+      - build-pages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: production
+      url: https://nearmiss.chelseakr.com
+    steps:
+      - name: Download the reviewed static artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: static-site-${{ github.sha }}
+          path: _site
+
+      - name: Checkout the exact source without touching the artifact
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          path: source
+          persist-credentials: false
+
+      - name: Rebuild and byte-verify before obtaining deploy authority
+        run: |
+          if [ -n "$(find _site -type l -print -quit)" ]; then
+            echo "::error::downloaded static artifact contains a symlink"
+            exit 1
+          fi
+          python -S source/tools/build_site.py \
+            --out _expected-site \
+            --sha "$GITHUB_SHA"
+          diff --recursive --brief _expected-site _site
+
+      - name: Authenticate to AWS with GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@517a711dbcd0e402f90c77e7e2f81e849156e31d # v6.2.2
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: nearmiss-${{ github.run_id }}
+
+      - name: Publish the exact artifact to the private origin
+        run: |
+          cache_control='public, max-age=0, must-revalidate'
+          aws s3 rm "s3://${{ vars.NEARMISS_S3_BUCKET }}/.nojekyll" --only-show-errors
+          aws s3 sync _site "s3://${{ vars.NEARMISS_S3_BUCKET }}/" \
+            --delete --exclude '.nojekyll' --cache-control "$cache_control" --only-show-errors
+
+          # Do not delegate browser-significant MIME metadata to runner-local
+          # /etc/mime.types. CloudFront sends nosniff, so a correct payload with
+          # generic S3 metadata is still a broken deployment.
+          mime_specs=(
+            '*.html|text/html; charset=utf-8'
+            '*.js|application/javascript; charset=utf-8'
+            '*.css|text/css; charset=utf-8'
+            '*.json|application/json; charset=utf-8'
+            '*.geojson|application/geo+json'
+            '*.svg|image/svg+xml'
+            '*.woff2|font/woff2'
+            '*.png|image/png'
+          )
+          for spec in "${mime_specs[@]}"; do
+            pattern="${spec%%|*}"
+            content_type="${spec#*|}"
+            aws s3 cp _site "s3://${{ vars.NEARMISS_S3_BUCKET }}/" \
+              --recursive --exclude '*' --include "$pattern" \
+              --content-type "$content_type" --cache-control "$cache_control" \
+              --only-show-errors
+          done
+          aws s3 rm "s3://${{ vars.NEARMISS_S3_BUCKET }}/.nojekyll" --only-show-errors
+
+      - name: Invalidate and wait for the public edge
+        env:
+          DISTRIBUTION_ID: ${{ vars.NEARMISS_CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          invalidation_id="$(aws cloudfront create-invalidation \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --paths '/*' \
+            --query 'Invalidation.Id' \
+            --output text)"
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --id "$invalidation_id"
+
+      - name: Verify exact live bytes and private-path denial
+        run: >-
+          python -S source/tools/verify_live_site.py
+          --expected-sha "$GITHUB_SHA"
+          --attempts 12
+          --retry-seconds 10
+          --timeout-seconds 10
+          --deadline-seconds 480
+
   deploy-pages:
     name: deploy minimal public artifact
     if: github.event_name == 'push'
@@ -601,6 +717,7 @@ jobs:
           trap 'rm -f "$manifest_file"; rm -rf "$critical_dir" "$fars_release_dir"' EXIT
           critical_specs=(
             'index.html|'
+            '404.html|404.html'
             'deployment.json|deployment.json'
             'web/index.html|web/index.html'
             'web/us-coverage.html|web/us-coverage.html'
@@ -611,7 +728,11 @@ jobs:
             'web/locales/es.json|web/locales/es.json'
             'web/us-coverage.css|web/us-coverage.css'
             'web/us-coverage-studio.css|web/us-coverage-studio.css'
+            'web/brand.css|web/brand.css'
             'web/style.css|web/style.css'
+            'web/vendor/fonts/overpass-latin-wght-normal.woff2|web/vendor/fonts/overpass-latin-wght-normal.woff2'
+            'web/vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2|web/vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2'
+            'web/vendor/fonts/fragment-mono-latin-400-normal.woff2|web/vendor/fonts/fragment-mono-latin-400-normal.woff2'
             'data/published/davis.geojson|data/published/davis.geojson'
             'data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json'
             'data/published/fars-2024-state-mode.json|data/published/fars-2024-state-mode.json'

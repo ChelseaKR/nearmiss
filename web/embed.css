@@ -2,11 +2,11 @@
  * Kept independent of the main site stylesheet so the widget is portable. */
 
 :root {
-  --embed-fg: #16202c;
-  --embed-muted: #4a5663;
+  --embed-fg: #152a30;
+  --embed-muted: #5e706f;
   --embed-bg: #ffffff;
-  --embed-link: #0b4f9c;
-  --embed-border: #d3dae2;
+  --embed-link: #145b73;
+  --embed-border: #aebdb9;
 }
 
 * {
@@ -19,7 +19,7 @@ body.embed {
   padding: 0;
   background: var(--embed-bg);
   color: var(--embed-fg);
-  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font: 15px/1.45 "Atkinson Hyperlegible Next", "Segoe UI", sans-serif;
 }
 
 .visually-hidden {
@@ -57,6 +57,7 @@ body.embed {
   height: 320px;
   min-height: 220px;
   border: 1px solid var(--embed-border);
+  border-radius: 0;
 }
 
 .embed-caption {
@@ -69,8 +70,9 @@ body.embed {
   margin: 0.5rem 0.6rem;
   padding: 0.4rem 0.6rem;
   border: 1px solid var(--embed-border);
-  border-inline-start: 3px solid var(--embed-link);
-  border-radius: 4px;
+  border-inline-start: 3px solid #e0b33e;
+  border-radius: 0;
+  background: #f8efcf;
   color: var(--embed-fg);
   font-size: 0.85rem;
   line-height: 1.35;

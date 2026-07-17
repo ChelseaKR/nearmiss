@@ -884,6 +884,9 @@ msgstr ""
 msgid "web.coverage.filter_scope"
 msgstr ""
 
+msgid "web.coverage.focus_mode_label"
+msgstr ""
+
 msgid "web.coverage.footer"
 msgstr ""
 
@@ -909,6 +912,9 @@ msgid "web.coverage.ledger_caption_empty"
 msgstr ""
 
 msgid "web.coverage.ledger_empty"
+msgstr ""
+
+msgid "web.coverage.ledger_mode_label"
 msgstr ""
 
 msgid "web.coverage.load_error"

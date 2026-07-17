@@ -209,7 +209,7 @@ async function renderEmbed(url, geojson, { leaflet = false } = {}) {
 function renderEmbedLoader(attributes) {
   const dom = new JSDOM(
     '<!doctype html><div id="host"><script id="loader" ' +
-      'src="https://nearmiss.report/web/nearmiss-embed.js"></script></div>',
+      'src="https://nearmiss.chelseakr.com/web/nearmiss-embed.js"></script></div>',
     { runScripts: "outside-only", url: "https://publisher.example/article" }
   );
   const loader = dom.window.document.getElementById("loader");
@@ -417,15 +417,15 @@ async function main() {
   }
 
   const loaderCases = [
-    [{ "data-city": "riverside" }, "https://nearmiss.report/web/embed.html?city=riverside"],
+    [{ "data-city": "riverside" }, "https://nearmiss.chelseakr.com/web/embed.html?city=riverside"],
     [
       { "data-data": "../data/published/riverside.geojson" },
-      "https://nearmiss.report/web/embed.html?city=riverside",
+      "https://nearmiss.chelseakr.com/web/embed.html?city=riverside",
     ],
-    [{ "data-data": "../../data/raw/private.geojson" }, "https://nearmiss.report/web/embed.html"],
+    [{ "data-data": "../../data/raw/private.geojson" }, "https://nearmiss.chelseakr.com/web/embed.html"],
     [
       { "data-city": "riverside", "data-data": "../data/published/riverside.geojson" },
-      "https://nearmiss.report/web/embed.html",
+      "https://nearmiss.chelseakr.com/web/embed.html",
     ],
   ];
   for (const [attributes, expected] of loaderCases) {

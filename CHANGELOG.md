@@ -58,6 +58,17 @@ every entry.
 
 ### Added
 
+- A distinctive “NearMiss Conflict Atlas” identity across the national studio, Davis demo, report
+  form, embed, share surface, and branded 404: a clearance-mark road symbol, asphalt/interstate/brake
+  palette, self-hosted Overpass/Atkinson Hyperlegible/Fragment Mono typography, compact evidence-first
+  hierarchy, and an earlier mobile map replace the previous generic dashboard treatment.
+- A canonical `nearmiss.chelseakr.com` production origin on private, versioned S3 behind CloudFront
+  OAC, ACM TLS, Route 53 aliases, deterministic route rewriting, explicit browser-safe MIME metadata,
+  forced client revalidation, a verifier-only cache key, and exact-artifact GitHub OIDC deployment.
+  The existing `nearmiss.report` GitHub Pages mirror remains available during the transition.
+- Independent mode controls for truthful interaction semantics: “Visualization focus” is required and
+  defaults to pedalcyclists, while the complete evidence ledger retains its own all-modes filter and
+  the state-by-mode matrix always represents the full selected year.
 - A nationwide evidence studio over the reviewed 2020–2024 FARS release index: an official Census
   state-boundary map, linked state × mode matrix, burden ranking, two-mode scatterplot, state
   comparison, inspector, and printable evidence brief all share the same suppression-safe annual
@@ -116,6 +127,10 @@ every entry.
 
 ### Security
 
+- Production publication now obtains AWS authority only after rebuilding and byte-comparing the exact
+  reviewed artifact, through a GitHub environment restricted to the exact `main` branch with
+  administrator bypass disabled. The live verifier rejects wrong MIME metadata, unreviewed 404 bodies,
+  hidden host-control objects, private-path response drift, or any manifest-bound byte mismatch.
 - Browser translations now build their small, audited markup vocabulary with DOM text nodes and
   allowlisted links instead of reinterpreting catalog or dataset text as HTML. Locale catalogs keep
   external keys as array values rather than object properties.
