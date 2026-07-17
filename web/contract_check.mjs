@@ -427,6 +427,11 @@ async function main() {
       { "data-city": "riverside", "data-data": "../data/published/riverside.geojson" },
       "https://nearmiss.chelseakr.com/web/embed.html",
     ],
+    [{ "data-city": "unlisted" }, "https://nearmiss.chelseakr.com/web/embed.html"],
+    [
+      { src: "https://attacker.example/nearmiss-embed.js", "data-city": "riverside" },
+      "https://nearmiss.chelseakr.com/web/embed.html?city=riverside",
+    ],
   ];
   for (const [attributes, expected] of loaderCases) {
     const loaded = renderEmbedLoader(attributes);
