@@ -2,8 +2,9 @@
 """Assemble the minimal public GitHub Pages artifact.
 
 Legacy Pages served the repository root. This builder instead allowlists the
-web application and already-aggregated published datasets, stamps the source
-commit, and emits hashes for every deployed file.
+national FARS application and its exact public data dependencies, stamps the
+source commit, and emits hashes for every deployed file. Synthetic methodology
+fixtures remain in the repository but cannot enter the production artifact.
 """
 
 from __future__ import annotations
@@ -17,8 +18,41 @@ from pathlib import Path
 from typing import TypedDict
 
 ROOT = Path(__file__).resolve().parents[1]
-WEB_PATTERNS = ("*.html", "*.js", "*.css")
-PUBLISHED_SUFFIXES = (".geojson", ".json", ".svg", ".md")
+PUBLIC_WEB_FILES = (
+    "index.html",  # Legacy redirect shell; not the former Davis application.
+    "us-coverage.html",
+    "us-coverage.js",
+    "i18n.js",
+    "brand.css",
+    "style.css",
+    "us-coverage.css",
+    "us-coverage-studio.css",
+    "vendor/brand/clearance-mark.svg",
+    "vendor/fonts/LICENSE-atkinson-hyperlegible-next.txt",
+    "vendor/fonts/LICENSE-fragment-mono.txt",
+    "vendor/fonts/LICENSE-overpass.txt",
+    "vendor/fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2",
+    "vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2",
+    "vendor/fonts/fragment-mono-latin-400-normal.woff2",
+    "vendor/fonts/fragment-mono-latin-ext-400-normal.woff2",
+    "vendor/fonts/overpass-latin-ext-wght-normal.woff2",
+    "vendor/fonts/overpass-latin-wght-normal.woff2",
+)
+PUBLIC_WEB_LOCALES = ("en.json", "es.json")
+PUBLIC_WEB_MESSAGE_PREFIX = "web.coverage."
+
+PUBLIC_FARS_FILES = (
+    "fars-state-mode-index.json",
+    "fars-state-mode-index-v2.json",
+    "fars-release-corrections.json",
+    "fars-2020-state-mode.json",
+    "fars-2021-state-mode.json",
+    "fars-2022-state-mode.json",
+    "fars-2023-state-mode.json",
+    "fars-2024-state-mode.json",
+    "fars-2024-state-mode-r2.json",
+    "us-state-boundaries-2024.json",
+)
 
 
 class SiteManifest(TypedDict):
@@ -57,41 +91,46 @@ def _copy_file(source: Path, destination: Path, *, allowed_root: Path) -> None:
     shutil.copy2(resolved, destination)
 
 
-def _copy_tree(source_root: Path, destination_root: Path) -> None:
-    """Copy a public tree without following symlinks or resolution escapes."""
-    if source_root.is_symlink():
-        raise ValueError(f"refusing symlinked public source root: {source_root}")
-    if not source_root.resolve(strict=True).is_dir():
-        raise ValueError(f"public artifact source is not a directory: {source_root}")
-    for source in sorted(source_root.rglob("*")):
-        if source.is_symlink():
-            raise ValueError(f"refusing symlink in public artifact: {source}")
-        if source.is_file():
-            relative = source.relative_to(source_root)
-            _copy_file(
-                source,
-                destination_root / relative,
-                allowed_root=source_root,
-            )
-
-
-def _copy_published(source_root: Path, destination_root: Path) -> None:
-    """Copy only supported published outputs, excluding private run manifests."""
-    if source_root.is_symlink():
-        raise ValueError(f"refusing symlinked public source root: {source_root}")
-    if not source_root.resolve(strict=True).is_dir():
-        raise ValueError(f"public artifact source is not a directory: {source_root}")
-    for source in sorted(source_root.rglob("*")):
-        if source.is_symlink():
-            raise ValueError(f"refusing symlink in public artifact: {source}")
-        if not source.is_file():
-            continue
-        if source.name.endswith(".run.json") or source.suffix not in PUBLISHED_SUFFIXES:
-            continue
+def _copy_allowlist(
+    source_root: Path,
+    destination_root: Path,
+    relative_paths: tuple[str, ...],
+) -> None:
+    """Copy only the named files, failing closed on missing or linked entries."""
+    for relative in relative_paths:
         _copy_file(
-            source,
-            destination_root / source.relative_to(source_root),
+            source_root / relative,
+            destination_root / relative,
             allowed_root=source_root,
+        )
+
+
+def _write_national_locales(source_root: Path, destination_root: Path) -> None:
+    """Publish only national-studio messages from the shared source catalogs."""
+    for name in PUBLIC_WEB_LOCALES:
+        source = _resolved_beneath(source_root / name, source_root)
+        if not source.is_file():
+            raise ValueError(f"public locale source is not a file: {source}")
+        try:
+            catalog = json.loads(source.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError(f"public locale source is invalid: {source}") from exc
+        if not isinstance(catalog, dict) or not all(
+            isinstance(key, str) and isinstance(value, str) for key, value in catalog.items()
+        ):
+            raise ValueError(f"public locale source must be a string catalog: {source}")
+        national = {
+            key: value
+            for key, value in catalog.items()
+            if key.startswith(PUBLIC_WEB_MESSAGE_PREFIX)
+        }
+        if not national:
+            raise ValueError(f"public locale source has no national messages: {source}")
+        destination = destination_root / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(
+            json.dumps(national, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
         )
 
 
@@ -116,15 +155,8 @@ def build_site(out: Path, source_sha: str) -> SiteManifest:
     _copy_file(ROOT / "CNAME", out / "CNAME", allowed_root=ROOT)
     (out / ".nojekyll").write_text("", encoding="utf-8")
 
-    for pattern in WEB_PATTERNS:
-        for source in sorted((ROOT / "web").glob(pattern)):
-            _copy_file(
-                source,
-                out / "web" / source.name,
-                allowed_root=ROOT / "web",
-            )
-    for directory in ("vendor", "locales"):
-        _copy_tree(ROOT / "web" / directory, out / "web" / directory)
+    _copy_allowlist(ROOT / "web", out / "web", PUBLIC_WEB_FILES)
+    _write_national_locales(ROOT / "web" / "locales", out / "web" / "locales")
 
     # Keep the historical flat-file URL available while publishing the same
     # reviewed document at the stable, product-facing route. The document uses
@@ -137,7 +169,11 @@ def build_site(out: Path, source_sha: str) -> SiteManifest:
     )
     published = ROOT / "data" / "published"
     _verify_fars_releases(published)
-    _copy_published(published, out / "data" / "published")
+    _copy_allowlist(
+        published,
+        out / "data" / "published",
+        PUBLIC_FARS_FILES,
+    )
 
     deployment = {
         "schema_version": 1,

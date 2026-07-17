@@ -4,6 +4,11 @@
 **Next review: before any material change to the intake, moderation, or publish path, and at minimum
 alongside the next dated review of [`docs/THREAT-MODEL.md`](THREAT-MODEL.md).**
 
+> **Deployment update (2026-07-16):** the synthetic city UI and browser submission prototype are no
+> longer included in the production static artifact. The source, CLI intake/moderation path, and this
+> DPIA remain because local/operator imports still process precise reports and any future public
+> intake reactivation must be reviewed against this document before deployment.
+
 > **Honesty note.** This is a maintainer-authored, first-pass DPIA for a solo-maintainer open-source
 > project — not a formal legal opinion, not reviewed by a data-protection officer or counsel, and not a
 > claim of regulatory compliance with any specific jurisdiction's law. It follows the standard DPIA

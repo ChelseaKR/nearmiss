@@ -3,301 +3,32 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#152A30" />
-    <link rel="icon" href="/web/vendor/brand/clearance-mark.svg" type="image/svg+xml" />
-    <title>nearmiss — where the danger actually is (Davis)</title>
-    <meta
-      name="description"
-      content="The same near-miss reports mapped two ways: raw counts (what most maps show) versus exposure-normalized rates with confidence intervals and Getis-Ord hotspots (where the danger actually is). The data table is the authoritative, non-visual equivalent of the maps."
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="NearMiss Conflict Atlas" />
-    <meta property="og:title" content="NearMiss — where the danger actually is (Davis demo)" />
-    <meta
-      property="og:description"
-      content="Compare raw near-miss report volume with exposure-normalized rates, confidence intervals, and statistically significant hotspots in the Davis demonstration."
-    />
-    <meta property="og:url" content="https://nearmiss.chelseakr.com/web/index.html" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="NearMiss — where the danger actually is (Davis demo)" />
-    <meta
-      name="twitter:description"
-      content="Compare raw near-miss report volume with exposure-normalized rates, confidence intervals, and statistically significant hotspots in the Davis demonstration."
-    />
-    <link rel="canonical" href="https://nearmiss.chelseakr.com/web/index.html" />
-    <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="brand.css" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#152a30" />
+    <title>Page moved — nearmiss</title>
+    <link rel="canonical" href="https://nearmiss.chelseakr.com/fars/national/" />
+    <script data-legacy-demo-redirect>
+      (() => {
+        const values = new URLSearchParams(window.location.search).getAll("lang");
+        const language = values.length === 1 ? values[0] : "";
+        const query = language === "es" ? "?lang=es" : language === "en" ? "?lang=en" : "";
+        window.location.replace(`/fars/national/${query}`);
+      })();
+    </script>
+    <meta http-equiv="refresh" content="0; url=/fars/national/" />
   </head>
   <body>
-    <a class="skip-link" href="#main" data-i18n="skip">Skip to the data</a>
-
-    <header>
-      <div class="brand-masthead">
-        <a class="brand-lockup" href="/fars/national/" aria-label="nearmiss Conflict Atlas">
-          <svg class="clearance-mark" viewBox="0 0 48 32" aria-hidden="true" focusable="false">
-            <path class="clearance-path clearance-path-a" d="M3 27 17 13h5" />
-            <path class="clearance-path clearance-path-b" d="M45 5 31 19h-5" />
-          </svg>
-          <span class="brand-lockup-copy"><strong>nearmiss</strong><span>Conflict Atlas</span></span>
-        </a>
-        <div class="lang-switch" role="group" aria-label="Language / Idioma">
-          <button type="button" data-lang="en" aria-pressed="true">English</button>
-          <button type="button" data-lang="es" aria-pressed="false">Español</button>
-        </div>
-      </div>
-      <h1 data-i18n="h1">nearmiss — where the danger actually is</h1>
-      <p class="lede" data-i18n="lede">
-        Road-hazard and near-miss <strong>rates, normalized by exposure</strong>, each with a
-        95% confidence interval and an <em>n</em>. Raw counts are report volume, not danger.
-        The two maps below show the difference; the <a href="#data-table">data table</a>
-        carries every finding and is the authoritative, non-visual equivalent of the maps.
-      </p>
-      <p class="demo-note" data-i18n="demo">
-        ⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not
-        real reports. The method is the point; only explicitly reviewed and allowlisted artifacts
-        can be selected.
-      </p>
-      <p class="national-cta" data-i18n="us_coverage_cta">
-        <strong>This Davis page is a synthetic demo.</strong>
-        <a href="/fars/national/">Explore separate, nationwide US evidence from reviewed 2020–2024 fatal-crash records →</a>
-      </p>
-      <p class="report-cta">
-        <a href="submit.html" data-i18n="report_cta">Report a near-miss →</a>
-      </p>
-    </header>
-
+    <a href="#main">Skip to main content</a>
     <main id="main">
-      <!-- R23: print-only header, shown only when the page is printed / saved as
-           PDF for a council packet. On screen it is display:none (see @media print
-           in style.css). Kept out of the tab order and off the AT tree on screen. -->
-      <div class="print-only print-header">
-        <p class="print-title" data-i18n="h1">nearmiss — where the danger actually is</p>
-        <p class="print-meta">
-          <span data-i18n="print_generated_label">Generated:</span>
-          <span id="print-generated"></span>
-        </p>
-        <p class="print-caveat" data-i18n="print_caveat">
-          Rates are shown with 95% confidence intervals. Segments without a
-          trustworthy exposure denominator are shown as uncertain and are never
-          ranked as if certain.
-        </p>
-      </div>
-
-      <p id="bottom-line" class="bottom-line" data-i18n="blLoading">Summarizing…</p>
-
-      <section aria-labelledby="map-heading">
-        <h2 id="map-heading" data-i18n="map_h">Two maps, the same reports</h2>
-        <p id="map-desc" data-i18n="map_desc">
-          The same near-miss reports, mapped two ways on a real street map. On the left, the
-          <strong>raw report count</strong> — what most safety maps show: the busiest street looks
-          the most dangerous. On the right, the <strong>rate per 1000 units of exposure</strong> —
-          which is what actually reflects danger. Watch the busiest street recede and the real
-          hotspot emerge. Nothing is conveyed by color alone: line thickness scales with the value,
-          and significant hotspots are dashed and labeled. Everything here is in the
-          <a href="#data-table">data table</a>, which the maps supplement.
-        </p>
-
-        <p id="hotspot-summary" class="hotspot-summary" aria-live="polite" data-i18n="hsLoading">
-          Summarizing hotspots…
-        </p>
-
-        <div class="map-toggle" role="group" aria-labelledby="map-toggle-label">
-          <span id="map-toggle-label" data-i18n="mv_label">Show:</span>
-          <button type="button" data-mapview="both" aria-pressed="true" data-i18n="mv_both">Both maps</button>
-          <button type="button" data-mapview="reports" aria-pressed="false" data-i18n="mv_reports">Reports only</button>
-          <button type="button" data-mapview="rate" aria-pressed="false" data-i18n="mv_rate">Rate only</button>
-        </div>
-
-        <!-- R23: council-ready print / save-as-PDF. No external PDF library — the
-             print stylesheet forces both maps visible, unfilters the table, and
-             bakes in the caveats. -->
-        <p class="print-control">
-          <button type="button" id="print-btn" data-i18n="print_btn">Print / save as PDF</button>
-        </p>
-
-        <div class="map-split" data-view="both">
-          <figure class="map-fig">
-            <figcaption class="map-title" data-i18n="map_reports_t">
-              ① Raw report count — what most maps show
-            </figcaption>
-            <div
-              id="map-reports"
-              class="leaflet-map"
-              role="group"
-              aria-label="Map of reported near-miss counts by street segment. The equivalent data is in the table below."
-              aria-describedby="cap-reports"
-            ></div>
-            <figcaption id="cap-reports" class="map-cap" data-i18n="loading_map">Loading map…</figcaption>
-          </figure>
-
-          <figure class="map-fig">
-            <figcaption class="map-title" data-i18n="map_rate_t">
-              ② Exposure-normalized rate — where the danger actually is
-            </figcaption>
-            <div
-              id="map-rate"
-              class="leaflet-map"
-              role="group"
-              aria-label="Map of exposure-normalized hazard rates with significant hotspots by street segment. The equivalent data is in the table below."
-              aria-describedby="cap-rate"
-            ></div>
-            <figcaption id="cap-rate" class="map-cap" data-i18n="loading_map">Loading map…</figcaption>
-          </figure>
-        </div>
-      </section>
-
-      <section aria-labelledby="data-heading">
-        <h2 id="data-heading" data-i18n="data_h">Ranked segments</h2>
-        <p data-i18n="sort_help">
-          Sort the table with the column buttons. <strong>Significance</strong> and
-          <strong>confidence</strong> are stated in words, not by color.
-        </p>
-        <p id="sort-status" class="visually-hidden" aria-live="polite"></p>
-        <div class="table-controls">
-          <label for="table-filter" data-i18n="filter_label">Filter segments by name</label>
-          <input type="search" id="table-filter" autocomplete="off" />
-          <span id="filter-status" class="filter-status" aria-live="polite"></span>
-        </div>
-        <div class="table-wrap" tabindex="0" role="region" aria-label="Ranked segments table (scrollable)">
-          <table id="data-table">
-            <caption id="data-caption">Loading…</caption>
-            <thead>
-              <tr>
-                <th scope="col">
-                  <button type="button" data-sort="name" data-i18n="th_segment">Segment</button>
-                </th>
-                <th scope="col" data-i18n-title="tt_rate">
-                  <button type="button" data-sort="rate" data-i18n="th_rate">Rate /1000</button>
-                </th>
-                <th scope="col" data-i18n="th_ci" data-i18n-title="tt_ci">95% CI</th>
-                <th scope="col" data-i18n-title="tt_n">
-                  <button type="button" data-sort="n" data-i18n="th_n">Reports (n)</button>
-                </th>
-                <th scope="col" data-i18n="th_hazards" data-i18n-title="tt_hazards">Hazards</th>
-                <th scope="col" data-i18n="th_conf" data-i18n-title="tt_conf">Confidence</th>
-                <th scope="col" data-i18n-title="tt_hot">
-                  <button type="button" data-sort="getis_ord_z" data-i18n="th_hot">Hotspot (Gi*)</button>
-                </th>
-                <th scope="col" data-i18n="th_tier" data-i18n-title="tt_tier">Exposure tier</th>
-                <th scope="col" data-i18n="th_flags" data-i18n-title="tt_flags">Quality flags</th>
-              </tr>
-            </thead>
-            <tbody id="data-body">
-              <tr>
-                <td colspan="9" data-i18n="loading">Loading published data…</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="downloads">
-          <a id="download-data" href="../data/published/davis.geojson" download data-i18n="download"
-            >Download this dataset (GeoJSON)</a
-          ><span id="download-meta"></span>
-        </p>
-        <p class="downloads share-card-controls">
-          <button type="button" id="share-card-btn" data-i18n="share_card" disabled>
-            Download share card (PNG)
-          </button>
-          <span id="share-card-status" class="filter-status" aria-live="polite"></span>
-        </p>
-      </section>
-
-      <section aria-labelledby="legend-heading">
-        <h2 id="legend-heading" data-i18n="legend_h">How to read this</h2>
-        <ul data-i18n="legend">
-          <li><strong>Rate /1000</strong> — reports per 1000 units of exposure, not a raw count.</li>
-          <li><strong>95% CI</strong> — the plausible range. A wide range means uncertainty.</li>
-          <li>
-            <strong>Confidence</strong> — “uncertain” marks small samples; “exposure unknown”
-            marks segments with no denominator (never ranked as if certain).
-          </li>
-          <li>
-            <strong>Hotspot (Gi*)</strong> — “★ Significant” marks a statistically significant
-            cluster (Getis-Ord Gi*, z &gt; 1.96): hot beyond what exposure and chance explain.
-          </li>
-        </ul>
-      </section>
-
-      <!-- R48 — the reporting-bias audit (bias.py) surfaced in the UI, not only in
-           data artifacts: who the dataset over-/under-reports vs exposure, with the
-           caveat that over-representation is not confirmed danger. Populated from the
-           dataset's own embedded metadata (meta.bias); hidden when that is absent. -->
-      <section id="bias-panel" aria-labelledby="bias-heading" hidden>
-        <h2 id="bias-heading" data-i18n="bias_h">Reporting bias</h2>
-        <details class="bias-audit">
-          <summary data-i18n="bias_summary">Who the data over- and under-reports</summary>
-          <p id="bias-note" class="bias-note"></p>
-          <h3 id="bias-over-h" data-i18n="bias_over_h">Over-represented in reports</h3>
-          <ul id="bias-over" class="bias-list"></ul>
-          <h3 id="bias-under-h" data-i18n="bias_under_h">Under-represented</h3>
-          <ul id="bias-under" class="bias-list"></ul>
-        </details>
-      </section>
-
-      <section aria-labelledby="faq-heading">
-        <h2 id="faq-heading" data-i18n="faq_h">Questions people ask</h2>
-        <details class="faq">
-          <summary data-i18n="faq_q1">Why isn’t my busy street the most dangerous one?</summary>
-          <p data-i18n="faq_a1">
-            Because volume is not danger. A busy street collects the most reports simply because the
-            most people use it. We divide reports by exposure (how much cycling each street carries),
-            so the map shows the rate per rider, not the raw count. A high-traffic street can have
-            many reports and still be safer per trip than a quiet one with a few.
-          </p>
-        </details>
-        <details class="faq">
-          <summary data-i18n="faq_q2">Is a near-miss the same as a crash?</summary>
-          <p data-i18n="faq_a2">
-            No. These are self-reported near-misses and hazards, which by definition usually leave no
-            police report. They are an early-warning signal, not verified injuries or collision
-            statistics, and we never present them as such.
-          </p>
-        </details>
-        <details class="faq">
-          <summary data-i18n="faq_q3">What does “exposure unknown” mean?</summary>
-          <p data-i18n="faq_a3">
-            It means we have no trustworthy count of how many people cycle that street, so we will not
-            invent a denominator. Those segments are shown as uncertain and are never ranked as if we
-            were sure. A rate without a denominator is not published.
-          </p>
-        </details>
-        <details class="faq">
-          <summary data-i18n="faq_q4">How do I know which streets are really hotspots?</summary>
-          <p data-i18n="faq_a4">
-            A street is marked “★ Significant” only when a statistical test (Getis-Ord Gi*, with a
-            false-discovery-rate correction) says it is hotter than exposure and chance alone would
-            explain. Everything else carries a confidence interval so you can see how sure — or
-            unsure — the number is.
-          </p>
-        </details>
-      </section>
-
-      <!-- R23: print-only footer (site URL + generated timestamp) for the packet. -->
-      <div class="print-only print-footer">
-        <p>
-          <span data-i18n="print_footer">nearmiss — near-miss rates, normalized by exposure · https://nearmiss.chelseakr.com</span>
-          <span data-i18n="print_generated_label">Generated:</span>
-          <span id="print-generated-footer"></span>
-        </p>
-      </div>
-    </main>
-
-    <footer>
-      <p data-i18n="footer">
-        Open data, Apache-2.0.
-        <a href="https://github.com/ChelseaKR/nearmiss">Source on GitHub</a> ·
-        <a href="https://chelseakr.com">chelseakr.com</a>. Maps ©
-        <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Methods:
-        <code>docs/METHODOLOGY.md</code>; what it can't tell you: <code>docs/LIMITATIONS.md</code>;
-        limits and biases: <code>docs/DATA-CARD.md</code>.
-        Every figure regenerates with <code>make reproduce</code>.
+      <h1>The NearMiss public atlas has moved</h1>
+      <p>
+        The Davis synthetic demonstration is retired. Continue to the
+        <a href="/fars/national/">national FARS evidence ledger</a>.
       </p>
-    </footer>
-
-    <script src="vendor/leaflet/leaflet.js"></script>
-<script src="share-card.js"></script>
-    <script src="i18n.js"></script>
-    <script src="app.js"></script>
+      <p lang="es">
+        La demostración sintética de Davis fue retirada. Continúe al
+        <a href="/fars/national/?lang=es" hreflang="es">registro nacional de evidencia FARS</a>.
+      </p>
+    </main>
   </body>
 </html>

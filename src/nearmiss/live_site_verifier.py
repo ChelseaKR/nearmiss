@@ -31,6 +31,37 @@ PRIVATE_PATH_PROBES = (
     "data/published/fars-2023-debug.json",
     "data/published/fars-2024-state-mode.run.json",
 )
+RETIRED_PUBLIC_PATH_PROBES = (
+    "web/app.js",
+    "web/davis-demo.html",
+    "web/embed.css",
+    "web/embed.html",
+    "web/embed.js",
+    "web/nearmiss-embed.js",
+    "web/share-card.js",
+    "web/submit.html",
+    "web/submit.js",
+    "web/vendor/leaflet/images/layers-2x.png",
+    "web/vendor/leaflet/images/layers.png",
+    "web/vendor/leaflet/images/marker-icon-2x.png",
+    "web/vendor/leaflet/images/marker-icon.png",
+    "web/vendor/leaflet/images/marker-shadow.png",
+    "web/vendor/leaflet/leaflet.css",
+    "web/vendor/leaflet/leaflet.js",
+    "data/published/davis-ranked.md",
+    "data/published/davis-rates.svg",
+    "data/published/davis-sensitivity.md",
+    "data/published/davis.corridors.geojson",
+    "data/published/davis.geojson",
+    "data/published/davis.metadata.json",
+    "data/published/riverside-ranked.md",
+    "data/published/riverside-rates.svg",
+    "data/published/riverside-sensitivity.md",
+    "data/published/riverside.corridors.geojson",
+    "data/published/riverside.geojson",
+    "data/published/riverside.metadata.json",
+    "data/published/preregistration/README.md",
+)
 HOST_CONTROL_PATHS = frozenset({".nojekyll", "CNAME"})
 
 _SHA1_RE = re.compile(r"^[0-9a-f]{40}$", re.ASCII)
@@ -78,6 +109,7 @@ class LiveSiteSummary:
     default_year: int
     default_source_revision: str
     private_probe_count: int
+    retired_probe_count: int
 
 
 def _reject_constant(_value: str) -> NoReturn:
@@ -391,6 +423,29 @@ def _verify_private_paths(
             )
 
 
+def _verify_retired_public_paths(
+    fetcher: Fetcher,
+    *,
+    cache_token: str,
+    not_found: FetchResult,
+    manifest: Mapping[str, str],
+) -> None:
+    """Prove retired synthetic surfaces are absent from inventory and origin."""
+    for path in RETIRED_PUBLIC_PATH_PROBES:
+        if path in manifest:
+            raise LiveSiteVerificationError(
+                f"retired public path {path} must not be listed in the site manifest"
+            )
+        result = fetcher.fetch(
+            _cache_target(f"/{path}", cache_token=cache_token),
+            maximum_bytes=_MAX_ERROR_RESPONSE_BYTES,
+        )
+        if result != not_found:
+            raise LiveSiteVerificationError(
+                f"retired public path {path} did not match the reviewed 404 response"
+            )
+
+
 def _not_found_baseline(fetcher: Fetcher, *, cache_token: str) -> FetchResult:
     result = fetcher.fetch(
         _cache_target(
@@ -414,7 +469,7 @@ def verify_live_site(
     cache_token: str,
     fetcher: Fetcher,
 ) -> LiveSiteSummary:
-    """Verify retrievable site bytes and negative privacy paths against one exact build."""
+    """Verify retrievable site bytes and denied paths against one exact build."""
     if not isinstance(expected_sha, str) or _SHA1_RE.fullmatch(expected_sha) is None:
         raise LiveSiteVerificationError(
             "expected source SHA must be 40 lowercase hexadecimal digits"
@@ -509,6 +564,12 @@ def verify_live_site(
         default_year=default_year,
     )
     _verify_private_paths(fetcher, cache_token=cache_token, not_found=not_found)
+    _verify_retired_public_paths(
+        fetcher,
+        cache_token=cache_token,
+        not_found=not_found,
+        manifest=manifest,
+    )
 
     return LiveSiteSummary(
         source_sha=expected_sha,
@@ -517,6 +578,7 @@ def verify_live_site(
         default_year=default_year,
         default_source_revision=default_revision,
         private_probe_count=len(PRIVATE_PATH_PROBES),
+        retired_probe_count=len(RETIRED_PUBLIC_PATH_PROBES),
     )
 
 

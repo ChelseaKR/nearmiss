@@ -368,7 +368,7 @@ msgid "web.app.downloadMeta"
 msgstr " — {city}, datos v{ver} ({n} segmentos)"
 
 msgid "web.app.fail"
-msgstr "No se pudieron cargar los datos publicados ({msg}). Ejecute `make publish`, luego `nearmiss serve` y abra /web/index.html."
+msgstr "No se pudieron cargar los datos publicados ({msg}). Ejecute `make publish`, luego `nearmiss serve` y abra /web/davis-demo.html."
 
 msgid "web.app.faq_a1"
 msgstr "Porque el volumen no es peligro. Una calle transitada acumula más reportes simplemente porque la usa más gente. Dividimos los reportes por la exposición (cuánta bicicleta lleva cada calle), así que el mapa muestra la tasa por persona, no el conteo crudo. Una calle muy transitada puede tener muchos reportes y aun así ser más segura por viaje que una tranquila con pocos."
@@ -671,7 +671,7 @@ msgid "web.submit.status_sending"
 msgstr "Enviando su reporte para revisión…"
 
 msgid "web.app.us_coverage_cta"
-msgstr "<strong>Esta página de Davis es una demostración sintética.</strong> <a href=\"/fars/national/\">Explore por separado evidencia nacional de EE. UU. de registros revisados de choques fatales de 2020–2024 →</a>"
+msgstr "<strong>Esta página de Davis es una demostración sintética.</strong> <a href=\"/web/us-coverage.html\">Explore por separado evidencia nacional de EE. UU. de registros revisados de choques fatales de 2020–2024 →</a>"
 
 msgid "web.coverage.annual_contract_label"
 msgstr "Contrato anual"
@@ -686,7 +686,7 @@ msgid "web.coverage.all_statuses"
 msgstr "Todos los estados de publicación"
 
 msgid "web.coverage.back"
-msgstr "← Demostración de cuasi-accidentes de Davis"
+msgstr "← Inicio de evidencia nacional"
 
 msgid "web.coverage.can_h"
 msgstr "Lo que esto puede responder"

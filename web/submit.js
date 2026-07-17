@@ -1,10 +1,10 @@
-/* nearmiss public submission form — framework-free, accessible, serverless-honest.
+/* nearmiss source-only submission prototype — framework-free and accessible.
  *
  * Builds a report that conforms to schema/report.schema.json and hands it to the
- * contributor for the moderation queue. The static site has no backend, so by
- * default the form produces a downloadable/copyable JSON the maintainers feed to
- * `nearmiss submit` (which enqueues it PENDING). A deployment that has a
- * serverless intake can set `data-endpoint` on the <form> to POST it instead.
+ * operator for the moderation queue. The production artifact excludes this
+ * form; locally it produces downloadable/copyable JSON for `nearmiss submit`
+ * (which enqueues it PENDING). A separately reviewed deployment can set a
+ * `data-endpoint` on the <form> to POST it instead.
  *
  * Privacy posture (HR4): we collect NO identity — no name, email, account, or
  * phone field exists. The note warns against including identifiers. Nothing is

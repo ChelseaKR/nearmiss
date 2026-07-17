@@ -6,8 +6,8 @@
   "homepage": "https://nearmiss.chelseakr.com",
   "type": "module",
   "scripts": {
-    "axe": "node axe_check.mjs ../index.html && node axe_check.mjs ../404.html && node axe_check.mjs index.html && node axe_check.mjs submit.html && node axe_check.mjs embed.html && node axe_check.mjs us-coverage.html",
-    "rtl": "node rtl_check.mjs ../index.html && node rtl_check.mjs ../404.html && node rtl_check.mjs index.html && node rtl_check.mjs submit.html && node rtl_check.mjs embed.html && node rtl_check.mjs us-coverage.html",
+    "axe": "node axe_check.mjs ../index.html && node axe_check.mjs ../404.html && node axe_check.mjs index.html && node axe_check.mjs davis-demo.html && node axe_check.mjs submit.html && node axe_check.mjs embed.html && node axe_check.mjs us-coverage.html",
+    "rtl": "node rtl_check.mjs ../index.html && node rtl_check.mjs ../404.html && node rtl_check.mjs index.html && node rtl_check.mjs davis-demo.html && node rtl_check.mjs submit.html && node rtl_check.mjs embed.html && node rtl_check.mjs us-coverage.html",
     "contract": "node contract_check.mjs && node us_coverage_check.mjs"
   },
   "devDependencies": {

@@ -1,8 +1,8 @@
-"""Public-submission moderation queue.
+"""Human-reviewed submission moderation queue.
 
-This is the server-side counterpart to the public submission form
-(``web/submit.html``): the path a crowdsourced near-miss takes from "someone on
-the curb pressed submit" to "part of the dataset". The design is in
+This is the operator-side counterpart to ``nearmiss submit`` and the retained
+source-only form prototype (``web/submit.html``): the path a crowdsourced
+near-miss takes from validated input to "part of the dataset". The design is in
 ``docs/INTAKE-AND-ABUSE.md``; this module implements the core of it — a
 **moderation queue** with an explicit pending → approved/rejected lifecycle.
 

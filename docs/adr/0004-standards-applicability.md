@@ -32,7 +32,7 @@ Declare applicability for all 11 standards in a new "Standards conformance" tabl
 | SECURITY-AND-SUPPLY-CHAIN | Applies | Ships code (Python package + CLI + static web UI). |
 | CI-CD | Applies | Has CI (`ci.yml`, `mutation.yml`). |
 | RELEASE-AND-VERSIONING | Applies | CHANGELOG + SemVer + `pyproject` version; a release pipeline is planned but not yet built (see Roadmap). |
-| ACCESSIBILITY | Applies | Emits HTML: `web/index.html`, `web/submit.html`, `web/embed.html`, live at nearmiss.chelseakr.com. |
+| ACCESSIBILITY | Applies | The nationwide FARS studio is live at nearmiss.chelseakr.com; synthetic methods, submission, and embed HTML remain source-only automated accessibility targets. |
 | OBSERVABILITY | Applies (Tier C) | Library/CLI + a local, optional read-only server; the live site is static hosting. Tier C is the lightest tier (structured logs + `/livez`/`/readyz`; no OTel tracing/metrics/SLO requirement). |
 | INTERNATIONALIZATION | Applies | Public-facing civic surface; bilingual EN/ES brief and web UI. |
 | AI-EVALUATION | **N/A** | No LLM/AI SDK usage anywhere in the codebase (verified by grep for `anthropic`/`openai`/`langchain`/`bedrock`/generic `llm` imports across `src/` and `tools/`; clean). **This N/A is a decision, not an oversight — if this repo ever adds an LLM-backed feature (e.g. an auto-summarized brief, an AI-assisted moderation triage), AI-EVALUATION-STANDARD flips from N/A to Applies immediately (per AIEV-01) and this ADR should be superseded, not edited.** |

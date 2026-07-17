@@ -103,7 +103,7 @@ qgis-plugin-test: ## Test the QGIS plugin's honest-symbology rules (EXP-11, no Q
 	cd integrations/qgis && $(PYTHON) -m pytest tests/ -q
 
 accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
-	$(PYTHON) tools/a11y_check.py 404.html web/index.html web/submit.html web/embed.html web/us-coverage.html
+	$(PYTHON) tools/a11y_check.py 404.html web/index.html web/davis-demo.html web/submit.html web/embed.html web/us-coverage.html
 	@echo "accessibility: structural checks passed."
 	@echo "NOTE: CI also runs axe; full conformance also requires manual NVDA + VoiceOver"
 	@echo "      review — see docs/accessibility/ACR.md (this gate is the floor, not the ceiling)."
@@ -244,7 +244,7 @@ publish: ## Build the open GeoJSON + aggregated public dataset (privacy-checked)
 	@echo "publish: wrote $(PUBLISHED_DIR)/<city>.geojson + metadata."
 	@echo "         HR4 check passed: no precise raw report leaked into the public artifact."
 
-serve: ## Serve the accessible map + data view (read-only) at /web/index.html
+serve: ## Serve the local synthetic methods UI (read-only) at /web/davis-demo.html
 	$(PYTHON) -m $(PACKAGE) serve --dir .
 
 bench: ## Performance benchmark: time the pipeline + statistics on a city-scale synthetic dataset

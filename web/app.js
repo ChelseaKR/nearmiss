@@ -91,8 +91,8 @@
     switch (value) {
       case "#data-table":
         return "#data-table";
-      case "/fars/national/":
-        return "/fars/national/";
+      case "/web/us-coverage.html":
+        return "/web/us-coverage.html";
       case "https://github.com/ChelseaKR/nearmiss":
         return "https://github.com/ChelseaKR/nearmiss";
       case "https://chelseakr.com":

@@ -23,8 +23,9 @@ import { JSDOM, VirtualConsole } from "jsdom";
 
 const here = dirname(fileURLToPath(import.meta.url)); // web/
 const repoRoot = join(here, "..");
-const INDEX = join(here, "index.html");
+const INDEX = join(here, "davis-demo.html");
 const APP_JS = join(here, "app.js");
+const EMBED_HTML = join(here, "embed.html");
 const EMBED_JS = join(here, "embed.js");
 const EMBED_LOADER_JS = join(here, "nearmiss-embed.js");
 const I18N_JS = join(here, "i18n.js");
@@ -145,7 +146,7 @@ function installLeafletStub(window, tooltipContents) {
 // (so renderMaps short-circuits and the data TABLE is the parse-path evidence).
 async function render(
   geojson,
-  { leaflet = false, url = "https://example.test/web/index.html" } = {}
+  { leaflet = false, url = "https://example.test/web/davis-demo.html" } = {}
 ) {
   const html = readFileSync(INDEX, "utf-8");
   const appSource = readFileSync(APP_JS, "utf-8");
@@ -188,8 +189,9 @@ async function render(
 
 async function renderEmbed(url, geojson, { leaflet = false } = {}) {
   const dom = new JSDOM(
-    '<!doctype html><div id="embed-map"></div><p id="embed-caption"></p>' +
-      '<ul id="embed-hotspots"></ul><p id="embed-source"></p><a id="embed-fulllink"></a>',
+    '<!doctype html><a id="embed-brand-link"></a><div id="embed-map"></div>' +
+      '<p id="embed-caption"></p><ul id="embed-hotspots"></ul><p id="embed-source"></p>' +
+      '<a id="embed-fulllink"></a>',
     { runScripts: "outside-only", pretendToBeVisual: true, url }
   );
   const targets = [];
@@ -202,15 +204,17 @@ async function renderEmbed(url, geojson, { leaflet = false } = {}) {
   dom.window.eval(readFileSync(EMBED_JS, "utf-8"));
   await new Promise((resolve) => setTimeout(resolve, 0));
   await new Promise((resolve) => setTimeout(resolve, 0));
+  const brandHref = dom.window.document.getElementById("embed-brand-link").href;
+  const fullHref = dom.window.document.getElementById("embed-fulllink").href;
   dom.window.close();
-  return { targets, tooltipContents };
+  return { targets, tooltipContents, brandHref, fullHref };
 }
 
 function renderEmbedLoader(attributes) {
   const dom = new JSDOM(
     '<!doctype html><div id="host"><script id="loader" ' +
-      'src="https://nearmiss.chelseakr.com/web/nearmiss-embed.js"></script></div>',
-    { runScripts: "outside-only", url: "https://publisher.example/article" }
+      'src="/web/nearmiss-embed.js"></script></div>',
+    { runScripts: "outside-only", url: "http://127.0.0.1:8000/embed-fixture.html" }
   );
   const loader = dom.window.document.getElementById("loader");
   Object.entries(attributes).forEach(([name, value]) => loader.setAttribute(name, value));
@@ -239,6 +243,20 @@ async function main() {
     const source = readFileSync(script, "utf-8");
     if (/\b(?:innerHTML|outerHTML|insertAdjacentHTML|document\.write|DOMParser)\b/.test(source)) {
       die(`${script} must not reinterpret translation or dataset text as HTML`);
+    }
+  }
+  for (const sourceFile of [EMBED_HTML, EMBED_JS, EMBED_LOADER_JS]) {
+    if (readFileSync(sourceFile, "utf-8").includes("https://nearmiss.chelseakr.com")) {
+      die(`${sourceFile} sent the source-only embed back to the retired public demo`);
+    }
+  }
+  const embedDocument = new JSDOM(readFileSync(EMBED_HTML, "utf-8")).window.document;
+  if (embedDocument.querySelector('meta[name="robots"]')?.content !== "noindex, nofollow") {
+    die("embed.html did not keep the source-only fixture out of search and link crawling");
+  }
+  for (const id of ["embed-brand-link", "embed-fulllink"]) {
+    if (embedDocument.getElementById(id)?.getAttribute("href") !== "/web/davis-demo.html?city=davis") {
+      die(`embed.html did not default ${id} to the local Davis methods fixture`);
     }
   }
   const schema = JSON.parse(readFileSync(SCHEMA, "utf-8"));
@@ -270,6 +288,12 @@ async function main() {
 
   const base = await render(fixture);
   if (base.failed) die("app.js entered its error state on the valid fixture");
+  if (base.doc.querySelector('a[href="/fars/national/"]')) {
+    die("source-only methods UI linked to the production-only national route");
+  }
+  if (base.doc.querySelectorAll('a[href="/web/us-coverage.html"]').length < 2) {
+    die("source-only methods UI did not link locally to the national preview");
+  }
   const rows = base.doc.querySelectorAll("#data-body tr").length;
   if (rows !== rated.length) {
     die(`expected ${rated.length} rendered data rows, got ${rows}`);
@@ -402,7 +426,7 @@ async function main() {
     ["?city=../../private", "../data/published/davis.geojson"],
   ];
   for (const [query, expected] of datasetCases) {
-    const url = `https://example.test/web/index.html${query}`;
+    const url = `https://example.test/web/davis-demo.html${query}`;
     const appRendered = await render(fixture, { url });
     if (datasetTarget(appRendered) !== expected) {
       die(`app.js did not fail closed for dataset query ${query}`);
@@ -414,23 +438,41 @@ async function main() {
     if (embedded.targets[0] !== expected) {
       die(`embed.js did not fail closed for dataset query ${query}`);
     }
+    const expectedSlug = expected.includes("riverside") ? "riverside" : "davis";
+    const expectedDemo = `https://example.test/web/davis-demo.html?city=${expectedSlug}`;
+    if (embedded.brandHref !== expectedDemo || embedded.fullHref !== expectedDemo) {
+      die(`embed.js did not keep local demo links aligned for dataset query ${query}`);
+    }
   }
 
   const loaderCases = [
-    [{ "data-city": "riverside" }, "https://nearmiss.chelseakr.com/web/embed.html?city=riverside"],
+    [{}, "http://127.0.0.1:8000/web/embed.html"],
+    [{ "data-city": "riverside" }, "http://127.0.0.1:8000/web/embed.html?city=riverside"],
     [
       { "data-data": "../data/published/riverside.geojson" },
-      "https://nearmiss.chelseakr.com/web/embed.html?city=riverside",
+      "http://127.0.0.1:8000/web/embed.html?city=riverside",
     ],
-    [{ "data-data": "../../data/raw/private.geojson" }, "https://nearmiss.chelseakr.com/web/embed.html"],
+    [
+      { "data-data": "../../data/raw/private.geojson" },
+      "http://127.0.0.1:8000/web/embed.html",
+    ],
+    [
+      { "data-data": "https://attacker.example/private.geojson" },
+      "http://127.0.0.1:8000/web/embed.html",
+    ],
+    [
+      { "data-data": "../data/published/riverside.geojson?raw=1" },
+      "http://127.0.0.1:8000/web/embed.html",
+    ],
     [
       { "data-city": "riverside", "data-data": "../data/published/riverside.geojson" },
-      "https://nearmiss.chelseakr.com/web/embed.html",
+      "http://127.0.0.1:8000/web/embed.html",
     ],
-    [{ "data-city": "unlisted" }, "https://nearmiss.chelseakr.com/web/embed.html"],
+    [{ "data-city": "unlisted" }, "http://127.0.0.1:8000/web/embed.html"],
+    [{ "data-city": "../../private" }, "http://127.0.0.1:8000/web/embed.html"],
     [
       { src: "https://attacker.example/nearmiss-embed.js", "data-city": "riverside" },
-      "https://nearmiss.chelseakr.com/web/embed.html?city=riverside",
+      "http://127.0.0.1:8000/web/embed.html?city=riverside",
     ],
   ];
   for (const [attributes, expected] of loaderCases) {
@@ -449,7 +491,7 @@ async function main() {
   }
 
   console.log(
-    "contract: OK — web consumers honor the published schema and restrict query-selected data to public GeoJSON slugs."
+    "contract: OK — web consumers honor the published schema and restrict query-selected data to allowlisted source fixtures."
   );
 }
 

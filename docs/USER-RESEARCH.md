@@ -38,7 +38,7 @@ sequenced, cited backlog.
   sortable table, the Byar/Poisson confidence intervals, the Getis-Ord Gi\* +
   Benjamini-Hochberg hotspots, `bias.py`, the `exposure unknown` honesty, the
   k-anonymity withholding, the bilingual brief, `make reproduce`, the BikeMaps/OSM
-  fetchers, the Davis/Sacramento real configs, the accessible submit form +
+  fetchers, the Davis/Sacramento real configs, the source-only submit prototype +
   moderation queue); where they get stuck; what they want next; and the one thing
   that makes them adopt or walk.
 - **Research basis.** Each interview's friction is checked against the evidence
@@ -96,7 +96,7 @@ sequenced, cited backlog.
 | P1 | **Dana** — daily bike commuter, would-be reporter | Report & Advocate | Log the truck that just buzzed her | Near-misses leave no official record, yet the path in is a CLI/JSON to most users |
 | P2 | **Marisol** — Safe-Routes-to-School parent (pedestrian) | Report & Advocate | Prove the school crossing is dangerous | Data is cyclist-centric; her kids walk; no time-of-day lens |
 | P3 | **Theo** — manual-wheelchair pedestrian | Report & Advocate | Find curb-ramp / blocked-crossing hazards | Schema has `wheelchair` mode but BikeMaps coverage is near-zero for rolling |
-| P4 | **Priya** — safe-streets advocate building a council campaign | Report & Advocate | Win a specific redesign, survive cross-examination | Live site is still the synthetic demo; screenshots strip the caveats |
+| P4 | **Priya** — safe-streets advocate building a council campaign | Report & Advocate | Win a specific redesign, survive cross-examination | The national live site cannot yet answer a local exposure-normalized near-miss question; screenshots strip caveats |
 | P5 | **Karim** — city traffic engineer / active-transport planner | Plan & Decide | Defend a project list with defensible evidence | Needs the method *next to* official data, not instead of it |
 | P6 | **Dr. Okafor** — Vision Zero coordinator (self-report skeptic) | Plan & Decide | Not stake a plan on biased self-report | Crowdsourced near-misses ≠ KABCO collisions; wants validation |
 | P7 | **Lena** — data / investigative journalist | Reuse & Research | Publish a claim she can defend | No download/permalink to cite; premise asserted, not sourced |
@@ -104,7 +104,7 @@ sequenced, cited backlog.
 | P9 | **Sam** — data scientist evaluating the statistics | Reuse & Research | Decide if the numbers survive scrutiny | Poisson assumed; overdispersion check not yet implemented |
 | P10 | **Marcus** — open-data / reproducibility reviewer | Assure & Audit | Re-run and get byte-identical output | `requirements.lock` not committed; no tagged release |
 | P11 | **Grace** — blind screen-reader user (NVDA), + low-vision lens | Assure & Audit | Get every finding without the map | Structural a11y is designed-for; manual SR pass still pending |
-| P12 | **"the brigade"** — bad-faith reporter / astroturf threat | Assure & Audit | Manufacture (or bury) a hotspot | Public form invites flooding, doxxing-by-report, poisoning |
+| P12 | **"the brigade"** — bad-faith reporter / astroturf threat | Assure & Audit | Manufacture (or bury) a hotspot | Publishing the form without edge defenses would invite flooding, doxxing-by-report, and poisoning |
 | P13 | **Chelsea** — owner / maintainer | Operate | Keep it honest, cheap, and unfundable-proof | Honesty scales worse than features; every expansion grows HR3/HR4 surface |
 
 13 personas · 5 groups · every stakeholder type in the brief covered.
@@ -123,12 +123,11 @@ the literature directly supports.
 - **Goal.** Report the close pass that just happened, from the curb, in seconds.
 - **Values today.** That the project exists at all: *near-misses leave no police
   report, so an official dataset literally cannot contain them* — Nelson et al.
-  call this exactly the gap BikeMaps was built for. The accessible
-  [`web/submit.html`](../web/submit.html) form + moderation queue is a real door
-  in; the privacy posture (no name/email/account by construction) is reassuring.
-- **Gets stuck.** The static-by-default deploy hands her report back to *download
-  or copy and send to a maintainer* unless a serverless endpoint is wired — more
-  than the "20 seconds with adrenaline" she has. The two-map view is framed for
+  call this exactly the gap BikeMaps was built for. The accessible source-only
+  [`web/submit.html`](../web/submit.html) prototype and moderation queue show a
+  privacy-conscious path (no name/email/account by construction), but they are not deployed.
+- **Gets stuck.** The public site has no intake path; she must use a local/CLI workflow or
+  coordinate with a maintainer — more than the "20 seconds with adrenaline" she has. The local two-map view is framed for
   cyclists; fine for her, not for a friend on foot.
 - **Wants next.** A one-tap hazard-type + pin with a true POST endpoint; offline
   capture; the "your report helped flag B St" acknowledgement.
@@ -174,8 +173,9 @@ the literature directly supports.
   made for years*; the planted-fixture proof (the busy decoy `seg-03` ranks low on
   exposure-normalized rate while the genuinely-hot `seg-06` lights up) is the slide
   she wants. `make reproduce` means no one can wave it away.
-- **Gets stuck.** The live site is still the **synthetic Davis demo**, so she
-  can't point councillors at *her* city without engineering help. And a
+- **Gets stuck.** At the time of this research the live site was the **synthetic Davis demo**. The
+  deployed site now uses reviewed nationwide FARS records, but it still cannot represent *her*
+  city's exposure-normalized near-miss rates without a reviewed local release. And a
   screenshot of the surface, *legend stripped*, becomes "the most dangerous
   street" — the exact misread the threat model (T4) warns about and cannot
   prevent once republished.
@@ -236,7 +236,9 @@ the literature directly supports.
 - **Gets stuck.** The site's *premise* — "vulnerable users absorb the risk and
   produce almost none of the data" — is asserted but **uncited**; her editor will
   ask for a source. There's a download affordance and per-segment deep links
-  (shipped), but no DOI/version to cite, and the live data is still the demo.
+  (shipped). At research time the live data was still the demo; the national site
+  now provides versioned real FARS evidence, but no reviewed local near-miss release
+  or DOI yet answers her original reporting need.
 - **Wants next.** The underreporting and safety-in-numbers literature cited in the
   data card; an embeddable map; a machine-readable version feed.
 - **Adopts if** she can link the exact row, re-run the number, *and* footnote the

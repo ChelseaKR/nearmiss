@@ -205,14 +205,15 @@ class _RestrictedHandler(SimpleHTTPRequestHandler):
 def serve(directory: Path, port: int = 8000, host: str = "127.0.0.1") -> None:
     """Serve ``directory`` read-only (raw store and dotfiles blocked).
 
-    Visit ``/web/index.html``. Even with ``--dir .`` (the repo root), requests
-    under ``data/raw/`` and any dotfile path are refused with HTTP 403. Liveness
-    and readiness are at ``/livez`` and ``/readyz``.
+    Visit ``/web/davis-demo.html`` for the source-only synthetic methods UI.
+    Even with ``--dir .`` (the repo root), requests under ``data/raw/`` and any
+    dotfile path are refused with HTTP 403. Liveness and readiness are at
+    ``/livez`` and ``/readyz``.
     """
     logger = get_logger()
     handler = functools.partial(_RestrictedHandler, directory=str(directory))
     with ThreadingHTTPServer((host, port), handler) as httpd:
-        url = f"http://{host}:{port}/web/index.html"
+        url = f"http://{host}:{port}/web/davis-demo.html"
         logger.info(
             "serving",
             directory=str(directory),

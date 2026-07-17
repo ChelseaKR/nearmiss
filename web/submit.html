@@ -3,28 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#152A30" />
     <link rel="icon" href="/web/vendor/brand/clearance-mark.svg" type="image/svg+xml" />
-    <title>nearmiss — report a near-miss</title>
+    <title>nearmiss — local submission prototype</title>
     <meta
       name="description"
-      content="Report a road-hazard or near-miss in under a minute. Submissions are reviewed by a human before they enter the open dataset; we publish only aggregated street-block rates and never your exact location, time, or any identifier."
+      content="Source-only local prototype for building a schema-valid near-miss report for a human-reviewed moderation workflow. This form is not deployed."
     />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="NearMiss Conflict Atlas" />
-    <meta property="og:title" content="Report a near-miss — NearMiss Conflict Atlas" />
-    <meta
-      property="og:description"
-      content="Contribute a road-hazard or near-miss report; precise location and identifying details are not published."
-    />
-    <meta property="og:url" content="https://nearmiss.chelseakr.com/web/submit.html" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Report a near-miss — NearMiss Conflict Atlas" />
-    <meta
-      name="twitter:description"
-      content="Contribute a road-hazard or near-miss report; precise location and identifying details are not published."
-    />
-    <link rel="canonical" href="https://nearmiss.chelseakr.com/web/submit.html" />
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="brand.css" />
   </head>
@@ -33,7 +19,7 @@
 
     <header>
       <div class="brand-masthead">
-        <a class="brand-lockup" href="/fars/national/" aria-label="nearmiss Conflict Atlas">
+        <a class="brand-lockup" href="/web/us-coverage.html" aria-label="nearmiss Conflict Atlas">
           <svg class="clearance-mark" viewBox="0 0 48 32" aria-hidden="true" focusable="false">
             <path class="clearance-path clearance-path-a" d="M3 27 17 13h5" />
             <path class="clearance-path clearance-path-b" d="M45 5 31 19h-5" />
@@ -41,10 +27,11 @@
           <span class="brand-lockup-copy"><strong>nearmiss</strong><span>Conflict Atlas</span></span>
         </a>
       </div>
-      <h1>Report a near-miss</h1>
+      <h1>Local submission prototype</h1>
       <p class="lede">
-        A close pass, a door zone, a blind corner, a surface hazard — the close calls that never
-        reach a police report. It takes under a minute. Every field except location is optional.
+        This source-only form builds a schema-valid report for local workflow testing. It is not
+        deployed and does not send data anywhere unless a developer explicitly configures an intake
+        endpoint. Every field except location is optional.
       </p>
     </header>
 

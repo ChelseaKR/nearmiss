@@ -368,7 +368,7 @@ msgid "web.app.downloadMeta"
 msgstr " — {city}, dataset v{ver} ({n} segments)"
 
 msgid "web.app.fail"
-msgstr "Could not load published data ({msg}). Run `make publish`, then `nearmiss serve` and open /web/index.html."
+msgstr "Could not load published data ({msg}). Run `make publish`, then `nearmiss serve` and open /web/davis-demo.html."
 
 msgid "web.app.faq_a1"
 msgstr "Because volume is not danger. A busy street collects the most reports simply because the most people use it. We divide reports by exposure (how much cycling each street carries), so the map shows the rate per rider, not the raw count. A high-traffic street can have many reports and still be safer per trip than a quiet one with a few."
@@ -671,7 +671,7 @@ msgid "web.submit.status_sending"
 msgstr "Sending your submission for review…"
 
 msgid "web.app.us_coverage_cta"
-msgstr "<strong>This Davis page is a synthetic demo.</strong> <a href=\"/fars/national/\">Explore separate, nationwide US evidence from reviewed 2020–2024 fatal-crash records →</a>"
+msgstr "<strong>This Davis page is a synthetic demo.</strong> <a href=\"/web/us-coverage.html\">Explore separate, nationwide US evidence from reviewed 2020–2024 fatal-crash records →</a>"
 
 msgid "web.coverage.annual_contract_label"
 msgstr "Annual contract"
@@ -686,7 +686,7 @@ msgid "web.coverage.all_statuses"
 msgstr "All statuses"
 
 msgid "web.coverage.back"
-msgstr "← Davis near-miss demo"
+msgstr "← National evidence home"
 
 msgid "web.coverage.can_h"
 msgstr "What this can answer"

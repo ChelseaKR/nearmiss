@@ -3,17 +3,17 @@
  * For sites that prefer a <script> tag to hand-writing an <iframe>. Drop this
  * where the widget should appear:
  *
- *   <script src="https://nearmiss.chelseakr.com/web/nearmiss-embed.js"
+ *   <script src="/web/nearmiss-embed.js"
  *           data-city="davis"
  *           data-height="380"
  *           async></script>
  *
- * It injects a sandboxed <iframe> pointing at the canonical embed.html with the
+ * It injects a sandboxed <iframe> pointing at the same-origin local embed.html with the
  * given city (or a validated data/published/<slug>.geojson path). The loader
  * reduces either selector to the Davis/Riverside allowlist before choosing one
- * of three constant iframe URLs. The iframe is the security boundary: the host
- * page and widget never share script context. Everything the widget shows is the
- * same open, aggregated published data the full site uses — no tracking, no cookies.
+ * of three constant local paths. The iframe is the security boundary: the host
+ * page and widget never share script context. Everything the widget shows is a
+ * committed synthetic methods fixture — no tracking, no cookies, no production evidence.
  */
 (function () {
   "use strict";
@@ -33,7 +33,7 @@
   var height = me.getAttribute("data-height") || "380";
   var title = me.getAttribute("data-title") || "nearmiss hazard hotspot map";
 
-  var src = "https://nearmiss.chelseakr.com/web/embed.html";
+  var src = "/web/embed.html";
   var slug = null;
   if (!(city && dataPath)) {
     if (city && /^[a-z0-9][a-z0-9_-]*$/i.test(city)) {
@@ -45,13 +45,14 @@
       if (match) slug = match[1].toLowerCase();
     }
   }
-  // Do not derive a child origin from the mutable script element. Restrict the
-  // iframe URL to reviewed constants so DOM-controlled attributes cannot turn
-  // this loader into navigation to attacker-selected content.
+  // Keep this source-only prototype on the embedding document's local origin.
+  // Do not derive a child origin from the mutable script element; restrict the
+  // iframe URL to reviewed paths so DOM-controlled attributes cannot turn this
+  // loader into navigation to attacker-selected content.
   if (slug === "davis") {
-    src = "https://nearmiss.chelseakr.com/web/embed.html?city=davis";
+    src = "/web/embed.html?city=davis";
   } else if (slug === "riverside") {
-    src = "https://nearmiss.chelseakr.com/web/embed.html?city=riverside";
+    src = "/web/embed.html?city=riverside";
   }
 
   var iframe = document.createElement("iframe");

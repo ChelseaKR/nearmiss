@@ -341,12 +341,10 @@ jobs:
         with:
           node-version: "20"
 
-      # The web UI (web/index.html + app.js + style.css) is plain static HTML —
-      # there is no framework build step. `make accessibility` runs the
-      # structural gate tools/a11y_check.py against web/index.html (skip link,
-      # semantic <th scope> headers, text-stated significance, the sticky
-      # segment-name column, the authoritative data table). This is the floor.
-      - name: a11y structural gate (tools/a11y_check.py web/index.html)
+      # The deployed national studio and retained local prototypes are plain
+      # static HTML. `make accessibility` runs the structural gate across both
+      # scopes (skip links, landmarks, semantic tables, and text equivalents).
+      - name: a11y structural gate (production and source-only HTML)
         run: make accessibility
 
       # Real automated axe-core run in jsdom (tools/axe_check.mjs), so the
@@ -670,7 +668,7 @@ jobs:
             --distribution-id "$DISTRIBUTION_ID" \
             --id "$invalidation_id"
 
-      - name: Verify exact live bytes and private-path denial
+      - name: Verify exact live bytes and denied-path retirement
         run: >-
           python -S source/tools/verify_live_site.py
           --expected-sha "$GITHUB_SHA"
@@ -709,7 +707,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
 
-      - name: Verify deployed commit and critical paths
+      - name: Verify deployed commit, critical paths, and retired-path denial
         env:
           SITE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
@@ -740,12 +738,42 @@ jobs:
             'web/vendor/fonts/overpass-latin-wght-normal.woff2|web/vendor/fonts/overpass-latin-wght-normal.woff2'
             'web/vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2|web/vendor/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2'
             'web/vendor/fonts/fragment-mono-latin-400-normal.woff2|web/vendor/fonts/fragment-mono-latin-400-normal.woff2'
-            'data/published/davis.geojson|data/published/davis.geojson'
             'data/published/fars-state-mode-index.json|data/published/fars-state-mode-index.json'
             'data/published/fars-2024-state-mode.json|data/published/fars-2024-state-mode.json'
             'data/published/fars-state-mode-index-v2.json|data/published/fars-state-mode-index-v2.json'
             'data/published/fars-release-corrections.json|data/published/fars-release-corrections.json'
             'data/published/us-state-boundaries-2024.json|data/published/us-state-boundaries-2024.json'
+          )
+          retired_paths=(
+            'web/app.js'
+            'web/davis-demo.html'
+            'web/embed.css'
+            'web/embed.html'
+            'web/embed.js'
+            'web/nearmiss-embed.js'
+            'web/share-card.js'
+            'web/submit.html'
+            'web/submit.js'
+            'web/vendor/leaflet/images/layers-2x.png'
+            'web/vendor/leaflet/images/layers.png'
+            'web/vendor/leaflet/images/marker-icon-2x.png'
+            'web/vendor/leaflet/images/marker-icon.png'
+            'web/vendor/leaflet/images/marker-shadow.png'
+            'web/vendor/leaflet/leaflet.css'
+            'web/vendor/leaflet/leaflet.js'
+            'data/published/davis-ranked.md'
+            'data/published/davis-rates.svg'
+            'data/published/davis-sensitivity.md'
+            'data/published/davis.corridors.geojson'
+            'data/published/davis.geojson'
+            'data/published/davis.metadata.json'
+            'data/published/riverside-ranked.md'
+            'data/published/riverside-rates.svg'
+            'data/published/riverside-sensitivity.md'
+            'data/published/riverside.corridors.geojson'
+            'data/published/riverside.geojson'
+            'data/published/riverside.metadata.json'
+            'data/published/preregistration/README.md'
           )
           for _ in $(seq 1 30); do
             if curl --fail --silent --show-error \
@@ -784,6 +812,34 @@ jobs:
                     'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())' \
                     "$boundary_file")"
                   if [ "$live_boundary_sha" != "$boundary_sha256" ]; then
+                    critical_ok=false
+                  fi
+                fi
+                if [ "$critical_ok" = true ]; then
+                  if ! python -c '
+          import json,sys
+          files=json.load(open(sys.argv[1]))["files"]
+          retired=set(sys.argv[2:])
+          assert not retired.intersection(files)
+          ' "$manifest_file" "${retired_paths[@]}"; then
+                    critical_ok=false
+                  fi
+                fi
+                if [ "$critical_ok" = true ]; then
+                  retired_ok=true
+                  for retired_path in "${retired_paths[@]}"; do
+                    retired_file="$critical_dir/retired/$retired_path"
+                    mkdir -p "$(dirname "$retired_file")"
+                    retired_status="$(curl --silent --show-error \
+                      --output "$retired_file" --write-out '%{http_code}' \
+                      "${base_url}/${retired_path}?verify=${GITHUB_SHA}")" || retired_status=""
+                    if [ "$retired_status" != 404 ] || \
+                      ! cmp --silent "$critical_dir/404.html" "$retired_file"; then
+                      retired_ok=false
+                      break
+                    fi
+                  done
+                  if [ "$retired_ok" != true ]; then
                     critical_ok=false
                   fi
                 fi
