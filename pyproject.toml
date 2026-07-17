@@ -100,8 +100,10 @@ teaching = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ChelseaKR/nearmiss"
+Homepage = "https://nearmiss.chelseakr.com"
+"Conflict Atlas" = "https://nearmiss.chelseakr.com/fars/national/"
 Repository = "https://github.com/ChelseaKR/nearmiss"
+Documentation = "https://github.com/ChelseaKR/nearmiss/tree/main/docs"
 Changelog = "https://github.com/ChelseaKR/nearmiss/blob/main/CHANGELOG.md"
 Issues = "https://github.com/ChelseaKR/nearmiss/issues"
 Methodology = "https://github.com/ChelseaKR/nearmiss/blob/main/docs/METHODOLOGY.md"

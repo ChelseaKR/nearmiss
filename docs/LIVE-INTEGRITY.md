@@ -3,7 +3,8 @@
 The public site is checked every day and on demand by
 `.github/workflows/live-integrity.yml`. The job has read-only repository permission, checks out the
 current `main` commit, rebuilds the allowlisted static-site artifact with Python site packages
-disabled, and compares the canonical CloudFront production origin with that exact build.
+disabled, and compares the canonical CloudFront production origin at
+[nearmiss.chelseakr.com](https://nearmiss.chelseakr.com) with that exact build.
 
 The sentinel verifies:
 

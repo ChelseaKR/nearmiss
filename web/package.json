@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "description": "Framework-free accessible map UI for nearmiss.",
+  "homepage": "https://nearmiss.chelseakr.com",
   "type": "module",
   "scripts": {
     "axe": "node axe_check.mjs ../index.html && node axe_check.mjs ../404.html && node axe_check.mjs index.html && node axe_check.mjs submit.html && node axe_check.mjs embed.html && node axe_check.mjs us-coverage.html",

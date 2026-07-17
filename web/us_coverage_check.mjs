@@ -279,7 +279,29 @@ async function main() {
     die("national runtime must not reinterpret translated or artifact text as HTML");
   }
   await assertLocaleRootFollowsLoadedScript();
+  const assertNationalMetadata = (document, label) => {
+    const expected = new Map([
+      ['link[rel~="canonical"]', ["href", NATIONAL_CANONICAL]],
+      ['meta[name="description"]', ["content", null]],
+      ['meta[property="og:type"]', ["content", "website"]],
+      ['meta[property="og:site_name"]', ["content", "NearMiss Conflict Atlas"]],
+      ['meta[property="og:title"]', ["content", null]],
+      ['meta[property="og:description"]', ["content", null]],
+      ['meta[property="og:url"]', ["content", NATIONAL_CANONICAL]],
+      ['meta[name="twitter:card"]', ["content", "summary"]],
+      ['meta[name="twitter:title"]', ["content", null]],
+      ['meta[name="twitter:description"]', ["content", null]],
+    ]);
+    for (const [selector, [attribute, value]] of expected) {
+      const matches = document.querySelectorAll(selector);
+      const actual = matches[0]?.getAttribute(attribute) || "";
+      if (matches.length !== 1 || !actual || (value !== null && actual !== value)) {
+        die(`${label} metadata ${selector} is missing, duplicated, or inconsistent`);
+      }
+    }
+  };
   const apex = new JSDOM(readFileSync(APEX, "utf-8")).window.document;
+  assertNationalMetadata(apex, "apex");
   const refresh = apex.querySelector('meta[http-equiv="refresh"]');
   if (!refresh || refresh.getAttribute("content") !== "0; url=/fars/national/") {
     die("apex does not immediately redirect to the nationwide evidence ledger");
@@ -322,13 +344,7 @@ async function main() {
   }
 
   const coverageSource = new JSDOM(readFileSync(PAGE, "utf-8")).window.document;
-  const coverageCanonical = coverageSource.querySelectorAll('link[rel~="canonical"]');
-  if (
-    coverageCanonical.length !== 1 ||
-    coverageCanonical[0].getAttribute("href") !== NATIONAL_CANONICAL
-  ) {
-    die("nationwide page does not have the one absolute production canonical URL");
-  }
+  assertNationalMetadata(coverageSource, "nationwide page");
   if (coverageSource.querySelector("base")) die("nationwide page relies on a path-rewriting base element");
   if (coverageSource.querySelector(".skip-link")?.getAttribute("href") !== "#main") {
     die("nationwide page skip link no longer targets its main landmark");
