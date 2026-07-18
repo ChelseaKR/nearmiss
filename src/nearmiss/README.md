@@ -11,6 +11,7 @@ any stage can be piped, checked, or replaced independently.
 | `stats/` | `rates.py` (rates + confidence intervals), `bias.py` (reporting-bias characterization), `kde.py`, `getis_ord.py` (Getis-Ord Gi\*). |
 | `publish.py` | Build the open GeoJSON and the segment-aggregated public dataset; enforce the k-anonymity withholding and coordinate-leak invariants (no jitter — privacy comes from snap-to-segment aggregation and withholding, see [`docs/RE-IDENTIFICATION.md`](../../docs/RE-IDENTIFICATION.md)). |
 | `brief.py` | Render advocacy briefs (ranked locations, intervals, plain-language prose). |
+| `dossier.py` | Render a deterministic, controlled-claim corridor dossier with a named decision request and evidence-readiness record. |
 | `server.py` | Serve the accessible, read-only map and its equivalent sortable list/table view. |
 | `config.py` | Cities, exposure sources, and privacy/analysis thresholds (snap distance, `min_publish_n`, `small_n`) as versioned, checked-in configuration. |
 

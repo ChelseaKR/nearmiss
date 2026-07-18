@@ -19,17 +19,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+#, python-brace-format
+msgid "# Decision Dossier — {city}: {corridor}"
+msgstr "# Expediente de decisión — {city}: {corridor}"
+
+msgid "## Claim boundary"
+msgstr "## Límite de las afirmaciones"
+
+msgid "## Corridor finding"
+msgstr "## Hallazgo del corredor"
+
 msgid "## Corridor view (for advocacy asks)"
 msgstr "## Vista de corredores (para peticiones de incidencia)"
+
+msgid "## Decision request"
+msgstr "## Solicitud de decisión"
 
 msgid "## Dominant hazard type by segment (with its own rate)"
 msgstr "## Tipo de peligro dominante por segmento (con su propia tasa)"
 
+msgid "## Evidence readiness"
+msgstr "## Preparación de la evidencia"
+
 msgid "## Highest-rate segments (exposure-normalized)"
 msgstr "## Segmentos de mayor tasa (normalizada por exposición)"
 
+msgid "## Next review"
+msgstr "## Próxima revisión"
+
 msgid "## Reporting bias (named, not hidden)"
 msgstr "## Sesgo de reporte (nombrado, no oculto)"
+
+msgid "## Reproduction record"
+msgstr "## Registro de reproducción"
 
 msgid "## Robustness checks (overdispersion & re-segmentation)"
 msgstr "## Comprobaciones de robustez (sobredispersión y re-segmentación)"
@@ -37,96 +59,289 @@ msgstr "## Comprobaciones de robustez (sobredispersión y re-segmentación)"
 msgid "## Statistically significant hotspots (Getis-Ord Gi\\*)"
 msgstr "## Puntos calientes estadísticamente significativos (Getis-Ord Gi\\*)"
 
+msgid "## Uncertainty and checks"
+msgstr "## Incertidumbre y comprobaciones"
+
 msgid "## What the numbers mean (plain language)"
 msgstr "## Qué significan los números (en lenguaje claro)"
 
 msgid "## When hazards get reported (volume, not risk)"
 msgstr "## Cuándo se reportan los peligros (volumen, no riesgo)"
 
-msgid "**Analysis window:** all available data (no window configured — rates below are all-time and not bounded to a stated period)."
-msgstr "**Ventana de análisis:** todos los datos disponibles (sin ventana configurada — las tasas siguientes son de todo el periodo y no se limitan a un periodo declarado)."
+msgid "### Declared sources"
+msgstr "### Fuentes declaradas"
+
+msgid ""
+"**Analysis window:** all available data (no window configured — rates "
+"below are all-time and not bounded to a stated period)."
+msgstr ""
+"**Ventana de análisis:** todos los datos disponibles (sin ventana "
+"configurada — las tasas siguientes son de todo el periodo y no se limitan"
+" a un periodo declarado)."
 
 #, python-brace-format
 msgid "**Analysis window:** {start} to {end}."
 msgstr "**Ventana de análisis:** {start} a {end}."
 
 #, python-brace-format
-msgid "**Bottom line:** the highest exposure-normalized near-miss rate is on **{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a busy street; still, it rests on {n} reports, so read it with the interval and the reporting-bias caveats below."
-msgstr "**En resumen:** la mayor tasa de cuasi-accidentes normalizada por exposición está en **{name}** — alrededor de {rate} reportes por {per} {unit} (IC 95% {lo}–{hi}, n={n}){sig}. Por estar normalizada por exposición, es una tasa, no solo una calle concurrida; aun así, se basa en {n} reportes, así que léala con el intervalo y las advertencias de sesgo de abajo."
+msgid ""
+"**Bottom line:** the highest exposure-normalized near-miss rate is on "
+"**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
+"n={n}){sig}. Because it is normalized by exposure, this is a rate, not "
+"just a busy street; still, it rests on {n} reports, so read it with the "
+"interval and the reporting-bias caveats below."
+msgstr ""
+"**En resumen:** la mayor tasa de cuasi-accidentes normalizada por "
+"exposición está en **{name}** — alrededor de {rate} reportes por {per} "
+"{unit} (IC 95% {lo}–{hi}, n={n}){sig}. Por estar normalizada por "
+"exposición, es una tasa, no solo una calle concurrida; aun así, se basa "
+"en {n} reportes, así que léala con el intervalo y las advertencias de "
+"sesgo de abajo."
 
 #, python-brace-format
-msgid "**Exposure coverage:** {pct}% of segments have an exposure denominator. Segments without one are listed as *exposure unknown*, not ranked."
-msgstr "**Cobertura de exposición:** el {pct}% de los segmentos tiene un denominador de exposición. Los que no lo tienen aparecen como *exposición desconocida*, sin ranking."
+msgid ""
+"**Declared evidence tier:** `{tier}` (assessed as of {as_of}). This "
+"describes which analyses the declared sources support; it is not a safety"
+" rating."
+msgstr ""
+"**Nivel de evidencia declarado:** `{tier}` (evaluado el {as_of}). Describe qué "
+"análisis respaldan las fuentes declaradas; no es una calificación de seguridad."
 
-msgid "**MAUP transparency note:** how you draw the boundary can itself shift a rate (the Modifiable Areal Unit Problem). Corridor counts and exposure are sums of the same already-published, already-significant blocks above — no block is surfaced here that was withheld or non-significant on its own. Read the corridor rate as a complement to the block rates, not a replacement for them."
-msgstr "**Nota de transparencia MAUP:** cómo se traza el límite puede alterar una tasa por sí mismo (el Problema de la Unidad de Área Modificable). Los recuentos y la exposición del corredor son sumas de los mismos bloques ya publicados y ya significativos anteriores — ningún bloque se muestra aquí que haya sido retenido o no significativo por sí solo. Lea la tasa del corredor como un complemento de las tasas por bloque, no como un reemplazo de ellas."
-
-#, python-brace-format
-msgid "**Null calibration (we attacked our own dataset):** on {n} seeded label-shuffles of this city's own reports, with exposure and geometry held fixed, the hotspot method's empirical false-positive rate was {pct}% — see `{file}`."
-msgstr "**Calibración nula (pusimos a prueba nuestro propio conjunto de datos):** en {n} barajados aleatorios con semilla de los propios reportes de esta ciudad, con la exposición y la geometría fijas, la tasa empírica de falsos positivos del método fue del {pct}% — ver `{file}`."
-
-msgid "**Over-represented vs exposure** (more reports than traffic alone predicts):"
-msgstr "**Sobre-representados vs exposición** (más reportes de lo que predice el tránsito):"
-
-#, python-brace-format
-msgid "**Report-intensity peak (KDE, not danger):** around {name}. This shows where reports concentrate, which is not the same as where risk is highest."
-msgstr "**Pico de intensidad de reportes (KDE, no peligro):** cerca de {name}. Muestra dónde se concentran los reportes, que no es lo mismo que dónde el riesgo es mayor."
-
-msgid "**Under-represented vs exposure** (quiet in the data, not necessarily safe):"
-msgstr "**Sub-representados vs exposición** (silenciosos en los datos, no por ello seguros):"
+#, python-brace-format, python-format
+msgid ""
+"**Exposure coverage:** {pct}% of segments have an exposure denominator. "
+"Segments without one are listed as *exposure unknown*, not ranked."
+msgstr ""
+"**Cobertura de exposición:** el {pct}% de los segmentos tiene un "
+"denominador de exposición. Los que no lo tienen aparecen como *exposición"
+" desconocida*, sin ranking."
 
 #, python-brace-format
-msgid "**Weather (association, not a risk rate):** {rws} of matched reports fell on wet days, while {bws} of days in the weather record were wet. Wet days usually carry far fewer riders, so this is an association to investigate, not a weather risk rate. Source: {src}."
-msgstr "**Clima (asociación, no tasa de riesgo):** {rws} de los reportes emparejados ocurrieron en días lluviosos, mientras que {bws} de los días del registro fueron lluviosos. Los días lluviosos suelen tener muchos menos ciclistas, así que es una asociación a investigar, no una tasa de riesgo por clima. Fuente: {src}."
+msgid ""
+"**Freshness warning:** the following declared sources are stale under "
+"their own policy: {sources}."
+msgstr ""
+"**Advertencia de actualidad:** las siguientes fuentes declaradas están "
+"desactualizadas según su propia política: {sources}."
+
+msgid ""
+"**MAUP transparency note:** how you draw the boundary can itself shift a "
+"rate (the Modifiable Areal Unit Problem). Corridor counts and exposure "
+"are sums of the same already-published, already-significant blocks above "
+"— no block is surfaced here that was withheld or non-significant on its "
+"own. Read the corridor rate as a complement to the block rates, not a "
+"replacement for them."
+msgstr ""
+"**Nota de transparencia MAUP:** cómo se traza el límite puede alterar una"
+" tasa por sí mismo (el Problema de la Unidad de Área Modificable). Los "
+"recuentos y la exposición del corredor son sumas de los mismos bloques ya"
+" publicados y ya significativos anteriores — ningún bloque se muestra "
+"aquí que haya sido retenido o no significativo por sí solo. Lea la tasa "
+"del corredor como un complemento de las tasas por bloque, no como un "
+"reemplazo de ellas."
+
+#, python-brace-format
+msgid ""
+"**Missing core source declarations:** {kinds}. The evidence tier reflects"
+" that gap."
+msgstr ""
+"**Faltan declaraciones de fuentes principales:** {kinds}. El nivel de evidencia "
+"refleja esa carencia."
+
+#, python-brace-format
+msgid ""
+"**Null calibration (we attacked our own dataset):** on {n} seeded label-"
+"shuffles of this city's own reports, with exposure and geometry held "
+"fixed, the hotspot method's empirical false-positive rate was {pct}% — "
+"see `{file}`."
+msgstr ""
+"**Calibración nula (pusimos a prueba nuestro propio conjunto de datos):**"
+" en {n} barajados aleatorios con semilla de los propios reportes de esta "
+"ciudad, con la exposición y la geometría fijas, la tasa empírica de "
+"falsos positivos del método fue del {pct}% — ver `{file}`."
+
+msgid ""
+"**Over-represented vs exposure** (more reports than traffic alone "
+"predicts):"
+msgstr ""
+"**Sobre-representados vs exposición** (más reportes de lo que predice el "
+"tránsito):"
+
+#, python-brace-format
+msgid ""
+"**Report-intensity peak (KDE, not danger):** around {name}. This shows "
+"where reports concentrate, which is not the same as where risk is "
+"highest."
+msgstr ""
+"**Pico de intensidad de reportes (KDE, no peligro):** cerca de {name}. "
+"Muestra dónde se concentran los reportes, que no es lo mismo que dónde el"
+" riesgo es mayor."
+
+msgid ""
+"**Source registry not declared.** This dossier can show the analysis "
+"result, but it cannot claim an evidence tier, measured-city coverage, or "
+"partner review."
+msgstr ""
+"**No se declaró un registro de fuentes.** Este expediente puede mostrar el "
+"resultado del análisis, pero no puede afirmar un nivel de evidencia, cobertura "
+"de ciudad medida ni revisión de socios."
+
+msgid ""
+"**Under-represented vs exposure** (quiet in the data, not necessarily "
+"safe):"
+msgstr ""
+"**Sub-representados vs exposición** (silenciosos en los datos, no por "
+"ello seguros):"
+
+#, python-brace-format
+msgid ""
+"**Weather (association, not a risk rate):** {rws} of matched reports fell"
+" on wet days, while {bws} of days in the weather record were wet. Wet "
+"days usually carry far fewer riders, so this is an association to "
+"investigate, not a weather risk rate. Source: {src}."
+msgstr ""
+"**Clima (asociación, no tasa de riesgo):** {rws} de los reportes "
+"emparejados ocurrieron en días lluviosos, mientras que {bws} de los días "
+"del registro fueron lluviosos. Los días lluviosos suelen tener muchos "
+"menos ciclistas, así que es una asociación a investigar, no una tasa de "
+"riesgo por clima. Fuente: {src}."
+
+#, python-brace-format
+msgid ""
+"**{name}** is an aggregate of {blocks} contiguous, publishable segments "
+"that each cleared the configured FDR-corrected hotspot screen. Its pooled"
+" reported near-miss rate is **{rate} per {per} {unit}** (95% CI "
+"{lo}–{hi}; n={n})."
+msgstr ""
+"**{name}** es un agregado de {blocks} segmentos contiguos y publicables que "
+"superaron individualmente el filtro configurado de puntos calientes corregido por FDR. "
+"Su tasa agrupada de cuasi-accidentes reportados es **{rate} por {per} {unit}** "
+"(IC 95% {lo}–{hi}; n={n})."
 
 msgid "*Small sample: too few timed reports to read these peaks with confidence.*"
-msgstr "*Muestra pequeña: muy pocos reportes con hora para leer estos picos con confianza.*"
+msgstr ""
+"*Muestra pequeña: muy pocos reportes con hora para leer estos picos con "
+"confianza.*"
 
-msgid "*Time-of-day breakdown withheld: too few timed reports to share without risking contributor privacy (k-anonymity).*"
-msgstr "*Desglose por hora omitido: muy pocos reportes con hora para compartir sin arriesgar la privacidad de quienes reportan (anonimato-k).*"
+msgid ""
+"*Time-of-day breakdown withheld: too few timed reports to share without "
+"risking contributor privacy (k-anonymity).*"
+msgstr ""
+"*Desglose por hora omitido: muy pocos reportes con hora para compartir "
+"sin arriesgar la privacidad de quienes reportan (anonimato-k).*"
 
 #, python-brace-format
-msgid "*{n} segment with fewer than {floor} reports is withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
-msgid_plural "*{n} segments with fewer than {floor} reports are withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
-msgstr[0] "*{n} segmento con menos de {floor} reportes se omite de este informe y del conjunto de datos abierto para proteger la privacidad de quienes reportan (anonimato-k).*"
-msgstr[1] "*{n} segmentos con menos de {floor} reportes se omiten de este informe y del conjunto de datos abierto para proteger la privacidad de quienes reportan (anonimato-k).*"
+msgid ""
+"*{n} segment with fewer than {floor} reports is withheld from this brief "
+"and the open dataset to protect contributor privacy (k-anonymity).*"
+msgid_plural ""
+"*{n} segments with fewer than {floor} reports are withheld from this "
+"brief and the open dataset to protect contributor privacy (k-anonymity).*"
+msgstr[0] ""
+"*{n} segmento con menos de {floor} reportes se omite de este informe y "
+"del conjunto de datos abierto para proteger la privacidad de quienes "
+"reportan (anonimato-k).*"
+msgstr[1] ""
+"*{n} segmentos con menos de {floor} reportes se omiten de este informe y "
+"del conjunto de datos abierto para proteger la privacidad de quienes "
+"reportan (anonimato-k).*"
 
 msgid ", and it is a statistically significant cluster"
 msgstr ", y es un grupo estadísticamente significativo"
 
-msgid "- **95% CI (confidence interval)** — the plausible range for the true rate. A wide range means few reports and real uncertainty; treat those rankings gently."
-msgstr "- **IC 95% (intervalo de confianza)** — el rango plausible de la tasa real. Un rango amplio significa pocos reportes e incertidumbre real; tome esos rankings con cautela."
+msgid ""
+"- **95% CI (confidence interval)** — the plausible range for the true "
+"rate. A wide range means few reports and real uncertainty; treat those "
+"rankings gently."
+msgstr ""
+"- **IC 95% (intervalo de confianza)** — el rango plausible de la tasa "
+"real. Un rango amplio significa pocos reportes e incertidumbre real; tome"
+" esos rankings con cautela."
 
-msgid "- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot *beyond* what traffic and chance explain, after a multiple-comparison correction: a real cluster, not a fluke. Several streets can share a rate while only one is a significant cluster."
-msgstr "- **Punto caliente (Getis-Ord Gi\\*)** — un segmento marcado ★ Significativo es peligroso *más allá* de lo que explican el tránsito y el azar, tras una corrección por comparaciones múltiples: un grupo real, no una casualidad. Varias calles pueden compartir una tasa mientras solo una es un grupo significativo."
+msgid ""
+"- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot "
+"*beyond* what traffic and chance explain, after a multiple-comparison "
+"correction: a real cluster, not a fluke. Several streets can share a rate"
+" while only one is a significant cluster."
+msgstr ""
+"- **Punto caliente (Getis-Ord Gi\\*)** — un segmento marcado ★ "
+"Significativo es peligroso *más allá* de lo que explican el tránsito y el"
+" azar, tras una corrección por comparaciones múltiples: un grupo real, no"
+" una casualidad. Varias calles pueden compartir una tasa mientras solo "
+"una es un grupo significativo."
 
 #, python-brace-format
-msgid "- **Overdispersion (clustered reporting).** The report counts are overdispersed (dispersion ≈ {phi}): by that pooled estimate the Poisson 95% intervals above could be up to {infl}× too narrow. Genuine between-segment differences inflate this estimate too, so {infl}× is an upper bound on the needed widening. {clause}"
-msgstr "- **Sobredispersión (reportes agrupados).** Los recuentos de reportes están sobredispersos (dispersión ≈ {phi}): según esa estimación agrupada, los intervalos de Poisson del 95% anteriores podrían ser hasta {infl}× demasiado estrechos. Las diferencias genuinas entre segmentos también inflan esta estimación, por lo que {infl}× es una cota superior del ensanchamiento necesario. {clause}"
+msgid ""
+"- **Overdispersion (clustered reporting).** The report counts are "
+"overdispersed (dispersion ≈ {phi}): by that pooled estimate the Poisson "
+"95% intervals above could be up to {infl}× too narrow. Genuine between-"
+"segment differences inflate this estimate too, so {infl}× is an upper "
+"bound on the needed widening. {clause}"
+msgstr ""
+"- **Sobredispersión (reportes agrupados).** Los recuentos de reportes "
+"están sobredispersos (dispersión ≈ {phi}): según esa estimación agrupada,"
+" los intervalos de Poisson del 95% anteriores podrían ser hasta {infl}× "
+"demasiado estrechos. Las diferencias genuinas entre segmentos también "
+"inflan esta estimación, por lo que {infl}× es una cota superior del "
+"ensanchamiento necesario. {clause}"
 
 #, python-brace-format
-msgid "- **Overdispersion.** Report counts show no material overdispersion (dispersion ≈ {phi}); the Poisson intervals stand as computed."
-msgstr "- **Sobredispersión.** Los recuentos de reportes no muestran sobredispersión relevante (dispersión ≈ {phi}); los intervalos de Poisson se mantienen tal como se calcularon."
+msgid ""
+"- **Overdispersion.** Report counts show no material overdispersion "
+"(dispersion ≈ {phi}); the Poisson intervals stand as computed."
+msgstr ""
+"- **Sobredispersión.** Los recuentos de reportes no muestran "
+"sobredispersión relevante (dispersión ≈ {phi}); los intervalos de Poisson"
+" se mantienen tal como se calcularon."
 
 #, python-brace-format
-msgid "- **Rate** — reports per {per} {unit}. It adjusts for how many people travel a street, so a quiet street with a few reports can rank above a busy one with many."
-msgstr "- **Tasa** — reportes por {per} {unit}. Ajusta por cuánta gente transita una calle, así que una calle tranquila con pocos reportes puede superar a una concurrida con muchos."
+msgid ""
+"- **Rate** — reports per {per} {unit}. It adjusts for how many people "
+"travel a street, so a quiet street with a few reports can rank above a "
+"busy one with many."
+msgstr ""
+"- **Tasa** — reportes por {per} {unit}. Ajusta por cuánta gente transita "
+"una calle, así que una calle tranquila con pocos reportes puede superar a"
+" una concurrida con muchos."
 
 #, python-brace-format
-msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}) leaves **{name}** the highest-rate, still-significant cluster — the hotspot is not an artifact of where the block lines were drawn. Top-{k} rank overlap: {overlap}."
-msgstr "- **Re-segmentación (MAUP).** Al redibujar la red en {coarse} unidades más gruesas (desde {fine}), **{name}** sigue siendo el conglomerado de mayor tasa y aún significativo — el punto caliente no es un artefacto de dónde se trazaron los límites de las manzanas. Solapamiento de rango top-{k}: {overlap}."
+msgid ""
+"- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser"
+" units (from {fine}) leaves **{name}** the highest-rate, still-"
+"significant cluster — the hotspot is not an artifact of where the block "
+"lines were drawn. Top-{k} rank overlap: {overlap}."
+msgstr ""
+"- **Re-segmentación (MAUP).** Al redibujar la red en {coarse} unidades "
+"más gruesas (desde {fine}), **{name}** sigue siendo el conglomerado de "
+"mayor tasa y aún significativo — el punto caliente no es un artefacto de "
+"dónde se trazaron los límites de las manzanas. Solapamiento de rango "
+"top-{k}: {overlap}."
 
 #, python-brace-format
-msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}), **{name}** stays the highest-rate unit but loses statistical significance at the coarser scale — read it as scale-sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank overlap: {overlap}."
-msgstr "- **Re-segmentación (MAUP).** Al redibujar la red en {coarse} unidades más gruesas (desde {fine}), **{name}** sigue siendo la unidad de mayor tasa pero pierde significación estadística a la escala más gruesa — léalo como sensible a la escala, una pista por confirmar más que un conglomerado establecido. Solapamiento de rango top-{k}: {overlap}."
+msgid ""
+"- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser"
+" units (from {fine}), **{name}** stays the highest-rate unit but loses "
+"statistical significance at the coarser scale — read it as scale-"
+"sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank "
+"overlap: {overlap}."
+msgstr ""
+"- **Re-segmentación (MAUP).** Al redibujar la red en {coarse} unidades "
+"más gruesas (desde {fine}), **{name}** sigue siendo la unidad de mayor "
+"tasa pero pierde significación estadística a la escala más gruesa — léalo"
+" como sensible a la escala, una pista por confirmar más que un "
+"conglomerado establecido. Solapamiento de rango top-{k}: {overlap}."
 
 #, python-brace-format
 msgid "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
 msgstr "- **{name}** — Gi* z = {z}, tasa {rate}/{per} (IC {lo}-{hi}, n={n})"
 
 #, python-brace-format
-msgid "- **{name}** — most common: **{hazard}** ({count} reports), rate {rate}/{per} (CI {lo}-{hi})"
-msgstr "- **{name}** — más común: **{hazard}** ({count} reportes), tasa {rate}/{per} (IC {lo}-{hi})"
+msgid ""
+"- **{name}** — most common: **{hazard}** ({count} reports), rate "
+"{rate}/{per} (CI {lo}-{hi})"
+msgstr ""
+"- **{name}** — más común: **{hazard}** ({count} reportes), tasa "
+"{rate}/{per} (IC {lo}-{hi})"
 
 #, python-brace-format
 msgid "- **{part}**: {n} report ({pct}%)"
@@ -135,18 +350,103 @@ msgstr[0] "- **{part}**: {n} reporte ({pct}%)"
 msgstr[1] "- **{part}**: {n} reportes ({pct}%)"
 
 #, python-brace-format
+msgid "- Analysis window: {window}"
+msgstr "- Ventana de análisis: {window}"
+
+#, python-brace-format
+msgid "- Corridor id: `{corridor_id}`"
+msgstr "- Id. del corredor: `{corridor_id}`"
+
+#, python-brace-format
+msgid "- Exposure date: {date}"
+msgstr "- Fecha de exposición: {date}"
+
+#, python-brace-format
+msgid "- Exposure source: {source}"
+msgstr "- Fuente de exposición: {source}"
+
+#, python-brace-format
+msgid ""
+"- Rebuild: run `nearmiss dossier --config <city.toml> --corridor "
+"{corridor_id} --decision-request <request>` against the same inputs."
+msgstr ""
+"- Reconstrucción: ejecute `nearmiss dossier --config <city.toml> --corridor "
+"{corridor_id} --decision-request <request>` con las mismas entradas."
+
+msgid ""
+"- Reports can vary by route choice, access, language, and willingness to "
+"report; a quiet data signal is not evidence of safety."
+msgstr ""
+"- Los reportes pueden variar según la ruta elegida, el acceso, el idioma y la "
+"disposición a reportar; una señal silenciosa en los datos no prueba seguridad."
+
+#, python-brace-format
+msgid "- Source registry SHA-256: `{sha256}`"
+msgstr "- SHA-256 del registro de fuentes: `{sha256}`"
+
+msgid ""
+"- The corridor boundary is a coarser view of block results. Read it "
+"alongside the underlying block layer, not instead of it."
+msgstr ""
+"- El límite del corredor es una vista más agregada de los resultados por bloque. "
+"Léalo junto con la capa de bloques subyacente, no en su lugar."
+
+msgid ""
+"- The interval expresses sampling uncertainty in reported counts; it does"
+" not remove reporting bias."
+msgstr ""
+"- El intervalo expresa la incertidumbre muestral de los recuentos reportados; "
+"no elimina el sesgo de reporte."
+
+#, python-brace-format
+msgid "- `{source_id}` — {name} (updated {updated_at})"
+msgstr "- `{source_id}` — {name} (actualizada {updated_at})"
+
+#, python-brace-format, python-format
 msgid "- {name}: {rshare}% of reports vs {eshare}% of exposure"
 msgstr "- {name}: {rshare}% de los reportes vs {eshare}% de la exposición"
 
 msgid "95% CI"
 msgstr "IC 95%"
 
-#, python-brace-format
-msgid "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence interval and an n. Raw counts are not danger; they are report volume. Read the caveats — they are the point."
-msgstr "> Las tasas son reportes por {per} {unit}. Cada tasa lleva un intervalo de confianza del 95% y una n. Los conteos crudos no son peligro; son volumen de reportes. Lea las advertencias — son lo esencial."
+msgid ""
+"> **Status: evidence for review.** This is a reproducible corridor "
+"finding, not a safety verdict or a treatment recommendation."
+msgstr ""
+"> **Estado: evidencia para revisión.** Este es un hallazgo de corredor reproducible, "
+"no un veredicto de seguridad ni una recomendación de intervención."
 
-msgid "Blocks are the unit of measurement; corridors are the unit council motions and campaigns are written in. Each corridor below merges contiguous, statistically significant blocks of the same street into one named span, with its own rate, interval, and n — published *alongside*, never instead of, the block-level table above."
-msgstr "Los bloques son la unidad de medición; los corredores son la unidad en la que se redactan las mociones municipales y las campañas. Cada corredor a continuación combina bloques contiguos y estadísticamente significativos de la misma calle en un tramo con nombre, con su propia tasa, intervalo y n — publicado *junto a*, nunca en lugar de, la tabla a nivel de bloque anterior."
+#, python-brace-format
+msgid ""
+"> Rates are reports per {per} {unit}. Every rate carries a 95% confidence"
+" interval and an n. Raw counts are not danger; they are report volume. "
+"Read the caveats — they are the point."
+msgstr ""
+"> Las tasas son reportes por {per} {unit}. Cada tasa lleva un intervalo "
+"de confianza del 95% y una n. Los conteos crudos no son peligro; son "
+"volumen de reportes. Lea las advertencias — son lo esencial."
+
+msgid ""
+"Before acting, confirm the decision owner, inspect the corridor in "
+"context, and record what follow-up measure and review window would test "
+"the chosen action."
+msgstr ""
+"Antes de actuar, confirme quién decide, inspeccione el corredor en contexto y "
+"registre qué medida de seguimiento y periodo de revisión probarían la acción elegida."
+
+msgid ""
+"Blocks are the unit of measurement; corridors are the unit council "
+"motions and campaigns are written in. Each corridor below merges "
+"contiguous, statistically significant blocks of the same street into one "
+"named span, with its own rate, interval, and n — published *alongside*, "
+"never instead of, the block-level table above."
+msgstr ""
+"Los bloques son la unidad de medición; los corredores son la unidad en la"
+" que se redactan las mociones municipales y las campañas. Cada corredor a"
+" continuación combina bloques contiguos y estadísticamente significativos"
+" de la misma calle en un tramo con nombre, con su propia tasa, intervalo "
+"y n — publicado *junto a*, nunca en lugar de, la tabla a nivel de bloque "
+"anterior."
 
 msgid "Blocks merged"
 msgstr "Bloques combinados"
@@ -157,8 +457,14 @@ msgstr "Confianza"
 msgid "Corridor"
 msgstr "Corredor"
 
-msgid "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
-msgstr "Cada cifra de arriba se regenera desde los datos crudos con `make reproduce`. Los datos y métodos son abiertos (Apache-2.0); vea `docs/METHODOLOGY.md` y `docs/DATA-CARD.md`."
+msgid ""
+"Every figure above regenerates from raw inputs with `make reproduce`. "
+"Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and "
+"`docs/DATA-CARD.md`."
+msgstr ""
+"Cada cifra de arriba se regenera desde los datos crudos con `make "
+"reproduce`. Los datos y métodos son abiertos (Apache-2.0); vea "
+"`docs/METHODOLOGY.md` y `docs/DATA-CARD.md`."
 
 msgid "Exposure tier"
 msgstr "Nivel de confianza de la exposición"
@@ -173,14 +479,27 @@ msgid "Monday"
 msgstr "lunes"
 
 #, python-brace-format
-msgid "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
-msgstr "La mayoría de los reportes llegan durante la **{part}**; el día más activo es **{weekday}**."
+msgid ""
+"Most reports arrive during the **{part}**; the busiest day is "
+"**{weekday}**."
+msgstr ""
+"La mayoría de los reportes llegan durante la **{part}**; el día más "
+"activo es **{weekday}**."
 
-msgid "No contiguous run of significant blocks reached corridor size in this dataset — the block-level hotspots above are the finest and only unit available this cycle."
-msgstr "Ninguna serie contigua de bloques significativos alcanzó el tamaño de corredor en este conjunto de datos — los puntos calientes a nivel de bloque anteriores son la unidad más fina y la única disponible en este ciclo."
+msgid ""
+"No contiguous run of significant blocks reached corridor size in this "
+"dataset — the block-level hotspots above are the finest and only unit "
+"available this cycle."
+msgstr ""
+"Ninguna serie contigua de bloques significativos alcanzó el tamaño de "
+"corredor en este conjunto de datos — los puntos calientes a nivel de "
+"bloque anteriores son la unidad más fina y la única disponible en este "
+"ciclo."
 
 msgid "No segment reaches statistical significance at this sample size."
-msgstr "Ningún segmento alcanza significancia estadística con este tamaño de muestra."
+msgstr ""
+"Ningún segmento alcanza significancia estadística con este tamaño de "
+"muestra."
 
 msgid "Rank"
 msgstr "Rango"
@@ -189,8 +508,12 @@ msgstr "Rango"
 msgid "Rate /{per}"
 msgstr "Tasa /{per}"
 
-msgid "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening is available via the `overdispersion_adjust` setting)."
-msgstr "Léalos como una cota inferior de la incertidumbre real (hay disponible una ampliación cuasi-Poisson mediante el ajuste `overdispersion_adjust`)."
+msgid ""
+"Read them as a lower bound on the true uncertainty (a quasi-Poisson "
+"widening is available via the `overdispersion_adjust` setting)."
+msgstr ""
+"Léalos como una cota inferior de la incertidumbre real (hay disponible "
+"una ampliación cuasi-Poisson mediante el ajuste `overdispersion_adjust`)."
 
 msgid "Saturday"
 msgstr "sábado"
@@ -198,23 +521,81 @@ msgstr "sábado"
 msgid "Segment"
 msgstr "Segmento"
 
-msgid "Shares compare where reports land against where exposure is. They cannot, on their own, separate 'more dangerous' from 'more reported': reporter pools skew by route choice, demographics, app access, and language. Treat over-represented segments as candidates for attention and scrutiny, not as confirmed rankings."
-msgstr "Las cuotas comparan dónde caen los reportes con dónde está la exposición. Por sí solas no pueden separar 'más peligroso' de 'más reportado': quienes reportan varían por elección de ruta, demografía, acceso a apps e idioma. Trate los segmentos sobre-representados como candidatos a revisar, no como rankings confirmados."
+msgid ""
+"Shares compare where reports land against where exposure is. They cannot,"
+" on their own, separate 'more dangerous' from 'more reported': reporter "
+"pools skew by route choice, demographics, app access, and language. Treat"
+" over-represented segments as candidates for attention and scrutiny, not "
+"as confirmed rankings."
+msgstr ""
+"Las cuotas comparan dónde caen los reportes con dónde está la exposición."
+" Por sí solas no pueden separar 'más peligroso' de 'más reportado': "
+"quienes reportan varían por elección de ruta, demografía, acceso a apps e"
+" idioma. Trate los segmentos sobre-representados como candidatos a "
+"revisar, no como rankings confirmados."
 
 msgid "Sunday"
 msgstr "domingo"
 
-msgid "The headline rate is pooled across every hazard type (a union). This names the single most common conflict type at each ranked segment and gives *its* exposure-normalized rate; types with too few reports to share are omitted."
-msgstr "La tasa principal agrupa todos los tipos de peligro (una unión). Aquí se nombra el tipo de conflicto más común en cada segmento clasificado y se da *su* tasa normalizada por exposición; se omiten los tipos con muy pocos reportes para compartir."
+msgid ""
+"The corridor uses the same already-published block aggregates; it does "
+"not create a new hotspot test or reveal a withheld segment."
+msgstr ""
+"El corredor usa los mismos agregados por bloque ya publicados; no crea una "
+"nueva prueba de puntos calientes ni revela un segmento retenido."
 
-msgid "These segments are hot *beyond* what exposure and spatial structure explain — candidates for hot because dangerous, not hot because busy:"
-msgstr "Estos segmentos son peligrosos *más allá* de lo que explican la exposición y la estructura espacial — candidatos a peligrosos, no solo concurridos:"
+msgid ""
+"The headline rate is pooled across every hazard type (a union). This "
+"names the single most common conflict type at each ranked segment and "
+"gives *its* exposure-normalized rate; types with too few reports to share"
+" are omitted."
+msgstr ""
+"La tasa principal agrupa todos los tipos de peligro (una unión). Aquí se "
+"nombra el tipo de conflicto más común en cada segmento clasificado y se "
+"da *su* tasa normalizada por exposición; se omiten los tipos con muy "
+"pocos reportes para compartir."
 
-msgid "This does not mean nothing can be concluded — an exposure-normalized rate with a stated interval and a flagged bias is a far better basis for action than a raw heat map. It means: act on the strongest, most-significant signals, and treat the rest as leads to investigate, not verdicts."
-msgstr "Esto no significa que no se pueda concluir nada — una tasa normalizada por exposición, con un intervalo y un sesgo señalados, es una base mucho mejor que un mapa de calor crudo. Significa: actúe sobre las señales más fuertes y significativas, y trate el resto como pistas a investigar, no como veredictos."
+msgid ""
+"These segments are hot *beyond* what exposure and spatial structure "
+"explain — candidates for hot because dangerous, not hot because busy:"
+msgstr ""
+"Estos segmentos son peligrosos *más allá* de lo que explican la "
+"exposición y la estructura espacial — candidatos a peligrosos, no solo "
+"concurridos:"
 
-msgid "This is **report volume** by time of day, not a rate: there is no time-of-day exposure denominator, so it reflects *when people ride and report*, not when a street is most dangerous. Read it as a lead for outreach timing, not a risk ranking."
-msgstr "Esto es **volumen de reportes** por hora del día, no una tasa: no hay denominador de exposición por hora, así que refleja *cuándo la gente circula y reporta*, no cuándo una calle es más peligrosa. Léalo como pista para programar difusión, no como ranking de riesgo."
+msgid ""
+"This does not mean nothing can be concluded — an exposure-normalized rate"
+" with a stated interval and a flagged bias is a far better basis for "
+"action than a raw heat map. It means: act on the strongest, most-"
+"significant signals, and treat the rest as leads to investigate, not "
+"verdicts."
+msgstr ""
+"Esto no significa que no se pueda concluir nada — una tasa normalizada "
+"por exposición, con un intervalo y un sesgo señalados, es una base mucho "
+"mejor que un mapa de calor crudo. Significa: actúe sobre las señales más "
+"fuertes y significativas, y trate el resto como pistas a investigar, no "
+"como veredictos."
+
+msgid ""
+"This dossier does **not** establish danger, fault, causation, the likely "
+"effect of a treatment, or conditions for any individual trip. It records "
+"a reported, exposure-normalized pattern that merits the decision request "
+"above."
+msgstr ""
+"Este expediente **no** establece peligro, culpa, causalidad, el efecto probable "
+"de una intervención ni las condiciones de un viaje individual. Registra un patrón "
+"reportado y normalizado por exposición que justifica la solicitud de decisión anterior."
+
+msgid ""
+"This is **report volume** by time of day, not a rate: there is no time-"
+"of-day exposure denominator, so it reflects *when people ride and "
+"report*, not when a street is most dangerous. Read it as a lead for "
+"outreach timing, not a risk ranking."
+msgstr ""
+"Esto es **volumen de reportes** por hora del día, no una tasa: no hay "
+"denominador de exposición por hora, así que refleja *cuándo la gente "
+"circula y reporta*, no cuándo una calle es más peligrosa. Léalo como "
+"pista para programar difusión, no como ranking de riesgo."
 
 msgid "Those intervals have already been widened accordingly (quasi-Poisson)."
 msgstr "Esos intervalos ya se han ampliado en consecuencia (cuasi-Poisson)."
@@ -231,6 +612,9 @@ msgstr "miércoles"
 #, python-brace-format
 msgid "Where the danger actually is — {city}"
 msgstr "Dónde está realmente el peligro — {city}"
+
+msgid "all available data (no bounded analysis window configured)"
+msgstr "todos los datos disponibles (no se configuró una ventana de análisis delimitada)"
 
 msgid "blocked sightline"
 msgstr "línea de visión obstruida"
@@ -317,25 +701,45 @@ msgid "web.app.blLoading"
 msgstr "Resumiendo…"
 
 msgid "web.app.blNone"
-msgstr "En resumen: ninguna de las {n} cuadras analizadas es un punto caliente estadísticamente significativo — ninguna calle es más peligrosa de lo que explican exposición y azar. El volumen crudo no es peligro."
+msgstr ""
+"En resumen: ninguna de las {n} cuadras analizadas es un punto caliente "
+"estadísticamente significativo — ninguna calle es más peligrosa de lo que"
+" explican exposición y azar. El volumen crudo no es peligro."
 
 msgid "web.app.blSummary"
-msgstr "En resumen: {hot} de {n} cuadras analizadas son puntos calientes estadísticamente significativos — más peligrosos de lo que explica el tráfico (exposición). Mayor tasa por persona: {list}. El volumen crudo no es peligro."
+msgstr ""
+"En resumen: {hot} de {n} cuadras analizadas son puntos calientes "
+"estadísticamente significativos — más peligrosos de lo que explica el "
+"tráfico (exposición). Mayor tasa por persona: {list}. El volumen crudo no"
+" es peligro."
 
 msgid "web.app.capRate"
-msgstr "Los mismos segmentos por tasa normalizada por exposición. {hot} punto(s) caliente(s) significativo(s) — discontinuos y etiquetados — aparecen, mientras la calle más reportada se reduce a una línea delgada."
+msgstr ""
+"Los mismos segmentos por tasa normalizada por exposición. {hot} punto(s) "
+"caliente(s) significativo(s) — discontinuos y etiquetados — aparecen, "
+"mientras la calle más reportada se reduce a una línea delgada."
 
 msgid "web.app.capRateNone"
-msgstr "Los mismos segmentos por tasa normalizada por exposición. Ningún segmento es un punto caliente estadísticamente significativo; la calle más reportada se desvanece."
+msgstr ""
+"Los mismos segmentos por tasa normalizada por exposición. Ningún segmento"
+" es un punto caliente estadísticamente significativo; la calle más "
+"reportada se desvanece."
 
 msgid "web.app.capReports"
-msgstr "{n} segmentos de calle. Las líneas más gruesas y oscuras tienen más reportes. La calle más reportada ({peak}) domina — pero el volumen es exposición, no peligro."
+msgstr ""
+"{n} segmentos de calle. Las líneas más gruesas y oscuras tienen más "
+"reportes. La calle más reportada ({peak}) domina — pero el volumen es "
+"exposición, no peligro."
 
 msgid "web.app.caption"
-msgstr "Tasas normalizadas por exposición de los {n} segmentos analizados (calles con reportes)."
+msgstr ""
+"Tasas normalizadas por exposición de los {n} segmentos analizados (calles"
+" con reportes)."
 
 msgid "web.app.captionFiltered"
-msgstr "Tasas normalizadas por exposición — mostrando {shown} de {n} segmentos analizados (filtrado)."
+msgstr ""
+"Tasas normalizadas por exposición — mostrando {shown} de {n} segmentos "
+"analizados (filtrado)."
 
 msgid "web.app.conf_certain"
 msgstr "cierto"
@@ -350,13 +754,21 @@ msgid "web.app.data_h"
 msgstr "Segmentos clasificados"
 
 msgid "web.app.demo"
-msgstr "⚠️ Mostrando el conjunto de <strong>demostración sintética de Davis</strong> — datos de prueba, no reportes reales. El método es lo importante; solo se pueden seleccionar artefactos revisados e incluidos explícitamente en la lista permitida."
+msgstr ""
+"⚠️ Mostrando el conjunto de <strong>demostración sintética de "
+"Davis</strong> — datos de prueba, no reportes reales. El método es lo "
+"importante; solo se pueden seleccionar artefactos revisados e incluidos "
+"explícitamente en la lista permitida."
 
 msgid "web.app.demo_real"
-msgstr "✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. {source}"
+msgstr ""
+"✓ <strong>{city}: datos reales.</strong> Tasas normalizadas por {unit}. "
+"{source}"
 
 msgid "web.app.demo_synth"
-msgstr "⚠️ Mostrando la <strong>demostración sintética de {city}</strong> — datos de prueba, no reportes reales."
+msgstr ""
+"⚠️ Mostrando la <strong>demostración sintética de {city}</strong> — datos"
+" de prueba, no reportes reales."
 
 msgid "web.app.desc"
 msgstr "descendente"
@@ -368,19 +780,40 @@ msgid "web.app.downloadMeta"
 msgstr " — {city}, datos v{ver} ({n} segmentos)"
 
 msgid "web.app.fail"
-msgstr "No se pudieron cargar los datos publicados ({msg}). Ejecute `make publish`, luego `nearmiss serve` y abra /web/davis-demo.html."
+msgstr ""
+"No se pudieron cargar los datos publicados ({msg}). Ejecute `make "
+"publish`, luego `nearmiss serve` y abra /web/davis-demo.html."
 
 msgid "web.app.faq_a1"
-msgstr "Porque el volumen no es peligro. Una calle transitada acumula más reportes simplemente porque la usa más gente. Dividimos los reportes por la exposición (cuánta bicicleta lleva cada calle), así que el mapa muestra la tasa por persona, no el conteo crudo. Una calle muy transitada puede tener muchos reportes y aun así ser más segura por viaje que una tranquila con pocos."
+msgstr ""
+"Porque el volumen no es peligro. Una calle transitada acumula más "
+"reportes simplemente porque la usa más gente. Dividimos los reportes por "
+"la exposición (cuánta bicicleta lleva cada calle), así que el mapa "
+"muestra la tasa por persona, no el conteo crudo. Una calle muy transitada"
+" puede tener muchos reportes y aun así ser más segura por viaje que una "
+"tranquila con pocos."
 
 msgid "web.app.faq_a2"
-msgstr "No. Son cuasi-accidentes y peligros autoinformados que, por definición, normalmente no dejan un reporte policial. Son una señal de alerta temprana, no lesiones verificadas ni estadísticas de colisiones, y nunca los presentamos como tales."
+msgstr ""
+"No. Son cuasi-accidentes y peligros autoinformados que, por definición, "
+"normalmente no dejan un reporte policial. Son una señal de alerta "
+"temprana, no lesiones verificadas ni estadísticas de colisiones, y nunca "
+"los presentamos como tales."
 
 msgid "web.app.faq_a3"
-msgstr "Significa que no tenemos un conteo confiable de cuánta gente circula en bicicleta por esa calle, así que no inventaremos un denominador. Esos segmentos se muestran como inciertos y nunca se clasifican como si estuviéramos seguros. Una tasa sin denominador no se publica."
+msgstr ""
+"Significa que no tenemos un conteo confiable de cuánta gente circula en "
+"bicicleta por esa calle, así que no inventaremos un denominador. Esos "
+"segmentos se muestran como inciertos y nunca se clasifican como si "
+"estuviéramos seguros. Una tasa sin denominador no se publica."
 
 msgid "web.app.faq_a4"
-msgstr "Una calle se marca “★ Significativo” solo cuando una prueba estadística (Getis-Ord Gi*, con corrección de tasa de falso descubrimiento) indica que es más peligrosa de lo que explican exposición y azar por sí solos. Todo lo demás lleva un intervalo de confianza para que vea qué tan seguro — o inseguro — es el número."
+msgstr ""
+"Una calle se marca “★ Significativo” solo cuando una prueba estadística "
+"(Getis-Ord Gi*, con corrección de tasa de falso descubrimiento) indica "
+"que es más peligrosa de lo que explican exposición y azar por sí solos. "
+"Todo lo demás lleva un intervalo de confianza para que vea qué tan seguro"
+" — o inseguro — es el número."
 
 msgid "web.app.faq_h"
 msgstr "Preguntas frecuentes"
@@ -419,7 +852,15 @@ msgid "web.app.flag_modeled_exposure"
 msgstr "exposición modelada (no medida)"
 
 msgid "web.app.footer"
-msgstr "Datos abiertos, Apache-2.0. <a href=\"https://github.com/ChelseaKR/nearmiss\">Código en GitHub</a> · <a href=\"https://chelseakr.com\">chelseakr.com</a>. Mapas © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contribuyentes. Métodos: <code>docs/METHODOLOGY.md</code>; lo que no puede decirle: <code>docs/LIMITATIONS.md</code>; límites y sesgos: <code>docs/DATA-CARD.md</code>. Cada cifra se regenera con <code>make reproduce</code>."
+msgstr ""
+"Datos abiertos, Apache-2.0. <a "
+"href=\"https://github.com/ChelseaKR/nearmiss\">Código en GitHub</a> · <a "
+"href=\"https://chelseakr.com\">chelseakr.com</a>. Mapas © <a "
+"href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> "
+"contribuyentes. Métodos: <code>docs/METHODOLOGY.md</code>; lo que no "
+"puede decirle: <code>docs/LIMITATIONS.md</code>; límites y sesgos: "
+"<code>docs/DATA-CARD.md</code>. Cada cifra se regenera con <code>make "
+"reproduce</code>."
 
 msgid "web.app.h1"
 msgstr "nearmiss — dónde está realmente el peligro"
@@ -431,10 +872,14 @@ msgid "web.app.hsLoading"
 msgstr "Resumiendo puntos calientes…"
 
 msgid "web.app.hsSummary"
-msgstr "{n} punto(s) caliente(s) estadísticamente significativo(s) — más peligrosos de lo que explican exposición y azar: {list}."
+msgstr ""
+"{n} punto(s) caliente(s) estadísticamente significativo(s) — más "
+"peligrosos de lo que explican exposición y azar: {list}."
 
 msgid "web.app.hsSummaryNone"
-msgstr "No hay puntos calientes estadísticamente significativos en este conjunto (ninguna calle es más peligrosa de lo que explican exposición y azar)."
+msgstr ""
+"No hay puntos calientes estadísticamente significativos en este conjunto "
+"(ninguna calle es más peligrosa de lo que explican exposición y azar)."
 
 msgid "web.app.hz_close_pass"
 msgstr "paso cercano"
@@ -464,10 +909,25 @@ msgid "web.app.lblHotspot"
 msgstr "{name} — ★ tasa {rate}"
 
 msgid "web.app.lede"
-msgstr "Tasas de peligros viales y cuasi-accidentes, <strong>normalizadas por exposición</strong>, cada una con un intervalo de confianza del 95% y una <em>n</em>. Los conteos crudos son volumen de reportes, no peligro. Los dos mapas de abajo muestran la diferencia; la <a href=\"#data-table\">tabla de datos</a> lleva cada hallazgo y es el equivalente no visual de los mapas."
+msgstr ""
+"Tasas de peligros viales y cuasi-accidentes, <strong>normalizadas por "
+"exposición</strong>, cada una con un intervalo de confianza del 95% y una"
+" <em>n</em>. Los conteos crudos son volumen de reportes, no peligro. Los "
+"dos mapas de abajo muestran la diferencia; la <a href=\"#data-"
+"table\">tabla de datos</a> lleva cada hallazgo y es el equivalente no "
+"visual de los mapas."
 
 msgid "web.app.legend"
-msgstr "<li><strong>Tasa /1000</strong> — reportes por 1000 unidades de exposición, no un conteo crudo.</li><li><strong>IC 95%</strong> — el rango plausible. Un rango amplio significa incertidumbre.</li><li><strong>Confianza</strong> — “incierto” marca muestras pequeñas; “exposición desconocida” marca segmentos sin denominador (nunca clasificados como ciertos).</li><li><strong>Punto caliente (Gi*)</strong> — “★ Significativo” marca un grupo estadísticamente significativo (Getis-Ord Gi*, z &gt; 1.96): peligroso más allá de lo que explican exposición y azar.</li>"
+msgstr ""
+"<li><strong>Tasa /1000</strong> — reportes por 1000 unidades de "
+"exposición, no un conteo crudo.</li><li><strong>IC 95%</strong> — el "
+"rango plausible. Un rango amplio significa "
+"incertidumbre.</li><li><strong>Confianza</strong> — “incierto” marca "
+"muestras pequeñas; “exposición desconocida” marca segmentos sin "
+"denominador (nunca clasificados como ciertos).</li><li><strong>Punto "
+"caliente (Gi*)</strong> — “★ Significativo” marca un grupo "
+"estadísticamente significativo (Getis-Ord Gi*, z &gt; 1.96): peligroso "
+"más allá de lo que explican exposición y azar.</li>"
 
 msgid "web.app.legend_h"
 msgstr "Cómo leer esto"
@@ -482,10 +942,22 @@ msgid "web.app.mapEmpty"
 msgstr "No hay segmentos mapeables."
 
 msgid "web.app.mapNoLeaflet"
-msgstr "Los mapas interactivos necesitan JavaScript y la biblioteca de mapas. La tabla de datos de abajo lleva cada hallazgo."
+msgstr ""
+"Los mapas interactivos necesitan JavaScript y la biblioteca de mapas. La "
+"tabla de datos de abajo lleva cada hallazgo."
 
 msgid "web.app.map_desc"
-msgstr "Los mismos reportes de cuasi-accidentes, mapeados de dos formas sobre un mapa de calles real. A la izquierda, el <strong>conteo crudo de reportes</strong> — lo que muestran casi todos los mapas: la calle más transitada parece la más peligrosa. A la derecha, la <strong>tasa por 1000 unidades de exposición</strong> — que es lo que de verdad refleja el peligro. Observe cómo la calle más transitada se desvanece y el punto caliente real aparece. Nada se transmite solo por color: el grosor de la línea escala con el valor y los puntos calientes significativos van discontinuos y etiquetados. Todo está en la <a href=\"#data-table\">tabla de datos</a>, que los mapas complementan."
+msgstr ""
+"Los mismos reportes de cuasi-accidentes, mapeados de dos formas sobre un "
+"mapa de calles real. A la izquierda, el <strong>conteo crudo de "
+"reportes</strong> — lo que muestran casi todos los mapas: la calle más "
+"transitada parece la más peligrosa. A la derecha, la <strong>tasa por "
+"1000 unidades de exposición</strong> — que es lo que de verdad refleja el"
+" peligro. Observe cómo la calle más transitada se desvanece y el punto "
+"caliente real aparece. Nada se transmite solo por color: el grosor de la "
+"línea escala con el valor y los puntos calientes significativos van "
+"discontinuos y etiquetados. Todo está en la <a href=\"#data-table\">tabla"
+" de datos</a>, que los mapas complementan."
 
 msgid "web.app.map_h"
 msgstr "Dos mapas, los mismos reportes"
@@ -515,10 +987,15 @@ msgid "web.app.print_btn"
 msgstr "🖨 Imprimir / guardar como PDF"
 
 msgid "web.app.print_caveat"
-msgstr "Las tasas se muestran con intervalos de confianza del 95%. Los segmentos sin un denominador de exposición confiable se muestran como inciertos y nunca se clasifican como si fueran ciertos."
+msgstr ""
+"Las tasas se muestran con intervalos de confianza del 95%. Los segmentos "
+"sin un denominador de exposición confiable se muestran como inciertos y "
+"nunca se clasifican como si fueran ciertos."
 
 msgid "web.app.print_footer"
-msgstr "nearmiss — tasas de cuasi-accidentes, normalizadas por exposición · https://nearmiss.chelseakr.com"
+msgstr ""
+"nearmiss — tasas de cuasi-accidentes, normalizadas por exposición · "
+"https://nearmiss.chelseakr.com"
 
 msgid "web.app.print_generated_label"
 msgstr "Generado:"
@@ -545,7 +1022,10 @@ msgid "web.app.sortStatus"
 msgstr "Tabla ordenada por {col}, {dir}."
 
 msgid "web.app.sort_help"
-msgstr "Ordene la tabla con los botones de columna. La <strong>significancia</strong> y la <strong>confianza</strong> se expresan en palabras, no por color."
+msgstr ""
+"Ordene la tabla con los botones de columna. La "
+"<strong>significancia</strong> y la <strong>confianza</strong> se "
+"expresan en palabras, no por color."
 
 msgid "web.app.source_label"
 msgstr "Fuente:"
@@ -602,7 +1082,9 @@ msgid "web.app.titleCity"
 msgstr "nearmiss — dónde está realmente el peligro ({city})"
 
 msgid "web.app.tt_ci"
-msgstr "Intervalo de confianza del 95%: el rango plausible. Amplio significa incierto."
+msgstr ""
+"Intervalo de confianza del 95%: el rango plausible. Amplio significa "
+"incierto."
 
 msgid "web.app.tt_conf"
 msgstr "“incierto” = muestra pequeña; “exposición desconocida” = sin denominador."
@@ -611,94 +1093,119 @@ msgid "web.app.tt_flags"
 msgstr "Advertencias de calidad de datos para este segmento."
 
 msgid "web.app.tt_hazards"
-msgstr "Qué tipos de peligro se reportaron aquí (suprimido en muestras muy pequeñas)."
+msgstr ""
+"Qué tipos de peligro se reportaron aquí (suprimido en muestras muy "
+"pequeñas)."
 
 msgid "web.app.tt_hot"
-msgstr "Puntuación z de Getis-Ord Gi*; ★ Significativo es un grupo real (z > 1.96, con corrección FDR)."
+msgstr ""
+"Puntuación z de Getis-Ord Gi*; ★ Significativo es un grupo real (z > "
+"1.96, con corrección FDR)."
 
 msgid "web.app.tt_n"
 msgstr "Número de reportes en este segmento (el tamaño de muestra)."
 
 msgid "web.app.tt_rate"
-msgstr "Reportes por 1000 unidades de exposición — riesgo por persona, no un conteo crudo."
+msgstr ""
+"Reportes por 1000 unidades de exposición — riesgo por persona, no un "
+"conteo crudo."
 
 msgid "web.app.tt_tier"
-msgstr "Cuánto confiar en el denominador de exposición de este segmento: observado (conteo directo), modelado (modelo de demanda), indicador indirecto (capa de actividad de terceros), o desconocido."
-
-msgid "web.submit.geo_denied"
-msgstr "No se pudo obtener su ubicación — escriba un lugar."
-
-msgid "web.submit.geo_filled"
-msgstr "Ubicación completada. Puede ajustarla."
-
-msgid "web.submit.geo_locating"
-msgstr "Ubicando…"
-
-msgid "web.submit.geo_unavailable"
-msgstr "La geolocalización no está disponible — escriba una ubicación."
-
-msgid "web.submit.need_coords"
-msgstr "una latitud (−90..90) y longitud (−180..180) válidas"
-
-msgid "web.submit.need_hazard"
-msgstr "un tipo de peligro"
-
-msgid "web.submit.need_location"
-msgstr "una ubicación (use mi ubicación, lat/lon o una dirección)"
-
-msgid "web.submit.need_severity"
-msgstr "una gravedad"
-
-msgid "web.submit.status_copied"
-msgstr "Copiado al portapapeles."
-
-msgid "web.submit.status_copy_manual"
-msgstr "Seleccione el texto y cópielo manualmente."
-
-msgid "web.submit.status_missing"
-msgstr "Por favor indique: {fields}."
-
-msgid "web.submit.status_ready"
-msgstr "Su reporte está listo abajo — aún necesita revisión humana antes de contar."
-
-msgid "web.submit.status_received"
-msgstr "Gracias. Su cuasi-accidente fue recibido y está en espera de revisión."
-
-msgid "web.submit.status_send_failed"
-msgstr "No se pudo conectar con el servidor — aquí está su reporte para enviarlo manualmente."
-
-msgid "web.submit.status_sending"
-msgstr "Enviando su reporte para revisión…"
+msgstr ""
+"Cuánto confiar en el denominador de exposición de este segmento: "
+"observado (conteo directo), modelado (modelo de demanda), indicador "
+"indirecto (capa de actividad de terceros), o desconocido."
 
 msgid "web.app.us_coverage_cta"
-msgstr "<strong>Esta página de Davis es una demostración sintética.</strong> <a href=\"/web/us-coverage.html\">Explore por separado evidencia nacional de EE. UU. de registros revisados de choques fatales de 2020–2024 →</a>"
+msgstr ""
+"<strong>Esta página de Davis es una demostración sintética.</strong> <a "
+"href=\"/web/us-coverage.html\">Explore por separado evidencia nacional de"
+" EE. UU. de registros revisados de choques fatales de 2020–2024 →</a>"
 
-msgid "web.coverage.annual_contract_label"
-msgstr "Contrato anual"
+msgid "web.coverage.accessibility_status"
+msgstr "Estado de accesibilidad y revisión pendiente"
+
+msgid "web.coverage.accessible_table"
+msgstr "Abrir la tabla accesible de comparación"
+
+msgid "web.coverage.add_to_brief"
+msgstr "Añadir al resumen"
 
 msgid "web.coverage.all_modes"
 msgstr "Todos los modos"
 
-msgid "web.coverage.choose_state"
-msgstr "Elija un estado o DC"
+msgid "web.coverage.all_states"
+msgstr "Todos los estados + DC"
 
 msgid "web.coverage.all_statuses"
 msgstr "Todos los estados de publicación"
 
+msgid "web.coverage.annual_contract_label"
+msgstr "Contrato anual"
+
 msgid "web.coverage.back"
 msgstr "← Inicio de evidencia nacional"
+
+msgid "web.coverage.boundary_checksum_label"
+msgstr "SHA-256 del archivo de límites"
+
+msgid "web.coverage.boundary_download"
+msgstr "Descargar los límites del Censo en GeoJSON"
+
+msgid "web.coverage.boundary_source_label"
+msgstr "Límites del mapa"
+
+msgid "web.coverage.brief_cleared"
+msgstr "Se borró el resumen."
+
+msgid "web.coverage.brief_count"
+msgstr "{year}: {count} choques fatales; modo involucrado: {mode}."
+
+msgid "web.coverage.brief_empty"
+msgstr ""
+"Aún no hay evidencia guardada. Seleccione un estado y añádalo desde el "
+"inspector."
+
+msgid "web.coverage.brief_h"
+msgstr "Resumen de evidencia"
+
+msgid "web.coverage.brief_intro"
+msgstr ""
+"Guarde hasta cuatro estados. El resumen imprimible mantiene asociados el "
+"año, el modo, el estado de publicación, la versión exacta, la fuente y el"
+" límite ‘los conteos no son riesgo’."
+
+msgid "web.coverage.brief_kicker"
+msgstr "Mantenga la salvedad junto al número"
+
+msgid "web.coverage.brief_removed"
+msgstr "Se quitó el estado del resumen."
+
+msgid "web.coverage.brief_saved"
+msgstr "Se añadió el estado al resumen."
+
+msgid "web.coverage.brief_unpublished"
+msgstr "Modo {mode}: no hay un conteo numérico publicado."
 
 msgid "web.coverage.can_h"
 msgstr "Lo que esto puede responder"
 
 msgid "web.coverage.can_list"
-msgstr "<li>Cuántos choques fatales involucraron cada modo en un estado en el año seleccionado.</li><li>Qué celdas cumplieron el mínimo de publicación para celdas pequeñas.</li><li>Qué versión oficial y transformación produjeron los conteos.</li>"
+msgstr ""
+"<li>Cuántos choques fatales involucraron cada modo en un estado en el año"
+" seleccionado.</li><li>Qué celdas cumplieron el mínimo de publicación "
+"para celdas pequeñas.</li><li>Qué versión oficial y transformación "
+"produjeron los conteos.</li>"
 
 msgid "web.coverage.cannot_h"
 msgstr "Lo que esto no puede responder"
 
 msgid "web.coverage.cannot_list"
-msgstr "<li>Riesgo, tasa, culpa, causalidad o una clasificación de seguridad.</li><li>Cuasi-accidentes, choques no fatales, condados, calles o intersecciones.</li><li>Si una celda no publicada es cero o fue suprimida.</li>"
+msgstr ""
+"<li>Riesgo, tasa, culpa, causalidad o una clasificación de "
+"seguridad.</li><li>Cuasi-accidentes, choques no fatales, condados, calles"
+" o intersecciones.</li><li>Si una celda no publicada es cero o fue "
+"suprimida.</li>"
 
 msgid "web.coverage.caption"
 msgstr "Se muestran {shown} de {total} celdas de estado × modo."
@@ -710,10 +1217,15 @@ msgid "web.coverage.caption_loading"
 msgstr "Cargando la evidencia estatal…"
 
 msgid "web.coverage.caption_state"
-msgstr "{state}, {year}: se muestran {shown} de {total} celdas de modo involucrado."
+msgstr ""
+"{state}, {year}: se muestran {shown} de {total} celdas de modo "
+"involucrado."
 
 msgid "web.coverage.caveat"
-msgstr "<strong>Los conteos no son riesgo.</strong> No consideran población, viajes, millas ni exposición. Los modos pueden superponerse en un choque, por lo que sus conteos no son aditivos ni implican culpa o causalidad."
+msgstr ""
+"<strong>Los conteos no son riesgo.</strong> No consideran población, "
+"viajes, millas ni exposición. Los modos pueden superponerse en un choque,"
+" por lo que sus conteos no son aditivos ni implican culpa o causalidad."
 
 msgid "web.coverage.cell_not_published"
 msgstr "No publicado (suprimido o cero)"
@@ -721,23 +1233,61 @@ msgstr "No publicado (suprimido o cero)"
 msgid "web.coverage.cell_published"
 msgstr "Publicado"
 
+msgid "web.coverage.cells_value"
+msgstr "{published} de {total}"
+
+msgid "web.coverage.choose_state"
+msgstr "Elija un estado o DC"
+
+msgid "web.coverage.clear_brief"
+msgstr "Borrar resumen"
+
+msgid "web.coverage.compare_a"
+msgstr "Primer estado"
+
+msgid "web.coverage.compare_b"
+msgstr "Segundo estado"
+
+msgid "web.coverage.compare_empty"
+msgstr "Seleccione dos estados para compararlos."
+
+msgid "web.coverage.compare_h"
+msgstr "Compare dos estados sin sumar los modos"
+
+msgid "web.coverage.compare_intro"
+msgstr ""
+"Cada modo mantiene una escala independiente porque un choque puede "
+"contribuir a varias filas."
+
+msgid "web.coverage.compare_kicker"
+msgstr "Lado a lado"
+
+msgid "web.coverage.compare_with"
+msgstr "Comparar este estado"
+
 msgid "web.coverage.contract"
 msgstr "Contrato de proyección"
 
 msgid "web.coverage.contract_value"
 msgstr "Revisión {revision} · SHA-256 {sha}"
 
+msgid "web.coverage.copy_failed"
+msgstr "No se pudo copiar automáticamente. Copie la dirección del navegador."
+
+msgid "web.coverage.copy_view"
+msgstr "Copiar enlace a esta vista"
+
 msgid "web.coverage.correction_ledger"
 msgstr "Registro de correcciones de publicación"
-
-msgid "web.coverage.accessibility_status"
-msgstr "Estado de accesibilidad y revisión pendiente"
 
 msgid "web.coverage.data_h"
 msgstr "Evidencia de estado × modo involucrado"
 
 msgid "web.coverage.data_intro"
-msgstr "Un conteo publicado es el número de choques fatales distintos con al menos una persona de ese modo. Una celda pública ausente se etiqueta “No publicado (suprimido o cero)”, nunca como cero."
+msgstr ""
+"Un conteo publicado es el número de choques fatales distintos con al "
+"menos una persona de ese modo. Una celda pública ausente se etiqueta “No "
+"publicado (suprimido o cero)”, nunca como cero."
 
 msgid "web.coverage.deployment"
 msgstr "Registro del despliegue"
@@ -745,23 +1295,54 @@ msgstr "Registro del despliegue"
 msgid "web.coverage.download"
 msgstr "Descargar JSON público"
 
+msgid "web.coverage.explore_action"
+msgstr "Explorar la evidencia"
+
 msgid "web.coverage.eyebrow"
 msgstr "Vista previa pública · Registro de evidencia de EE. UU."
 
-msgid "web.coverage.footer"
-msgstr "Vista previa pública: las verificaciones automáticas de accesibilidad pasan; la revisión manual con NVDA y VoiceOver sigue pendiente. El contexto de choques fatales se publica con límites explícitos. nearmiss sigue siendo un producto de cuasi-accidentes normalizado por exposición; estos conteos son una capa nacional separada."
-
 msgid "web.coverage.filter_scope"
-msgstr "El estado carga el perfil de cinco años. El año y el enfoque de visualización controlan las vistas nacionales; el estado de publicación filtra la matriz y el registro. El registro completo tiene su propio filtro de modo abajo."
+msgstr ""
+"El estado carga el perfil de cinco años. El año y el enfoque de "
+"visualización controlan las vistas nacionales; el estado de publicación "
+"filtra la matriz y el registro. El registro completo tiene su propio "
+"filtro de modo abajo."
 
 msgid "web.coverage.focus_mode_label"
 msgstr "Enfoque de visualización"
 
+msgid "web.coverage.footer"
+msgstr ""
+"Vista previa pública: las verificaciones automáticas de accesibilidad "
+"pasan; la revisión manual con NVDA y VoiceOver sigue pendiente. El "
+"contexto de choques fatales se publica con límites explícitos. nearmiss "
+"sigue siendo un producto de cuasi-accidentes normalizado por exposición; "
+"estos conteos son una capa nacional separada."
+
 msgid "web.coverage.h1"
 msgstr "Carga de choques fatales, estado por estado"
 
+msgid "web.coverage.inspector_empty"
+msgstr ""
+"Seleccione un área del mapa, una celda de la matriz, una barra de "
+"clasificación, un punto del gráfico o un control de estado para examinar "
+"sus seis celdas de publicación."
+
+msgid "web.coverage.inspector_h"
+msgstr "Seleccione un estado"
+
+msgid "web.coverage.inspector_kicker"
+msgstr "Evidencia seleccionada"
+
+msgid "web.coverage.inspector_rank"
+msgstr "Puesto de {mode} entre las celdas numéricas publicadas: {rank} de {total}."
+
 msgid "web.coverage.lede"
-msgstr "Elija un estado o DC para consultar su perfil FARS revisado de 2020–2024 y luego refine el detalle del año seleccionado. Cada valor permanece vinculado a su versión exacta, regla de publicación para celdas pequeñas y fuente."
+msgstr ""
+"Elija un estado o DC para consultar su perfil FARS revisado de 2020–2024 "
+"y luego refine el detalle del año seleccionado. Cada valor permanece "
+"vinculado a su versión exacta, regla de publicación para celdas pequeñas "
+"y fuente."
 
 msgid "web.coverage.ledger_caption_empty"
 msgstr "Evidencia estatal del año seleccionado"
@@ -773,7 +1354,9 @@ msgid "web.coverage.ledger_mode_label"
 msgstr "Filtrar registro por modo"
 
 msgid "web.coverage.load_error"
-msgstr "El índice de versiones revisado o el artefacto público seleccionado no se pudo cargar o no aprobó su contrato. No se muestran conteos."
+msgstr ""
+"El índice de versiones revisado o el artefacto público seleccionado no se"
+" pudo cargar o no aprobó su contrato. No se muestran conteos."
 
 msgid "web.coverage.loading"
 msgstr "Cargando el artefacto publicado…"
@@ -781,11 +1364,80 @@ msgstr "Cargando el artefacto publicado…"
 msgid "web.coverage.manifest"
 msgstr "Manifiesto de archivos del sitio"
 
+msgid "web.coverage.map_caption"
+msgstr ""
+"{mode}: {published} de 51 jurisdicciones tienen conteos numéricos "
+"publicados. La geografía sirve de orientación; los conteos no son riesgo "
+"normalizado por exposición."
+
+msgid "web.coverage.map_h"
+msgstr "Carga de choques fatales en los Estados Unidos"
+
+msgid "web.coverage.map_intro"
+msgstr ""
+"Seleccione un modo de usuario vial para leer geográficamente los mismos "
+"conteos revisados. El color se escala dentro de ese modo; el rayado "
+"significa suprimido o cero."
+
+msgid "web.coverage.map_keyboard_hint"
+msgstr ""
+"Teclado: Tab entra una vez al mapa. Las flechas, Inicio y Fin recorren "
+"las jurisdicciones en orden alfabético; Intro o Espacio selecciona."
+
+msgid "web.coverage.map_kicker"
+msgstr "Vista nacional"
+
+msgid "web.coverage.map_legend_high"
+msgstr "Conteo publicado más alto"
+
+msgid "web.coverage.map_legend_low"
+msgstr "Conteo publicado más bajo"
+
+msgid "web.coverage.map_legend_unpublished"
+msgstr "Suprimido o cero"
+
+msgid "web.coverage.map_state_published"
+msgstr "{state}: {count} choques fatales; modo involucrado: {mode}"
+
+msgid "web.coverage.map_state_unpublished"
+msgstr "{state}: suprimido o cero para {mode}"
+
 msgid "web.coverage.mapping_value"
 msgstr "Choques {crash} · personas {person}"
 
 msgid "web.coverage.mapping_versions_label"
 msgstr "Versiones de mapeo"
+
+msgid "web.coverage.matrix_caption"
+msgstr ""
+"Matriz de {states} jurisdicciones y seis modos involucrados: {published} "
+"de {total} celdas publican un conteo numérico."
+
+msgid "web.coverage.matrix_cell_published"
+msgstr "{state}, {mode}: conteo publicado de {count} choques fatales."
+
+msgid "web.coverage.matrix_cell_unpublished"
+msgstr "{state}, {mode}: sin publicar; suprimido o cero."
+
+msgid "web.coverage.matrix_coverage"
+msgstr "{published} de {total} publicadas"
+
+msgid "web.coverage.matrix_h"
+msgstr "Matriz de estado × modo involucrado"
+
+msgid "web.coverage.matrix_intro"
+msgstr ""
+"Cada columna usa su propia escala. Las celdas rayadas no están publicadas"
+" y nunca se tratan como cero."
+
+msgid "web.coverage.matrix_keyboard_hint"
+msgstr ""
+"Teclado: después de la región desplazable y los filtros de modo, Tab "
+"entra una vez a la cuadrícula de celdas. Las flechas recorren las celdas;"
+" Inicio y Fin van al primer y último modo; Intro o Espacio selecciona."
+
+msgid "web.coverage.matrix_kicker"
+msgstr "Panorama de publicación"
 
 msgid "web.coverage.mode_label"
 msgstr "Modo de usuario vial involucrado"
@@ -811,8 +1463,14 @@ msgstr "Modo desconocido"
 msgid "web.coverage.no_results"
 msgstr "Ninguna celda coincide con estos filtros."
 
+msgid "web.coverage.print_brief"
+msgstr "Imprimir resumen"
+
 msgid "web.coverage.profile_caption"
-msgstr "Carga de choques fatales de {state} por modo involucrado, 2020–2024, agrupada según los regímenes revisados de codificación del tipo de persona de FARS."
+msgstr ""
+"Carga de choques fatales de {state} por modo involucrado, 2020–2024, "
+"agrupada según los regímenes revisados de codificación del tipo de "
+"persona de FARS."
 
 msgid "web.coverage.profile_caption_empty"
 msgstr "El perfil estatal de cinco años no se ha cargado."
@@ -821,13 +1479,19 @@ msgid "web.coverage.profile_empty"
 msgstr "Elija un estado arriba para cargar su perfil de cinco años."
 
 msgid "web.coverage.profile_error"
-msgstr "No se pudo cargar el perfil de cinco años desde los cinco artefactos revisados. No se muestran valores del perfil. El registro del año seleccionado de abajo tiene un estado de verificación independiente."
+msgstr ""
+"No se pudo cargar el perfil de cinco años desde los cinco artefactos "
+"revisados. No se muestran valores del perfil. El registro del año "
+"seleccionado de abajo tiene un estado de verificación independiente."
 
 msgid "web.coverage.profile_h"
 msgstr "Perfil del estado seleccionado, 2020–2024"
 
 msgid "web.coverage.profile_intro"
-msgstr "Cada año se mantiene separado. La división de codificación marca dos regímenes revisados de tipo de persona de FARS, por lo que los valores en lados opuestos no deben leerse como una sola serie continua."
+msgstr ""
+"Cada año se mantiene separado. La división de codificación marca dos "
+"regímenes revisados de tipo de persona de FARS, por lo que los valores en"
+" lados opuestos no deben leerse como una sola serie continua."
 
 msgid "web.coverage.profile_kicker"
 msgstr "Vista de cinco años"
@@ -848,7 +1512,11 @@ msgid "web.coverage.proof_h"
 msgstr "Cinco años, con el estado de publicación explícito"
 
 msgid "web.coverage.proof_intro"
-msgstr "Los archivos fuente oficiales están fijados para 2020–2024. Solo se pueden seleccionar los años cuyos artefactos públicos revisados aparecen en el índice de versiones; los años no disponibles nunca se tratan silenciosamente como cero."
+msgstr ""
+"Los archivos fuente oficiales están fijados para 2020–2024. Solo se "
+"pueden seleccionar los años cuyos artefactos públicos revisados aparecen "
+"en el índice de versiones; los años no disponibles nunca se tratan "
+"silenciosamente como cero."
 
 msgid "web.coverage.proof_kicker"
 msgstr "Prueba de la versión"
@@ -857,16 +1525,65 @@ msgid "web.coverage.provenance_h"
 msgstr "Procedencia de la fuente y del despliegue"
 
 msgid "web.coverage.provenance_intro"
-msgstr "El JSON público y el índice de versiones contienen pruebas de la fuente, el mapeo, el régimen semántico, la publicación de celdas pequeñas y la contabilidad. Los archivos de despliegue vinculan la página publicada con un commit exacto del código fuente."
+msgstr ""
+"El JSON público y el índice de versiones contienen pruebas de la fuente, "
+"el mapeo, el régimen semántico, la publicación de celdas pequeñas y la "
+"contabilidad. Los archivos de despliegue vinculan la página publicada con"
+" un commit exacto del código fuente."
 
 msgid "web.coverage.provenance_kicker"
 msgstr "Rastrear la evidencia"
 
+msgid "web.coverage.rank_h"
+msgstr "Clasificar un modo involucrado"
+
+msgid "web.coverage.rank_intro"
+msgstr ""
+"Solo se clasifican las celdas numéricas. Esto es carga, no riesgo "
+"normalizado por exposición ni seguridad."
+
+msgid "web.coverage.rank_item"
+msgstr ""
+"Puesto {rank}: {state}; conteo de choques fatales: {count}; modo "
+"involucrado: {mode}."
+
+msgid "web.coverage.rank_keyboard_hint"
+msgstr ""
+"Teclado: Tab entra una vez a la clasificación. Las flechas, Inicio y Fin "
+"recorren los estados; Intro o Espacio selecciona."
+
+msgid "web.coverage.rank_kicker"
+msgstr "Carga publicada"
+
+msgid "web.coverage.rank_title"
+msgstr "{mode}: conteos publicados de choques fatales"
+
+msgid "web.coverage.rank_unpublished"
+msgstr ""
+"{count} jurisdicciones no tienen un conteo numérico publicado para {mode}"
+" (suprimido o cero)"
+
+msgid "web.coverage.real_data_badge"
+msgstr "Fuente: NHTSA FARS · Artefacto verificado"
+
 msgid "web.coverage.regime_caution"
-msgstr "<strong>Compare los años con cautela.</strong> La codificación del tipo de persona de FARS usa un régimen semántico revisado para 2020–2021 y otro para 2022–2024. Cada resultado permanece vinculado a su contrato anual de mapeo, por lo que un cambio entre regímenes puede reflejar la codificación además de los resultados."
+msgstr ""
+"<strong>Compare los años con cautela.</strong> La codificación del tipo "
+"de persona de FARS usa un régimen semántico revisado para 2020–2021 y "
+"otro para 2022–2024. Cada resultado permanece vinculado a su contrato "
+"anual de mapeo, por lo que un cambio entre regímenes puede reflejar la "
+"codificación además de los resultados."
+
+msgid "web.coverage.release_card_h"
+msgstr "Una proyección anual vinculada a su hash"
 
 msgid "web.coverage.release_index"
 msgstr "Descargar índice de versiones"
+
+msgid "web.coverage.release_note"
+msgstr ""
+"Los bytes de origen, el contrato anual y la prueba contable se verifican "
+"antes de mostrar cualquier conteo."
 
 msgid "web.coverage.release_stage_annual_report_file"
 msgstr "Archivo del informe anual (ARF)"
@@ -876,6 +1593,9 @@ msgstr "Archivo final"
 
 msgid "web.coverage.release_stage_label"
 msgstr "Estado de la publicación"
+
+msgid "web.coverage.remove_brief"
+msgstr "Quitar {state} del resumen"
 
 msgid "web.coverage.reset"
 msgstr "Restablecer filtros"
@@ -890,7 +1610,9 @@ msgid "web.coverage.result_summary"
 msgstr "Se muestran {shown} de {total} celdas de estado por modo."
 
 msgid "web.coverage.result_summary_state"
-msgstr "Se muestran {shown} de {total} celdas de modo involucrado para {state} en {year}."
+msgstr ""
+"Se muestran {shown} de {total} celdas de modo involucrado para {state} en"
+" {year}."
 
 msgid "web.coverage.retention_value"
 msgstr "{published} / {total}"
@@ -898,8 +1620,55 @@ msgstr "{published} / {total}"
 msgid "web.coverage.revision_label"
 msgstr "Revisión de la fuente"
 
+msgid "web.coverage.save_comparison"
+msgstr "Guardar ambos estados en el resumen"
+
+msgid "web.coverage.scale_label"
+msgstr "Escala"
+
+msgid "web.coverage.scale_linear"
+msgstr "Lineal"
+
+msgid "web.coverage.scale_log"
+msgstr "Logarítmica"
+
+msgid "web.coverage.scatter_caption"
+msgstr ""
+"{comparable} jurisdicciones tienen ambos conteos numéricos; {excluded} "
+"quedan fuera del gráfico porque una o ambas celdas no están publicadas."
+
+msgid "web.coverage.scatter_empty"
+msgstr "Ninguna jurisdicción tiene ambos conteos publicados."
+
+msgid "web.coverage.scatter_h"
+msgstr "Comparar dos modos involucrados"
+
+msgid "web.coverage.scatter_intro"
+msgstr ""
+"Los estados solo aparecen cuando ambas celdas están publicadas. Los "
+"valores ausentes quedan fuera del gráfico."
+
+msgid "web.coverage.scatter_keyboard_hint"
+msgstr ""
+"Teclado: Tab entra una vez al gráfico. Las flechas, Inicio y Fin recorren"
+" los estados; Intro o Espacio selecciona."
+
+msgid "web.coverage.scatter_kicker"
+msgstr "Relación entre conteos"
+
+msgid "web.coverage.scatter_point"
+msgstr ""
+"{state}: {xmode}, {xcount} choques fatales; {ymode}, {ycount} choques "
+"fatales."
+
+msgid "web.coverage.scatter_title"
+msgstr "{x} y {y}: relación entre conteos publicados"
+
 msgid "web.coverage.scope_value"
 msgstr "50 estados + DC"
+
+msgid "web.coverage.secondary_mode"
+msgstr "Segundo modo"
 
 msgid "web.coverage.selected_year_h"
 msgstr "Evidencia por modo para el año seleccionado"
@@ -933,6 +1702,24 @@ msgstr "No publicado"
 
 msgid "web.coverage.status_published"
 msgstr "Publicado"
+
+msgid "web.coverage.studio_h"
+msgstr "Un conjunto de evidencia, cinco formas de examinarlo"
+
+msgid "web.coverage.studio_intro"
+msgstr ""
+"Todas las vistas parten de las mismas celdas revisadas de estado por modo"
+" para el año seleccionado. Una selección hecha en una vista se conserva "
+"en las demás."
+
+msgid "web.coverage.studio_kicker"
+msgstr "Explorar · comparar · citar"
+
+msgid "web.coverage.summary_cases"
+msgstr "Choques fatales distintos"
+
+msgid "web.coverage.summary_cells"
+msgstr "Celdas con cifra publicada"
 
 msgid "web.coverage.summary_h"
 msgstr "Resumen del conjunto de datos"
@@ -970,246 +1757,6 @@ msgstr "Año"
 msgid "web.coverage.title"
 msgstr "Registro de evidencia de EE. UU. — nearmiss"
 
-msgid "web.coverage.year_label"
-msgstr "Año"
-
-msgid "web.coverage.release_card_h"
-msgstr "Una proyección anual vinculada a su hash"
-
-msgid "web.coverage.release_note"
-msgstr "Los bytes de origen, el contrato anual y la prueba contable se verifican antes de mostrar cualquier conteo."
-
-msgid "web.coverage.accessible_table"
-msgstr "Abrir la tabla accesible de comparación"
-
-msgid "web.coverage.add_to_brief"
-msgstr "Añadir al resumen"
-
-msgid "web.coverage.all_states"
-msgstr "Todos los estados + DC"
-
-msgid "web.coverage.boundary_checksum_label"
-msgstr "SHA-256 del archivo de límites"
-
-msgid "web.coverage.boundary_download"
-msgstr "Descargar los límites del Censo en GeoJSON"
-
-msgid "web.coverage.boundary_source_label"
-msgstr "Límites del mapa"
-
-msgid "web.coverage.brief_cleared"
-msgstr "Se borró el resumen."
-
-msgid "web.coverage.brief_count"
-msgstr "{year}: {count} choques fatales; modo involucrado: {mode}."
-
-msgid "web.coverage.brief_empty"
-msgstr "Aún no hay evidencia guardada. Seleccione un estado y añádalo desde el inspector."
-
-msgid "web.coverage.brief_h"
-msgstr "Resumen de evidencia"
-
-msgid "web.coverage.brief_intro"
-msgstr "Guarde hasta cuatro estados. El resumen imprimible mantiene asociados el año, el modo, el estado de publicación, la versión exacta, la fuente y el límite ‘los conteos no son riesgo’."
-
-msgid "web.coverage.brief_kicker"
-msgstr "Mantenga la salvedad junto al número"
-
-msgid "web.coverage.brief_removed"
-msgstr "Se quitó el estado del resumen."
-
-msgid "web.coverage.brief_saved"
-msgstr "Se añadió el estado al resumen."
-
-msgid "web.coverage.brief_unpublished"
-msgstr "Modo {mode}: no hay un conteo numérico publicado."
-
-msgid "web.coverage.cells_value"
-msgstr "{published} de {total}"
-
-msgid "web.coverage.clear_brief"
-msgstr "Borrar resumen"
-
-msgid "web.coverage.compare_a"
-msgstr "Primer estado"
-
-msgid "web.coverage.compare_b"
-msgstr "Segundo estado"
-
-msgid "web.coverage.compare_empty"
-msgstr "Seleccione dos estados para compararlos."
-
-msgid "web.coverage.compare_h"
-msgstr "Compare dos estados sin sumar los modos"
-
-msgid "web.coverage.compare_intro"
-msgstr "Cada modo mantiene una escala independiente porque un choque puede contribuir a varias filas."
-
-msgid "web.coverage.compare_kicker"
-msgstr "Lado a lado"
-
-msgid "web.coverage.compare_with"
-msgstr "Comparar este estado"
-
-msgid "web.coverage.copy_failed"
-msgstr "No se pudo copiar automáticamente. Copie la dirección del navegador."
-
-msgid "web.coverage.copy_view"
-msgstr "Copiar enlace a esta vista"
-
-msgid "web.coverage.explore_action"
-msgstr "Explorar la evidencia"
-
-msgid "web.coverage.inspector_empty"
-msgstr "Seleccione un área del mapa, una celda de la matriz, una barra de clasificación, un punto del gráfico o un control de estado para examinar sus seis celdas de publicación."
-
-msgid "web.coverage.inspector_h"
-msgstr "Seleccione un estado"
-
-msgid "web.coverage.inspector_kicker"
-msgstr "Evidencia seleccionada"
-
-msgid "web.coverage.inspector_rank"
-msgstr "Puesto de {mode} entre las celdas numéricas publicadas: {rank} de {total}."
-
-msgid "web.coverage.map_caption"
-msgstr "{mode}: {published} de 51 jurisdicciones tienen conteos numéricos publicados. La geografía sirve de orientación; los conteos no son riesgo normalizado por exposición."
-
-msgid "web.coverage.map_h"
-msgstr "Carga de choques fatales en los Estados Unidos"
-
-msgid "web.coverage.map_intro"
-msgstr "Seleccione un modo de usuario vial para leer geográficamente los mismos conteos revisados. El color se escala dentro de ese modo; el rayado significa suprimido o cero."
-
-msgid "web.coverage.map_keyboard_hint"
-msgstr "Teclado: Tab entra una vez al mapa. Las flechas, Inicio y Fin recorren las jurisdicciones en orden alfabético; Intro o Espacio selecciona."
-
-msgid "web.coverage.map_kicker"
-msgstr "Vista nacional"
-
-msgid "web.coverage.map_legend_high"
-msgstr "Conteo publicado más alto"
-
-msgid "web.coverage.map_legend_low"
-msgstr "Conteo publicado más bajo"
-
-msgid "web.coverage.map_legend_unpublished"
-msgstr "Suprimido o cero"
-
-msgid "web.coverage.map_state_published"
-msgstr "{state}: {count} choques fatales; modo involucrado: {mode}"
-
-msgid "web.coverage.map_state_unpublished"
-msgstr "{state}: suprimido o cero para {mode}"
-
-msgid "web.coverage.matrix_caption"
-msgstr "Matriz de {states} jurisdicciones y seis modos involucrados: {published} de {total} celdas publican un conteo numérico."
-
-msgid "web.coverage.matrix_cell_published"
-msgstr "{state}, {mode}: conteo publicado de {count} choques fatales."
-
-msgid "web.coverage.matrix_cell_unpublished"
-msgstr "{state}, {mode}: sin publicar; suprimido o cero."
-
-msgid "web.coverage.matrix_coverage"
-msgstr "{published} de {total} publicadas"
-
-msgid "web.coverage.matrix_h"
-msgstr "Matriz de estado × modo involucrado"
-
-msgid "web.coverage.matrix_intro"
-msgstr "Cada columna usa su propia escala. Las celdas rayadas no están publicadas y nunca se tratan como cero."
-
-msgid "web.coverage.matrix_keyboard_hint"
-msgstr "Teclado: después de la región desplazable y los filtros de modo, Tab entra una vez a la cuadrícula de celdas. Las flechas recorren las celdas; Inicio y Fin van al primer y último modo; Intro o Espacio selecciona."
-
-msgid "web.coverage.matrix_kicker"
-msgstr "Panorama de publicación"
-
-msgid "web.coverage.print_brief"
-msgstr "Imprimir resumen"
-
-msgid "web.coverage.rank_h"
-msgstr "Clasificar un modo involucrado"
-
-msgid "web.coverage.rank_intro"
-msgstr "Solo se clasifican las celdas numéricas. Esto es carga, no riesgo normalizado por exposición ni seguridad."
-
-msgid "web.coverage.rank_keyboard_hint"
-msgstr "Teclado: Tab entra una vez a la clasificación. Las flechas, Inicio y Fin recorren los estados; Intro o Espacio selecciona."
-
-msgid "web.coverage.rank_item"
-msgstr "Puesto {rank}: {state}; conteo de choques fatales: {count}; modo involucrado: {mode}."
-
-msgid "web.coverage.rank_kicker"
-msgstr "Carga publicada"
-
-msgid "web.coverage.rank_title"
-msgstr "{mode}: conteos publicados de choques fatales"
-
-msgid "web.coverage.rank_unpublished"
-msgstr "{count} jurisdicciones no tienen un conteo numérico publicado para {mode} (suprimido o cero)"
-
-msgid "web.coverage.real_data_badge"
-msgstr "Fuente: NHTSA FARS · Artefacto verificado"
-
-msgid "web.coverage.remove_brief"
-msgstr "Quitar {state} del resumen"
-
-msgid "web.coverage.save_comparison"
-msgstr "Guardar ambos estados en el resumen"
-
-msgid "web.coverage.scale_label"
-msgstr "Escala"
-
-msgid "web.coverage.scale_linear"
-msgstr "Lineal"
-
-msgid "web.coverage.scale_log"
-msgstr "Logarítmica"
-
-msgid "web.coverage.scatter_caption"
-msgstr "{comparable} jurisdicciones tienen ambos conteos numéricos; {excluded} quedan fuera del gráfico porque una o ambas celdas no están publicadas."
-
-msgid "web.coverage.scatter_empty"
-msgstr "Ninguna jurisdicción tiene ambos conteos publicados."
-
-msgid "web.coverage.scatter_h"
-msgstr "Comparar dos modos involucrados"
-
-msgid "web.coverage.scatter_intro"
-msgstr "Los estados solo aparecen cuando ambas celdas están publicadas. Los valores ausentes quedan fuera del gráfico."
-
-msgid "web.coverage.scatter_keyboard_hint"
-msgstr "Teclado: Tab entra una vez al gráfico. Las flechas, Inicio y Fin recorren los estados; Intro o Espacio selecciona."
-
-msgid "web.coverage.scatter_kicker"
-msgstr "Relación entre conteos"
-
-msgid "web.coverage.scatter_point"
-msgstr "{state}: {xmode}, {xcount} choques fatales; {ymode}, {ycount} choques fatales."
-
-msgid "web.coverage.scatter_title"
-msgstr "{x} y {y}: relación entre conteos publicados"
-
-msgid "web.coverage.secondary_mode"
-msgstr "Segundo modo"
-
-msgid "web.coverage.studio_h"
-msgstr "Un conjunto de evidencia, cinco formas de examinarlo"
-
-msgid "web.coverage.studio_intro"
-msgstr "Todas las vistas parten de las mismas celdas revisadas de estado por modo para el año seleccionado. Una selección hecha en una vista se conserva en las demás."
-
-msgid "web.coverage.studio_kicker"
-msgstr "Explorar · comparar · citar"
-
-msgid "web.coverage.summary_cases"
-msgstr "Choques fatales distintos"
-
-msgid "web.coverage.summary_cells"
-msgstr "Celdas con cifra publicada"
-
 msgid "web.coverage.view_compare"
 msgstr "Comparar estados"
 
@@ -1230,3 +1777,59 @@ msgstr "Clasificación"
 
 msgid "web.coverage.view_scatter"
 msgstr "Comparar modos"
+
+msgid "web.coverage.year_label"
+msgstr "Año"
+
+msgid "web.submit.geo_denied"
+msgstr "No se pudo obtener su ubicación — escriba un lugar."
+
+msgid "web.submit.geo_filled"
+msgstr "Ubicación completada. Puede ajustarla."
+
+msgid "web.submit.geo_locating"
+msgstr "Ubicando…"
+
+msgid "web.submit.geo_unavailable"
+msgstr "La geolocalización no está disponible — escriba una ubicación."
+
+msgid "web.submit.need_coords"
+msgstr "una latitud (−90..90) y longitud (−180..180) válidas"
+
+msgid "web.submit.need_hazard"
+msgstr "un tipo de peligro"
+
+msgid "web.submit.need_location"
+msgstr "una ubicación (use mi ubicación, lat/lon o una dirección)"
+
+msgid "web.submit.need_severity"
+msgstr "una gravedad"
+
+msgid "web.submit.status_copied"
+msgstr "Copiado al portapapeles."
+
+msgid "web.submit.status_copy_manual"
+msgstr "Seleccione el texto y cópielo manualmente."
+
+msgid "web.submit.status_missing"
+msgstr "Por favor indique: {fields}."
+
+msgid "web.submit.status_ready"
+msgstr ""
+"Su reporte está listo abajo — aún necesita revisión humana antes de "
+"contar."
+
+msgid "web.submit.status_received"
+msgstr "Gracias. Su cuasi-accidente fue recibido y está en espera de revisión."
+
+msgid "web.submit.status_send_failed"
+msgstr ""
+"No se pudo conectar con el servidor — aquí está su reporte para enviarlo "
+"manualmente."
+
+msgid "web.submit.status_sending"
+msgstr "Enviando su reporte para revisión…"
+
+#, python-brace-format
+msgid "{start} to {end}"
+msgstr "{start} a {end}"

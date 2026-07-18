@@ -6,6 +6,7 @@ nearmiss analyze   --config C                   # rates+CIs, bias, KDE, Getis-Or
 nearmiss analyze   --config C --calibrate       # + label-shuffle null-calibration artifact
 nearmiss publish   --config C                   # open GeoJSON + aggregated public data
 nearmiss brief     --config C [--out FILE]      # advocacy brief (markdown)
+nearmiss dossier   --config C --corridor ID --decision-request TEXT [--out FILE]  # decision dossier
 nearmiss run       --config C                   # intake -> ... -> brief, end to end
 nearmiss submit   <submission.json> --config C  # queue a public submission (PENDING)
 nearmiss moderate  list|approve|reject|export|stats --config C  # review the moderation queue
@@ -35,6 +36,7 @@ from .brief import render_brief
 from .config import Config, load_config
 from .contributor import delete_reports, export_reports, purge_expired
 from .coverage import assess_coverage, load_source_registry
+from .dossier import render_dossier
 from .engine import AnalysisBundle, build_analysis
 from .errors import NearmissError
 from .figures import write_figures
@@ -345,6 +347,25 @@ def _cmd_brief(args: argparse.Namespace) -> int:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(text, encoding="utf-8")
         print(f"brief written to {args.out}")
+    else:
+        print(text)
+    return 0
+
+
+def _cmd_dossier(args: argparse.Namespace) -> int:
+    config = load_config(args.config)
+    text = render_dossier(
+        build_analysis(config),
+        config,
+        args.corridor,
+        args.decision_request,
+        args.lang,
+    )
+    if args.out:
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text, encoding="utf-8")
+        print(f"dossier written to {args.out}")
     else:
         print(text)
     return 0
@@ -1174,6 +1195,23 @@ def build_parser() -> argparse.ArgumentParser:
     p_brief.add_argument("--out", help="write the brief to a file instead of stdout")
     p_brief.add_argument("--lang", default="en", choices=["en", "es"], help="brief language")
     p_brief.set_defaults(func=_cmd_brief)
+
+    p_dossier = sub.add_parser(
+        "dossier",
+        help="render a controlled-claim Decision Dossier for one published corridor",
+    )
+    add_config(p_dossier)
+    p_dossier.add_argument(
+        "--corridor", required=True, help="published corridor id (from the corridor GeoJSON)"
+    )
+    p_dossier.add_argument(
+        "--decision-request",
+        required=True,
+        help="the specific decision this dossier is intended to inform",
+    )
+    p_dossier.add_argument("--out", help="write the dossier to a Markdown file instead of stdout")
+    p_dossier.add_argument("--lang", default="en", choices=["en", "es"], help="dossier language")
+    p_dossier.set_defaults(func=_cmd_dossier)
 
     p_run = sub.add_parser("run", help="intake -> pipeline -> analyze -> publish -> brief")
     add_config(p_run)

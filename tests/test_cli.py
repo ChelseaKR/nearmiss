@@ -144,6 +144,27 @@ def test_brief_to_stdout(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> 
     assert capsys.readouterr().out.strip()
 
 
+def test_dossier_to_file(tmp_path: Path) -> None:
+    out = tmp_path / "dossier.md"
+    assert (
+        main(
+            [
+                "dossier",
+                "--config",
+                str(_config(tmp_path)),
+                "--corridor",
+                "corridor-dd8fbf5922ba",
+                "--decision-request",
+                "Schedule a field review.",
+                "--out",
+                str(out),
+            ]
+        )
+        == 0
+    )
+    assert "Decision Dossier" in out.read_text(encoding="utf-8")
+
+
 def test_figures_to_out_dir(tmp_path: Path) -> None:
     figdir = tmp_path / "figs"
     assert main(["figures", "--config", str(_config(tmp_path)), "--out", str(figdir)]) == 0

@@ -254,6 +254,11 @@ nearmiss intake reports.json --config config/davis-demo.toml   # validated again
 # Render the advocacy brief in English (default) or Spanish (gettext catalogs via src/nearmiss/i18n.py)
 nearmiss brief --config config/davis-demo.toml --lang es       # English/Spanish brief; en is the default
 
+# Export one published corridor as a reproducible, controlled-claim decision artifact
+nearmiss dossier --config config/davis-demo.toml --corridor corridor-dd8fbf5922ba \
+  --decision-request "Schedule a daylight field review." --out build/dossier.md
+# See docs/DECISION-DOSSIER.md for the claim boundary, source-readiness behavior, and full contract.
+
 # Run the documented pipeline: dedupe -> geocode -> snap -> classify -> quality-flag
 nearmiss pipeline --config config/davis-demo.toml [--dump]  # --dump prints the intermediate clean records
 

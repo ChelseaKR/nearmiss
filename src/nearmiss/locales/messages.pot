@@ -17,16 +17,38 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel\n"
 
+#, python-brace-format
+msgid "# Decision Dossier — {city}: {corridor}"
+msgstr ""
+
+msgid "## Claim boundary"
+msgstr ""
+
+msgid "## Corridor finding"
+msgstr ""
+
 msgid "## Corridor view (for advocacy asks)"
+msgstr ""
+
+msgid "## Decision request"
 msgstr ""
 
 msgid "## Dominant hazard type by segment (with its own rate)"
 msgstr ""
 
+msgid "## Evidence readiness"
+msgstr ""
+
 msgid "## Highest-rate segments (exposure-normalized)"
 msgstr ""
 
+msgid "## Next review"
+msgstr ""
+
 msgid "## Reporting bias (named, not hidden)"
+msgstr ""
+
+msgid "## Reproduction record"
 msgstr ""
 
 msgid "## Robustness checks (overdispersion & re-segmentation)"
@@ -35,10 +57,16 @@ msgstr ""
 msgid "## Statistically significant hotspots (Getis-Ord Gi\\*)"
 msgstr ""
 
+msgid "## Uncertainty and checks"
+msgstr ""
+
 msgid "## What the numbers mean (plain language)"
 msgstr ""
 
 msgid "## When hazards get reported (volume, not risk)"
+msgstr ""
+
+msgid "### Declared sources"
 msgstr ""
 
 msgid ""
@@ -61,8 +89,21 @@ msgstr ""
 
 #, python-brace-format
 msgid ""
+"**Declared evidence tier:** `{tier}` (assessed as of {as_of}). This "
+"describes which analyses the declared sources support; it is not a safety"
+" rating."
+msgstr ""
+
+#, python-brace-format
+msgid ""
 "**Exposure coverage:** {pct}% of segments have an exposure denominator. "
 "Segments without one are listed as *exposure unknown*, not ranked."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"**Freshness warning:** the following declared sources are stale under "
+"their own policy: {sources}."
 msgstr ""
 
 msgid ""
@@ -72,6 +113,12 @@ msgid ""
 "— no block is surfaced here that was withheld or non-significant on its "
 "own. Read the corridor rate as a complement to the block rates, not a "
 "replacement for them."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"**Missing core source declarations:** {kinds}. The evidence tier reflects"
+" that gap."
 msgstr ""
 
 #, python-brace-format
@@ -95,6 +142,12 @@ msgid ""
 msgstr ""
 
 msgid ""
+"**Source registry not declared.** This dossier can show the analysis "
+"result, but it cannot claim an evidence tier, measured-city coverage, or "
+"partner review."
+msgstr ""
+
+msgid ""
 "**Under-represented vs exposure** (quiet in the data, not necessarily "
 "safe):"
 msgstr ""
@@ -105,6 +158,14 @@ msgid ""
 " on wet days, while {bws} of days in the weather record were wet. Wet "
 "days usually carry far fewer riders, so this is an association to "
 "investigate, not a weather risk rate. Source: {src}."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"**{name}** is an aggregate of {blocks} contiguous, publishable segments "
+"that each cleared the configured FDR-corrected hotspot screen. Its pooled"
+" reported near-miss rate is **{rate} per {per} {unit}** (95% CI "
+"{lo}–{hi}; n={n})."
 msgstr ""
 
 msgid "*Small sample: too few timed reports to read these peaks with confidence.*"
@@ -197,10 +258,60 @@ msgstr[0] ""
 msgstr[1] ""
 
 #, python-brace-format
+msgid "- Analysis window: {window}"
+msgstr ""
+
+#, python-brace-format
+msgid "- Corridor id: `{corridor_id}`"
+msgstr ""
+
+#, python-brace-format
+msgid "- Exposure date: {date}"
+msgstr ""
+
+#, python-brace-format
+msgid "- Exposure source: {source}"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- Rebuild: run `nearmiss dossier --config <city.toml> --corridor "
+"{corridor_id} --decision-request <request>` against the same inputs."
+msgstr ""
+
+msgid ""
+"- Reports can vary by route choice, access, language, and willingness to "
+"report; a quiet data signal is not evidence of safety."
+msgstr ""
+
+#, python-brace-format
+msgid "- Source registry SHA-256: `{sha256}`"
+msgstr ""
+
+msgid ""
+"- The corridor boundary is a coarser view of block results. Read it "
+"alongside the underlying block layer, not instead of it."
+msgstr ""
+
+msgid ""
+"- The interval expresses sampling uncertainty in reported counts; it does"
+" not remove reporting bias."
+msgstr ""
+
+#, python-brace-format
+msgid "- `{source_id}` — {name} (updated {updated_at})"
+msgstr ""
+
+#, python-brace-format
 msgid "- {name}: {rshare}% of reports vs {eshare}% of exposure"
 msgstr ""
 
 msgid "95% CI"
+msgstr ""
+
+msgid ""
+"> **Status: evidence for review.** This is a reproducible corridor "
+"finding, not a safety verdict or a treatment recommendation."
 msgstr ""
 
 #, python-brace-format
@@ -208,6 +319,12 @@ msgid ""
 "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence"
 " interval and an n. Raw counts are not danger; they are report volume. "
 "Read the caveats — they are the point."
+msgstr ""
+
+msgid ""
+"Before acting, confirm the decision owner, inspect the corridor in "
+"context, and record what follow-up measure and review window would test "
+"the chosen action."
 msgstr ""
 
 msgid ""
@@ -290,6 +407,11 @@ msgid "Sunday"
 msgstr ""
 
 msgid ""
+"The corridor uses the same already-published block aggregates; it does "
+"not create a new hotspot test or reveal a withheld segment."
+msgstr ""
+
+msgid ""
 "The headline rate is pooled across every hazard type (a union). This "
 "names the single most common conflict type at each ranked segment and "
 "gives *its* exposure-normalized rate; types with too few reports to share"
@@ -307,6 +429,13 @@ msgid ""
 "action than a raw heat map. It means: act on the strongest, most-"
 "significant signals, and treat the rest as leads to investigate, not "
 "verdicts."
+msgstr ""
+
+msgid ""
+"This dossier does **not** establish danger, fault, causation, the likely "
+"effect of a treatment, or conditions for any individual trip. It records "
+"a reported, exposure-normalized pattern that merits the decision request "
+"above."
 msgstr ""
 
 msgid ""
@@ -330,6 +459,9 @@ msgstr ""
 
 #, python-brace-format
 msgid "Where the danger actually is — {city}"
+msgstr ""
+
+msgid "all available data (no bounded analysis window configured)"
 msgstr ""
 
 msgid "blocked sightline"
@@ -1329,4 +1461,8 @@ msgid "web.submit.status_send_failed"
 msgstr ""
 
 msgid "web.submit.status_sending"
+msgstr ""
+
+#, python-brace-format
+msgid "{start} to {end}"
 msgstr ""
