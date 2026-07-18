@@ -734,6 +734,7 @@ jobs:
             'fars/national/index.html|fars/national/'
             'web/us-coverage.js|web/us-coverage.js'
             'web/i18n.js|web/i18n.js'
+            'web/landing.css|web/landing.css'
             'web/locales/en.json|web/locales/en.json'
             'web/locales/es.json|web/locales/es.json'
             'web/us-coverage.css|web/us-coverage.css'

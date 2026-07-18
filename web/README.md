@@ -1,12 +1,13 @@
 # Web — the accessible map UI
 
 A **dependency-light** set of map interfaces targeting **WCAG 2.2 Level AA**, built to be auditable.
-The production artifact reads only reviewed nationwide FARS releases; it never touches a precise raw
-report. Synthetic city interfaces remain in the source tree as local known-answer demonstrations.
+The production artifact contains an evidence-to-action gateway and reviewed nationwide FARS reference
+releases; it never touches a precise raw report. Synthetic city interfaces remain in the source tree as
+local known-answer demonstrations.
 
 **Production site:** [NearMiss Conflict Atlas](https://nearmiss.chelseakr.com) — the real-data national
-FARS studio is the sole deployed product. Davis, Riverside, the report form, and the embed are not
-copied into the production artifact.
+FARS studio is the deployed reference-data surface. The gateway links to the versioned Decision Dossier
+template; Davis, Riverside, the report form, and the embed are not copied into the production artifact.
 
 ## The two maps (local methods demonstration)
 
@@ -66,7 +67,7 @@ required human NVDA/VoiceOver release gate have not yet been completed.
 
 | File | Role | Production |
 | --- | --- | --- |
-| `index.html` | noindex compatibility redirect to the national route | Yes |
+| `index.html` + `landing.css` | evidence-to-action gateway and Decision Dossier entry point | Yes |
 | `us-coverage.html` + `us-coverage.js` | nationwide annual FARS evidence studio | Yes |
 | `davis-demo.html` + `app.js` + the synthetic city artifacts | Davis/Riverside two-map known-answer methods demonstration | No — local/CI only |
 | `submit.html` + `submit.js` | schema-valid report-export prototype | No — local/CI only |

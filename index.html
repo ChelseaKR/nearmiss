@@ -2,53 +2,138 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#152a30" />
     <meta
       name="description"
-      content="Explore reviewed 2020–2024 NHTSA FARS fatal-crash burden counts across all 50 states and DC in the NearMiss Conflict Atlas."
+      content="NearMiss turns community road-safety evidence into a privacy-safe, auditable corridor case for public decisions."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="NearMiss Conflict Atlas" />
-    <meta property="og:title" content="NearMiss Conflict Atlas — US evidence ledger" />
+    <meta property="og:site_name" content="NearMiss" />
+    <meta property="og:title" content="NearMiss — evidence to action for safer streets" />
     <meta
       property="og:description"
-      content="Explore reviewed 2020–2024 NHTSA FARS fatal-crash burden counts across all 50 states and DC."
+      content="Turn community road-safety evidence into a privacy-safe, auditable corridor case for public decisions."
     />
-    <meta property="og:url" content="https://nearmiss.chelseakr.com/fars/national/" />
+    <meta property="og:url" content="https://nearmiss.chelseakr.com/" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="NearMiss Conflict Atlas — US evidence ledger" />
+    <meta name="twitter:title" content="NearMiss — evidence to action for safer streets" />
     <meta
       name="twitter:description"
-      content="Explore reviewed 2020–2024 NHTSA FARS fatal-crash burden counts across all 50 states and DC."
+      content="Turn community road-safety evidence into a privacy-safe, auditable corridor case for public decisions."
     />
+    <link rel="canonical" href="https://nearmiss.chelseakr.com/" />
     <link rel="icon" href="/web/vendor/brand/clearance-mark.svg" type="image/svg+xml" />
-    <script data-apex-redirect>
-      (() => {
-        const values = new URLSearchParams(window.location.search).getAll("lang");
-        const language = values.length === 1 ? values[0] : "";
-        const query = language === "es" ? "?lang=es" : language === "en" ? "?lang=en" : "";
-        window.location.replace(`/fars/national/${query}`);
-      })();
-    </script>
-    <meta http-equiv="refresh" content="0; url=/fars/national/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>US evidence ledger — nearmiss</title>
-    <link rel="canonical" href="https://nearmiss.chelseakr.com/fars/national/" />
+    <link rel="stylesheet" href="/web/style.css" />
+    <link rel="stylesheet" href="/web/brand.css" />
+    <link rel="stylesheet" href="/web/landing.css" />
+    <title>NearMiss — evidence to action for safer streets</title>
   </head>
-  <body>
-    <!-- Apex landing for canonical CloudFront (nearmiss.chelseakr.com) and the legacy
-         GitHub Pages mirror (nearmiss.report). The links are no-JS fallbacks. -->
-    <main>
-      <h1>US evidence ledger</h1>
-      <p>
-        Redirecting to the
-        <a href="/fars/national/">US evidence ledger</a>…
-        <a href="/fars/national/?lang=es" hreflang="es" lang="es">Español</a>. The
-        <a href="/data/published/fars-state-mode-index-v2.json">national evidence release index</a>,
-        <a href="/data/published/fars-2024-state-mode-r2.json">2024 evidence JSON</a>,
-        <a href="/data/published/fars-release-corrections.json">release correction ledger</a>, and
-        <a href="https://github.com/ChelseaKR/nearmiss">source code</a> are public.
-      </p>
+  <body class="gateway-page">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="gateway-header">
+      <nav class="gateway-nav" aria-label="Primary">
+        <a class="brand-lockup" href="/" aria-label="NearMiss home">
+          <svg class="clearance-mark" viewBox="0 0 48 32" aria-hidden="true" focusable="false">
+            <path class="clearance-path clearance-path-a" d="M3 27 17 13h5" />
+            <path class="clearance-path clearance-path-b" d="M45 5 31 19h-5" />
+          </svg>
+          <span class="brand-lockup-copy">
+            <strong>nearmiss</strong>
+            <span>evidence to action</span>
+          </span>
+        </a>
+        <a class="gateway-nav-link" href="/fars/national/?lang=es" hreflang="es" lang="es">Español: Atlas nacional</a>
+      </nav>
+
+      <div class="gateway-hero">
+        <p class="gateway-kicker">Community evidence, made reviewable</p>
+        <h1>Turn safety reports into a case a city can examine.</h1>
+        <p class="gateway-lede">
+          NearMiss helps advocates and public-interest teams carry community reports, exposure,
+          and official outcomes into one privacy-safe corridor case—without mistaking raw report
+          volume for risk.
+        </p>
+        <div class="gateway-actions">
+          <a class="gateway-action gateway-action-primary" href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/DECISION-DOSSIER-TEMPLATE.md">Use the Decision Dossier template</a>
+          <a class="gateway-action gateway-action-secondary" href="/fars/national/">Explore reviewed national reference data</a>
+        </div>
+        <p class="gateway-caveat">
+          <strong>Claim boundary:</strong> community reports can identify a signal worth examining.
+          They do not, by themselves, prove danger, fault, cause, or that a treatment worked.
+        </p>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="gateway-process" aria-labelledby="process-heading">
+        <div class="gateway-section-heading">
+          <p class="gateway-kicker">The work is a chain of custody</p>
+          <h2 id="process-heading">From lived experience to an accountable next step</h2>
+        </div>
+        <ol class="gateway-steps">
+          <li>
+            <span class="gateway-step-number">01</span>
+            <h3>Bring the evidence you have</h3>
+            <p>Community reports, bike counts, route data, and official outcomes stay distinct so their gaps remain visible.</p>
+          </li>
+          <li>
+            <span class="gateway-step-number">02</span>
+            <h3>Check the claim</h3>
+            <p>Rates, confidence intervals, privacy floors, source tiers, and bias notes travel with the finding.</p>
+          </li>
+          <li>
+            <span class="gateway-step-number">03</span>
+            <h3>Carry a corridor case</h3>
+            <p>A Decision Dossier names the requested action, the supporting evidence, its limits, and how follow-up will be measured.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="gateway-dossier" aria-labelledby="dossier-heading">
+        <div>
+          <p class="gateway-kicker">The primary artifact</p>
+          <h2 id="dossier-heading">A Decision Dossier keeps the caveat with the claim.</h2>
+        </div>
+        <div class="gateway-dossier-grid">
+          <article>
+            <h3>What it asks</h3>
+            <p>A named owner, corridor, decision, and next step—rather than an open-ended map of complaints.</p>
+          </article>
+          <article>
+            <h3>What it shows</h3>
+            <p>Rates, uncertainty, report patterns, exposure quality, and independent evidence as separate, inspectable tracks.</p>
+          </article>
+          <article>
+            <h3>What it refuses</h3>
+            <p>Unqualified safety claims, individual trip disclosure, cross-city leaderboards, and false before-and-after certainty.</p>
+          </article>
+        </div>
+        <a class="gateway-text-link" href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/PRODUCT-EXPANSION-PLAN.md">Read the product direction and validation gates</a>
+      </section>
+
+      <section class="gateway-reference" aria-labelledby="reference-heading">
+        <div class="gateway-reference-copy">
+          <p class="gateway-kicker">Available now</p>
+          <h2 id="reference-heading">Reviewed national fatal-crash reference data</h2>
+          <p>
+            The Conflict Atlas is a separately scoped reference surface: it presents reviewed
+            2020–2024 NHTSA FARS fatal-crash counts by state and involved road-user mode. It is
+            not a near-miss map and does not estimate local risk.
+          </p>
+          <a class="gateway-text-link" href="/fars/national/">Open the Conflict Atlas</a>
+        </div>
+        <aside class="gateway-reference-note" aria-label="Reference data limitations">
+          <p class="gateway-note-label">Read the label</p>
+          <p><strong>Counts are not risk.</strong> The Atlas does not normalize for trips, miles, population, or exposure. Modes can overlap within a crash.</p>
+        </aside>
+      </section>
     </main>
+
+    <footer class="gateway-footer">
+      <p>NearMiss is an independent, open-source evidence tool for safe-streets advocacy.</p>
+      <a href="https://github.com/ChelseaKR/nearmiss">Inspect the source and methods</a>
+    </footer>
   </body>
 </html>

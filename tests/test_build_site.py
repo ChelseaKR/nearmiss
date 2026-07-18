@@ -19,6 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 NATIONAL_ROUTE = "/fars/national/"
 NATIONAL_MANIFEST_PATH = "fars/national/index.html"
 NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/"
+APEX_CANONICAL = "https://nearmiss.chelseakr.com/"
 
 
 class _ApexDocument(HTMLParser):
@@ -64,28 +65,20 @@ class _ApexDocument(HTMLParser):
             self._script_parts = None
 
 
-def _assert_national_apex(html: str) -> None:
+def _assert_product_apex(html: str) -> None:
     document = _ApexDocument()
     document.feed(html)
     document.close()
 
-    assert document.refreshes == [f"0; url={NATIONAL_ROUTE}"]
-    assert document.canonicals == [NATIONAL_CANONICAL]
+    assert document.refreshes == []
+    assert document.canonicals == [APEX_CANONICAL]
     assert document.main_landmarks == 1
-    assert len(document.redirect_scripts) == 1
-    redirect = document.redirect_scripts[0]
-    assert 'const values = new URLSearchParams(window.location.search).getAll("lang")' in redirect
-    assert 'values.length === 1 ? values[0] : ""' in redirect
-    assert 'language === "es" ? "?lang=es"' in redirect
-    assert 'language === "en" ? "?lang=en"' in redirect
-    assert "window.location.replace(`/fars/national/${query}`)" in redirect
+    assert document.redirect_scripts == []
     assert NATIONAL_ROUTE in document.links
     assert f"{NATIONAL_ROUTE}?lang=es" in document.links
     assert "/web/index.html" not in document.links
-    assert "/data/published/fars-state-mode-index-v2.json" in document.links
-    assert "/data/published/fars-2024-state-mode-r2.json" in document.links
-    assert "/data/published/fars-release-corrections.json" in document.links
-    assert "/data/published/" not in document.links
+    assert any("DECISION-DOSSIER-TEMPLATE.md" in link for link in document.links)
+    assert any("PRODUCT-EXPANSION-PLAN.md" in link for link in document.links)
 
 
 def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
@@ -105,6 +98,7 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
         "web/us-coverage.js",
         "web/i18n.js",
         "web/brand.css",
+        "web/landing.css",
         "web/style.css",
         "web/us-coverage.css",
         "web/us-coverage-studio.css",
@@ -172,15 +166,15 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
     assert not any(path.endswith(".run.json") for path in files)
 
 
-def test_source_and_built_apex_promote_national_surface(tmp_path: Path) -> None:
+def test_source_and_built_apex_promote_evidence_to_action_gateway(tmp_path: Path) -> None:
     out = tmp_path / "site"
     build_site(out, SHA)
     source = (build_site_module.ROOT / "index.html").read_text(encoding="utf-8")
     built = (out / "index.html").read_text(encoding="utf-8")
 
     assert built == source
-    _assert_national_apex(source)
-    _assert_national_apex(built)
+    _assert_product_apex(source)
+    _assert_product_apex(built)
 
 
 def test_public_catalogs_contain_only_national_messages(tmp_path: Path) -> None:
@@ -227,12 +221,12 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
     out = tmp_path / "site"
     build_site(out, SHA)
     expected = {
-        "index.html": NATIONAL_CANONICAL,
-        "web/us-coverage.html": NATIONAL_CANONICAL,
-        NATIONAL_MANIFEST_PATH: NATIONAL_CANONICAL,
+        "index.html": (APEX_CANONICAL, "NearMiss"),
+        "web/us-coverage.html": (NATIONAL_CANONICAL, "NearMiss Conflict Atlas"),
+        NATIONAL_MANIFEST_PATH: (NATIONAL_CANONICAL, "NearMiss Conflict Atlas"),
     }
 
-    for relative, canonical in expected.items():
+    for relative, (canonical, site_name) in expected.items():
         document = _ApexDocument()
         document.feed((out / relative).read_text(encoding="utf-8"))
         document.close()
@@ -249,7 +243,7 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
             document.meta_names["twitter:description"]
         ), relative
         assert document.meta_properties["og:type"] == ["website"], relative
-        assert document.meta_properties["og:site_name"] == ["NearMiss Conflict Atlas"], relative
+        assert document.meta_properties["og:site_name"] == [site_name], relative
         assert document.meta_properties["og:title"] and all(document.meta_properties["og:title"]), (
             relative
         )

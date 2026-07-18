@@ -1,0 +1,296 @@
+/* Public gateway — a field dossier, not another analytics dashboard.
+   The paper ground, hard rules, and surveyed route marker extend the Atlas
+   language while making the actual product boundary visible before a map. */
+
+.gateway-page {
+  --gateway-paper: #f3f6f2;
+  --gateway-sheet: #ffffff;
+  --gateway-ink: #152a30;
+  --gateway-blue: #145b73;
+  --gateway-red: #b93a2b;
+  --gateway-amber: #e0b33e;
+  --gateway-muted: #5e706f;
+  --gateway-rule: #aebdb9;
+  margin: 0;
+  padding: 0;
+  background: var(--gateway-paper);
+  color: var(--gateway-ink);
+}
+
+.gateway-page .skip-link {
+  z-index: 10;
+}
+
+.gateway-header,
+.gateway-page main,
+.gateway-footer {
+  max-width: none;
+  margin: 0;
+}
+
+.gateway-header {
+  padding: 0 clamp(1rem, 4vw, 5rem) clamp(3rem, 8vw, 7rem);
+  border-block-end: 1px solid var(--gateway-rule);
+  background: linear-gradient(112deg, #f3f6f2 0%, #f3f6f2 68%, #dce8eb 68%, #dce8eb 100%);
+}
+
+.gateway-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-block-size: 4.75rem;
+  border-block-end: 1px solid var(--gateway-rule);
+}
+
+.gateway-nav-link,
+.gateway-text-link {
+  color: var(--gateway-blue);
+  font-weight: 700;
+}
+
+.gateway-nav-link {
+  font-size: 0.9rem;
+}
+
+.gateway-hero {
+  max-width: 74rem;
+  padding-block-start: clamp(3.5rem, 9vw, 8rem);
+}
+
+.gateway-kicker {
+  margin: 0 0 0.75rem;
+  color: var(--gateway-blue);
+  font: 800 0.74rem/1.25 var(--brand-data);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gateway-hero h1,
+.gateway-page h2,
+.gateway-page h3 {
+  color: var(--gateway-ink);
+  font-family: var(--brand-display);
+}
+
+.gateway-hero h1 {
+  max-width: 13ch;
+  margin: 0;
+  font-size: clamp(3.1rem, 7vw, 6.8rem);
+  font-weight: 760;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+  text-wrap: balance;
+}
+
+.gateway-lede {
+  max-width: 50rem;
+  margin: 1.7rem 0 0;
+  color: var(--gateway-muted);
+  font-size: clamp(1.08rem, 1.7vw, 1.35rem);
+  line-height: 1.55;
+}
+
+.gateway-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1.75rem;
+}
+
+.gateway-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 3rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--gateway-ink);
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+}
+
+.gateway-action-primary {
+  background: var(--gateway-ink);
+  color: var(--gateway-sheet);
+}
+
+.gateway-action-secondary {
+  background: var(--gateway-sheet);
+  color: var(--gateway-ink);
+}
+
+.gateway-caveat {
+  max-width: 55rem;
+  margin: 0;
+  padding: 0.95rem 1rem;
+  border-block: 1px solid #715713;
+  background: #f8efcf;
+  color: #4f3a08;
+}
+
+.gateway-page main {
+  padding-inline: clamp(1rem, 4vw, 5rem);
+}
+
+.gateway-process,
+.gateway-dossier,
+.gateway-reference {
+  max-width: 74rem;
+  margin-inline: auto;
+  padding-block: clamp(3.5rem, 7vw, 6.5rem);
+}
+
+.gateway-process {
+  border-block-end: 1px solid var(--gateway-rule);
+}
+
+.gateway-section-heading {
+  max-width: 48rem;
+}
+
+.gateway-page h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.75rem);
+  font-weight: 740;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.gateway-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 2.5rem 0 0;
+  padding: 1px;
+  background: var(--gateway-rule);
+  list-style: none;
+}
+
+.gateway-steps li {
+  min-width: 0;
+  padding: 1.35rem;
+  background: var(--gateway-sheet);
+}
+
+.gateway-step-number,
+.gateway-note-label {
+  color: var(--gateway-blue);
+  font: 800 0.75rem/1 var(--brand-data);
+  letter-spacing: 0.08em;
+}
+
+.gateway-page h3 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+.gateway-steps p,
+.gateway-dossier-grid p,
+.gateway-reference p {
+  margin: 0;
+  color: var(--gateway-muted);
+  line-height: 1.55;
+}
+
+.gateway-dossier {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(2rem, 8vw, 7rem);
+}
+
+.gateway-dossier-grid {
+  border-block-start: 1px solid var(--gateway-rule);
+}
+
+.gateway-dossier-grid article {
+  padding-block: 1.15rem;
+  border-block-end: 1px solid var(--gateway-rule);
+}
+
+.gateway-dossier-grid h3 {
+  margin: 0 0 0.4rem;
+}
+
+.gateway-dossier > .gateway-text-link {
+  grid-column: 2;
+  justify-self: start;
+  margin-block-start: -4rem;
+}
+
+.gateway-reference {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.7fr);
+  gap: clamp(2rem, 8vw, 7rem);
+  border-block-start: 1px solid var(--gateway-rule);
+}
+
+.gateway-reference-copy > p:not(.gateway-kicker) {
+  max-width: 44rem;
+  margin-block: 1.25rem;
+}
+
+.gateway-reference-note {
+  align-self: start;
+  padding: 1.2rem;
+  border: 1px solid var(--gateway-ink);
+  background: var(--gateway-sheet);
+}
+
+.gateway-reference-note p + p {
+  margin-block-start: 1rem;
+}
+
+.gateway-reference-note strong {
+  color: var(--gateway-ink);
+}
+
+.gateway-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem clamp(1rem, 4vw, 5rem);
+  border-block-start: 0.35rem solid var(--gateway-ink);
+  background: var(--gateway-sheet);
+  color: var(--gateway-muted);
+}
+
+.gateway-footer p {
+  margin: 0;
+}
+
+.gateway-page .brand-lockup-copy > span {
+  white-space: normal;
+}
+
+.gateway-page a:focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 3px;
+}
+
+@media (max-width: 52rem) {
+  .gateway-header {
+    background: var(--gateway-paper);
+  }
+
+  .gateway-steps,
+  .gateway-dossier,
+  .gateway-reference {
+    grid-template-columns: 1fr;
+  }
+
+  .gateway-dossier > .gateway-text-link {
+    grid-column: auto;
+    margin-block-start: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gateway-page .clearance-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

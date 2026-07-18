@@ -13,6 +13,7 @@ const PAGE = join(here, "us-coverage.html");
 const LEGACY_HOME = join(here, "index.html");
 const NATIONAL_ROUTE = "/fars/national/";
 const NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/";
+const APEX_CANONICAL = "https://nearmiss.chelseakr.com/";
 const APP = join(here, "us-coverage.js");
 const STUDIO_STYLE = join(here, "us-coverage-studio.css");
 const I18N = join(here, "i18n.js");
@@ -345,28 +346,28 @@ async function main() {
     }
   };
   const apex = new JSDOM(readFileSync(APEX, "utf-8")).window.document;
-  assertNationalMetadata(apex, "apex");
-  const refresh = apex.querySelector('meta[http-equiv="refresh"]');
-  if (!refresh || refresh.getAttribute("content") !== "0; url=/fars/national/") {
-    die("apex does not immediately redirect to the nationwide evidence ledger");
+  if (apex.querySelector('link[rel~="canonical"]')?.getAttribute("href") !== APEX_CANONICAL) {
+    die("apex does not canonicalize to the evidence-to-action gateway");
   }
-  if (!apex.querySelector('a[href="/data/published/fars-state-mode-index-v2.json"]')) {
-    die("apex has no direct national release-index link");
+  if (apex.querySelector('meta[property="og:site_name"]')?.getAttribute("content") !== "NearMiss") {
+    die("apex does not identify the NearMiss product surface");
   }
-  if (!apex.querySelector('a[href="/data/published/fars-2024-state-mode-r2.json"]')) {
-    die("apex has no direct corrected 2024 evidence link");
-  }
-  if (!apex.querySelector('a[href="/data/published/fars-release-corrections.json"]')) {
-    die("apex has no release-correction ledger link");
+  if (apex.querySelector('meta[http-equiv="refresh"]')) {
+    die("apex still redirects before readers can reach the product gateway");
   }
   if (!apex.querySelector('a[href="/fars/national/"]')) {
-    die("apex fallback does not target the canonical national route");
+    die("apex does not link to the reviewed national reference route");
   }
   if (apex.querySelector('a[href="/web/index.html"]')) {
     die("apex fallback still advertises the retired synthetic demo");
   }
-  if (!apex.querySelector("main")) die("apex fallback content has no main landmark");
-  assertStrictLanguageRedirect(apex, "script[data-apex-redirect]", "apex");
+  if (!apex.querySelector("main")) die("apex gateway content has no main landmark");
+  if (!apex.querySelector('a[href*="DECISION-DOSSIER-TEMPLATE.md"]')) {
+    die("apex does not offer the Decision Dossier template");
+  }
+  if (!apex.querySelector('link[href="/web/landing.css"]')) {
+    die("apex does not load the dedicated gateway stylesheet");
+  }
 
   const legacyHome = new JSDOM(readFileSync(LEGACY_HOME, "utf-8")).window.document;
   if (legacyHome.querySelector('link[rel~="canonical"]')?.getAttribute("href") !== NATIONAL_CANONICAL) {
