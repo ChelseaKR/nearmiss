@@ -1,0 +1,300 @@
+{
+  "$id": "https://nearmiss.dev/schema/us-county-boundaries.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "accounting": {
+      "additionalProperties": false,
+      "properties": {
+        "coordinate_count": {
+          "maximum": 500000,
+          "minimum": 4,
+          "type": "integer"
+        },
+        "feature_count": {
+          "maximum": 300,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "multipolygon_feature_count": {
+          "maximum": 300,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "polygon_feature_count": {
+          "maximum": 300,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "feature_count",
+        "polygon_feature_count",
+        "multipolygon_feature_count",
+        "coordinate_count"
+      ],
+      "type": "object"
+    },
+    "artifact_type": {
+      "const": "nearmiss.private.us_county_boundary_shard"
+    },
+    "features": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "geometry": {
+            "oneOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "coordinates": {
+                    "items": {
+                      "items": {
+                        "items": false,
+                        "maxItems": 2,
+                        "minItems": 2,
+                        "prefixItems": [
+                          {
+                            "maximum": 180,
+                            "minimum": -180,
+                            "type": "number"
+                          },
+                          {
+                            "maximum": 90,
+                            "minimum": -90,
+                            "type": "number"
+                          }
+                        ],
+                        "type": "array"
+                      },
+                      "minItems": 4,
+                      "type": "array"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "type": {
+                    "const": "Polygon"
+                  }
+                },
+                "required": [
+                  "type",
+                  "coordinates"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "coordinates": {
+                    "items": {
+                      "items": {
+                        "items": {
+                          "items": false,
+                          "maxItems": 2,
+                          "minItems": 2,
+                          "prefixItems": [
+                            {
+                              "maximum": 180,
+                              "minimum": -180,
+                              "type": "number"
+                            },
+                            {
+                              "maximum": 90,
+                              "minimum": -90,
+                              "type": "number"
+                            }
+                          ],
+                          "type": "array"
+                        },
+                        "minItems": 4,
+                        "type": "array"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "type": {
+                    "const": "MultiPolygon"
+                  }
+                },
+                "required": [
+                  "type",
+                  "coordinates"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "id": {
+            "pattern": "^[0-9]{5}$",
+            "type": "string"
+          },
+          "properties": {
+            "additionalProperties": false,
+            "properties": {
+              "county_fips": {
+                "pattern": "^[0-9]{3}$",
+                "type": "string"
+              },
+              "geoid": {
+                "pattern": "^[0-9]{5}$",
+                "type": "string"
+              },
+              "name": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              "namelsad": {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              "state_fips": {
+                "pattern": "^[0-9]{2}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state_fips",
+              "county_fips",
+              "geoid",
+              "name",
+              "namelsad"
+            ],
+            "type": "object"
+          },
+          "type": {
+            "const": "Feature"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "properties",
+          "geometry"
+        ],
+        "type": "object"
+      },
+      "maxItems": 300,
+      "minItems": 1,
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "conversion_version": {
+          "const": "county-boundary-kml-to-rfc7946-v1"
+        },
+        "distribution_url": {
+          "const": "https://www2.census.gov/geo/tiger/GENZ2024/kml/cb_2024_us_county_20m.zip"
+        },
+        "member_name": {
+          "const": "cb_2024_us_county_20m.kml"
+        },
+        "member_sha256": {
+          "const": "920cacc5b601d99a7b697a63ab16e0d846d34df271a34a2b278e5fd9cb8b6c12"
+        },
+        "presentation_vintage": {
+          "const": 2024
+        },
+        "raw_zip_sha256": {
+          "const": "590c1bfc1ae2746163a7417100670680a4a0ca79a577771e3c7c6821eea5149f"
+        },
+        "raw_zip_size_bytes": {
+          "const": 802100
+        },
+        "resolution": {
+          "const": "1:20,000,000"
+        }
+      },
+      "required": [
+        "presentation_vintage",
+        "distribution_url",
+        "raw_zip_sha256",
+        "raw_zip_size_bytes",
+        "member_name",
+        "member_sha256",
+        "resolution",
+        "conversion_version"
+      ],
+      "type": "object"
+    },
+    "state_fips": {
+      "enum": [
+        "01",
+        "02",
+        "04",
+        "05",
+        "06",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "31",
+        "32",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40",
+        "41",
+        "42",
+        "44",
+        "45",
+        "46",
+        "47",
+        "48",
+        "49",
+        "50",
+        "51",
+        "53",
+        "54",
+        "55",
+        "56"
+      ],
+      "type": "string"
+    },
+    "visibility": {
+      "const": "private"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "visibility",
+    "state_fips",
+    "source",
+    "accounting",
+    "features"
+  ],
+  "title": "Private NearMiss state-sharded 2024 Census county-equivalent boundaries",
+  "type": "object"
+}
