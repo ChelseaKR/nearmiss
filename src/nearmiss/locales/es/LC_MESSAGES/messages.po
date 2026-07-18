@@ -1382,7 +1382,7 @@ msgstr ""
 msgid "web.coverage.map_keyboard_hint"
 msgstr ""
 "Teclado: Tab entra una vez al mapa. Las flechas, Inicio y Fin recorren "
-"las jurisdicciones en orden alfabético; Intro o Espacio selecciona."
+"las jurisdicciones en orden alfabético; Intro o Espacio abre la hoja de evidencia estatal."
 
 msgid "web.coverage.map_kicker"
 msgstr "Vista nacional"
@@ -1401,6 +1401,57 @@ msgstr "{state}: {count} choques fatales; modo involucrado: {mode}"
 
 msgid "web.coverage.map_state_unpublished"
 msgstr "{state}: suprimido o cero para {mode}"
+
+msgid "web.coverage.state_lens_active"
+msgstr "{year} · {mode}"
+
+msgid "web.coverage.state_lens_back"
+msgstr "Todos los estados"
+
+msgid "web.coverage.state_lens_caveat"
+msgstr "Los conteos describen carga revisada de choques fatales. No consideran la exposición ni establecen riesgo, culpa, causalidad o efecto de un tratamiento. Los modos se superponen."
+
+msgid "web.coverage.state_lens_fingerprint_h"
+msgstr "Seis modos involucrados, mantenidos por separado"
+
+msgid "web.coverage.state_lens_fingerprint_intro"
+msgstr "Cada fila se escala solo dentro de su propio modo involucrado. Las filas no son aditivas."
+
+msgid "web.coverage.state_lens_fingerprint_kicker"
+msgstr "Evidencia del año seleccionado"
+
+msgid "web.coverage.state_lens_kicker"
+msgstr "Hoja de evidencia estatal"
+
+msgid "web.coverage.state_lens_map_note"
+msgstr "La forma del estado sirve de orientación, no de evidencia geográfica más detallada."
+
+msgid "web.coverage.state_lens_profile_h"
+msgstr "Cinco marcas anuales, con la división de codificación visible"
+
+msgid "web.coverage.state_lens_profile_intro"
+msgstr "Los años son marcas discretas, no una sola tendencia continua. El divisor separa dos regímenes revisados de codificación del tipo de persona de FARS."
+
+msgid "web.coverage.state_lens_profile_kicker"
+msgstr "División de evidencia"
+
+msgid "web.coverage.state_lens_profile_loading"
+msgstr "Cargando y verificando los artefactos anuales restantes de este perfil…"
+
+msgid "web.coverage.state_lens_rank"
+msgstr "Puesto {rank} de {total} jurisdicciones publicadas para este modo. Es carga, no riesgo."
+
+msgid "web.coverage.state_lens_seam"
+msgstr "2020–2021 y 2022–2024 usan regímenes diferentes revisados de codificación del tipo de persona. No lea a través del divisor como una sola serie ininterrumpida."
+
+msgid "web.coverage.state_lens_status"
+msgstr "Hoja de evidencia estatal de {state}, {year}, {mode}."
+
+msgid "web.coverage.state_lens_title"
+msgstr "Hoja de evidencia de {state}"
+
+msgid "web.coverage.state_lens_unavailable"
+msgstr "La hoja de evidencia del estado seleccionado no está disponible. Vuelva a todos los estados y elija una jurisdicción revisada."
 
 msgid "web.coverage.mapping_value"
 msgstr "Choques {crash} · personas {person}"

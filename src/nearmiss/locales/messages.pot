@@ -1334,6 +1334,57 @@ msgstr ""
 msgid "web.coverage.state_label"
 msgstr ""
 
+msgid "web.coverage.state_lens_active"
+msgstr ""
+
+msgid "web.coverage.state_lens_back"
+msgstr ""
+
+msgid "web.coverage.state_lens_caveat"
+msgstr ""
+
+msgid "web.coverage.state_lens_fingerprint_h"
+msgstr ""
+
+msgid "web.coverage.state_lens_fingerprint_intro"
+msgstr ""
+
+msgid "web.coverage.state_lens_fingerprint_kicker"
+msgstr ""
+
+msgid "web.coverage.state_lens_kicker"
+msgstr ""
+
+msgid "web.coverage.state_lens_map_note"
+msgstr ""
+
+msgid "web.coverage.state_lens_profile_h"
+msgstr ""
+
+msgid "web.coverage.state_lens_profile_intro"
+msgstr ""
+
+msgid "web.coverage.state_lens_profile_kicker"
+msgstr ""
+
+msgid "web.coverage.state_lens_profile_loading"
+msgstr ""
+
+msgid "web.coverage.state_lens_rank"
+msgstr ""
+
+msgid "web.coverage.state_lens_seam"
+msgstr ""
+
+msgid "web.coverage.state_lens_status"
+msgstr ""
+
+msgid "web.coverage.state_lens_title"
+msgstr ""
+
+msgid "web.coverage.state_lens_unavailable"
+msgstr ""
+
 msgid "web.coverage.status_label"
 msgstr ""
 
