@@ -1420,6 +1420,9 @@ msgstr "Cada fila se escala solo dentro de su propio modo involucrado. Las filas
 msgid "web.coverage.state_lens_fingerprint_kicker"
 msgstr "Evidencia del año seleccionado"
 
+msgid "web.coverage.state_lens_fingerprint_table"
+msgstr "Abrir la tabla de datos de modos involucrados del año seleccionado"
+
 msgid "web.coverage.state_lens_kicker"
 msgstr "Hoja de evidencia estatal"
 
@@ -1438,8 +1441,14 @@ msgstr "División de evidencia"
 msgid "web.coverage.state_lens_profile_loading"
 msgstr "Cargando y verificando los artefactos anuales restantes de este perfil…"
 
+msgid "web.coverage.state_lens_profile_table"
+msgstr "Abrir la tabla de datos de cinco años"
+
 msgid "web.coverage.state_lens_rank"
 msgstr "Puesto {rank} de {total} jurisdicciones publicadas para este modo. Es carga, no riesgo."
+
+msgid "web.coverage.state_lens_record_link"
+msgstr "Descargar este registro anual revisado"
 
 msgid "web.coverage.state_lens_seam"
 msgstr "2020–2021 y 2022–2024 usan regímenes diferentes revisados de codificación del tipo de persona. No lea a través del divisor como una sola serie ininterrumpida."

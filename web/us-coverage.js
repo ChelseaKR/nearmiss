@@ -1431,6 +1431,35 @@
     return list;
   }
 
+  function renderStateLensFingerprintTable(state) {
+    var details = cell("details", "", "state-lens-data-table");
+    details.appendChild(cell("summary", t("state_lens_fingerprint_table")));
+    var table = cell("table");
+    table.setAttribute("aria-label", t("state_lens_fingerprint_table"));
+    var head = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    [t("mode_label"), t("th_count"), t("status_label")].forEach(function (label) {
+      var heading = cell("th", label);
+      heading.scope = "col";
+      headRow.appendChild(heading);
+    });
+    head.appendChild(headRow);
+    table.appendChild(head);
+    var body = document.createElement("tbody");
+    rowsForState(state.state_abbreviation).forEach(function (row) {
+      var tableRow = document.createElement("tr");
+      var mode = cell("th", modeLabel(row.mode));
+      mode.scope = "row";
+      tableRow.appendChild(mode);
+      tableRow.appendChild(cell("td", row.status === "published" ? number(row.count) : t("cell_not_published")));
+      tableRow.appendChild(cell("td", row.status === "published" ? t("cell_published") : t("cell_not_published")));
+      body.appendChild(tableRow);
+    });
+    table.appendChild(body);
+    details.appendChild(table);
+    return details;
+  }
+
   function renderStateLensProfile(abbreviation, mode) {
     var section = cell("section", "", "state-lens-profile");
     section.setAttribute("aria-labelledby", "state-lens-profile-heading");
@@ -1481,7 +1510,63 @@
     });
     section.appendChild(marks);
     section.appendChild(cell("p", t("state_lens_seam"), "state-lens-seam"));
+    var details = cell("details", "", "state-lens-data-table");
+    details.appendChild(cell("summary", t("state_lens_profile_table")));
+    var table = cell("table");
+    table.setAttribute("aria-label", t("state_lens_profile_table"));
+    var head = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    [t("year_label"), t("th_count"), t("status_label")].forEach(function (label) {
+      var heading = cell("th", label);
+      heading.scope = "col";
+      headRow.appendChild(heading);
+    });
+    head.appendChild(headRow);
+    table.appendChild(head);
+    var body = document.createElement("tbody");
+    values.forEach(function (entry) {
+      var tableRow = document.createElement("tr");
+      var year = cell("th", String(entry.year));
+      year.scope = "row";
+      tableRow.appendChild(year);
+      tableRow.appendChild(
+        cell("td", entry.result.status === "published" ? number(entry.result.crash_count) : t("cell_not_published"))
+      );
+      tableRow.appendChild(
+        cell("td", entry.result.status === "published" ? t("cell_published") : t("cell_not_published"))
+      );
+      body.appendChild(tableRow);
+    });
+    table.appendChild(body);
+    details.appendChild(table);
+    section.appendChild(details);
     return section;
+  }
+
+  function renderStateLensActions(state) {
+    var actions = cell("div", "", "state-lens-actions");
+    var compareButton = cell("button", t("compare_with"));
+    compareButton.type = "button";
+    compareButton.addEventListener("click", function () {
+      viewState.compareA = state.state_abbreviation;
+      viewState.view = "compare";
+      renderAll();
+      syncUrl();
+      var compareA = document.getElementById("compare-a");
+      if (compareA) compareA.focus();
+    });
+    var saveButton = cell("button", t("add_to_brief"));
+    saveButton.type = "button";
+    saveButton.addEventListener("click", function () {
+      saveState(state.state_abbreviation);
+    });
+    var copyButton = cell("button", t("copy_view"));
+    copyButton.type = "button";
+    copyButton.addEventListener("click", copyCurrentView);
+    actions.appendChild(compareButton);
+    actions.appendChild(saveButton);
+    actions.appendChild(copyButton);
+    return actions;
   }
 
   function renderStateLens() {
@@ -1552,8 +1637,29 @@
         );
       }
     }
+    var provenance = cell("dl", "", "state-lens-provenance");
+    var sourceLabel = cell("dt", t("source_label"));
+    var sourceValue = cell("dd", artifact.source.name);
+    provenance.appendChild(sourceLabel);
+    provenance.appendChild(sourceValue);
+    var contractLabel = cell("dt", t("annual_contract_label"));
+    var contractValue = cell(
+      "dd",
+      tpl(t("contract_value"), {
+        revision: number(currentRelease.contract.contract_revision),
+        sha: currentRelease.contract.contract_sha256,
+      })
+    );
+    provenance.appendChild(contractLabel);
+    provenance.appendChild(contractValue);
+    evidence.appendChild(provenance);
     layout.appendChild(evidence);
     content.appendChild(layout);
+
+    var record = cell("a", t("state_lens_record_link"), "state-lens-record-link");
+    record.href = DATA_ROOT + currentRelease.artifact_path;
+    record.download = "";
+    content.appendChild(record);
 
     var fingerprint = cell("section", "", "state-lens-fingerprint-section");
     fingerprint.setAttribute("aria-labelledby", "state-lens-fingerprint-heading");
@@ -1563,8 +1669,10 @@
     fingerprint.appendChild(fingerprintHeading);
     fingerprint.appendChild(cell("p", t("state_lens_fingerprint_intro"), "state-lens-intro"));
     fingerprint.appendChild(renderStateLensFingerprint(state));
+    fingerprint.appendChild(renderStateLensFingerprintTable(state));
     content.appendChild(fingerprint);
     content.appendChild(renderStateLensProfile(state.state_abbreviation, mode));
+    content.appendChild(renderStateLensActions(state));
     content.appendChild(cell("p", t("state_lens_caveat"), "coverage-caveat state-lens-caveat"));
   }
 
@@ -2398,6 +2506,30 @@
     document.getElementById("brief-status").textContent = message;
   }
 
+  function copyCurrentView() {
+    syncUrl();
+    var value = window.location.href;
+    if (window.navigator.clipboard && window.navigator.clipboard.writeText) {
+      window.navigator.clipboard.writeText(value).then(
+        function () {
+          announceBrief(t("view_copied"));
+        },
+        function () {
+          announceBrief(t("copy_failed"));
+        }
+      );
+      return;
+    }
+    var input = document.createElement("textarea");
+    input.value = value;
+    input.setAttribute("readonly", "");
+    document.body.appendChild(input);
+    input.select();
+    var copied = document.execCommand && document.execCommand("copy");
+    input.remove();
+    announceBrief(copied ? t("view_copied") : t("copy_failed"));
+  }
+
   function saveState(abbreviation) {
     if (!abbreviation || !isValidState(abbreviation) || viewState.saved.indexOf(abbreviation) >= 0) return;
     viewState.saved.push(abbreviation);
@@ -2896,29 +3028,7 @@
     document.getElementById("print-brief").addEventListener("click", function () {
       window.print();
     });
-    document.getElementById("copy-view").addEventListener("click", function () {
-      syncUrl();
-      var value = window.location.href;
-      if (window.navigator.clipboard && window.navigator.clipboard.writeText) {
-        window.navigator.clipboard.writeText(value).then(
-          function () {
-            announceBrief(t("view_copied"));
-          },
-          function () {
-            announceBrief(t("copy_failed"));
-          }
-        );
-      } else {
-        var input = document.createElement("textarea");
-        input.value = value;
-        input.setAttribute("readonly", "");
-        document.body.appendChild(input);
-        input.select();
-        var copied = document.execCommand && document.execCommand("copy");
-        input.remove();
-        announceBrief(copied ? t("view_copied") : t("copy_failed"));
-      }
-    });
+    document.getElementById("copy-view").addEventListener("click", copyCurrentView);
     document.querySelectorAll("[data-lang]").forEach(function (button) {
       button.addEventListener("click", function () {
         var next = button.getAttribute("data-lang");

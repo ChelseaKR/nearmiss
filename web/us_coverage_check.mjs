@@ -1019,11 +1019,16 @@ async function main() {
     stateLens.doc.getElementById("state-lens").hidden ||
     !stateLens.doc.querySelector(".state-lens-map .state-lens-shape") ||
     stateLens.doc.querySelectorAll(".state-lens-fingerprint > div").length !== 6 ||
+    stateLens.doc.querySelectorAll(".state-lens-data-table").length !== 2 ||
+    stateLens.doc.querySelectorAll(".state-lens-data-table table").length !== 2 ||
+    stateLens.doc.querySelectorAll(".state-lens-actions button").length !== 3 ||
+    !stateLens.doc.querySelector(".state-lens-provenance") ||
+    !stateLens.doc.querySelector('.state-lens-record-link[href$="fars-2024-state-mode-r2.json"]') ||
     stateLens.doc.querySelectorAll(".state-lens-years > li").length !== 5 ||
     !stateLens.doc.querySelector(".state-lens-year.is-after-seam") ||
     !stateLens.window.location.search.includes("level=state")
   ) {
-    die("state evidence lens did not restore the selected state, all-mode fingerprint, and five-year seam");
+    die("state evidence lens did not restore its evidence, source, actions, tables, and five-year seam");
   }
   stateLens.doc.getElementById("state-lens-back").click();
   if (
@@ -1045,6 +1050,15 @@ async function main() {
     !stateLens.window.location.search.includes("level=state")
   ) {
     die("national map activation did not enter the selected state evidence lens");
+  }
+  stateLens.doc.querySelector(".state-lens-actions button").click();
+  if (
+    stateLens.window.NearmissUSCoverage.getState().view !== "compare" ||
+    stateLens.window.NearmissUSCoverage.getState().mapLevel !== "state" ||
+    stateLens.doc.getElementById("compare-panel").hidden ||
+    stateLens.doc.activeElement !== stateLens.doc.getElementById("compare-a")
+  ) {
+    die("state evidence lens comparison action did not preserve the lens location for return to map");
   }
   stateLens.dom.window.close();
 
