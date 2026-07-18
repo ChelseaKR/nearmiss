@@ -12,6 +12,7 @@ This index is the handoff point for the documentation sweep last reviewed on 202
 ## Primary Docs
 
 - [Readme](../README.md)
+- [Product expansion and differentiation plan](PRODUCT-EXPANSION-PLAN.md)
 - [Project Scope](PROJECT-SCOPE.md)
 - [Documentation Audit](DOCUMENTATION-AUDIT.md)
 - [Responsible Tech Audits](RESPONSIBLE-TECH-AUDITS.md)
