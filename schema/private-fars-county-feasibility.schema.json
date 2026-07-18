@@ -1,0 +1,393 @@
+{
+  "$id": "https://nearmiss.dev/schema/private-fars-county-feasibility.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "accounting": {
+      "additionalProperties": false,
+      "properties": {
+        "case_count": {
+          "maximum": 45000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "crash_contribution_total": {
+          "maximum": 270000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "reported_county_cell_count": {
+          "maximum": 270000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "reported_county_contribution_total": {
+          "maximum": 270000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sentinel_cell_count": {
+          "maximum": 270000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sentinel_contribution_total": {
+          "maximum": 270000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "state_count": {
+          "maximum": 52,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "state_mode_total_count": {
+          "maximum": 270000,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "case_count",
+        "state_count",
+        "reported_county_cell_count",
+        "sentinel_cell_count",
+        "state_mode_total_count",
+        "reported_county_contribution_total",
+        "sentinel_contribution_total",
+        "crash_contribution_total"
+      ],
+      "type": "object"
+    },
+    "artifact_type": {
+      "const": "nearmiss.private.fars_county_feasibility"
+    },
+    "dataset_year": {
+      "maximum": 2024,
+      "minimum": 2020,
+      "type": "integer"
+    },
+    "method": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm_version": {
+          "const": "county-involved-mode-feasibility-v1"
+        },
+        "contribution_unit": {
+          "const": "distinct_crash_once_per_involved_mode"
+        },
+        "coverage": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "dimension": {
+          "const": "involved_mode"
+        },
+        "geography": {
+          "const": "fars_state_code_and_county_code"
+        },
+        "modes": {
+          "items": false,
+          "maxItems": 6,
+          "minItems": 6,
+          "prefixItems": [
+            {
+              "const": "motor_vehicle_occupant"
+            },
+            {
+              "const": "motorcyclist"
+            },
+            {
+              "const": "pedalcyclist"
+            },
+            {
+              "const": "pedestrian"
+            },
+            {
+              "const": "other_road_user"
+            },
+            {
+              "const": "unknown"
+            }
+          ],
+          "type": "array"
+        },
+        "modes_non_additive": {
+          "const": true
+        },
+        "sentinel_statuses": {
+          "items": false,
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "const": "not_applicable"
+            },
+            {
+              "const": "other"
+            },
+            {
+              "const": "not_reported"
+            },
+            {
+              "const": "unknown"
+            }
+          ],
+          "type": "array"
+        }
+      },
+      "required": [
+        "algorithm_version",
+        "geography",
+        "coverage",
+        "dimension",
+        "contribution_unit",
+        "modes_non_additive",
+        "modes",
+        "sentinel_statuses"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "source_lineage": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_revision": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "contract_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "county_code_system": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "normalized_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_revision_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "state_code_system": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "contract_revision",
+        "source_revision_id",
+        "contract_sha256",
+        "normalized_sha256",
+        "state_code_system",
+        "county_code_system"
+      ],
+      "type": "object"
+    },
+    "states": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "county_cells": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "county_code": {
+                  "pattern": "^[0-9]{3}$",
+                  "type": "string"
+                },
+                "crash_count": {
+                  "maximum": 270000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "involved_mode": {
+                  "enum": [
+                    "motor_vehicle_occupant",
+                    "motorcyclist",
+                    "pedalcyclist",
+                    "pedestrian",
+                    "other_road_user",
+                    "unknown"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "county_code",
+                "involved_mode",
+                "crash_count"
+              ],
+              "type": "object"
+            },
+            "maxItems": 270000,
+            "type": "array"
+          },
+          "sentinel_cells": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "county_status": {
+                  "enum": [
+                    "not_applicable",
+                    "other",
+                    "not_reported",
+                    "unknown"
+                  ],
+                  "type": "string"
+                },
+                "crash_count": {
+                  "maximum": 270000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "involved_mode": {
+                  "enum": [
+                    "motor_vehicle_occupant",
+                    "motorcyclist",
+                    "pedalcyclist",
+                    "pedestrian",
+                    "other_road_user",
+                    "unknown"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "county_status",
+                "involved_mode",
+                "crash_count"
+              ],
+              "type": "object"
+            },
+            "maxItems": 24,
+            "type": "array"
+          },
+          "state_code": {
+            "enum": [
+              "1",
+              "2",
+              "4",
+              "5",
+              "6",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "15",
+              "16",
+              "17",
+              "18",
+              "19",
+              "20",
+              "21",
+              "22",
+              "23",
+              "24",
+              "25",
+              "26",
+              "27",
+              "28",
+              "29",
+              "30",
+              "31",
+              "32",
+              "33",
+              "34",
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42",
+              "43",
+              "44",
+              "45",
+              "46",
+              "47",
+              "48",
+              "49",
+              "50",
+              "51",
+              "53",
+              "54",
+              "55",
+              "56"
+            ],
+            "type": "string"
+          },
+          "state_mode_totals": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "crash_count": {
+                  "maximum": 270000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "involved_mode": {
+                  "enum": [
+                    "motor_vehicle_occupant",
+                    "motorcyclist",
+                    "pedalcyclist",
+                    "pedestrian",
+                    "other_road_user",
+                    "unknown"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "involved_mode",
+                "crash_count"
+              ],
+              "type": "object"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "state_code",
+          "county_cells",
+          "sentinel_cells",
+          "state_mode_totals"
+        ],
+        "type": "object"
+      },
+      "maxItems": 52,
+      "minItems": 1,
+      "type": "array"
+    },
+    "visibility": {
+      "const": "private"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "visibility",
+    "dataset_year",
+    "source_lineage",
+    "method",
+    "accounting",
+    "states"
+  ],
+  "title": "Private NearMiss annual FARS county feasibility accounting",
+  "type": "object"
+}

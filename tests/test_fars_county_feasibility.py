@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import json
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
@@ -14,6 +16,9 @@ from jsonschema import Draft202012Validator
 from nearmiss import fars_county_feasibility as feasibility
 from nearmiss.fars_national_context import FARS_2024_STATE_CODES
 from nearmiss.fars_year_contracts import fars_year_contract_revision
+
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMA_PATH = ROOT / "schema" / "private-fars-county-feasibility.schema.json"
 
 
 def _record(
@@ -198,4 +203,7 @@ def test_artifact_validator_rejects_sentinel_as_a_public_like_county_cell() -> N
 
 
 def test_embedded_schema_is_valid_json_schema() -> None:
+    assert json.loads(SCHEMA_PATH.read_text(encoding="utf-8")) == (
+        feasibility.FARS_COUNTY_FEASIBILITY_ARTIFACT_SCHEMA
+    )
     Draft202012Validator.check_schema(feasibility.FARS_COUNTY_FEASIBILITY_ARTIFACT_SCHEMA)
