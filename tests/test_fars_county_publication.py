@@ -11,6 +11,7 @@ from typing import Any, cast
 import pytest
 from tools import build_us_county_boundaries as boundaries
 
+from nearmiss import fars_county_boundary_publication as boundary_publication
 from nearmiss import fars_county_crosswalk as crosswalk
 from nearmiss import fars_county_feasibility as feasibility
 from nearmiss import fars_county_projection as projection
@@ -119,11 +120,15 @@ def _inputs(
 ) -> tuple[dict[str, object], dict[str, object], dict[str, object], dict[str, dict[str, object]]]:
     feasibility_artifact = _feasibility(california_count=california_count)
     crosswalk_artifact = _crosswalk()
-    boundary_shards = _boundaries()
+    private_boundary_shards = _boundaries()
     projection_artifact = projection.build_private_fars_county_projection(
-        feasibility_artifact, crosswalk_artifact, boundary_shards
+        feasibility_artifact, crosswalk_artifact, private_boundary_shards
     )
-    return feasibility_artifact, crosswalk_artifact, projection_artifact, boundary_shards
+    public_boundary_shards = {
+        state_fips: boundary_publication.build_public_fars_county_boundary_state_artifact(shard)
+        for state_fips, shard in private_boundary_shards.items()
+    }
+    return feasibility_artifact, crosswalk_artifact, projection_artifact, public_boundary_shards
 
 
 def _artifact(*, california_count: int = 1) -> dict[str, object]:
@@ -169,6 +174,7 @@ def test_count_at_floor_is_published_without_exposing_private_lineage() -> None:
     assert b'"projection_sha256"' not in payload
     assert b'"county_code"' not in payload
     assert b'"source_record_id"' not in payload
+    assert b"nearmiss.private.us_county_boundary_shard" not in payload
 
 
 def test_canonical_bytes_are_stable_and_suppressed_cells_have_no_numeric_field() -> None:
