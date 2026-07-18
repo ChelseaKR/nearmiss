@@ -23,9 +23,9 @@
 
 /* Override the shared document-frame cap from brand.css only for the gateway.
    The other web surfaces intentionally retain their reading-width shell. */
-body.gateway-page .gateway-header,
+body.gateway-page header.gateway-header,
 body.gateway-page main#main,
-body.gateway-page .gateway-footer {
+body.gateway-page footer.gateway-footer {
   max-width: none;
   margin: 0;
 }
