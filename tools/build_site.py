@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Assemble the minimal public GitHub Pages artifact.
 
-Legacy Pages served the repository root. This builder instead allowlists the
-national FARS application and its exact public data dependencies, stamps the
-source commit, and emits hashes for every deployed file. Synthetic methodology
-fixtures remain in the repository but cannot enter the production artifact.
+The builder publishes a small evidence-to-action gateway plus the reviewed
+national FARS reference application and its exact public data dependencies. It
+stamps the source commit and emits hashes for every deployed file. Synthetic
+methodology fixtures remain in the repository and cannot enter production.
 """
 
 from __future__ import annotations
@@ -19,11 +19,12 @@ from typing import TypedDict
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_WEB_FILES = (
-    "index.html",  # Legacy redirect shell; not the former Davis application.
+    "index.html",  # Public evidence-to-action gateway; not the former Davis application.
     "us-coverage.html",
     "us-coverage.js",
     "i18n.js",
     "brand.css",
+    "landing.css",
     "style.css",
     "us-coverage.css",
     "us-coverage-studio.css",

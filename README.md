@@ -15,8 +15,9 @@
 [![Cite this](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
 [![Live site](https://img.shields.io/badge/live-nearmiss.chelseakr.com-success.svg)](https://nearmiss.chelseakr.com)
 
-**Live public preview:** [NearMiss Conflict Atlas](https://nearmiss.chelseakr.com) — real, reviewed
-2020–2024 NHTSA FARS evidence for all 50 states and DC.
+**Live public preview:** [NearMiss](https://nearmiss.chelseakr.com) — an evidence-to-action gateway
+for a local-first Decision Dossier workflow, with the [Conflict Atlas](https://nearmiss.chelseakr.com/fars/national/)
+as its real, reviewed 2020–2024 NHTSA FARS reference-data surface.
 
 </div>
 
@@ -47,8 +48,9 @@ community-owned evidence base.
 > accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
 > pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
 > (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta. The national
-> studio is the sole deployed product; the Davis/Riverside methods UI, embed, and submission form are
-> retained as local, synthetic test surfaces and are not published at the production origin. The
+> gateway is the deployed entry point; the reviewed national studio is its reference-data surface.
+> The Davis/Riverside methods UI, embed, and submission form are retained as local, synthetic test
+> surfaces and are not published at the production origin. The
 > studio is a time-bounded, owner-attested public preview under
 > [ADR 0012](docs/adr/0012-solo-maintainer-provisional-review-attestation.md); that disposition is
 > not a manual screen-reader result or a WCAG/ACR conformance claim.
