@@ -19,17 +19,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+#, python-brace-format
+msgid "# Decision Dossier — {city}: {corridor}"
+msgstr "# Decision Dossier — {city}: {corridor}"
+
+msgid "## Claim boundary"
+msgstr "## Claim boundary"
+
+msgid "## Corridor finding"
+msgstr "## Corridor finding"
+
 msgid "## Corridor view (for advocacy asks)"
 msgstr "## Corridor view (for advocacy asks)"
+
+msgid "## Decision request"
+msgstr "## Decision request"
 
 msgid "## Dominant hazard type by segment (with its own rate)"
 msgstr "## Dominant hazard type by segment (with its own rate)"
 
+msgid "## Evidence readiness"
+msgstr "## Evidence readiness"
+
 msgid "## Highest-rate segments (exposure-normalized)"
 msgstr "## Highest-rate segments (exposure-normalized)"
 
+msgid "## Next review"
+msgstr "## Next review"
+
 msgid "## Reporting bias (named, not hidden)"
 msgstr "## Reporting bias (named, not hidden)"
+
+msgid "## Reproduction record"
+msgstr "## Reproduction record"
 
 msgid "## Robustness checks (overdispersion & re-segmentation)"
 msgstr "## Robustness checks (overdispersion & re-segmentation)"
@@ -37,96 +59,277 @@ msgstr "## Robustness checks (overdispersion & re-segmentation)"
 msgid "## Statistically significant hotspots (Getis-Ord Gi\\*)"
 msgstr "## Statistically significant hotspots (Getis-Ord Gi\\*)"
 
+msgid "## Uncertainty and checks"
+msgstr "## Uncertainty and checks"
+
 msgid "## What the numbers mean (plain language)"
 msgstr "## What the numbers mean (plain language)"
 
 msgid "## When hazards get reported (volume, not risk)"
 msgstr "## When hazards get reported (volume, not risk)"
 
-msgid "**Analysis window:** all available data (no window configured — rates below are all-time and not bounded to a stated period)."
-msgstr "**Analysis window:** all available data (no window configured — rates below are all-time and not bounded to a stated period)."
+msgid "### Declared sources"
+msgstr "### Declared sources"
+
+msgid ""
+"**Analysis window:** all available data (no window configured — rates "
+"below are all-time and not bounded to a stated period)."
+msgstr ""
+"**Analysis window:** all available data (no window configured — rates "
+"below are all-time and not bounded to a stated period)."
 
 #, python-brace-format
 msgid "**Analysis window:** {start} to {end}."
 msgstr "**Analysis window:** {start} to {end}."
 
 #, python-brace-format
-msgid "**Bottom line:** the highest exposure-normalized near-miss rate is on **{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a busy street; still, it rests on {n} reports, so read it with the interval and the reporting-bias caveats below."
-msgstr "**Bottom line:** the highest exposure-normalized near-miss rate is on **{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, n={n}){sig}. Because it is normalized by exposure, this is a rate, not just a busy street; still, it rests on {n} reports, so read it with the interval and the reporting-bias caveats below."
+msgid ""
+"**Bottom line:** the highest exposure-normalized near-miss rate is on "
+"**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
+"n={n}){sig}. Because it is normalized by exposure, this is a rate, not "
+"just a busy street; still, it rests on {n} reports, so read it with the "
+"interval and the reporting-bias caveats below."
+msgstr ""
+"**Bottom line:** the highest exposure-normalized near-miss rate is on "
+"**{name}** — about {rate} reports per {per} {unit} (95% CI {lo}–{hi}, "
+"n={n}){sig}. Because it is normalized by exposure, this is a rate, not "
+"just a busy street; still, it rests on {n} reports, so read it with the "
+"interval and the reporting-bias caveats below."
 
 #, python-brace-format
-msgid "**Exposure coverage:** {pct}% of segments have an exposure denominator. Segments without one are listed as *exposure unknown*, not ranked."
-msgstr "**Exposure coverage:** {pct}% of segments have an exposure denominator. Segments without one are listed as *exposure unknown*, not ranked."
+msgid ""
+"**Declared evidence tier:** `{tier}` (assessed as of {as_of}). This "
+"describes which analyses the declared sources support; it is not a safety"
+" rating."
+msgstr ""
+"**Declared evidence tier:** `{tier}` (assessed as of {as_of}). This "
+"describes which analyses the declared sources support; it is not a safety "
+"rating."
 
-msgid "**MAUP transparency note:** how you draw the boundary can itself shift a rate (the Modifiable Areal Unit Problem). Corridor counts and exposure are sums of the same already-published, already-significant blocks above — no block is surfaced here that was withheld or non-significant on its own. Read the corridor rate as a complement to the block rates, not a replacement for them."
-msgstr "**MAUP transparency note:** how you draw the boundary can itself shift a rate (the Modifiable Areal Unit Problem). Corridor counts and exposure are sums of the same already-published, already-significant blocks above — no block is surfaced here that was withheld or non-significant on its own. Read the corridor rate as a complement to the block rates, not a replacement for them."
-
-#, python-brace-format
-msgid "**Null calibration (we attacked our own dataset):** on {n} seeded label-shuffles of this city's own reports, with exposure and geometry held fixed, the hotspot method's empirical false-positive rate was {pct}% — see `{file}`."
-msgstr "**Null calibration (we attacked our own dataset):** on {n} seeded label-shuffles of this city's own reports, with exposure and geometry held fixed, the hotspot method's empirical false-positive rate was {pct}% — see `{file}`."
-
-msgid "**Over-represented vs exposure** (more reports than traffic alone predicts):"
-msgstr "**Over-represented vs exposure** (more reports than traffic alone predicts):"
-
-#, python-brace-format
-msgid "**Report-intensity peak (KDE, not danger):** around {name}. This shows where reports concentrate, which is not the same as where risk is highest."
-msgstr "**Report-intensity peak (KDE, not danger):** around {name}. This shows where reports concentrate, which is not the same as where risk is highest."
-
-msgid "**Under-represented vs exposure** (quiet in the data, not necessarily safe):"
-msgstr "**Under-represented vs exposure** (quiet in the data, not necessarily safe):"
+#, python-brace-format, python-format
+msgid ""
+"**Exposure coverage:** {pct}% of segments have an exposure denominator. "
+"Segments without one are listed as *exposure unknown*, not ranked."
+msgstr ""
+"**Exposure coverage:** {pct}% of segments have an exposure denominator. "
+"Segments without one are listed as *exposure unknown*, not ranked."
 
 #, python-brace-format
-msgid "**Weather (association, not a risk rate):** {rws} of matched reports fell on wet days, while {bws} of days in the weather record were wet. Wet days usually carry far fewer riders, so this is an association to investigate, not a weather risk rate. Source: {src}."
-msgstr "**Weather (association, not a risk rate):** {rws} of matched reports fell on wet days, while {bws} of days in the weather record were wet. Wet days usually carry far fewer riders, so this is an association to investigate, not a weather risk rate. Source: {src}."
+msgid ""
+"**Freshness warning:** the following declared sources are stale under "
+"their own policy: {sources}."
+msgstr ""
+"**Freshness warning:** the following declared sources are stale under "
+"their own policy: {sources}."
+
+msgid ""
+"**MAUP transparency note:** how you draw the boundary can itself shift a "
+"rate (the Modifiable Areal Unit Problem). Corridor counts and exposure "
+"are sums of the same already-published, already-significant blocks above "
+"— no block is surfaced here that was withheld or non-significant on its "
+"own. Read the corridor rate as a complement to the block rates, not a "
+"replacement for them."
+msgstr ""
+"**MAUP transparency note:** how you draw the boundary can itself shift a "
+"rate (the Modifiable Areal Unit Problem). Corridor counts and exposure "
+"are sums of the same already-published, already-significant blocks above "
+"— no block is surfaced here that was withheld or non-significant on its "
+"own. Read the corridor rate as a complement to the block rates, not a "
+"replacement for them."
+
+#, python-brace-format
+msgid ""
+"**Missing core source declarations:** {kinds}. The evidence tier reflects"
+" that gap."
+msgstr ""
+"**Missing core source declarations:** {kinds}. The evidence tier reflects "
+"that gap."
+
+#, python-brace-format
+msgid ""
+"**Null calibration (we attacked our own dataset):** on {n} seeded label-"
+"shuffles of this city's own reports, with exposure and geometry held "
+"fixed, the hotspot method's empirical false-positive rate was {pct}% — "
+"see `{file}`."
+msgstr ""
+"**Null calibration (we attacked our own dataset):** on {n} seeded label-"
+"shuffles of this city's own reports, with exposure and geometry held "
+"fixed, the hotspot method's empirical false-positive rate was {pct}% — "
+"see `{file}`."
+
+msgid ""
+"**Over-represented vs exposure** (more reports than traffic alone "
+"predicts):"
+msgstr ""
+"**Over-represented vs exposure** (more reports than traffic alone "
+"predicts):"
+
+#, python-brace-format
+msgid ""
+"**Report-intensity peak (KDE, not danger):** around {name}. This shows "
+"where reports concentrate, which is not the same as where risk is "
+"highest."
+msgstr ""
+"**Report-intensity peak (KDE, not danger):** around {name}. This shows "
+"where reports concentrate, which is not the same as where risk is "
+"highest."
+
+msgid ""
+"**Source registry not declared.** This dossier can show the analysis "
+"result, but it cannot claim an evidence tier, measured-city coverage, or "
+"partner review."
+msgstr ""
+"**Source registry not declared.** This dossier can show the analysis "
+"result, but it cannot claim an evidence tier, measured-city coverage, or "
+"partner review."
+
+msgid ""
+"**Under-represented vs exposure** (quiet in the data, not necessarily "
+"safe):"
+msgstr ""
+"**Under-represented vs exposure** (quiet in the data, not necessarily "
+"safe):"
+
+#, python-brace-format
+msgid ""
+"**Weather (association, not a risk rate):** {rws} of matched reports fell"
+" on wet days, while {bws} of days in the weather record were wet. Wet "
+"days usually carry far fewer riders, so this is an association to "
+"investigate, not a weather risk rate. Source: {src}."
+msgstr ""
+"**Weather (association, not a risk rate):** {rws} of matched reports fell"
+" on wet days, while {bws} of days in the weather record were wet. Wet "
+"days usually carry far fewer riders, so this is an association to "
+"investigate, not a weather risk rate. Source: {src}."
+
+#, python-brace-format
+msgid ""
+"**{name}** is an aggregate of {blocks} contiguous, publishable segments "
+"that each cleared the configured FDR-corrected hotspot screen. Its pooled"
+" reported near-miss rate is **{rate} per {per} {unit}** (95% CI "
+"{lo}–{hi}; n={n})."
+msgstr ""
+"**{name}** is an aggregate of {blocks} contiguous, publishable segments "
+"that each cleared the configured FDR-corrected hotspot screen. Its pooled "
+"reported near-miss rate is **{rate} per {per} {unit}** (95% CI "
+"{lo}–{hi}; n={n})."
 
 msgid "*Small sample: too few timed reports to read these peaks with confidence.*"
 msgstr "*Small sample: too few timed reports to read these peaks with confidence.*"
 
-msgid "*Time-of-day breakdown withheld: too few timed reports to share without risking contributor privacy (k-anonymity).*"
-msgstr "*Time-of-day breakdown withheld: too few timed reports to share without risking contributor privacy (k-anonymity).*"
+msgid ""
+"*Time-of-day breakdown withheld: too few timed reports to share without "
+"risking contributor privacy (k-anonymity).*"
+msgstr ""
+"*Time-of-day breakdown withheld: too few timed reports to share without "
+"risking contributor privacy (k-anonymity).*"
 
 #, python-brace-format
-msgid "*{n} segment with fewer than {floor} reports is withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
-msgid_plural "*{n} segments with fewer than {floor} reports are withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
-msgstr[0] "*{n} segment with fewer than {floor} reports is withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
-msgstr[1] "*{n} segments with fewer than {floor} reports are withheld from this brief and the open dataset to protect contributor privacy (k-anonymity).*"
+msgid ""
+"*{n} segment with fewer than {floor} reports is withheld from this brief "
+"and the open dataset to protect contributor privacy (k-anonymity).*"
+msgid_plural ""
+"*{n} segments with fewer than {floor} reports are withheld from this "
+"brief and the open dataset to protect contributor privacy (k-anonymity).*"
+msgstr[0] ""
+"*{n} segment with fewer than {floor} reports is withheld from this brief "
+"and the open dataset to protect contributor privacy (k-anonymity).*"
+msgstr[1] ""
+"*{n} segments with fewer than {floor} reports are withheld from this "
+"brief and the open dataset to protect contributor privacy (k-anonymity).*"
 
 msgid ", and it is a statistically significant cluster"
 msgstr ", and it is a statistically significant cluster"
 
-msgid "- **95% CI (confidence interval)** — the plausible range for the true rate. A wide range means few reports and real uncertainty; treat those rankings gently."
-msgstr "- **95% CI (confidence interval)** — the plausible range for the true rate. A wide range means few reports and real uncertainty; treat those rankings gently."
+msgid ""
+"- **95% CI (confidence interval)** — the plausible range for the true "
+"rate. A wide range means few reports and real uncertainty; treat those "
+"rankings gently."
+msgstr ""
+"- **95% CI (confidence interval)** — the plausible range for the true "
+"rate. A wide range means few reports and real uncertainty; treat those "
+"rankings gently."
 
-msgid "- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot *beyond* what traffic and chance explain, after a multiple-comparison correction: a real cluster, not a fluke. Several streets can share a rate while only one is a significant cluster."
-msgstr "- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot *beyond* what traffic and chance explain, after a multiple-comparison correction: a real cluster, not a fluke. Several streets can share a rate while only one is a significant cluster."
+msgid ""
+"- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot "
+"*beyond* what traffic and chance explain, after a multiple-comparison "
+"correction: a real cluster, not a fluke. Several streets can share a rate"
+" while only one is a significant cluster."
+msgstr ""
+"- **Hotspot (Getis-Ord Gi\\*)** — a segment marked ★ Significant is hot "
+"*beyond* what traffic and chance explain, after a multiple-comparison "
+"correction: a real cluster, not a fluke. Several streets can share a rate"
+" while only one is a significant cluster."
+
+#, python-brace-format, python-format
+msgid ""
+"- **Overdispersion (clustered reporting).** The report counts are "
+"overdispersed (dispersion ≈ {phi}): by that pooled estimate the Poisson "
+"95% intervals above could be up to {infl}× too narrow. Genuine between-"
+"segment differences inflate this estimate too, so {infl}× is an upper "
+"bound on the needed widening. {clause}"
+msgstr ""
+"- **Overdispersion (clustered reporting).** The report counts are "
+"overdispersed (dispersion ≈ {phi}): by that pooled estimate the Poisson "
+"95% intervals above could be up to {infl}× too narrow. Genuine between-"
+"segment differences inflate this estimate too, so {infl}× is an upper "
+"bound on the needed widening. {clause}"
 
 #, python-brace-format
-msgid "- **Overdispersion (clustered reporting).** The report counts are overdispersed (dispersion ≈ {phi}): by that pooled estimate the Poisson 95% intervals above could be up to {infl}× too narrow. Genuine between-segment differences inflate this estimate too, so {infl}× is an upper bound on the needed widening. {clause}"
-msgstr "- **Overdispersion (clustered reporting).** The report counts are overdispersed (dispersion ≈ {phi}): by that pooled estimate the Poisson 95% intervals above could be up to {infl}× too narrow. Genuine between-segment differences inflate this estimate too, so {infl}× is an upper bound on the needed widening. {clause}"
+msgid ""
+"- **Overdispersion.** Report counts show no material overdispersion "
+"(dispersion ≈ {phi}); the Poisson intervals stand as computed."
+msgstr ""
+"- **Overdispersion.** Report counts show no material overdispersion "
+"(dispersion ≈ {phi}); the Poisson intervals stand as computed."
 
 #, python-brace-format
-msgid "- **Overdispersion.** Report counts show no material overdispersion (dispersion ≈ {phi}); the Poisson intervals stand as computed."
-msgstr "- **Overdispersion.** Report counts show no material overdispersion (dispersion ≈ {phi}); the Poisson intervals stand as computed."
+msgid ""
+"- **Rate** — reports per {per} {unit}. It adjusts for how many people "
+"travel a street, so a quiet street with a few reports can rank above a "
+"busy one with many."
+msgstr ""
+"- **Rate** — reports per {per} {unit}. It adjusts for how many people "
+"travel a street, so a quiet street with a few reports can rank above a "
+"busy one with many."
 
 #, python-brace-format
-msgid "- **Rate** — reports per {per} {unit}. It adjusts for how many people travel a street, so a quiet street with a few reports can rank above a busy one with many."
-msgstr "- **Rate** — reports per {per} {unit}. It adjusts for how many people travel a street, so a quiet street with a few reports can rank above a busy one with many."
+msgid ""
+"- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser"
+" units (from {fine}) leaves **{name}** the highest-rate, still-"
+"significant cluster — the hotspot is not an artifact of where the block "
+"lines were drawn. Top-{k} rank overlap: {overlap}."
+msgstr ""
+"- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser"
+" units (from {fine}) leaves **{name}** the highest-rate, still-"
+"significant cluster — the hotspot is not an artifact of where the block "
+"lines were drawn. Top-{k} rank overlap: {overlap}."
 
 #, python-brace-format
-msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}) leaves **{name}** the highest-rate, still-significant cluster — the hotspot is not an artifact of where the block lines were drawn. Top-{k} rank overlap: {overlap}."
-msgstr "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}) leaves **{name}** the highest-rate, still-significant cluster — the hotspot is not an artifact of where the block lines were drawn. Top-{k} rank overlap: {overlap}."
-
-#, python-brace-format
-msgid "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}), **{name}** stays the highest-rate unit but loses statistical significance at the coarser scale — read it as scale-sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank overlap: {overlap}."
-msgstr "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser units (from {fine}), **{name}** stays the highest-rate unit but loses statistical significance at the coarser scale — read it as scale-sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank overlap: {overlap}."
+msgid ""
+"- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser"
+" units (from {fine}), **{name}** stays the highest-rate unit but loses "
+"statistical significance at the coarser scale — read it as scale-"
+"sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank "
+"overlap: {overlap}."
+msgstr ""
+"- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser"
+" units (from {fine}), **{name}** stays the highest-rate unit but loses "
+"statistical significance at the coarser scale — read it as scale-"
+"sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank "
+"overlap: {overlap}."
 
 #, python-brace-format
 msgid "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
 msgstr "- **{name}** — Gi* z = {z}, rate {rate}/{per} (CI {lo}-{hi}, n={n})"
 
 #, python-brace-format
-msgid "- **{name}** — most common: **{hazard}** ({count} reports), rate {rate}/{per} (CI {lo}-{hi})"
-msgstr "- **{name}** — most common: **{hazard}** ({count} reports), rate {rate}/{per} (CI {lo}-{hi})"
+msgid ""
+"- **{name}** — most common: **{hazard}** ({count} reports), rate "
+"{rate}/{per} (CI {lo}-{hi})"
+msgstr ""
+"- **{name}** — most common: **{hazard}** ({count} reports), rate "
+"{rate}/{per} (CI {lo}-{hi})"
 
 #, python-brace-format
 msgid "- **{part}**: {n} report ({pct}%)"
@@ -135,18 +338,103 @@ msgstr[0] "- **{part}**: {n} report ({pct}%)"
 msgstr[1] "- **{part}**: {n} reports ({pct}%)"
 
 #, python-brace-format
+msgid "- Analysis window: {window}"
+msgstr "- Analysis window: {window}"
+
+#, python-brace-format
+msgid "- Corridor id: `{corridor_id}`"
+msgstr "- Corridor id: `{corridor_id}`"
+
+#, python-brace-format
+msgid "- Exposure date: {date}"
+msgstr "- Exposure date: {date}"
+
+#, python-brace-format
+msgid "- Exposure source: {source}"
+msgstr "- Exposure source: {source}"
+
+#, python-brace-format
+msgid ""
+"- Rebuild: run `nearmiss dossier --config <city.toml> --corridor "
+"{corridor_id} --decision-request <request>` against the same inputs."
+msgstr ""
+"- Rebuild: run `nearmiss dossier --config <city.toml> --corridor "
+"{corridor_id} --decision-request <request>` against the same inputs."
+
+msgid ""
+"- Reports can vary by route choice, access, language, and willingness to "
+"report; a quiet data signal is not evidence of safety."
+msgstr ""
+"- Reports can vary by route choice, access, language, and willingness to "
+"report; a quiet data signal is not evidence of safety."
+
+#, python-brace-format
+msgid "- Source registry SHA-256: `{sha256}`"
+msgstr "- Source registry SHA-256: `{sha256}`"
+
+msgid ""
+"- The corridor boundary is a coarser view of block results. Read it "
+"alongside the underlying block layer, not instead of it."
+msgstr ""
+"- The corridor boundary is a coarser view of block results. Read it "
+"alongside the underlying block layer, not instead of it."
+
+msgid ""
+"- The interval expresses sampling uncertainty in reported counts; it does"
+" not remove reporting bias."
+msgstr ""
+"- The interval expresses sampling uncertainty in reported counts; it does "
+"not remove reporting bias."
+
+#, python-brace-format
+msgid "- `{source_id}` — {name} (updated {updated_at})"
+msgstr "- `{source_id}` — {name} (updated {updated_at})"
+
+#, python-brace-format, python-format
 msgid "- {name}: {rshare}% of reports vs {eshare}% of exposure"
 msgstr "- {name}: {rshare}% of reports vs {eshare}% of exposure"
 
 msgid "95% CI"
 msgstr "95% CI"
 
-#, python-brace-format
-msgid "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence interval and an n. Raw counts are not danger; they are report volume. Read the caveats — they are the point."
-msgstr "> Rates are reports per {per} {unit}. Every rate carries a 95% confidence interval and an n. Raw counts are not danger; they are report volume. Read the caveats — they are the point."
+msgid ""
+"> **Status: evidence for review.** This is a reproducible corridor "
+"finding, not a safety verdict or a treatment recommendation."
+msgstr ""
+"> **Status: evidence for review.** This is a reproducible corridor "
+"finding, not a safety verdict or a treatment recommendation."
 
-msgid "Blocks are the unit of measurement; corridors are the unit council motions and campaigns are written in. Each corridor below merges contiguous, statistically significant blocks of the same street into one named span, with its own rate, interval, and n — published *alongside*, never instead of, the block-level table above."
-msgstr "Blocks are the unit of measurement; corridors are the unit council motions and campaigns are written in. Each corridor below merges contiguous, statistically significant blocks of the same street into one named span, with its own rate, interval, and n — published *alongside*, never instead of, the block-level table above."
+#, python-brace-format, python-format
+msgid ""
+"> Rates are reports per {per} {unit}. Every rate carries a 95% confidence"
+" interval and an n. Raw counts are not danger; they are report volume. "
+"Read the caveats — they are the point."
+msgstr ""
+"> Rates are reports per {per} {unit}. Every rate carries a 95% confidence"
+" interval and an n. Raw counts are not danger; they are report volume. "
+"Read the caveats — they are the point."
+
+msgid ""
+"Before acting, confirm the decision owner, inspect the corridor in "
+"context, and record what follow-up measure and review window would test "
+"the chosen action."
+msgstr ""
+"Before acting, confirm the decision owner, inspect the corridor in "
+"context, and record what follow-up measure and review window would test "
+"the chosen action."
+
+msgid ""
+"Blocks are the unit of measurement; corridors are the unit council "
+"motions and campaigns are written in. Each corridor below merges "
+"contiguous, statistically significant blocks of the same street into one "
+"named span, with its own rate, interval, and n — published *alongside*, "
+"never instead of, the block-level table above."
+msgstr ""
+"Blocks are the unit of measurement; corridors are the unit council "
+"motions and campaigns are written in. Each corridor below merges "
+"contiguous, statistically significant blocks of the same street into one "
+"named span, with its own rate, interval, and n — published *alongside*, "
+"never instead of, the block-level table above."
 
 msgid "Blocks merged"
 msgstr "Blocks merged"
@@ -157,8 +445,14 @@ msgstr "Confidence"
 msgid "Corridor"
 msgstr "Corridor"
 
-msgid "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
-msgstr "Every figure above regenerates from raw inputs with `make reproduce`. Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and `docs/DATA-CARD.md`."
+msgid ""
+"Every figure above regenerates from raw inputs with `make reproduce`. "
+"Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and "
+"`docs/DATA-CARD.md`."
+msgstr ""
+"Every figure above regenerates from raw inputs with `make reproduce`. "
+"Data and methods are open (Apache-2.0); see `docs/METHODOLOGY.md` and "
+"`docs/DATA-CARD.md`."
 
 msgid "Exposure tier"
 msgstr "Exposure tier"
@@ -173,11 +467,21 @@ msgid "Monday"
 msgstr "Monday"
 
 #, python-brace-format
-msgid "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
-msgstr "Most reports arrive during the **{part}**; the busiest day is **{weekday}**."
+msgid ""
+"Most reports arrive during the **{part}**; the busiest day is "
+"**{weekday}**."
+msgstr ""
+"Most reports arrive during the **{part}**; the busiest day is "
+"**{weekday}**."
 
-msgid "No contiguous run of significant blocks reached corridor size in this dataset — the block-level hotspots above are the finest and only unit available this cycle."
-msgstr "No contiguous run of significant blocks reached corridor size in this dataset — the block-level hotspots above are the finest and only unit available this cycle."
+msgid ""
+"No contiguous run of significant blocks reached corridor size in this "
+"dataset — the block-level hotspots above are the finest and only unit "
+"available this cycle."
+msgstr ""
+"No contiguous run of significant blocks reached corridor size in this "
+"dataset — the block-level hotspots above are the finest and only unit "
+"available this cycle."
 
 msgid "No segment reaches statistical significance at this sample size."
 msgstr "No segment reaches statistical significance at this sample size."
@@ -189,8 +493,12 @@ msgstr "Rank"
 msgid "Rate /{per}"
 msgstr "Rate /{per}"
 
-msgid "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening is available via the `overdispersion_adjust` setting)."
-msgstr "Read them as a lower bound on the true uncertainty (a quasi-Poisson widening is available via the `overdispersion_adjust` setting)."
+msgid ""
+"Read them as a lower bound on the true uncertainty (a quasi-Poisson "
+"widening is available via the `overdispersion_adjust` setting)."
+msgstr ""
+"Read them as a lower bound on the true uncertainty (a quasi-Poisson "
+"widening is available via the `overdispersion_adjust` setting)."
 
 msgid "Saturday"
 msgstr "Saturday"
@@ -198,23 +506,81 @@ msgstr "Saturday"
 msgid "Segment"
 msgstr "Segment"
 
-msgid "Shares compare where reports land against where exposure is. They cannot, on their own, separate 'more dangerous' from 'more reported': reporter pools skew by route choice, demographics, app access, and language. Treat over-represented segments as candidates for attention and scrutiny, not as confirmed rankings."
-msgstr "Shares compare where reports land against where exposure is. They cannot, on their own, separate 'more dangerous' from 'more reported': reporter pools skew by route choice, demographics, app access, and language. Treat over-represented segments as candidates for attention and scrutiny, not as confirmed rankings."
+msgid ""
+"Shares compare where reports land against where exposure is. They cannot,"
+" on their own, separate 'more dangerous' from 'more reported': reporter "
+"pools skew by route choice, demographics, app access, and language. Treat"
+" over-represented segments as candidates for attention and scrutiny, not "
+"as confirmed rankings."
+msgstr ""
+"Shares compare where reports land against where exposure is. They cannot,"
+" on their own, separate 'more dangerous' from 'more reported': reporter "
+"pools skew by route choice, demographics, app access, and language. Treat"
+" over-represented segments as candidates for attention and scrutiny, not "
+"as confirmed rankings."
 
 msgid "Sunday"
 msgstr "Sunday"
 
-msgid "The headline rate is pooled across every hazard type (a union). This names the single most common conflict type at each ranked segment and gives *its* exposure-normalized rate; types with too few reports to share are omitted."
-msgstr "The headline rate is pooled across every hazard type (a union). This names the single most common conflict type at each ranked segment and gives *its* exposure-normalized rate; types with too few reports to share are omitted."
+msgid ""
+"The corridor uses the same already-published block aggregates; it does "
+"not create a new hotspot test or reveal a withheld segment."
+msgstr ""
+"The corridor uses the same already-published block aggregates; it does "
+"not create a new hotspot test or reveal a withheld segment."
 
-msgid "These segments are hot *beyond* what exposure and spatial structure explain — candidates for hot because dangerous, not hot because busy:"
-msgstr "These segments are hot *beyond* what exposure and spatial structure explain — candidates for hot because dangerous, not hot because busy:"
+msgid ""
+"The headline rate is pooled across every hazard type (a union). This "
+"names the single most common conflict type at each ranked segment and "
+"gives *its* exposure-normalized rate; types with too few reports to share"
+" are omitted."
+msgstr ""
+"The headline rate is pooled across every hazard type (a union). This "
+"names the single most common conflict type at each ranked segment and "
+"gives *its* exposure-normalized rate; types with too few reports to share"
+" are omitted."
 
-msgid "This does not mean nothing can be concluded — an exposure-normalized rate with a stated interval and a flagged bias is a far better basis for action than a raw heat map. It means: act on the strongest, most-significant signals, and treat the rest as leads to investigate, not verdicts."
-msgstr "This does not mean nothing can be concluded — an exposure-normalized rate with a stated interval and a flagged bias is a far better basis for action than a raw heat map. It means: act on the strongest, most-significant signals, and treat the rest as leads to investigate, not verdicts."
+msgid ""
+"These segments are hot *beyond* what exposure and spatial structure "
+"explain — candidates for hot because dangerous, not hot because busy:"
+msgstr ""
+"These segments are hot *beyond* what exposure and spatial structure "
+"explain — candidates for hot because dangerous, not hot because busy:"
 
-msgid "This is **report volume** by time of day, not a rate: there is no time-of-day exposure denominator, so it reflects *when people ride and report*, not when a street is most dangerous. Read it as a lead for outreach timing, not a risk ranking."
-msgstr "This is **report volume** by time of day, not a rate: there is no time-of-day exposure denominator, so it reflects *when people ride and report*, not when a street is most dangerous. Read it as a lead for outreach timing, not a risk ranking."
+msgid ""
+"This does not mean nothing can be concluded — an exposure-normalized rate"
+" with a stated interval and a flagged bias is a far better basis for "
+"action than a raw heat map. It means: act on the strongest, most-"
+"significant signals, and treat the rest as leads to investigate, not "
+"verdicts."
+msgstr ""
+"This does not mean nothing can be concluded — an exposure-normalized rate"
+" with a stated interval and a flagged bias is a far better basis for "
+"action than a raw heat map. It means: act on the strongest, most-"
+"significant signals, and treat the rest as leads to investigate, not "
+"verdicts."
+
+msgid ""
+"This dossier does **not** establish danger, fault, causation, the likely "
+"effect of a treatment, or conditions for any individual trip. It records "
+"a reported, exposure-normalized pattern that merits the decision request "
+"above."
+msgstr ""
+"This dossier does **not** establish danger, fault, causation, the likely "
+"effect of a treatment, or conditions for any individual trip. It records "
+"a reported, exposure-normalized pattern that merits the decision request "
+"above."
+
+msgid ""
+"This is **report volume** by time of day, not a rate: there is no time-"
+"of-day exposure denominator, so it reflects *when people ride and "
+"report*, not when a street is most dangerous. Read it as a lead for "
+"outreach timing, not a risk ranking."
+msgstr ""
+"This is **report volume** by time of day, not a rate: there is no time-"
+"of-day exposure denominator, so it reflects *when people ride and "
+"report*, not when a street is most dangerous. Read it as a lead for "
+"outreach timing, not a risk ranking."
 
 msgid "Those intervals have already been widened accordingly (quasi-Poisson)."
 msgstr "Those intervals have already been widened accordingly (quasi-Poisson)."
@@ -231,6 +597,9 @@ msgstr "Wednesday"
 #, python-brace-format
 msgid "Where the danger actually is — {city}"
 msgstr "Where the danger actually is — {city}"
+
+msgid "all available data (no bounded analysis window configured)"
+msgstr "all available data (no bounded analysis window configured)"
 
 msgid "blocked sightline"
 msgstr "blocked sightline"
@@ -317,25 +686,42 @@ msgid "web.app.blLoading"
 msgstr "Summarizing…"
 
 msgid "web.app.blNone"
-msgstr "Bottom line: none of the {n} analyzed blocks is a statistically significant hotspot — no street is hotter than exposure and chance explain. Raw volume is not danger."
+msgstr ""
+"Bottom line: none of the {n} analyzed blocks is a statistically "
+"significant hotspot — no street is hotter than exposure and chance "
+"explain. Raw volume is not danger."
 
 msgid "web.app.blSummary"
-msgstr "Bottom line: {hot} of {n} analyzed blocks are statistically significant hotspots — hotter than traffic (exposure) explains. Highest rate per rider: {list}. Raw volume is not danger."
+msgstr ""
+"Bottom line: {hot} of {n} analyzed blocks are statistically significant "
+"hotspots — hotter than traffic (exposure) explains. Highest rate per "
+"rider: {list}. Raw volume is not danger."
 
 msgid "web.app.capRate"
-msgstr "The same segments by exposure-normalized rate. {hot} significant hotspot(s) — dashed and labeled — emerge, while the most-reported street recedes to a thin line."
+msgstr ""
+"The same segments by exposure-normalized rate. {hot} significant "
+"hotspot(s) — dashed and labeled — emerge, while the most-reported street "
+"recedes to a thin line."
 
 msgid "web.app.capRateNone"
-msgstr "The same segments by exposure-normalized rate. No segment is a statistically significant hotspot; the most-reported street recedes."
+msgstr ""
+"The same segments by exposure-normalized rate. No segment is a "
+"statistically significant hotspot; the most-reported street recedes."
 
 msgid "web.app.capReports"
-msgstr "{n} street segments. Thicker, darker lines have more reports. The most-reported street ({peak}) dominates — but volume is exposure, not danger."
+msgstr ""
+"{n} street segments. Thicker, darker lines have more reports. The most-"
+"reported street ({peak}) dominates — but volume is exposure, not danger."
 
 msgid "web.app.caption"
-msgstr "Exposure-normalized hazard rates for the {n} analyzed segments (streets with reports)."
+msgstr ""
+"Exposure-normalized hazard rates for the {n} analyzed segments (streets "
+"with reports)."
 
 msgid "web.app.captionFiltered"
-msgstr "Exposure-normalized hazard rates — showing {shown} of {n} analyzed segments (filtered)."
+msgstr ""
+"Exposure-normalized hazard rates — showing {shown} of {n} analyzed "
+"segments (filtered)."
 
 msgid "web.app.conf_certain"
 msgstr "certain"
@@ -350,13 +736,18 @@ msgid "web.app.data_h"
 msgstr "Ranked segments"
 
 msgid "web.app.demo"
-msgstr "⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated test data, not real reports. The method is the point; only explicitly reviewed and allowlisted artifacts can be selected."
+msgstr ""
+"⚠️ Showing the <strong>Davis synthetic demo</strong> dataset — generated "
+"test data, not real reports. The method is the point; only explicitly "
+"reviewed and allowlisted artifacts can be selected."
 
 msgid "web.app.demo_real"
 msgstr "✓ <strong>{city}: real data.</strong> Rates normalized by {unit}. {source}"
 
 msgid "web.app.demo_synth"
-msgstr "⚠️ Showing the <strong>{city} synthetic demo</strong> dataset — generated test data, not real reports."
+msgstr ""
+"⚠️ Showing the <strong>{city} synthetic demo</strong> dataset — generated"
+" test data, not real reports."
 
 msgid "web.app.desc"
 msgstr "descending"
@@ -368,19 +759,38 @@ msgid "web.app.downloadMeta"
 msgstr " — {city}, dataset v{ver} ({n} segments)"
 
 msgid "web.app.fail"
-msgstr "Could not load published data ({msg}). Run `make publish`, then `nearmiss serve` and open /web/davis-demo.html."
+msgstr ""
+"Could not load published data ({msg}). Run `make publish`, then `nearmiss"
+" serve` and open /web/davis-demo.html."
 
 msgid "web.app.faq_a1"
-msgstr "Because volume is not danger. A busy street collects the most reports simply because the most people use it. We divide reports by exposure (how much cycling each street carries), so the map shows the rate per rider, not the raw count. A high-traffic street can have many reports and still be safer per trip than a quiet one with a few."
+msgstr ""
+"Because volume is not danger. A busy street collects the most reports "
+"simply because the most people use it. We divide reports by exposure (how"
+" much cycling each street carries), so the map shows the rate per rider, "
+"not the raw count. A high-traffic street can have many reports and still "
+"be safer per trip than a quiet one with a few."
 
 msgid "web.app.faq_a2"
-msgstr "No. These are self-reported near-misses and hazards, which by definition usually leave no police report. They are an early-warning signal, not verified injuries or collision statistics, and we never present them as such."
+msgstr ""
+"No. These are self-reported near-misses and hazards, which by definition "
+"usually leave no police report. They are an early-warning signal, not "
+"verified injuries or collision statistics, and we never present them as "
+"such."
 
 msgid "web.app.faq_a3"
-msgstr "It means we have no trustworthy count of how many people cycle that street, so we will not invent a denominator. Those segments are shown as uncertain and are never ranked as if we were sure. A rate without a denominator is not published."
+msgstr ""
+"It means we have no trustworthy count of how many people cycle that "
+"street, so we will not invent a denominator. Those segments are shown as "
+"uncertain and are never ranked as if we were sure. A rate without a "
+"denominator is not published."
 
 msgid "web.app.faq_a4"
-msgstr "A street is marked “★ Significant” only when a statistical test (Getis-Ord Gi*, with a false-discovery-rate correction) says it is hotter than exposure and chance alone would explain. Everything else carries a confidence interval so you can see how sure — or unsure — the number is."
+msgstr ""
+"A street is marked “★ Significant” only when a statistical test (Getis-"
+"Ord Gi*, with a false-discovery-rate correction) says it is hotter than "
+"exposure and chance alone would explain. Everything else carries a "
+"confidence interval so you can see how sure — or unsure — the number is."
 
 msgid "web.app.faq_h"
 msgstr "Questions people ask"
@@ -419,7 +829,15 @@ msgid "web.app.flag_modeled_exposure"
 msgstr "modeled exposure (not measured)"
 
 msgid "web.app.footer"
-msgstr "Open data, Apache-2.0. <a href=\"https://github.com/ChelseaKR/nearmiss\">Source on GitHub</a> · <a href=\"https://chelseakr.com\">chelseakr.com</a>. Maps © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors. Methods: <code>docs/METHODOLOGY.md</code>; what it can't tell you: <code>docs/LIMITATIONS.md</code>; limits and biases: <code>docs/DATA-CARD.md</code>. Every figure regenerates with <code>make reproduce</code>."
+msgstr ""
+"Open data, Apache-2.0. <a "
+"href=\"https://github.com/ChelseaKR/nearmiss\">Source on GitHub</a> · <a "
+"href=\"https://chelseakr.com\">chelseakr.com</a>. Maps © <a "
+"href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> "
+"contributors. Methods: <code>docs/METHODOLOGY.md</code>; what it can't "
+"tell you: <code>docs/LIMITATIONS.md</code>; limits and biases: <code>docs"
+"/DATA-CARD.md</code>. Every figure regenerates with <code>make "
+"reproduce</code>."
 
 msgid "web.app.h1"
 msgstr "nearmiss — where the danger actually is"
@@ -431,10 +849,14 @@ msgid "web.app.hsLoading"
 msgstr "Summarizing hotspots…"
 
 msgid "web.app.hsSummary"
-msgstr "{n} statistically significant hotspot(s) — hotter than exposure and chance explain: {list}."
+msgstr ""
+"{n} statistically significant hotspot(s) — hotter than exposure and "
+"chance explain: {list}."
 
 msgid "web.app.hsSummaryNone"
-msgstr "No statistically significant hotspots in this dataset (no street is hotter than exposure and chance explain)."
+msgstr ""
+"No statistically significant hotspots in this dataset (no street is "
+"hotter than exposure and chance explain)."
 
 msgid "web.app.hz_close_pass"
 msgstr "close pass"
@@ -464,10 +886,23 @@ msgid "web.app.lblHotspot"
 msgstr "{name} — ★ rate {rate}"
 
 msgid "web.app.lede"
-msgstr "Road-hazard and near-miss <strong>rates, normalized by exposure</strong>, each with a 95% confidence interval and an <em>n</em>. Raw counts are report volume, not danger. The two maps below show the difference; the <a href=\"#data-table\">data table</a> carries every finding and is the authoritative, non-visual equivalent of the maps."
+msgstr ""
+"Road-hazard and near-miss <strong>rates, normalized by exposure</strong>,"
+" each with a 95% confidence interval and an <em>n</em>. Raw counts are "
+"report volume, not danger. The two maps below show the difference; the <a"
+" href=\"#data-table\">data table</a> carries every finding and is the "
+"authoritative, non-visual equivalent of the maps."
 
 msgid "web.app.legend"
-msgstr "<li><strong>Rate /1000</strong> — reports per 1000 units of exposure, not a raw count.</li><li><strong>95% CI</strong> — the plausible range. A wide range means uncertainty.</li><li><strong>Confidence</strong> — “uncertain” marks small samples; “exposure unknown” marks segments with no denominator (never ranked as if certain).</li><li><strong>Hotspot (Gi*)</strong> — “★ Significant” marks a statistically significant cluster (Getis-Ord Gi*, z &gt; 1.96): hot beyond what exposure and chance explain.</li>"
+msgstr ""
+"<li><strong>Rate /1000</strong> — reports per 1000 units of exposure, not"
+" a raw count.</li><li><strong>95% CI</strong> — the plausible range. A "
+"wide range means uncertainty.</li><li><strong>Confidence</strong> — "
+"“uncertain” marks small samples; “exposure unknown” marks segments with "
+"no denominator (never ranked as if certain).</li><li><strong>Hotspot "
+"(Gi*)</strong> — “★ Significant” marks a statistically significant "
+"cluster (Getis-Ord Gi*, z &gt; 1.96): hot beyond what exposure and chance"
+" explain.</li>"
 
 msgid "web.app.legend_h"
 msgstr "How to read this"
@@ -482,10 +917,21 @@ msgid "web.app.mapEmpty"
 msgstr "No mappable segments."
 
 msgid "web.app.mapNoLeaflet"
-msgstr "The interactive maps need JavaScript and the map library. The data table below carries every finding."
+msgstr ""
+"The interactive maps need JavaScript and the map library. The data table "
+"below carries every finding."
 
 msgid "web.app.map_desc"
-msgstr "The same near-miss reports, mapped two ways on a real street map. On the left, the <strong>raw report count</strong> — what most safety maps show: the busiest street looks the most dangerous. On the right, the <strong>rate per 1000 units of exposure</strong> — which is what actually reflects danger. Watch the busiest street recede and the real hotspot emerge. Nothing is conveyed by color alone: line thickness scales with the value, and significant hotspots are dashed and labeled. Everything here is in the <a href=\"#data-table\">data table</a>, which the maps supplement."
+msgstr ""
+"The same near-miss reports, mapped two ways on a real street map. On the "
+"left, the <strong>raw report count</strong> — what most safety maps show:"
+" the busiest street looks the most dangerous. On the right, the "
+"<strong>rate per 1000 units of exposure</strong> — which is what actually"
+" reflects danger. Watch the busiest street recede and the real hotspot "
+"emerge. Nothing is conveyed by color alone: line thickness scales with "
+"the value, and significant hotspots are dashed and labeled. Everything "
+"here is in the <a href=\"#data-table\">data table</a>, which the maps "
+"supplement."
 
 msgid "web.app.map_h"
 msgstr "Two maps, the same reports"
@@ -515,10 +961,15 @@ msgid "web.app.print_btn"
 msgstr "🖨 Print / save as PDF"
 
 msgid "web.app.print_caveat"
-msgstr "Rates are shown with 95% confidence intervals. Segments without a trustworthy exposure denominator are shown as uncertain and are never ranked as if certain."
+msgstr ""
+"Rates are shown with 95% confidence intervals. Segments without a "
+"trustworthy exposure denominator are shown as uncertain and are never "
+"ranked as if certain."
 
 msgid "web.app.print_footer"
-msgstr "nearmiss — near-miss rates, normalized by exposure · https://nearmiss.chelseakr.com"
+msgstr ""
+"nearmiss — near-miss rates, normalized by exposure · "
+"https://nearmiss.chelseakr.com"
 
 msgid "web.app.print_generated_label"
 msgstr "Generated:"
@@ -545,7 +996,9 @@ msgid "web.app.sortStatus"
 msgstr "Table sorted by {col}, {dir}."
 
 msgid "web.app.sort_help"
-msgstr "Sort the table with the column buttons. <strong>Significance</strong> and <strong>confidence</strong> are stated in words, not by color."
+msgstr ""
+"Sort the table with the column buttons. <strong>Significance</strong> and"
+" <strong>confidence</strong> are stated in words, not by color."
 
 msgid "web.app.source_label"
 msgstr "Source:"
@@ -611,10 +1064,14 @@ msgid "web.app.tt_flags"
 msgstr "Data-quality caveats for this segment."
 
 msgid "web.app.tt_hazards"
-msgstr "What kinds of hazard were reported here (suppressed for very small samples)."
+msgstr ""
+"What kinds of hazard were reported here (suppressed for very small "
+"samples)."
 
 msgid "web.app.tt_hot"
-msgstr "Getis-Ord Gi* z-score; ★ Significant is a real cluster (z > 1.96, FDR-corrected)."
+msgstr ""
+"Getis-Ord Gi* z-score; ★ Significant is a real cluster (z > 1.96, FDR-"
+"corrected)."
 
 msgid "web.app.tt_n"
 msgstr "Number of reports on this segment (the sample size)."
@@ -623,82 +1080,99 @@ msgid "web.app.tt_rate"
 msgstr "Reports per 1000 units of exposure — risk per rider, not a raw count."
 
 msgid "web.app.tt_tier"
-msgstr "How much to trust this segment's exposure denominator: observed (direct count), modeled (demand model), proxy (third-party activity layer), or unknown."
-
-msgid "web.submit.geo_denied"
-msgstr "Couldn't get your location — type a place instead."
-
-msgid "web.submit.geo_filled"
-msgstr "Location filled in. You can adjust it."
-
-msgid "web.submit.geo_locating"
-msgstr "Locating…"
-
-msgid "web.submit.geo_unavailable"
-msgstr "Geolocation isn't available — type a location instead."
-
-msgid "web.submit.need_coords"
-msgstr "a valid latitude (−90..90) and longitude (−180..180)"
-
-msgid "web.submit.need_hazard"
-msgstr "a hazard type"
-
-msgid "web.submit.need_location"
-msgstr "a location (use my location, lat/lon, or an address)"
-
-msgid "web.submit.need_severity"
-msgstr "a severity"
-
-msgid "web.submit.status_copied"
-msgstr "Copied to clipboard."
-
-msgid "web.submit.status_copy_manual"
-msgstr "Select the text and copy it manually."
-
-msgid "web.submit.status_missing"
-msgstr "Please provide: {fields}."
-
-msgid "web.submit.status_ready"
-msgstr "Your submission is ready below — it still needs human review before it counts."
-
-msgid "web.submit.status_received"
-msgstr "Thank you. Your near-miss was received and is awaiting review."
-
-msgid "web.submit.status_send_failed"
-msgstr "Couldn't reach the server — here is your submission to send manually instead."
-
-msgid "web.submit.status_sending"
-msgstr "Sending your submission for review…"
+msgstr ""
+"How much to trust this segment's exposure denominator: observed (direct "
+"count), modeled (demand model), proxy (third-party activity layer), or "
+"unknown."
 
 msgid "web.app.us_coverage_cta"
-msgstr "<strong>This Davis page is a synthetic demo.</strong> <a href=\"/web/us-coverage.html\">Explore separate, nationwide US evidence from reviewed 2020–2024 fatal-crash records →</a>"
+msgstr ""
+"<strong>This Davis page is a synthetic demo.</strong> <a href=\"/web/us-"
+"coverage.html\">Explore separate, nationwide US evidence from reviewed "
+"2020–2024 fatal-crash records →</a>"
 
-msgid "web.coverage.annual_contract_label"
-msgstr "Annual contract"
+msgid "web.coverage.accessibility_status"
+msgstr "Accessibility status and open review"
+
+msgid "web.coverage.accessible_table"
+msgstr "Open the accessible comparison table"
+
+msgid "web.coverage.add_to_brief"
+msgstr "Add to brief"
 
 msgid "web.coverage.all_modes"
 msgstr "All modes"
 
-msgid "web.coverage.choose_state"
-msgstr "Choose a state or DC"
+msgid "web.coverage.all_states"
+msgstr "All states + DC"
 
 msgid "web.coverage.all_statuses"
 msgstr "All statuses"
 
+msgid "web.coverage.annual_contract_label"
+msgstr "Annual contract"
+
 msgid "web.coverage.back"
 msgstr "← National evidence home"
+
+msgid "web.coverage.boundary_checksum_label"
+msgstr "Boundary file SHA-256"
+
+msgid "web.coverage.boundary_download"
+msgstr "Download Census boundary GeoJSON"
+
+msgid "web.coverage.boundary_source_label"
+msgstr "Map boundaries"
+
+msgid "web.coverage.brief_cleared"
+msgstr "Brief cleared."
+
+msgid "web.coverage.brief_count"
+msgstr "{count} fatal crashes involving {mode} in {year}."
+
+msgid "web.coverage.brief_empty"
+msgstr "No evidence saved yet. Select a state, then add it from the inspector."
+
+msgid "web.coverage.brief_h"
+msgstr "Evidence brief"
+
+msgid "web.coverage.brief_intro"
+msgstr ""
+"Save up to four states. The printable brief keeps the year, mode, "
+"publication status, exact release, source, and ‘counts are not risk’ "
+"limit attached."
+
+msgid "web.coverage.brief_kicker"
+msgstr "Carry the caveat with the number"
+
+msgid "web.coverage.brief_removed"
+msgstr "State removed from the brief."
+
+msgid "web.coverage.brief_saved"
+msgstr "State added to the brief."
+
+msgid "web.coverage.brief_unpublished"
+msgstr "{mode}: no numeric count published."
 
 msgid "web.coverage.can_h"
 msgstr "What this can answer"
 
 msgid "web.coverage.can_list"
-msgstr "<li>How many fatal crashes involved each mode in a state in the selected year.</li><li>Which cells met the small-cell publication floor.</li><li>Which official release and transformation produced the counts.</li>"
+msgstr ""
+"<li>How many fatal crashes involved each mode in a state in the selected "
+"year.</li><li>Which cells met the small-cell publication "
+"floor.</li><li>Which official release and transformation produced the "
+"counts.</li>"
 
 msgid "web.coverage.cannot_h"
 msgstr "What this cannot answer"
 
 msgid "web.coverage.cannot_list"
-msgstr "<li>Risk, rate, fault, causation, or a safety ranking.</li><li>Near misses, nonfatal crashes, counties, streets, or intersections.</li><li>Whether a non-published cell is zero or suppressed.</li>"
+msgstr ""
+"<li>Risk, rate, fault, causation, or a safety ranking.</li><li>Near "
+"misses, nonfatal crashes, counties, streets, or "
+"intersections.</li><li>Whether a non-published cell is zero or "
+"suppressed.</li>"
 
 msgid "web.coverage.caption"
 msgstr "Showing {shown} of {total} state × mode cells."
@@ -713,7 +1187,10 @@ msgid "web.coverage.caption_state"
 msgstr "{state}, {year}: showing {shown} of {total} involved-mode cells."
 
 msgid "web.coverage.caveat"
-msgstr "<strong>Counts are not risk.</strong> They do not account for population, trips, miles, or exposure. Modes can overlap in one crash, so mode counts are not additive and do not imply fault or causation."
+msgstr ""
+"<strong>Counts are not risk.</strong> They do not account for population,"
+" trips, miles, or exposure. Modes can overlap in one crash, so mode "
+"counts are not additive and do not imply fault or causation."
 
 msgid "web.coverage.cell_not_published"
 msgstr "Not published (suppressed or zero)"
@@ -721,23 +1198,61 @@ msgstr "Not published (suppressed or zero)"
 msgid "web.coverage.cell_published"
 msgstr "Published"
 
+msgid "web.coverage.cells_value"
+msgstr "{published} of {total}"
+
+msgid "web.coverage.choose_state"
+msgstr "Choose a state or DC"
+
+msgid "web.coverage.clear_brief"
+msgstr "Clear brief"
+
+msgid "web.coverage.compare_a"
+msgstr "First state"
+
+msgid "web.coverage.compare_b"
+msgstr "Second state"
+
+msgid "web.coverage.compare_empty"
+msgstr "Choose two states to compare."
+
+msgid "web.coverage.compare_h"
+msgstr "Compare two states without adding modes"
+
+msgid "web.coverage.compare_intro"
+msgstr ""
+"Every mode keeps an independent scale because one crash may contribute to"
+" multiple rows."
+
+msgid "web.coverage.compare_kicker"
+msgstr "Side by side"
+
+msgid "web.coverage.compare_with"
+msgstr "Compare this state"
+
 msgid "web.coverage.contract"
 msgstr "Projection contract"
 
 msgid "web.coverage.contract_value"
 msgstr "Revision {revision} · SHA-256 {sha}"
 
+msgid "web.coverage.copy_failed"
+msgstr "Couldn’t copy automatically. Copy the address from your browser."
+
+msgid "web.coverage.copy_view"
+msgstr "Copy link to this view"
+
 msgid "web.coverage.correction_ledger"
 msgstr "Release correction ledger"
-
-msgid "web.coverage.accessibility_status"
-msgstr "Accessibility status and open review"
 
 msgid "web.coverage.data_h"
 msgstr "State × involved-mode evidence"
 
 msgid "web.coverage.data_intro"
-msgstr "A published count is the number of distinct fatal crashes with at least one person in that mode. A missing public cell is labeled “Not published (suppressed or zero)”—never zero."
+msgstr ""
+"A published count is the number of distinct fatal crashes with at least "
+"one person in that mode. A missing public cell is labeled “Not published "
+"(suppressed or zero)”—never zero."
 
 msgid "web.coverage.deployment"
 msgstr "Deployment record"
@@ -745,23 +1260,50 @@ msgstr "Deployment record"
 msgid "web.coverage.download"
 msgstr "Download public JSON"
 
+msgid "web.coverage.explore_action"
+msgstr "Explore the evidence"
+
 msgid "web.coverage.eyebrow"
 msgstr "Public preview · US evidence ledger"
 
-msgid "web.coverage.footer"
-msgstr "Public preview: automated accessibility gates pass; manual NVDA and VoiceOver review remains open. Fatal-crash context is published with explicit limits. nearmiss remains an exposure-normalized near-miss product; these counts are a separate national context layer."
-
 msgid "web.coverage.filter_scope"
-msgstr "State loads the five-year profile. Year and visualization focus drive the national views; publication status filters the matrix and ledger. The complete ledger has its own mode filter below."
+msgstr ""
+"State loads the five-year profile. Year and visualization focus drive the"
+" national views; publication status filters the matrix and ledger. The "
+"complete ledger has its own mode filter below."
 
 msgid "web.coverage.focus_mode_label"
 msgstr "Visualization focus"
 
+msgid "web.coverage.footer"
+msgstr ""
+"Public preview: automated accessibility gates pass; manual NVDA and "
+"VoiceOver review remains open. Fatal-crash context is published with "
+"explicit limits. nearmiss remains an exposure-normalized near-miss "
+"product; these counts are a separate national context layer."
+
 msgid "web.coverage.h1"
 msgstr "Fatal-crash burden, state by state"
 
+msgid "web.coverage.inspector_empty"
+msgstr ""
+"Select a map area, matrix cell, rank bar, plot point, or state control to"
+" inspect its six publication cells."
+
+msgid "web.coverage.inspector_h"
+msgstr "Choose a state"
+
+msgid "web.coverage.inspector_kicker"
+msgstr "Selected evidence"
+
+msgid "web.coverage.inspector_rank"
+msgstr "{mode} rank among published numeric cells: {rank} of {total}."
+
 msgid "web.coverage.lede"
-msgstr "Choose a state or DC to inspect its reviewed 2020–2024 FARS profile, then refine the selected-year detail. Every value remains tied to its exact release, small-cell publication rule, and source."
+msgstr ""
+"Choose a state or DC to inspect its reviewed 2020–2024 FARS profile, then"
+" refine the selected-year detail. Every value remains tied to its exact "
+"release, small-cell publication rule, and source."
 
 msgid "web.coverage.ledger_caption_empty"
 msgstr "Selected-year state evidence"
@@ -773,7 +1315,9 @@ msgid "web.coverage.ledger_mode_label"
 msgstr "Filter ledger by mode"
 
 msgid "web.coverage.load_error"
-msgstr "The reviewed release index or selected public artifact could not be loaded or did not pass its contract. No counts are shown."
+msgstr ""
+"The reviewed release index or selected public artifact could not be "
+"loaded or did not pass its contract. No counts are shown."
 
 msgid "web.coverage.loading"
 msgstr "Loading the published artifact…"
@@ -781,11 +1325,78 @@ msgstr "Loading the published artifact…"
 msgid "web.coverage.manifest"
 msgstr "Site file manifest"
 
+msgid "web.coverage.map_caption"
+msgstr ""
+"{mode}: {published} of 51 jurisdictions have numeric published counts. "
+"Geography is for orientation; counts are not exposure-normalized risk."
+
+msgid "web.coverage.map_h"
+msgstr "Fatal-crash burden across the United States"
+
+msgid "web.coverage.map_intro"
+msgstr ""
+"Select a road-user mode to read the same reviewed counts geographically. "
+"Color is scaled within that mode; hatching means suppressed or zero."
+
+msgid "web.coverage.map_keyboard_hint"
+msgstr ""
+"Keyboard: Tab enters the map once. Arrow keys, Home, and End move through"
+" jurisdictions in alphabetical order; Enter or Space selects."
+
+msgid "web.coverage.map_kicker"
+msgstr "Whole-country view"
+
+msgid "web.coverage.map_legend_high"
+msgstr "Higher published count"
+
+msgid "web.coverage.map_legend_low"
+msgstr "Lower published count"
+
+msgid "web.coverage.map_legend_unpublished"
+msgstr "Suppressed or zero"
+
+msgid "web.coverage.map_state_published"
+msgstr "{state}: {count} fatal crashes involving {mode}"
+
+msgid "web.coverage.map_state_unpublished"
+msgstr "{state}: suppressed or zero for {mode}"
+
 msgid "web.coverage.mapping_value"
 msgstr "Crash {crash} · person {person}"
 
 msgid "web.coverage.mapping_versions_label"
 msgstr "Mapping versions"
+
+msgid "web.coverage.matrix_caption"
+msgstr ""
+"Matrix of {states} jurisdictions and six involved modes: {published} of "
+"{total} cells publish a numeric count."
+
+msgid "web.coverage.matrix_cell_published"
+msgstr "{state}, {mode}: {count} fatal crashes, published."
+
+msgid "web.coverage.matrix_cell_unpublished"
+msgstr "{state}, {mode}: not published; suppressed or zero."
+
+msgid "web.coverage.matrix_coverage"
+msgstr "{published} of {total} published"
+
+msgid "web.coverage.matrix_h"
+msgstr "State × involved-mode matrix"
+
+msgid "web.coverage.matrix_intro"
+msgstr ""
+"Each column has its own scale. Hatched cells are not published and are "
+"never treated as zero."
+
+msgid "web.coverage.matrix_keyboard_hint"
+msgstr ""
+"Keyboard: after the matrix scroll region and mode filters, Tab enters the"
+" cell grid once. Arrow keys move between cells; Home and End move to the "
+"first and last mode; Enter or Space selects."
+
+msgid "web.coverage.matrix_kicker"
+msgstr "Publication landscape"
 
 msgid "web.coverage.mode_label"
 msgstr "Involved road-user mode"
@@ -811,8 +1422,13 @@ msgstr "Unknown mode"
 msgid "web.coverage.no_results"
 msgstr "No cells match these filters."
 
+msgid "web.coverage.print_brief"
+msgstr "Print brief"
+
 msgid "web.coverage.profile_caption"
-msgstr "{state} fatal-crash burden by involved mode, 2020–2024, grouped by the reviewed FARS person-type coding regimes."
+msgstr ""
+"{state} fatal-crash burden by involved mode, 2020–2024, grouped by the "
+"reviewed FARS person-type coding regimes."
 
 msgid "web.coverage.profile_caption_empty"
 msgstr "Five-year state profile not loaded."
@@ -821,13 +1437,19 @@ msgid "web.coverage.profile_empty"
 msgstr "Choose a state above to load its five-year profile."
 
 msgid "web.coverage.profile_error"
-msgstr "The five-year profile could not be loaded from all five reviewed artifacts. No profile values are shown. The selected-year ledger below has a separate verification state."
+msgstr ""
+"The five-year profile could not be loaded from all five reviewed "
+"artifacts. No profile values are shown. The selected-year ledger below "
+"has a separate verification state."
 
 msgid "web.coverage.profile_h"
 msgstr "Selected-state profile, 2020–2024"
 
 msgid "web.coverage.profile_intro"
-msgstr "Each year is kept separate. The coding seam marks two reviewed FARS person-type regimes, so values on opposite sides should not be read as one continuous series."
+msgstr ""
+"Each year is kept separate. The coding seam marks two reviewed FARS "
+"person-type regimes, so values on opposite sides should not be read as "
+"one continuous series."
 
 msgid "web.coverage.profile_kicker"
 msgstr "Five-year view"
@@ -848,7 +1470,10 @@ msgid "web.coverage.proof_h"
 msgstr "Five years, with publication status made explicit"
 
 msgid "web.coverage.proof_intro"
-msgstr "Official source archives are pinned for 2020–2024. Only years whose reviewed public artifacts appear in the release index can be selected; unavailable years are never silently treated as zero."
+msgstr ""
+"Official source archives are pinned for 2020–2024. Only years whose "
+"reviewed public artifacts appear in the release index can be selected; "
+"unavailable years are never silently treated as zero."
 
 msgid "web.coverage.proof_kicker"
 msgstr "Release proof"
@@ -857,16 +1482,61 @@ msgid "web.coverage.provenance_h"
 msgstr "Source and deployment provenance"
 
 msgid "web.coverage.provenance_intro"
-msgstr "The public JSON and release index carry source, mapping, semantic-regime, small-cell publication, and accounting proof. Deployment files bind the published page back to an exact source commit."
+msgstr ""
+"The public JSON and release index carry source, mapping, semantic-regime,"
+" small-cell publication, and accounting proof. Deployment files bind the "
+"published page back to an exact source commit."
 
 msgid "web.coverage.provenance_kicker"
 msgstr "Trace the evidence"
 
+msgid "web.coverage.rank_h"
+msgstr "Rank one involved mode"
+
+msgid "web.coverage.rank_intro"
+msgstr ""
+"Only numeric cells are ranked. This is burden, not exposure-normalized "
+"risk or safety."
+
+msgid "web.coverage.rank_item"
+msgstr "Rank {rank}: {state}, {count} fatal crashes involving {mode}."
+
+msgid "web.coverage.rank_keyboard_hint"
+msgstr ""
+"Keyboard: Tab enters the ranking once. Arrow keys, Home, and End move "
+"through states; Enter or Space selects."
+
+msgid "web.coverage.rank_kicker"
+msgstr "Published burden"
+
+msgid "web.coverage.rank_title"
+msgstr "{mode}: published fatal-crash counts"
+
+msgid "web.coverage.rank_unpublished"
+msgstr ""
+"{count} jurisdictions have no published numeric {mode} count (suppressed "
+"or zero)"
+
+msgid "web.coverage.real_data_badge"
+msgstr "Source: NHTSA FARS · Verified artifact"
+
 msgid "web.coverage.regime_caution"
-msgstr "<strong>Compare years with care.</strong> FARS person-type coding uses one reviewed semantic regime for 2020–2021 and another for 2022–2024. Each result stays pinned to its annual mapping contract, so a cross-regime change can reflect coding as well as outcomes."
+msgstr ""
+"<strong>Compare years with care.</strong> FARS person-type coding uses "
+"one reviewed semantic regime for 2020–2021 and another for 2022–2024. "
+"Each result stays pinned to its annual mapping contract, so a cross-"
+"regime change can reflect coding as well as outcomes."
+
+msgid "web.coverage.release_card_h"
+msgstr "A hash-bound annual projection"
 
 msgid "web.coverage.release_index"
 msgstr "Download release index"
+
+msgid "web.coverage.release_note"
+msgstr ""
+"Source bytes, the annual contract, and accounting proof are verified "
+"before any count appears."
 
 msgid "web.coverage.release_stage_annual_report_file"
 msgstr "Annual Report File (ARF)"
@@ -876,6 +1546,9 @@ msgstr "Final File"
 
 msgid "web.coverage.release_stage_label"
 msgstr "Release status"
+
+msgid "web.coverage.remove_brief"
+msgstr "Remove {state} from brief"
 
 msgid "web.coverage.reset"
 msgstr "Reset filters"
@@ -898,8 +1571,53 @@ msgstr "{published} / {total}"
 msgid "web.coverage.revision_label"
 msgstr "Source revision"
 
+msgid "web.coverage.save_comparison"
+msgstr "Save both states to brief"
+
+msgid "web.coverage.scale_label"
+msgstr "Scale"
+
+msgid "web.coverage.scale_linear"
+msgstr "Linear"
+
+msgid "web.coverage.scale_log"
+msgstr "Log"
+
+msgid "web.coverage.scatter_caption"
+msgstr ""
+"{comparable} jurisdictions have both numeric counts; {excluded} remain "
+"outside the plot because one or both cells are not published."
+
+msgid "web.coverage.scatter_empty"
+msgstr "No jurisdictions have both counts published."
+
+msgid "web.coverage.scatter_h"
+msgstr "Compare two involved modes"
+
+msgid "web.coverage.scatter_intro"
+msgstr ""
+"States appear only when both cells are published. Missing values stay "
+"outside the plot."
+
+msgid "web.coverage.scatter_keyboard_hint"
+msgstr ""
+"Keyboard: Tab enters the plot once. Arrow keys, Home, and End move "
+"through states; Enter or Space selects."
+
+msgid "web.coverage.scatter_kicker"
+msgstr "Count relationship"
+
+msgid "web.coverage.scatter_point"
+msgstr "{state}: {xcount} {xmode} fatal crashes; {ycount} {ymode} fatal crashes."
+
+msgid "web.coverage.scatter_title"
+msgstr "{x} and {y}: published-count relationship"
+
 msgid "web.coverage.scope_value"
 msgstr "50 states + DC"
+
+msgid "web.coverage.secondary_mode"
+msgstr "Second mode"
 
 msgid "web.coverage.selected_year_h"
 msgstr "Mode-by-mode evidence for the selected year"
@@ -933,6 +1651,23 @@ msgstr "Not published"
 
 msgid "web.coverage.status_published"
 msgstr "Published"
+
+msgid "web.coverage.studio_h"
+msgstr "One evidence set, five ways to inspect it"
+
+msgid "web.coverage.studio_intro"
+msgstr ""
+"Every view is driven by the same reviewed state-by-mode cells for the "
+"selected year. A selection in one view follows you into the others."
+
+msgid "web.coverage.studio_kicker"
+msgstr "Explore · compare · cite"
+
+msgid "web.coverage.summary_cases"
+msgstr "Distinct fatal crashes"
+
+msgid "web.coverage.summary_cells"
+msgstr "Numerically published cells"
 
 msgid "web.coverage.summary_h"
 msgstr "Dataset summary"
@@ -970,246 +1705,6 @@ msgstr "Year"
 msgid "web.coverage.title"
 msgstr "US evidence ledger — nearmiss"
 
-msgid "web.coverage.year_label"
-msgstr "Year"
-
-msgid "web.coverage.release_card_h"
-msgstr "A hash-bound annual projection"
-
-msgid "web.coverage.release_note"
-msgstr "Source bytes, the annual contract, and accounting proof are verified before any count appears."
-
-msgid "web.coverage.accessible_table"
-msgstr "Open the accessible comparison table"
-
-msgid "web.coverage.add_to_brief"
-msgstr "Add to brief"
-
-msgid "web.coverage.all_states"
-msgstr "All states + DC"
-
-msgid "web.coverage.boundary_checksum_label"
-msgstr "Boundary file SHA-256"
-
-msgid "web.coverage.boundary_download"
-msgstr "Download Census boundary GeoJSON"
-
-msgid "web.coverage.boundary_source_label"
-msgstr "Map boundaries"
-
-msgid "web.coverage.brief_cleared"
-msgstr "Brief cleared."
-
-msgid "web.coverage.brief_count"
-msgstr "{count} fatal crashes involving {mode} in {year}."
-
-msgid "web.coverage.brief_empty"
-msgstr "No evidence saved yet. Select a state, then add it from the inspector."
-
-msgid "web.coverage.brief_h"
-msgstr "Evidence brief"
-
-msgid "web.coverage.brief_intro"
-msgstr "Save up to four states. The printable brief keeps the year, mode, publication status, exact release, source, and ‘counts are not risk’ limit attached."
-
-msgid "web.coverage.brief_kicker"
-msgstr "Carry the caveat with the number"
-
-msgid "web.coverage.brief_removed"
-msgstr "State removed from the brief."
-
-msgid "web.coverage.brief_saved"
-msgstr "State added to the brief."
-
-msgid "web.coverage.brief_unpublished"
-msgstr "{mode}: no numeric count published."
-
-msgid "web.coverage.cells_value"
-msgstr "{published} of {total}"
-
-msgid "web.coverage.clear_brief"
-msgstr "Clear brief"
-
-msgid "web.coverage.compare_a"
-msgstr "First state"
-
-msgid "web.coverage.compare_b"
-msgstr "Second state"
-
-msgid "web.coverage.compare_empty"
-msgstr "Choose two states to compare."
-
-msgid "web.coverage.compare_h"
-msgstr "Compare two states without adding modes"
-
-msgid "web.coverage.compare_intro"
-msgstr "Every mode keeps an independent scale because one crash may contribute to multiple rows."
-
-msgid "web.coverage.compare_kicker"
-msgstr "Side by side"
-
-msgid "web.coverage.compare_with"
-msgstr "Compare this state"
-
-msgid "web.coverage.copy_failed"
-msgstr "Couldn’t copy automatically. Copy the address from your browser."
-
-msgid "web.coverage.copy_view"
-msgstr "Copy link to this view"
-
-msgid "web.coverage.explore_action"
-msgstr "Explore the evidence"
-
-msgid "web.coverage.inspector_empty"
-msgstr "Select a map area, matrix cell, rank bar, plot point, or state control to inspect its six publication cells."
-
-msgid "web.coverage.inspector_h"
-msgstr "Choose a state"
-
-msgid "web.coverage.inspector_kicker"
-msgstr "Selected evidence"
-
-msgid "web.coverage.inspector_rank"
-msgstr "{mode} rank among published numeric cells: {rank} of {total}."
-
-msgid "web.coverage.map_caption"
-msgstr "{mode}: {published} of 51 jurisdictions have numeric published counts. Geography is for orientation; counts are not exposure-normalized risk."
-
-msgid "web.coverage.map_h"
-msgstr "Fatal-crash burden across the United States"
-
-msgid "web.coverage.map_intro"
-msgstr "Select a road-user mode to read the same reviewed counts geographically. Color is scaled within that mode; hatching means suppressed or zero."
-
-msgid "web.coverage.map_keyboard_hint"
-msgstr "Keyboard: Tab enters the map once. Arrow keys, Home, and End move through jurisdictions in alphabetical order; Enter or Space selects."
-
-msgid "web.coverage.map_kicker"
-msgstr "Whole-country view"
-
-msgid "web.coverage.map_legend_high"
-msgstr "Higher published count"
-
-msgid "web.coverage.map_legend_low"
-msgstr "Lower published count"
-
-msgid "web.coverage.map_legend_unpublished"
-msgstr "Suppressed or zero"
-
-msgid "web.coverage.map_state_published"
-msgstr "{state}: {count} fatal crashes involving {mode}"
-
-msgid "web.coverage.map_state_unpublished"
-msgstr "{state}: suppressed or zero for {mode}"
-
-msgid "web.coverage.matrix_caption"
-msgstr "Matrix of {states} jurisdictions and six involved modes: {published} of {total} cells publish a numeric count."
-
-msgid "web.coverage.matrix_cell_published"
-msgstr "{state}, {mode}: {count} fatal crashes, published."
-
-msgid "web.coverage.matrix_cell_unpublished"
-msgstr "{state}, {mode}: not published; suppressed or zero."
-
-msgid "web.coverage.matrix_coverage"
-msgstr "{published} of {total} published"
-
-msgid "web.coverage.matrix_h"
-msgstr "State × involved-mode matrix"
-
-msgid "web.coverage.matrix_intro"
-msgstr "Each column has its own scale. Hatched cells are not published and are never treated as zero."
-
-msgid "web.coverage.matrix_keyboard_hint"
-msgstr "Keyboard: after the matrix scroll region and mode filters, Tab enters the cell grid once. Arrow keys move between cells; Home and End move to the first and last mode; Enter or Space selects."
-
-msgid "web.coverage.matrix_kicker"
-msgstr "Publication landscape"
-
-msgid "web.coverage.print_brief"
-msgstr "Print brief"
-
-msgid "web.coverage.rank_h"
-msgstr "Rank one involved mode"
-
-msgid "web.coverage.rank_intro"
-msgstr "Only numeric cells are ranked. This is burden, not exposure-normalized risk or safety."
-
-msgid "web.coverage.rank_keyboard_hint"
-msgstr "Keyboard: Tab enters the ranking once. Arrow keys, Home, and End move through states; Enter or Space selects."
-
-msgid "web.coverage.rank_item"
-msgstr "Rank {rank}: {state}, {count} fatal crashes involving {mode}."
-
-msgid "web.coverage.rank_kicker"
-msgstr "Published burden"
-
-msgid "web.coverage.rank_title"
-msgstr "{mode}: published fatal-crash counts"
-
-msgid "web.coverage.rank_unpublished"
-msgstr "{count} jurisdictions have no published numeric {mode} count (suppressed or zero)"
-
-msgid "web.coverage.real_data_badge"
-msgstr "Source: NHTSA FARS · Verified artifact"
-
-msgid "web.coverage.remove_brief"
-msgstr "Remove {state} from brief"
-
-msgid "web.coverage.save_comparison"
-msgstr "Save both states to brief"
-
-msgid "web.coverage.scale_label"
-msgstr "Scale"
-
-msgid "web.coverage.scale_linear"
-msgstr "Linear"
-
-msgid "web.coverage.scale_log"
-msgstr "Log"
-
-msgid "web.coverage.scatter_caption"
-msgstr "{comparable} jurisdictions have both numeric counts; {excluded} remain outside the plot because one or both cells are not published."
-
-msgid "web.coverage.scatter_empty"
-msgstr "No jurisdictions have both counts published."
-
-msgid "web.coverage.scatter_h"
-msgstr "Compare two involved modes"
-
-msgid "web.coverage.scatter_intro"
-msgstr "States appear only when both cells are published. Missing values stay outside the plot."
-
-msgid "web.coverage.scatter_keyboard_hint"
-msgstr "Keyboard: Tab enters the plot once. Arrow keys, Home, and End move through states; Enter or Space selects."
-
-msgid "web.coverage.scatter_kicker"
-msgstr "Count relationship"
-
-msgid "web.coverage.scatter_point"
-msgstr "{state}: {xcount} {xmode} fatal crashes; {ycount} {ymode} fatal crashes."
-
-msgid "web.coverage.scatter_title"
-msgstr "{x} and {y}: published-count relationship"
-
-msgid "web.coverage.secondary_mode"
-msgstr "Second mode"
-
-msgid "web.coverage.studio_h"
-msgstr "One evidence set, five ways to inspect it"
-
-msgid "web.coverage.studio_intro"
-msgstr "Every view is driven by the same reviewed state-by-mode cells for the selected year. A selection in one view follows you into the others."
-
-msgid "web.coverage.studio_kicker"
-msgstr "Explore · compare · cite"
-
-msgid "web.coverage.summary_cases"
-msgstr "Distinct fatal crashes"
-
-msgid "web.coverage.summary_cells"
-msgstr "Numerically published cells"
-
 msgid "web.coverage.view_compare"
 msgstr "Compare states"
 
@@ -1230,3 +1725,59 @@ msgstr "Rank"
 
 msgid "web.coverage.view_scatter"
 msgstr "Compare modes"
+
+msgid "web.coverage.year_label"
+msgstr "Year"
+
+msgid "web.submit.geo_denied"
+msgstr "Couldn't get your location — type a place instead."
+
+msgid "web.submit.geo_filled"
+msgstr "Location filled in. You can adjust it."
+
+msgid "web.submit.geo_locating"
+msgstr "Locating…"
+
+msgid "web.submit.geo_unavailable"
+msgstr "Geolocation isn't available — type a location instead."
+
+msgid "web.submit.need_coords"
+msgstr "a valid latitude (−90..90) and longitude (−180..180)"
+
+msgid "web.submit.need_hazard"
+msgstr "a hazard type"
+
+msgid "web.submit.need_location"
+msgstr "a location (use my location, lat/lon, or an address)"
+
+msgid "web.submit.need_severity"
+msgstr "a severity"
+
+msgid "web.submit.status_copied"
+msgstr "Copied to clipboard."
+
+msgid "web.submit.status_copy_manual"
+msgstr "Select the text and copy it manually."
+
+msgid "web.submit.status_missing"
+msgstr "Please provide: {fields}."
+
+msgid "web.submit.status_ready"
+msgstr ""
+"Your submission is ready below — it still needs human review before it "
+"counts."
+
+msgid "web.submit.status_received"
+msgstr "Thank you. Your near-miss was received and is awaiting review."
+
+msgid "web.submit.status_send_failed"
+msgstr ""
+"Couldn't reach the server — here is your submission to send manually "
+"instead."
+
+msgid "web.submit.status_sending"
+msgstr "Sending your submission for review…"
+
+#, python-brace-format
+msgid "{start} to {end}"
+msgstr "{start} to {end}"
