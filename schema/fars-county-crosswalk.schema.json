@@ -1,0 +1,378 @@
+{
+  "$id": "https://nearmiss.dev/schema/fars-county-crosswalk.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "accounting": {
+      "additionalProperties": false,
+      "properties": {
+        "presentation_geoid_count": {
+          "maximum": 4000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "resolved_row_count": {
+          "maximum": 4000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source_row_count": {
+          "maximum": 4000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "state_count": {
+          "maximum": 51,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "unresolved_row_count": {
+          "maximum": 4000,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "source_row_count",
+        "resolved_row_count",
+        "unresolved_row_count",
+        "state_count",
+        "presentation_geoid_count"
+      ],
+      "type": "object"
+    },
+    "artifact_type": {
+      "const": "nearmiss.private.fars_county_crosswalk"
+    },
+    "crosswalk_version": {
+      "const": "fars-county-2024-v1"
+    },
+    "dataset_year": {
+      "maximum": 2024,
+      "minimum": 2020,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "else": {
+              "properties": {
+                "presentation": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "county_fips": {
+                      "pattern": "^[0-9]{3}$",
+                      "type": "string"
+                    },
+                    "entity_class": {
+                      "enum": [
+                        "borough",
+                        "census_area",
+                        "county",
+                        "county_equivalent",
+                        "district",
+                        "independent_city",
+                        "parish"
+                      ],
+                      "type": "string"
+                    },
+                    "geoid": {
+                      "pattern": "^[0-9]{5}$",
+                      "type": "string"
+                    },
+                    "name": {
+                      "maxLength": 128,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "namelsad": {
+                      "maxLength": 160,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "state_fips": {
+                      "pattern": "^[0-9]{2}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "state_fips",
+                    "county_fips",
+                    "geoid",
+                    "name",
+                    "namelsad",
+                    "entity_class"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "mapping_status": {
+                  "const": "unresolved"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "presentation": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "county_code": {
+            "pattern": "^[0-9]{3}$",
+            "type": "string"
+          },
+          "mapping_status": {
+            "enum": [
+              "exact",
+              "historical_equivalent",
+              "retired_to_current",
+              "unresolved"
+            ],
+            "type": "string"
+          },
+          "presentation": {
+            "oneOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "county_fips": {
+                    "pattern": "^[0-9]{3}$",
+                    "type": "string"
+                  },
+                  "entity_class": {
+                    "enum": [
+                      "borough",
+                      "census_area",
+                      "county",
+                      "county_equivalent",
+                      "district",
+                      "independent_city",
+                      "parish"
+                    ],
+                    "type": "string"
+                  },
+                  "geoid": {
+                    "pattern": "^[0-9]{5}$",
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "namelsad": {
+                    "maxLength": 160,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "state_fips": {
+                    "pattern": "^[0-9]{2}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "state_fips",
+                  "county_fips",
+                  "geoid",
+                  "name",
+                  "namelsad",
+                  "entity_class"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "review_note": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "state_code": {
+            "enum": [
+              "1",
+              "2",
+              "4",
+              "5",
+              "6",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "15",
+              "16",
+              "17",
+              "18",
+              "19",
+              "20",
+              "21",
+              "22",
+              "23",
+              "24",
+              "25",
+              "26",
+              "27",
+              "28",
+              "29",
+              "30",
+              "31",
+              "32",
+              "33",
+              "34",
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42",
+              "44",
+              "45",
+              "46",
+              "47",
+              "48",
+              "49",
+              "50",
+              "51",
+              "53",
+              "54",
+              "55",
+              "56"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "state_code",
+          "county_code",
+          "mapping_status",
+          "review_note",
+          "presentation"
+        ],
+        "type": "object"
+      },
+      "maxItems": 4000,
+      "minItems": 1,
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "source_lineage": {
+      "additionalProperties": false,
+      "properties": {
+        "boundary": {
+          "additionalProperties": false,
+          "properties": {
+            "conversion_version": {
+              "const": "county-boundary-kml-to-rfc7946-v1"
+            },
+            "distribution_url": {
+              "const": "https://www2.census.gov/geo/tiger/GENZ2024/kml/cb_2024_us_county_20m.zip"
+            },
+            "member_name": {
+              "const": "cb_2024_us_county_20m.kml"
+            },
+            "member_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "presentation_vintage": {
+              "const": 2024
+            },
+            "raw_zip_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "raw_zip_size_bytes": {
+              "maximum": 67108864,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "resolution": {
+              "const": "1:20,000,000"
+            }
+          },
+          "required": [
+            "presentation_vintage",
+            "distribution_url",
+            "raw_zip_sha256",
+            "raw_zip_size_bytes",
+            "member_name",
+            "member_sha256",
+            "resolution",
+            "conversion_version"
+          ],
+          "type": "object"
+        },
+        "builder_version": {
+          "const": "fars-county-crosswalk-v1"
+        },
+        "contract_revision": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "contract_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "county_code_system": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "review_reference": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_revision_id": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "contract_revision",
+        "source_revision_id",
+        "contract_sha256",
+        "county_code_system",
+        "review_reference",
+        "boundary",
+        "builder_version"
+      ],
+      "type": "object"
+    },
+    "visibility": {
+      "const": "private"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "visibility",
+    "dataset_year",
+    "crosswalk_version",
+    "source_lineage",
+    "accounting",
+    "rows"
+  ],
+  "title": "Private NearMiss FARS-to-Census county-equivalent crosswalk",
+  "type": "object"
+}
