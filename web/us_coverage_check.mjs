@@ -1010,6 +1010,53 @@ async function main() {
   }
   reloaded.dom.window.close();
 
+  const stateLens = await boot({
+    url: "https://example.test/fars/national/?year=2024&lang=en&mode=pedalcyclist&state=CA&level=state",
+  });
+  const stateLensState = stateLens.window.NearmissUSCoverage.getState();
+  if (
+    stateLensState.mapLevel !== "state" ||
+    stateLens.doc.getElementById("state-lens").hidden ||
+    !stateLens.doc.querySelector(".state-lens-map .state-lens-shape") ||
+    stateLens.doc.querySelectorAll(".state-lens-fingerprint > div").length !== 6 ||
+    stateLens.doc.querySelectorAll(".state-lens-years > li").length !== 5 ||
+    !stateLens.doc.querySelector(".state-lens-year.is-after-seam") ||
+    !stateLens.window.location.search.includes("level=state")
+  ) {
+    die("state evidence lens did not restore the selected state, all-mode fingerprint, and five-year seam");
+  }
+  stateLens.doc.getElementById("state-lens-back").click();
+  if (
+    stateLens.window.NearmissUSCoverage.getState().mapLevel !== "national" ||
+    !stateLens.doc.getElementById("state-lens").hidden ||
+    stateLens.doc.querySelector(".national-map-shell").hidden ||
+    stateLens.window.location.search.includes("level=state") ||
+    stateLens.doc.activeElement?.getAttribute("data-focus-key") !== "map:CA"
+  ) {
+    die("state evidence lens back action did not restore the national map and its originating state focus");
+  }
+  stateLens.doc
+    .querySelector('[data-focus-key="map:CA"]')
+    .dispatchEvent(new stateLens.window.MouseEvent("click", { bubbles: true }));
+  await settle();
+  if (
+    stateLens.window.NearmissUSCoverage.getState().mapLevel !== "state" ||
+    stateLens.doc.getElementById("state-lens").hidden ||
+    !stateLens.window.location.search.includes("level=state")
+  ) {
+    die("national map activation did not enter the selected state evidence lens");
+  }
+  stateLens.dom.window.close();
+
+  await assertError(
+    await boot({ url: "https://example.test/fars/national/?year=2024&state=CA&level=county" }),
+    "invalid map level"
+  );
+  await assertError(
+    await boot({ url: "https://example.test/fars/national/?year=2024&level=state" }),
+    "state map level without state"
+  );
+
   const studioLink = await boot({
     url:
       "https://example.test/fars/national/?year=2022&lang=en&view=scatter&mode=motorcyclist&secondary=pedestrian&state=TX&a=TX&b=CA&scale=log&saved=CA,TX,NY",

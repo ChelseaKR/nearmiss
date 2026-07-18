@@ -146,7 +146,7 @@
                 </p>
               </div>
               <p id="map-keyboard-hint" class="filter-scope" data-i18n="map_keyboard_hint">
-                Keyboard: Tab enters the map once. Arrow keys, Home, and End move through jurisdictions in alphabetical order; Enter or Space selects.
+                Keyboard: Tab enters the map once. Arrow keys, Home, and End move through jurisdictions in alphabetical order; Enter or Space opens the state evidence sheet.
               </p>
               <div class="national-map-shell">
                 <div
@@ -166,6 +166,15 @@
                   Loading state evidence…
                 </p>
               </div>
+              <section id="state-lens" class="state-lens" aria-labelledby="state-lens-heading" hidden>
+                <div class="state-lens-topline">
+                  <button type="button" id="state-lens-back" class="state-lens-back" data-i18n="state_lens_back">
+                    All states
+                  </button>
+                  <p id="state-lens-status" class="state-lens-status" role="status" aria-live="polite" aria-atomic="true"></p>
+                </div>
+                <div id="state-lens-content"></div>
+              </section>
             </section>
 
             <section id="matrix-panel" class="view-panel" data-panel="matrix" aria-labelledby="matrix-heading" hidden>

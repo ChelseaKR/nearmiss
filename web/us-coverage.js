@@ -149,6 +149,7 @@
   var requestedModeFromUrl = null;
   var viewState = {
     view: "map",
+    mapLevel: "national",
     primaryMode: "pedalcyclist",
     secondaryMode: "pedestrian",
     selectedState: null,
@@ -158,6 +159,7 @@
     saved: [],
   };
   var VALID_VIEWS = { map: true, matrix: true, rank: true, scatter: true, compare: true };
+  var VALID_MAP_LEVELS = { national: true, state: true };
   var SVG_NS = "http://www.w3.org/2000/svg";
 
   function t(key) {
@@ -887,6 +889,9 @@
     status.className = "state-profile-status is-ready";
     status.textContent = tpl(t("profile_ready"), { state: definition.name });
     document.getElementById("state-profile").setAttribute("aria-busy", "false");
+    if (viewState.mapLevel === "state" && viewState.selectedState === profileState) {
+      renderStateLens();
+    }
   }
 
   function loadStateProfile(abbreviation) {
@@ -942,13 +947,14 @@
     });
   }
 
-  function selectState(abbreviation, mode) {
+  function selectState(abbreviation, mode, openLens) {
     if (!isValidState(abbreviation)) return;
     var activeElement = document.activeElement;
     var activeControl = activeElement && activeElement.closest && activeElement.closest("[data-focus-key]");
     var focusKey = activeControl ? activeControl.getAttribute("data-focus-key") : null;
     viewState.selectedState = abbreviation;
     viewState.compareA = abbreviation;
+    if (openLens) viewState.mapLevel = "state";
     if (mode) {
       requestedModeFromUrl = null;
       viewState.primaryMode = mode;
@@ -963,7 +969,20 @@
       var replacement = document.querySelector('[data-focus-key="' + focusKey + '"]');
       if (replacement && replacement.focus) replacement.focus();
     }
-    syncUrl();
+    syncUrl(Boolean(openLens));
+    if (openLens) {
+      var lensHeading = document.getElementById("state-lens-heading");
+      if (lensHeading && lensHeading.focus) lensHeading.focus();
+    }
+  }
+
+  function leaveStateLens() {
+    var abbreviation = viewState.selectedState;
+    viewState.mapLevel = "national";
+    renderAll();
+    syncUrl(true);
+    var target = abbreviation && document.querySelector('[data-focus-key="map:' + abbreviation + '"]');
+    if (target && target.focus) target.focus();
   }
 
   function renderTable() {
@@ -1327,8 +1346,236 @@
     return "rgb(" + channels.join(", ") + ")";
   }
 
+  function boundaryFeature(abbreviation) {
+    if (!boundaryArtifact) return null;
+    return (
+      boundaryArtifact.features.find(function (feature) {
+        return feature.id === abbreviation;
+      }) || null
+    );
+  }
+
+  function renderStateLensSilhouette(feature, row) {
+    var width = 360;
+    var height = 260;
+    var rawProjection = ["AK", "HI"].indexOf(feature.id) >= 0 ? insetRaw : albersLower48;
+    var projector = fittedProjection([feature], rawProjection, { x: 30, y: 24, width: 300, height: 190 });
+    var projected = projectedFeature(feature, projector);
+    var svg = svgElement("svg", {
+      class: "state-lens-map",
+      viewBox: "0 0 " + width + " " + height,
+      role: "img",
+      "aria-label": feature.properties.state_name,
+    });
+    if (row.status !== "published") {
+      var definitions = svgElement("defs");
+      var pattern = svgElement("pattern", {
+        id: "state-lens-unpublished-pattern",
+        width: "8",
+        height: "8",
+        patternUnits: "userSpaceOnUse",
+        patternTransform: "rotate(35)",
+      });
+      pattern.appendChild(svgElement("rect", { width: "8", height: "8", fill: "#f3f6f2" }));
+      pattern.appendChild(
+        svgElement("line", { x1: "0", y1: "0", x2: "0", y2: "8", stroke: "#5e706f", "stroke-width": "2" })
+      );
+      definitions.appendChild(pattern);
+      svg.appendChild(definitions);
+    }
+    var path = svgElement("path", {
+      d: projected.path,
+      class: "state-lens-shape" + (row.status === "published" ? "" : " is-unpublished"),
+      "fill-rule": "evenodd",
+    });
+    if (row.status === "published") {
+      path.style.setProperty("--state-fill", mapColor(row.count, modeSummary(row.mode).max));
+    } else {
+      path.style.setProperty("fill", "url(#state-lens-unpublished-pattern)");
+    }
+    svg.appendChild(path);
+    svg.appendChild(
+      svgElement(
+        "text",
+        { x: width / 2, y: 238, "text-anchor": "middle", class: "state-lens-abbreviation" },
+        feature.id
+      )
+    );
+    return svg;
+  }
+
+  function renderStateLensFingerprint(state) {
+    var list = cell("dl", "", "state-lens-fingerprint");
+    rowsForState(state.state_abbreviation).forEach(function (row) {
+      var item = document.createElement("div");
+      var label = cell("dt", modeLabel(row.mode));
+      var value = cell(
+        "dd",
+        row.status === "published" ? number(row.count) : t("cell_not_published"),
+        row.status === "published" ? "" : "is-unpublished"
+      );
+      var track = cell("span", "", "state-lens-track");
+      track.setAttribute("aria-hidden", "true");
+      var bar = cell("span", "", "state-lens-bar");
+      if (row.status === "published") {
+        bar.style.inlineSize = ((row.count / Math.max(1, modeSummary(row.mode).max)) * 100).toFixed(2) + "%";
+      } else {
+        bar.className = "state-lens-bar is-unpublished";
+      }
+      track.appendChild(bar);
+      item.appendChild(label);
+      item.appendChild(value);
+      item.appendChild(track);
+      list.appendChild(item);
+    });
+    return list;
+  }
+
+  function renderStateLensProfile(abbreviation, mode) {
+    var section = cell("section", "", "state-lens-profile");
+    section.setAttribute("aria-labelledby", "state-lens-profile-heading");
+    section.appendChild(cell("p", t("state_lens_profile_kicker"), "panel-kicker"));
+    var heading = cell("h4", t("state_lens_profile_h"));
+    heading.id = "state-lens-profile-heading";
+    section.appendChild(heading);
+    section.appendChild(cell("p", t("state_lens_profile_intro"), "state-lens-intro"));
+
+    if (!profileArtifacts || profileState !== abbreviation) {
+      section.appendChild(cell("p", t("state_lens_profile_loading"), "state-lens-loading"));
+      return section;
+    }
+
+    var marks = cell("ol", "", "state-lens-years");
+    var values = SUPPORTED_YEARS.map(function (year) {
+      var state = profileStateFromArtifact(profileArtifacts[year], abbreviation);
+      var result = state.cells.find(function (cellValue) {
+        return cellValue.involved_mode === mode;
+      });
+      return { year: year, result: result };
+    });
+    var max = Math.max.apply(
+      Math,
+      values.map(function (entry) {
+        return entry.result.status === "published" ? entry.result.crash_count : 0;
+      }).concat([1])
+    );
+    values.forEach(function (entry) {
+      var item = cell("li", "", "state-lens-year" + (entry.year === 2022 ? " is-after-seam" : ""));
+      item.appendChild(cell("span", String(entry.year), "state-lens-year-label"));
+      var mark = cell("span", "", "state-lens-year-mark");
+      mark.setAttribute("aria-hidden", "true");
+      if (entry.result.status === "published") {
+        mark.style.blockSize = Math.max(0.45, (entry.result.crash_count / max) * 5.5).toFixed(2) + "rem";
+      } else {
+        mark.className = "state-lens-year-mark is-unpublished";
+      }
+      item.appendChild(mark);
+      item.appendChild(
+        cell(
+          "strong",
+          entry.result.status === "published" ? number(entry.result.crash_count) : t("cell_not_published"),
+          entry.result.status === "published" ? "" : "is-unpublished"
+        )
+      );
+      marks.appendChild(item);
+    });
+    section.appendChild(marks);
+    section.appendChild(cell("p", t("state_lens_seam"), "state-lens-seam"));
+    return section;
+  }
+
+  function renderStateLens() {
+    var national = document.querySelector("#map-panel .national-map-shell");
+    var lens = document.getElementById("state-lens");
+    var content = document.getElementById("state-lens-content");
+    national.hidden = true;
+    lens.hidden = false;
+    content.textContent = "";
+
+    var state = stateRecord(viewState.selectedState);
+    var feature = state && boundaryFeature(state.state_abbreviation);
+    if (!state || !feature) {
+      document.getElementById("state-lens-status").textContent = t("state_lens_unavailable");
+      content.appendChild(cell("p", t("state_lens_unavailable")));
+      return;
+    }
+    var mode = focusMode();
+    var active = rowFor(state.state_abbreviation, mode);
+    var definition = stateDefinition(state.state_abbreviation);
+    document.getElementById("state-lens-status").textContent = tpl(t("state_lens_status"), {
+      state: definition.name,
+      year: String(artifact.dataset_year),
+      mode: modeLabel(mode),
+    });
+
+    var layout = cell("div", "", "state-lens-layout");
+    var mapColumn = cell("div", "", "state-lens-map-column");
+    mapColumn.appendChild(renderStateLensSilhouette(feature, active));
+    mapColumn.appendChild(cell("p", t("state_lens_map_note"), "state-lens-map-note"));
+    layout.appendChild(mapColumn);
+
+    var evidence = cell("div", "", "state-lens-evidence");
+    evidence.appendChild(cell("p", t("state_lens_kicker"), "panel-kicker"));
+    var title = cell("h3", tpl(t("state_lens_title"), { state: definition.name }));
+    title.id = "state-lens-heading";
+    title.tabIndex = -1;
+    evidence.appendChild(title);
+    evidence.appendChild(
+      cell(
+        "p",
+        tpl(t("state_lens_active"), { year: String(artifact.dataset_year), mode: modeLabel(mode) }),
+        "state-lens-active"
+      )
+    );
+    var result = cell("div", "", "state-lens-result" + (active.status === "published" ? "" : " is-unpublished"));
+    result.appendChild(
+      cell(
+        "strong",
+        active.status === "published" ? number(active.count) : t("cell_not_published"),
+        "state-lens-result-value"
+      )
+    );
+    result.appendChild(cell("span", active.status === "published" ? t("cell_published") : t("cell_not_published")));
+    evidence.appendChild(result);
+    if (active.status === "published") {
+      var ranked = rankedRows(mode);
+      var index = ranked.findIndex(function (row) {
+        return row.stateAbbreviation === state.state_abbreviation;
+      });
+      if (index >= 0) {
+        evidence.appendChild(
+          cell(
+            "p",
+            tpl(t("state_lens_rank"), { rank: number(index + 1), total: number(ranked.length) }),
+            "state-lens-rank"
+          )
+        );
+      }
+    }
+    layout.appendChild(evidence);
+    content.appendChild(layout);
+
+    var fingerprint = cell("section", "", "state-lens-fingerprint-section");
+    fingerprint.setAttribute("aria-labelledby", "state-lens-fingerprint-heading");
+    fingerprint.appendChild(cell("p", t("state_lens_fingerprint_kicker"), "panel-kicker"));
+    var fingerprintHeading = cell("h4", t("state_lens_fingerprint_h"));
+    fingerprintHeading.id = "state-lens-fingerprint-heading";
+    fingerprint.appendChild(fingerprintHeading);
+    fingerprint.appendChild(cell("p", t("state_lens_fingerprint_intro"), "state-lens-intro"));
+    fingerprint.appendChild(renderStateLensFingerprint(state));
+    content.appendChild(fingerprint);
+    content.appendChild(renderStateLensProfile(state.state_abbreviation, mode));
+    content.appendChild(cell("p", t("state_lens_caveat"), "coverage-caveat state-lens-caveat"));
+  }
+
   function renderMap() {
     if (!boundaryArtifact) return;
+    if (viewState.mapLevel === "state" && viewState.selectedState) {
+      renderStateLens();
+      return;
+    }
+    document.querySelector("#map-panel .national-map-shell").hidden = false;
+    document.getElementById("state-lens").hidden = true;
     var mode = focusMode();
     var summary = modeSummary(mode);
     var map = document.getElementById("us-map");
@@ -1462,12 +1709,12 @@
         group.appendChild(locator);
       }
       group.addEventListener("click", function () {
-        selectState(feature.id, mode);
+        selectState(feature.id, mode, true);
       });
       group.addEventListener("keydown", function (event) {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          selectState(feature.id, mode);
+          selectState(feature.id, mode, true);
           return;
         }
         if (
@@ -2227,6 +2474,7 @@
 
   function normalizeViewState() {
     viewState.selectedState = stateRecord(viewState.selectedState) ? viewState.selectedState : null;
+    if (viewState.mapLevel === "state" && !viewState.selectedState) viewState.mapLevel = "national";
     viewState.compareA = stateRecord(viewState.compareA)
       ? viewState.compareA
       : viewState.selectedState || "CA";
@@ -2273,7 +2521,7 @@
   }
 
   function clearVisualizations(message) {
-    ["us-map", "matrix-head", "matrix-body", "rank-list", "rank-unpublished", "scatter-plot", "scatter-table-head", "scatter-table-body", "state-comparison", "inspector-content", "brief-items"].forEach(
+    ["us-map", "matrix-head", "matrix-body", "rank-list", "rank-unpublished", "scatter-plot", "scatter-table-head", "scatter-table-body", "state-comparison", "inspector-content", "brief-items", "state-lens-content", "state-lens-status"].forEach(
       function (id) {
         var element = document.getElementById(id);
         if (element) element.textContent = "";
@@ -2387,6 +2635,14 @@
       },
       "requested view is unsupported"
     );
+    var requestedMapLevel = exactOptionalParameter(
+      params,
+      "level",
+      function (value) {
+        return hasOwn(VALID_MAP_LEVELS, value);
+      },
+      "requested map level is unsupported"
+    );
     var primary = exactOptionalParameter(
       params,
       "mode",
@@ -2428,20 +2684,44 @@
       },
       "requested saved-state list is unsupported"
     );
-    if (requestedView) viewState.view = requestedView;
-    if (primary) {
-      viewState.primaryMode = primary;
-      requestedModeFromUrl = primary;
-    }
-    if (secondary) viewState.secondaryMode = secondary;
-    if (scale) viewState.scale = scale;
+    viewState.view = requestedView || "map";
+    assert(requestedMapLevel !== "state" || Boolean(selectedState), "state map level requires a selected state");
+    viewState.mapLevel = requestedMapLevel || "national";
+    viewState.primaryMode = primary || "pedalcyclist";
+    requestedModeFromUrl = primary || null;
+    viewState.secondaryMode = secondary || "pedestrian";
+    viewState.scale = scale || "linear";
     viewState.selectedState = selectedState || null;
     viewState.compareA = compareA || selectedState || null;
     viewState.compareB = compareB;
     viewState.saved = saved ? saved.split(",") : [];
   }
 
-  function syncUrl() {
+  function restoreLocationFromHistory() {
+    if (!releaseIndex) return;
+    try {
+      var state = requestedState();
+      restoreStudioStateFromUrl(state);
+      var year = requestedYear();
+      populateStateControl(state);
+      if (currentRelease && currentRelease.dataset_year === year) {
+        renderAll();
+        if (state) loadStateProfile(state);
+        else showProfileEmpty();
+        return;
+      }
+      loadRelease(releaseForYear(year), false).then(function () {
+        if (state) loadStateProfile(state);
+        else showProfileEmpty();
+      });
+    } catch (_error) {
+      ++profileRequestSerial;
+      showError();
+      showProfileError();
+    }
+  }
+
+  function syncUrl(pushHistory) {
     if (!window.history || !window.history.replaceState) return;
     var params = new URLSearchParams();
     var selectedYear = currentRelease
@@ -2450,6 +2730,7 @@
     if (isSupportedYear(selectedYear)) params.set("year", String(selectedYear));
     params.set("lang", lang);
     if (viewState.view !== "map") params.set("view", viewState.view);
+    if (viewState.mapLevel === "state") params.set("level", "state");
     if (viewState.primaryMode !== "pedalcyclist") params.set("mode", viewState.primaryMode);
     if (viewState.secondaryMode !== "pedestrian") params.set("secondary", viewState.secondaryMode);
     if (viewState.selectedState) params.set("state", viewState.selectedState);
@@ -2458,7 +2739,11 @@
     if (viewState.scale !== "linear") params.set("scale", viewState.scale);
     if (viewState.saved.length) params.set("saved", viewState.saved.join(","));
     var query = params.toString();
-    window.history.replaceState(null, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
+    window.history[pushHistory ? "pushState" : "replaceState"](
+      null,
+      "",
+      window.location.pathname + (query ? "?" + query : "") + window.location.hash
+    );
   }
 
   function updateYearUrl(year) {
@@ -2468,6 +2753,7 @@
 
   function updateStateUrl(state) {
     viewState.selectedState = state || null;
+    if (!state) viewState.mapLevel = "national";
     if (state) viewState.compareA = state;
     syncUrl();
   }
@@ -2545,6 +2831,7 @@
       document.getElementById("ledger-mode-filter").value = "";
       document.getElementById("status-filter").value = "";
       viewState.view = "map";
+      viewState.mapLevel = "national";
       viewState.primaryMode = "pedalcyclist";
       viewState.secondaryMode = "pedestrian";
       viewState.selectedState = null;
@@ -2562,6 +2849,9 @@
         applyView();
         syncUrl();
       });
+    });
+    document.getElementById("state-lens-back").addEventListener("click", function () {
+      leaveStateLens();
     });
     document.getElementById("secondary-mode").addEventListener("change", function (event) {
       viewState.secondaryMode = event.target.value;
@@ -2643,6 +2933,7 @@
         });
       });
     });
+    window.addEventListener("popstate", restoreLocationFromHistory);
   }
 
   window.NearmissUSCoverage = {

@@ -1341,7 +1341,7 @@ msgstr ""
 msgid "web.coverage.map_keyboard_hint"
 msgstr ""
 "Keyboard: Tab enters the map once. Arrow keys, Home, and End move through"
-" jurisdictions in alphabetical order; Enter or Space selects."
+" jurisdictions in alphabetical order; Enter or Space opens the state evidence sheet."
 
 msgid "web.coverage.map_kicker"
 msgstr "Whole-country view"
@@ -1360,6 +1360,57 @@ msgstr "{state}: {count} fatal crashes involving {mode}"
 
 msgid "web.coverage.map_state_unpublished"
 msgstr "{state}: suppressed or zero for {mode}"
+
+msgid "web.coverage.state_lens_active"
+msgstr "{year} · {mode}"
+
+msgid "web.coverage.state_lens_back"
+msgstr "All states"
+
+msgid "web.coverage.state_lens_caveat"
+msgstr "Counts describe reviewed fatal-crash burden. They do not account for exposure and do not establish risk, fault, causation, or treatment effect. Modes overlap."
+
+msgid "web.coverage.state_lens_fingerprint_h"
+msgstr "Six involved modes, kept separate"
+
+msgid "web.coverage.state_lens_fingerprint_intro"
+msgstr "Each row is scaled only within its own involved mode. The rows are not additive."
+
+msgid "web.coverage.state_lens_fingerprint_kicker"
+msgstr "Selected-year evidence"
+
+msgid "web.coverage.state_lens_kicker"
+msgstr "State evidence sheet"
+
+msgid "web.coverage.state_lens_map_note"
+msgstr "State shape is orientation, not finer geographic evidence."
+
+msgid "web.coverage.state_lens_profile_h"
+msgstr "Five annual marks, with the coding seam visible"
+
+msgid "web.coverage.state_lens_profile_intro"
+msgstr "Years are discrete marks, not one continuous trend. The divider separates two reviewed FARS person-type coding regimes."
+
+msgid "web.coverage.state_lens_profile_kicker"
+msgstr "Evidence seam"
+
+msgid "web.coverage.state_lens_profile_loading"
+msgstr "Loading and verifying the remaining annual artifacts for this profile…"
+
+msgid "web.coverage.state_lens_rank"
+msgstr "Ranked {rank} of {total} published jurisdictions for this mode. This is burden, not risk."
+
+msgid "web.coverage.state_lens_seam"
+msgstr "2020–2021 and 2022–2024 use different reviewed person-type coding regimes. Do not read across the divider as one uninterrupted series."
+
+msgid "web.coverage.state_lens_status"
+msgstr "{state} state evidence sheet, {year}, {mode}."
+
+msgid "web.coverage.state_lens_title"
+msgstr "{state} evidence sheet"
+
+msgid "web.coverage.state_lens_unavailable"
+msgstr "The selected state evidence sheet is unavailable. Return to all states and choose a reviewed jurisdiction."
 
 msgid "web.coverage.mapping_value"
 msgstr "Crash {crash} · person {person}"
