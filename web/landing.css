@@ -21,9 +21,11 @@
   z-index: 10;
 }
 
-.gateway-header,
-.gateway-page main,
-.gateway-footer {
+/* Override the shared document-frame cap from brand.css only for the gateway.
+   The other web surfaces intentionally retain their reading-width shell. */
+body.gateway-page .gateway-header,
+body.gateway-page main#main,
+body.gateway-page .gateway-footer {
   max-width: none;
   margin: 0;
 }
@@ -54,7 +56,7 @@
 }
 
 .gateway-hero {
-  max-width: 74rem;
+  max-width: none;
   padding-block-start: clamp(3.5rem, 9vw, 8rem);
 }
 
@@ -136,8 +138,7 @@
 .gateway-process,
 .gateway-dossier,
 .gateway-reference {
-  max-width: 74rem;
-  margin-inline: auto;
+  max-width: none;
   padding-block: clamp(3.5rem, 7vw, 6.5rem);
 }
 
