@@ -1352,6 +1352,9 @@ msgstr ""
 msgid "web.coverage.state_lens_fingerprint_kicker"
 msgstr ""
 
+msgid "web.coverage.state_lens_fingerprint_table"
+msgstr ""
+
 msgid "web.coverage.state_lens_kicker"
 msgstr ""
 
@@ -1370,7 +1373,13 @@ msgstr ""
 msgid "web.coverage.state_lens_profile_loading"
 msgstr ""
 
+msgid "web.coverage.state_lens_profile_table"
+msgstr ""
+
 msgid "web.coverage.state_lens_rank"
+msgstr ""
+
+msgid "web.coverage.state_lens_record_link"
 msgstr ""
 
 msgid "web.coverage.state_lens_seam"

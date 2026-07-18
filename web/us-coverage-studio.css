@@ -1588,6 +1588,36 @@
   font-size: 0.9rem;
 }
 
+.state-lens-provenance {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.35rem 0.75rem;
+  margin: 1rem 0 0;
+  padding-block-start: 0.85rem;
+  border-block-start: 1px solid var(--rule);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.state-lens-provenance dt {
+  color: var(--muted-ink);
+  font-weight: 750;
+}
+
+.state-lens-provenance dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.state-lens-record-link {
+  display: inline-flex;
+  min-block-size: 2.75rem;
+  align-items: center;
+  margin-block-start: 1rem;
+  color: var(--measured-deep);
+  font-weight: 750;
+}
+
 .state-lens-fingerprint-section,
 .state-lens-profile {
   margin-block-start: clamp(1.5rem, 4vw, 3rem);
@@ -1721,6 +1751,57 @@
   line-height: 1.45;
 }
 
+.state-lens-data-table {
+  margin-block-start: 1rem;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.state-lens-data-table summary {
+  min-block-size: 2.75rem;
+  padding: 0.7rem 0.85rem;
+  color: var(--survey-ink);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.state-lens-data-table table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.state-lens-data-table th,
+.state-lens-data-table td {
+  padding: 0.55rem 0.7rem;
+  border-block-start: 1px solid var(--rule);
+  text-align: start;
+}
+
+.state-lens-data-table td:not(:first-child) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.state-lens-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-block-start: clamp(1.5rem, 4vw, 3rem);
+  padding-block-start: 1.25rem;
+  border-block-start: 1px solid var(--rule);
+}
+
+.state-lens-actions button {
+  min-block-size: 2.75rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--survey-ink);
+  border-radius: 0;
+  background: var(--sheet);
+  color: var(--survey-ink);
+  font-weight: 750;
+  cursor: pointer;
+}
+
 .state-lens-loading {
   margin: 1rem 0 0;
   padding: 0.85rem 1rem;
@@ -1769,6 +1850,10 @@
   .state-lens-year.is-after-seam {
     margin-inline-start: 0.35rem;
   }
+
+  .state-lens-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (forced-colors: active) {
@@ -1795,7 +1880,8 @@
 
   .matrix-cell-button:focus-visible,
   .rank-item button:focus-visible,
-  .state-lens-back:focus-visible {
+  .state-lens-back:focus-visible,
+  .state-lens-actions button:focus-visible {
     outline-color: Highlight;
   }
 

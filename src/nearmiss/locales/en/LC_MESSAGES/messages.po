@@ -1379,6 +1379,9 @@ msgstr "Each row is scaled only within its own involved mode. The rows are not a
 msgid "web.coverage.state_lens_fingerprint_kicker"
 msgstr "Selected-year evidence"
 
+msgid "web.coverage.state_lens_fingerprint_table"
+msgstr "Open selected-year involved-mode data table"
+
 msgid "web.coverage.state_lens_kicker"
 msgstr "State evidence sheet"
 
@@ -1397,8 +1400,14 @@ msgstr "Evidence seam"
 msgid "web.coverage.state_lens_profile_loading"
 msgstr "Loading and verifying the remaining annual artifacts for this profile…"
 
+msgid "web.coverage.state_lens_profile_table"
+msgstr "Open five-year data table"
+
 msgid "web.coverage.state_lens_rank"
 msgstr "Ranked {rank} of {total} published jurisdictions for this mode. This is burden, not risk."
+
+msgid "web.coverage.state_lens_record_link"
+msgstr "Download this reviewed annual record"
 
 msgid "web.coverage.state_lens_seam"
 msgstr "2020–2021 and 2022–2024 use different reviewed person-type coding regimes. Do not read across the divider as one uninterrupted series."
