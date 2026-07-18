@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import json
 from collections.abc import Iterable
 from typing import Any, cast
 
@@ -184,6 +185,33 @@ def test_canonical_bytes_are_stable_and_suppressed_cells_have_no_numeric_field()
     assert first == second
     assert first.endswith(b"\n") and b"\n" not in first[:-1]
     assert b'"crash_count"' not in first
+
+
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        (b"", "byte safety limit"),
+        (b" " * (publication.FARS_COUNTY_PUBLIC_ARTIFACT_MAX_BYTES + 1), "byte safety limit"),
+        (b"\xff", "not UTF-8"),
+        (b"{", "invalid JSON"),
+        (b"[]", "must be an object"),
+        (b'{"value":NaN}', "non-finite"),
+        (b'{"state":1,"state":2}', "duplicate key"),
+    ],
+)
+def test_public_county_loader_rejects_unsafe_or_noncanonical_payloads(
+    payload: bytes, message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        publication.load_public_fars_county_state_bytes(payload)
+
+
+def test_public_county_loader_requires_exact_canonical_bytes() -> None:
+    payload = publication.canonical_public_fars_county_state_bytes(_artifact(california_count=10))
+    assert publication.load_public_fars_county_state_bytes(payload)["dataset_year"] == 2024
+    pretty = json.dumps(json.loads(payload), indent=2).encode("utf-8")
+    with pytest.raises(ValueError, match="not canonical"):
+        publication.load_public_fars_county_state_bytes(pretty)
 
 
 def test_input_lineage_and_boundary_identity_fail_closed() -> None:

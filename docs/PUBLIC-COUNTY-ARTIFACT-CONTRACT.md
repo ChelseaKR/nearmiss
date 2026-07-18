@@ -21,8 +21,11 @@ subtraction cannot recover a withheld value. The artifact also excludes raw FARS
 county codes, case identifiers, private feasibility digests, private projection
 digests, and private boundary-shard identity.
 
-Before any state shard can be put in the client allowlist, a release must add an
-approved publication policy, an immutable county index and correction record,
-reviewed data inputs, a boundary delivery decision, and adversarial differencing
-tests across releases. Until then, the contract remains a tested production
-boundary rather than a public feature.
+The immutable county index and count-free correction-ledger contracts are now
+implemented, including canonical paths, byte/digest pins, detached-boundary
+rejection, retained-revision verification, and adversarial release tests. Before
+any state shard can be put in the client allowlist, a release must still add an
+approved publication policy, reviewed real data inputs, a boundary-delivery
+decision, site-build approval, and cross-release differencing review. Until
+then, the contracts remain tested production boundaries rather than a public
+feature.

@@ -14,7 +14,7 @@ import hashlib
 import json
 import re
 from collections.abc import Mapping, Sequence
-from typing import cast
+from typing import Any, NoReturn, cast
 
 from jsonschema import Draft202012Validator
 
@@ -47,6 +47,7 @@ FARS_COUNTY_PUBLIC_ARTIFACT_TYPE = "nearmiss.public.fars_county_context"
 FARS_COUNTY_PUBLIC_ALGORITHM_VERSION = "county-involved-mode-publication-v1"
 FARS_COUNTY_PUBLIC_MIN_EFFECTIVE_K = 10
 FARS_COUNTY_PUBLIC_MAX_EFFECTIVE_K = 10_000
+FARS_COUNTY_PUBLIC_ARTIFACT_MAX_BYTES = 512 * 1024
 
 _MAX_COUNTIES_PER_STATE = 300
 _MAX_CELLS_PER_STATE = _MAX_COUNTIES_PER_STATE * len(MODE_ORDER)
@@ -239,6 +240,19 @@ def _canonical_json_bytes(value: Mapping[str, object]) -> bytes:
         )
         + "\n"
     ).encode("utf-8")
+
+
+def _reject_constant(_value: str) -> NoReturn:
+    raise ValueError("public FARS county shard JSON contains a non-finite number")
+
+
+def _strict_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("public FARS county shard JSON contains a duplicate key")
+        result[key] = value
+    return result
 
 
 def _sha256(value: bytes) -> str:
@@ -630,3 +644,28 @@ def canonical_public_fars_county_state_bytes(artifact: Mapping[str, object]) -> 
 
     validate_public_fars_county_state_artifact(artifact)
     return _canonical_json_bytes(artifact)
+
+
+def load_public_fars_county_state_bytes(payload: bytes) -> dict[str, object]:
+    """Load exact canonical public county-shard bytes without trusting disk input."""
+
+    if type(payload) is not bytes:
+        raise TypeError("public FARS county shard payload must be bytes")
+    if not payload or len(payload) > FARS_COUNTY_PUBLIC_ARTIFACT_MAX_BYTES:
+        raise ValueError("public FARS county shard exceeds its byte safety limit")
+    try:
+        artifact = json.loads(
+            payload.decode("utf-8"),
+            object_pairs_hook=_strict_object,
+            parse_constant=_reject_constant,
+        )
+    except UnicodeDecodeError as exc:
+        raise ValueError("public FARS county shard is not UTF-8") from exc
+    except (json.JSONDecodeError, RecursionError) as exc:
+        raise ValueError("public FARS county shard is invalid JSON") from exc
+    if not isinstance(artifact, dict):
+        raise ValueError("public FARS county shard must be an object")
+    validate_public_fars_county_state_artifact(artifact)
+    if canonical_public_fars_county_state_bytes(artifact) != payload:
+        raise ValueError("public FARS county shard is not canonical")
+    return cast(dict[str, object], artifact)
