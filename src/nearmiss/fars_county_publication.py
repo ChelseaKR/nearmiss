@@ -19,6 +19,10 @@ from typing import cast
 from jsonschema import Draft202012Validator
 
 from .adapters.fars_joined import MODE_ORDER
+from .fars_county_boundary_publication import (
+    canonical_public_fars_county_boundary_state_bytes,
+    validate_public_fars_county_boundary_state_artifact,
+)
 from .fars_county_crosswalk import (
     FARS_COUNTY_CROSSWALK_VERSION,
     canonical_fars_county_crosswalk_bytes,
@@ -447,19 +451,21 @@ def _validated_private_inputs(
 
 
 def _boundary_counties(
-    boundary_shard: Mapping[str, object],
+    public_boundary_artifact: Mapping[str, object],
     *,
     state_fips: str,
     expected_source: Mapping[str, object],
 ) -> list[dict[str, str]]:
+    validate_public_fars_county_boundary_state_artifact(public_boundary_artifact)
+    state = _mapping(public_boundary_artifact.get("state"), label="boundary state")
     if (
-        boundary_shard.get("visibility") != "private"
-        or boundary_shard.get("state_fips") != state_fips
-        or _mapping(boundary_shard.get("source"), label="boundary source") != expected_source
+        state.get("state_fips") != state_fips
+        or _mapping(public_boundary_artifact.get("source"), label="boundary source")
+        != expected_source
     ):
         raise ValueError("county publication boundary shard identity is inconsistent")
     counties: list[dict[str, str]] = []
-    for feature in _sequence(boundary_shard.get("features"), label="boundary features"):
+    for feature in _sequence(public_boundary_artifact.get("features"), label="boundary features"):
         properties = _mapping(feature.get("properties"), label="boundary feature properties")
         geoid = properties.get("geoid")
         county_fips = properties.get("county_fips")
@@ -524,7 +530,7 @@ def build_public_fars_county_state_artifact(
     feasibility_artifact: Mapping[str, object],
     crosswalk_artifact: Mapping[str, object],
     projection_artifact: Mapping[str, object],
-    boundary_shard: Mapping[str, object],
+    public_boundary_artifact: Mapping[str, object],
     *,
     state_fips: str,
     effective_k: int = FARS_COUNTY_PUBLIC_MIN_EFFECTIVE_K,
@@ -540,7 +546,7 @@ def build_public_fars_county_state_artifact(
     )
     state_code = _state_code_from_fips(state_fips)
     counties = _boundary_counties(
-        boundary_shard, state_fips=state_fips, expected_source=boundary_source
+        public_boundary_artifact, state_fips=state_fips, expected_source=boundary_source
     )
     _validate_crosswalk_targets_for_state(
         crosswalk_artifact, state_code=state_code, counties=counties
@@ -592,7 +598,9 @@ def build_public_fars_county_state_artifact(
             "presentation_vintage": boundary_source["presentation_vintage"],
             "crosswalk_version": crosswalk_artifact["crosswalk_version"],
             "crosswalk_sha256": _sha256(canonical_fars_county_crosswalk_bytes(crosswalk_artifact)),
-            "boundary_sha256": _sha256(_canonical_json_bytes(boundary_shard)),
+            "boundary_sha256": _sha256(
+                canonical_public_fars_county_boundary_state_bytes(public_boundary_artifact)
+            ),
         },
         "metric": {
             "algorithm_version": FARS_COUNTY_PUBLIC_ALGORITHM_VERSION,
