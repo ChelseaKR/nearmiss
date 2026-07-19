@@ -9,7 +9,7 @@ name = "nearmiss"
 version = "0.2.0"
 description = "An open dataset and statistically honest analysis of road hazards and near misses for safe-streets advocacy."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Chelsea Kelly-Reif" }]
 keywords = [
@@ -27,7 +27,6 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering :: GIS",
   "Typing :: Typed",
@@ -121,7 +120,7 @@ packages = ["src/nearmiss", "src/honest_rates"]
 # Lint — ruff (style + a broad rule set). Part of `make verify`.
 # ---------------------------------------------------------------------------
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 100
 src = ["src", "tests"]
 # Notebooks are an exploratory space; don't hold them to import-order/format rules.
@@ -140,7 +139,7 @@ max-complexity = 10
 # Types — mypy strict. A typed, analyzable codebase. Part of `make verify`.
 # ---------------------------------------------------------------------------
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 warn_unreachable = true
 warn_redundant_casts = true
