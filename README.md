@@ -34,36 +34,38 @@ employer or client; contains no proprietary or client material. Owned by cyclist
 by a city. This is not a 311 queue and not a complaint inbox for a public works department; it is a
 community-owned evidence base.
 
-> **Where this is right now (read first):** the analysis engine is implemented and verified. The
-> intake, the dedupe/geocode/snap/classify/quality pipeline (including offline geocoding of
-> address-only reports), the exposure normalization and statistics (Poisson/Wilson confidence
-> intervals, bias, KDE, Getis-Ord Gi\* with Benjamini-Hochberg FDR), publishing with a
-> self-describing metadata block, the bilingual (English/Spanish) advocacy brief and web data view,
-> address-or-coordinate intake with an offline gazetteer geocoder **and** an opt-in networked
-> (Nominatim) adapter, a reproducible analysis notebook, a second demo city (Riverside) proving
-> config-over-code, a committed hashed lockfile, and a performance benchmark all exist and pass the
-> gates: `make demo`, `make verify`, and `make reproduce` run, the full test suite passes, and
-> ruff + mypy
-> `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
-> accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
-> pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
-> (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta. The national
-> gateway is the deployed entry point; the reviewed national studio is its reference-data surface.
-> The Davis/Riverside methods UI, embed, and submission form are retained as local, synthetic test
-> surfaces and are not published at the production origin. The
-> studio is a time-bounded, owner-attested public preview under
-> [ADR 0012](docs/adr/0012-solo-maintainer-provisional-review-attestation.md); that disposition is
-> not a manual screen-reader result or a WCAG/ACR conformance claim.
+## Quick start
+
+```bash
+# 1. Clone
+git clone https://github.com/ChelseaKR/nearmiss.git
+cd nearmiss
+
+# 2. Install (editable, with dev tooling and pre-commit hooks)
+make install
+
+# 3. See it work end to end on synthetic fixtures with known answers —
+#    runs the full pipeline and renders a sample advocacy brief.
+make demo
+
+# 4. Run the full merge gate locally (lint, types, tests, accessibility, security)
+make verify
+```
+
+`make demo` uses the planted-hotspot fixtures in `tests/fixtures/`, so it needs no real data, no API
+keys, and no cloud account. If `make demo` recovers the planted hotspots and `make verify` is green,
+your environment is good. Run `make help` to list every target.
 
 ---
 
 ## Table of contents
 
+- [Quick start](#quick-start)
 - [Standards conformance](#standards-conformance)
 - [Why this exists](#why-this-exists)
 - [What it does](#what-it-does)
 - [Hard rules (enforced, not aspirational)](#hard-rules-enforced-not-aspirational)
-- [Quick start](#quick-start)
+- [Project status](#project-status)
 - [Install](#install)
 - [Usage](#usage)
 - [Architecture](#architecture)
@@ -185,27 +187,28 @@ These five are encoded in tests, CI gates, and the publish path. See
 for why rules 1 and 2 are non-negotiable, and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for how
 rule 4 is defended.
 
-## Quick start
+## Project status
 
-```bash
-# 1. Clone
-git clone https://github.com/ChelseaKR/nearmiss.git
-cd nearmiss
-
-# 2. Install (editable, with dev tooling and pre-commit hooks)
-make install
-
-# 3. See it work end to end on synthetic fixtures with known answers —
-#    runs the full pipeline and renders a sample advocacy brief.
-make demo
-
-# 4. Run the full merge gate locally (lint, types, tests, accessibility, security)
-make verify
-```
-
-`make demo` uses the planted-hotspot fixtures in `tests/fixtures/`, so it needs no real data, no API
-keys, and no cloud account. If `make demo` recovers the planted hotspots and `make verify` is green,
-your environment is good. Run `make help` to list every target.
+> **Where this is right now:** the analysis engine is implemented and verified. The
+> intake, the dedupe/geocode/snap/classify/quality pipeline (including offline geocoding of
+> address-only reports), the exposure normalization and statistics (Poisson/Wilson confidence
+> intervals, bias, KDE, Getis-Ord Gi\* with Benjamini-Hochberg FDR), publishing with a
+> self-describing metadata block, the bilingual (English/Spanish) advocacy brief and web data view,
+> address-or-coordinate intake with an offline gazetteer geocoder **and** an opt-in networked
+> (Nominatim) adapter, a reproducible analysis notebook, a second demo city (Riverside) proving
+> config-over-code, a committed hashed lockfile, and a performance benchmark all exist and pass the
+> gates: `make demo`, `make verify`, and `make reproduce` run, the full test suite passes, and
+> ruff + mypy
+> `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
+> accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
+> pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
+> (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta. The national
+> gateway is the deployed entry point; the reviewed national studio is its reference-data surface.
+> The Davis/Riverside methods UI, embed, and submission form are retained as local, synthetic test
+> surfaces and are not published at the production origin. The
+> studio is a time-bounded, owner-attested public preview under
+> [ADR 0012](docs/adr/0012-solo-maintainer-provisional-review-attestation.md); that disposition is
+> not a manual screen-reader result or a WCAG/ACR conformance claim.
 
 ## Install
 
