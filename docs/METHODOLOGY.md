@@ -64,21 +64,27 @@ For a segment `s` over an analysis window `[t0, t1]`:
 - `E_s` — **exposure**: an estimate of how much travel happened on `s` in the window, in a
   documented unit such as person-kilometers or count-station-equivalent passes (Section 3).
 - `theta_s = y_s / E_s` — the **rate**: reports per unit exposure. This, with an interval, is
-  the published risk estimate (Section 4).
+  the published risk estimate (Section 4). The published *primary* rate is computed from the
+  high-confidence subset of `y_s` — low-confidence reports are excluded and the excluded
+  fraction is published (Section 2, step 4).
 - `n_s` — sample size for `s`; here `n_s = y_s`, the report count, because that is what the
   interval width is governed by. Small `n_s` is the central statistical problem of this project.
 
-<!-- claim:rate-union-not-per-type -->
+<!-- claim:rate-union-primary-plus-per-type-layers -->
 Hazard **type** (close pass, dooring, surface hazard, sightline, signal, debris) is carried
-through every step and published per segment as a `hazard_breakdown` count by type. **Today the
-single published `rate` per segment is computed over the union of all hazard types** — `aggregate.py`
-sums every type into one segment count that `rates.py` normalizes — so the published rate is an
-all-types union, and the `hazard_breakdown` beside it shows the type mix. Publishing **type-specific
-rate layers** (a separate dooring rate, surface-hazard rate, and so on, each with its own interval
-where `n` permits) is PLANNED, not yet implemented. Until it lands, read the published rate as an
-all-hazard-types union; a dooring rate and a pothole rate are different quantities and separating
-them into per-type rates is future work.
-<!-- /claim:rate-union-not-per-type -->
+through every step and published per segment as a `hazard_breakdown` count by type. **The
+single published `rate` per segment is computed over the union of all hazard types** —
+`aggregate.py` sums every type into one segment count that `rates.py` normalizes — so the
+headline rate is an all-types union, and the `hazard_breakdown` beside it shows the type mix.
+**Type-specific rate layers are also published** (FIX-06): for a usable segment whose pooled
+count clears the small-sample threshold, each hazard type whose *own* count is at or above
+`small_n` gets an entry in `rates_by_type` — its count, an exposure-normalized rate against the
+same segment exposure, and its own interval. Types below the threshold are suppressed entirely
+(no entry), so the small-n suppression rules are never weaker for a type layer than for the
+segment. A dooring rate and a pothole rate are different quantities; `rates_by_type` is where
+they are separated. Hotspot detection (Getis-Ord Gi\*, Section 8) still runs on the pooled
+union rate only, never on a per-type layer.
+<!-- /claim:rate-union-primary-plus-per-type-layers -->
 
 The analysis window, the reference network version, the exposure source, and the hazard type are
 recorded with every published number. A rate with no window, network, source, and type attached
@@ -107,15 +113,20 @@ with how many reports it removed.
    no one reported.
 4. **Classification and quality flags** (`pipeline/classify.py`, `pipeline/quality.py`). Each
    report gets a quality tier.
-   <!-- claim:low-confidence-flagged-not-excluded -->
+   <!-- claim:low-confidence-excluded-from-primary -->
    Low-confidence reports (low positional accuracy or a snap beyond tolerance — the internal
-   `low_accuracy` / `far_snap` flags) are **flagged**: the segment they land on carries the published
-   `geocode_low_confidence` quality flag so a consumer sees the caveat (`stats/__init__.py`,
-   `_LOW_CONFIDENCE_RAW`). **They are currently still counted in the primary rate.** Splitting them
-   out — excluding low-confidence reports from the primary rate, computing a separate sensitivity
-   rate, and publishing the excluded fraction — is PLANNED, not yet implemented; today the flag is
-   surfaced but the rate is not recomputed without the flagged reports.
-   <!-- /claim:low-confidence-flagged-not-excluded -->
+   `low_accuracy` / `far_snap` flags) are **flagged and excluded from the primary rate** (FIX-07):
+   the segment they land on carries the published `geocode_low_confidence` quality flag so a
+   consumer sees the caveat (`stats/__init__.py`, `_LOW_CONFIDENCE_RAW`), and the published
+   `rate`/interval — which is also what feeds Getis-Ord hotspot detection — is computed from the
+   high-confidence records only. The published `report_count`/`n` remain the all-records observed
+   count. As a sensitivity check, when the all-records rate (low-confidence included) falls
+   *outside* the primary rate's interval, the segment publishes a signed `rate_sensitivity_delta`
+   (all-records rate minus primary rate) — i.e. a delta appears exactly when including the
+   excluded reports would materially move the published rate. The dataset-level excluded share is
+   published in the metadata summary as `excluded_low_confidence_fraction` (low-confidence
+   snapped records over all snapped records).
+   <!-- /claim:low-confidence-excluded-from-primary -->
 
 `y_s` is the count of reports on `s` that pass all four. The per-segment counts, the per-filter
 removal counts, and the quality-tier breakdown are emitted as inspectable intermediate data
