@@ -737,6 +737,7 @@ jobs:
             'web/dossier.js|web/dossier.js'
             'web/studio.js|web/studio.js'
             'web/workflow.css|web/workflow.css'
+            'web/interface.css|web/interface.css'
             'web/us-coverage.js|web/us-coverage.js'
             'web/i18n.js|web/i18n.js'
             'web/landing.css|web/landing.css'

@@ -25,6 +25,7 @@ PUBLIC_WEB_FILES = (
     "i18n.js",
     "brand.css",
     "dossier.js",
+    "interface.css",
     "landing.css",
     "style.css",
     "studio.js",

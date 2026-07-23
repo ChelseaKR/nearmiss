@@ -11,6 +11,11 @@ national FARS reference surface. The readiness check is a heuristic preflight, n
 analysis itself, and no selected report file is uploaded. Davis, Riverside, the report form, and the
 embed are not copied into the production artifact.
 
+The four public surfaces share `interface.css`, a chain-of-custody workbench system whose connected
+route makes the product sequence visible: source → boundary → claim → action. The stylesheet is part
+of the deployment allowlist and site manifest, so source previews and the deployed artifact cannot
+silently diverge.
+
 ## The two maps (local methods demonstration)
 
 The page shows the **same reports mapped two ways** on a real [OpenStreetMap](https://www.openstreetmap.org/copyright)

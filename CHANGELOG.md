@@ -76,6 +76,12 @@ every entry.
 
 ### Changed
 
+- The gateway, browser-local Studio, Decision Dossier, and Conflict Atlas now share a
+  chain-of-custody workbench interface: a cobalt evidence surface, connected source-to-action route,
+  offset review artifacts, responsive form controls, and a consistent claim-boundary treatment
+  replace the prior broadsheet shell. The redesign remains dependency-light, reflows without
+  horizontal overflow at 390 px, respects reduced motion, and is included in the hash-bound public
+  artifact and exact-live-byte deployment checks.
 - The README standards-conformance table now uses the portfolio's canonical standard names
   (e.g. "Code Quality" instead of `CODE-QUALITY`, "Responsible-Tech Framework" instead of
   `RESPONSIBLE-TECH`) so the automated conformance checker recognizes every declared row; the
