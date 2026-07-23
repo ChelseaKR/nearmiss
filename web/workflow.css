@@ -1,0 +1,681 @@
+/* Evidence-to-action workflow surfaces.
+   The layout borrows from field packets, survey chains, and review stamps:
+   sources move through a visible claim boundary before an action can leave. */
+
+.workflow-page {
+  --workflow-paper: #f3f6f2;
+  --workflow-sheet: #ffffff;
+  --workflow-ink: #152a30;
+  --workflow-blue: #145b73;
+  --workflow-blue-soft: #dce8eb;
+  --workflow-red: #b93a2b;
+  --workflow-amber: #e0b33e;
+  --workflow-amber-soft: #f8efcf;
+  --workflow-muted: #5e706f;
+  --workflow-rule: #aebdb9;
+  margin: 0;
+  padding: 0;
+  background: var(--workflow-paper);
+  color: var(--workflow-ink);
+}
+
+body.workflow-page header,
+body.workflow-page main,
+body.workflow-page footer {
+  max-width: none;
+  margin: 0;
+}
+
+.workflow-header,
+.workflow-main,
+.workflow-footer {
+  padding-inline: clamp(1rem, 4vw, 5rem);
+}
+
+.workflow-header {
+  border-block-end: 1px solid var(--workflow-rule);
+  background:
+    linear-gradient(90deg, transparent 0 68%, var(--workflow-blue-soft) 68% 100%),
+    var(--workflow-paper);
+}
+
+.workflow-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-block-size: 4.75rem;
+  border-block-end: 1px solid var(--workflow-rule);
+}
+
+.workflow-nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.workflow-nav-links a {
+  font-weight: 750;
+}
+
+.workflow-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+  gap: clamp(2rem, 8vw, 7rem);
+  align-items: end;
+  padding-block: clamp(3.5rem, 8vw, 7rem);
+}
+
+.workflow-kicker,
+.workflow-label,
+.chain-step,
+.verification-status,
+.result-tier {
+  color: var(--workflow-blue);
+  font: 800 0.73rem/1.35 var(--brand-data);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.workflow-hero h1 {
+  max-inline-size: 13ch;
+  margin: 0;
+  color: var(--workflow-ink);
+  font: 760 clamp(3rem, 6vw, 6.2rem)/0.9 var(--brand-display);
+  letter-spacing: -0.058em;
+  text-wrap: balance;
+}
+
+.workflow-lede {
+  max-inline-size: 50rem;
+  margin: 1.5rem 0 0;
+  color: var(--workflow-muted);
+  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+  line-height: 1.55;
+}
+
+.workflow-privacy {
+  align-self: end;
+  padding: 1.2rem;
+  border: 1px solid var(--workflow-ink);
+  background: var(--workflow-sheet);
+}
+
+.workflow-privacy strong {
+  display: block;
+  margin-block-end: 0.55rem;
+  font-family: var(--brand-display);
+  font-size: 1.25rem;
+}
+
+.workflow-privacy p {
+  margin: 0;
+  color: var(--workflow-muted);
+}
+
+.evidence-chain {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--workflow-rule);
+  background: var(--workflow-sheet);
+  list-style: none;
+}
+
+.evidence-chain li {
+  position: relative;
+  min-inline-size: 0;
+  padding: 1rem;
+  border-inline-end: 1px solid var(--workflow-rule);
+}
+
+.evidence-chain li:last-child {
+  border-inline-end: 0;
+}
+
+.evidence-chain li:not(:last-child)::after {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: 50%;
+  inset-inline-end: -0.55rem;
+  inline-size: 1rem;
+  block-size: 1rem;
+  border-block-start: 1px solid var(--workflow-rule);
+  border-inline-end: 1px solid var(--workflow-rule);
+  background: var(--workflow-sheet);
+  content: "";
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.evidence-chain strong {
+  display: block;
+  margin-block-start: 0.45rem;
+  font-family: var(--brand-display);
+  font-size: 1.08rem;
+}
+
+.workflow-section {
+  padding-block: clamp(3rem, 7vw, 6rem);
+  border-block-end: 1px solid var(--workflow-rule);
+}
+
+.workflow-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(1.5rem, 7vw, 6rem);
+  align-items: end;
+  margin-block-end: 2rem;
+}
+
+.workflow-heading h2 {
+  max-inline-size: 15ch;
+  margin: 0;
+  color: var(--workflow-ink);
+  font: 740 clamp(2rem, 4vw, 3.7rem)/0.98 var(--brand-display);
+  letter-spacing: -0.045em;
+}
+
+.workflow-heading p {
+  max-inline-size: 48rem;
+  margin: 0;
+  color: var(--workflow-muted);
+  line-height: 1.55;
+}
+
+.readiness-form,
+.claim-form {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--workflow-ink);
+  background: var(--workflow-sheet);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.readiness-form label,
+.claim-form label,
+.readiness-form legend {
+  display: block;
+  color: var(--workflow-muted);
+  font-weight: 750;
+}
+
+.readiness-form input,
+.readiness-form select,
+.claim-form input,
+.claim-form select {
+  inline-size: 100%;
+  margin-block-start: 0.35rem;
+  border: 1px solid var(--workflow-rule);
+  background: var(--workflow-sheet);
+  color: var(--workflow-ink);
+}
+
+.claim-form input[readonly],
+.claim-form select:disabled {
+  border-style: dashed;
+  background: var(--workflow-paper);
+  color: var(--workflow-muted);
+  opacity: 1;
+}
+
+.field-note {
+  display: block;
+  margin-block-start: 0.45rem;
+  color: var(--workflow-muted);
+  font: 500 0.82rem/1.4 var(--brand-body);
+}
+
+.readiness-form input[type="file"] {
+  min-block-size: auto;
+  padding: 0.7rem;
+}
+
+.readiness-form fieldset {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--workflow-rule);
+}
+
+.source-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-block-start: 0.75rem;
+}
+
+.source-checks label {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--workflow-ink);
+}
+
+.source-checks input {
+  inline-size: auto;
+  margin: 0;
+}
+
+.workflow-action,
+.workflow-link-action {
+  display: inline-flex;
+  min-block-size: 3rem;
+  inline-size: fit-content;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--workflow-ink);
+  background: var(--workflow-ink);
+  color: var(--workflow-sheet);
+  font-weight: 780;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.workflow-action-secondary {
+  background: var(--workflow-sheet);
+  color: var(--workflow-ink);
+}
+
+.workflow-action:disabled,
+.workflow-link-action[aria-disabled="true"] {
+  border-color: var(--workflow-rule);
+  background: var(--workflow-paper);
+  color: var(--workflow-muted);
+  cursor: not-allowed;
+}
+
+.workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.readiness-result,
+.claim-result {
+  margin-block-start: 1rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--workflow-ink);
+  background: var(--workflow-sheet);
+}
+
+.readiness-result[hidden],
+.claim-result[hidden] {
+  display: none;
+}
+
+.result-topline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-block-end: 1rem;
+  border-block-end: 1px solid var(--workflow-rule);
+}
+
+.result-topline h3,
+.claim-result h3,
+.dossier-sheet h2,
+.dossier-sheet h3 {
+  margin: 0;
+  color: var(--workflow-ink);
+  font-family: var(--brand-display);
+}
+
+.result-tier {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--workflow-blue);
+  background: var(--workflow-blue-soft);
+}
+
+.readiness-findings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 1rem 0;
+  padding: 1px;
+  background: var(--workflow-rule);
+  list-style: none;
+}
+
+.readiness-findings li {
+  padding: 1rem;
+  background: var(--workflow-sheet);
+}
+
+.finding-status {
+  display: block;
+  margin-block-end: 0.35rem;
+  font: 800 0.72rem/1.2 var(--brand-data);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.finding-status.is-ready {
+  color: #176238;
+}
+
+.finding-status.is-gap {
+  color: #7a3f00;
+}
+
+.claim-output {
+  margin: 1rem 0;
+  padding: 1.15rem;
+  border-inline-start: 0.4rem solid var(--workflow-blue);
+  background: var(--workflow-blue-soft);
+  font-size: 1.15rem;
+  line-height: 1.55;
+}
+
+.claim-boundary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.claim-boundary article {
+  padding: 1rem;
+  border: 1px solid var(--workflow-rule);
+  background: var(--workflow-sheet);
+}
+
+.claim-boundary .cannot-claim {
+  border-color: #8f3b2e;
+  background: #fff5f2;
+}
+
+.claim-boundary h4 {
+  margin: 0 0 0.55rem;
+  font-family: var(--brand-display);
+  font-size: 1.05rem;
+}
+
+.claim-boundary p {
+  margin: 0;
+}
+
+.dossier-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.34fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.dossier-sheet,
+.verification-panel {
+  border: 1px solid var(--workflow-ink);
+  background: var(--workflow-sheet);
+}
+
+.dossier-sheet {
+  padding: clamp(1rem, 4vw, 3rem);
+}
+
+.dossier-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: space-between;
+  padding-block-end: 1rem;
+  border-block-end: 1px solid var(--workflow-rule);
+  font: 700 0.74rem/1.35 var(--brand-data);
+  letter-spacing: 0.035em;
+}
+
+.sample-badge {
+  color: #653700;
+  font-weight: 800;
+}
+
+.dossier-title {
+  max-inline-size: 17ch;
+  margin: 2rem 0 0;
+  font: 760 clamp(2.4rem, 5vw, 5rem)/0.92 var(--brand-display);
+  letter-spacing: -0.055em;
+}
+
+.dossier-ask {
+  margin: 1.25rem 0 2rem;
+  padding: 1rem;
+  border-block: 1px solid var(--workflow-ink);
+  background: var(--workflow-amber-soft);
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+.dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-block: 1.5rem;
+  padding: 1px;
+  background: var(--workflow-rule);
+}
+
+.dossier-grid article {
+  padding: 1.1rem;
+  background: var(--workflow-sheet);
+}
+
+.dossier-grid h3 {
+  font-size: 1.12rem;
+}
+
+.dossier-grid p,
+.dossier-grid ul {
+  margin-block: 0.65rem 0;
+  color: var(--workflow-muted);
+}
+
+.dossier-grid ul {
+  padding-inline-start: 1.2rem;
+}
+
+.evidence-tracks {
+  margin: 0;
+  padding: 0;
+  border-block-start: 1px solid var(--workflow-rule);
+  list-style: none;
+}
+
+.evidence-track {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  padding-block: 1rem;
+  border-block-end: 1px solid var(--workflow-rule);
+}
+
+.track-status {
+  font: 800 0.7rem/1.3 var(--brand-data);
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.track-status.is-measured {
+  color: #176238;
+}
+
+.track-status.is-limited {
+  color: #7a3f00;
+}
+
+.verification-panel {
+  position: sticky;
+  inset-block-start: 1rem;
+  padding: 1rem;
+}
+
+.verification-mark {
+  inline-size: 4rem;
+  block-size: 4rem;
+  display: grid;
+  place-items: center;
+  margin-block-end: 1rem;
+  border: 0.3rem double var(--workflow-blue);
+  color: var(--workflow-blue);
+  font: 800 1.3rem/1 var(--brand-data);
+  transform: rotate(-4deg);
+}
+
+.verification-panel h2 {
+  margin: 0;
+  font: 740 1.55rem/1 var(--brand-display);
+}
+
+.verification-list {
+  margin: 1rem 0;
+}
+
+.verification-list div {
+  padding-block: 0.65rem;
+  border-block-end: 1px solid var(--workflow-rule);
+}
+
+.verification-list dt {
+  color: var(--workflow-muted);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.verification-list dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+  font-family: var(--brand-data);
+  font-size: 0.78rem;
+}
+
+.county-next-step {
+  padding: 1rem;
+  border: 1px solid var(--workflow-rule);
+  background: var(--workflow-amber-soft);
+}
+
+.county-next-step h4 {
+  margin: 0;
+  font-family: var(--brand-display);
+}
+
+.county-next-step p {
+  margin-block: 0.55rem;
+}
+
+.workflow-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1.4rem;
+  border-block-start: 0.35rem solid var(--workflow-ink);
+  background: var(--workflow-sheet);
+  color: var(--workflow-muted);
+}
+
+.workflow-footer p {
+  margin: 0;
+}
+
+.workflow-page :focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 3px;
+}
+
+@media (max-width: 62rem) {
+  .workflow-header {
+    background: var(--workflow-paper);
+  }
+
+  .workflow-hero,
+  .workflow-heading,
+  .dossier-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .verification-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 44rem) {
+  .workflow-nav {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-block: 1rem;
+  }
+
+  .workflow-nav-links {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .evidence-chain,
+  .form-grid,
+  .readiness-findings,
+  .claim-boundary,
+  .dossier-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evidence-chain li {
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--workflow-rule);
+  }
+
+  .evidence-chain li:last-child {
+    border-block-end: 0;
+  }
+
+  .evidence-chain li::after {
+    display: none;
+  }
+
+  .evidence-track {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .workflow-nav,
+  .workflow-hero,
+  .workflow-actions,
+  .workflow-footer,
+  .verification-panel .workflow-action {
+    display: none;
+  }
+
+  .workflow-main {
+    padding: 0;
+  }
+
+  .workflow-section {
+    padding: 0;
+    border: 0;
+  }
+
+  .dossier-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .verification-panel {
+    position: static;
+    break-inside: avoid;
+    margin-block-start: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workflow-page .clearance-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

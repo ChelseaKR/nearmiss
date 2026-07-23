@@ -20,6 +20,8 @@ NATIONAL_ROUTE = "/fars/national/"
 NATIONAL_MANIFEST_PATH = "fars/national/index.html"
 NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/"
 APEX_CANONICAL = "https://nearmiss.chelseakr.com/"
+STUDIO_CANONICAL = "https://nearmiss.chelseakr.com/studio/"
+DOSSIER_CANONICAL = "https://nearmiss.chelseakr.com/dossier/"
 
 
 class _ApexDocument(HTMLParser):
@@ -76,6 +78,8 @@ def _assert_product_apex(html: str) -> None:
     assert document.redirect_scripts == []
     assert NATIONAL_ROUTE in document.links
     assert f"{NATIONAL_ROUTE}?lang=es" in document.links
+    assert "/studio/" in document.links
+    assert "/dossier/" in document.links
     assert "/web/index.html" not in document.links
     assert any("DECISION-DOSSIER-TEMPLATE.md" in link for link in document.links)
     assert any("PRODUCT-EXPANSION-PLAN.md" in link for link in document.links)
@@ -91,17 +95,22 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
         "404.html",
         "CNAME",
         "deployment.json",
+        "dossier/index.html",
         "index.html",
         NATIONAL_MANIFEST_PATH,
+        "studio/index.html",
         "web/index.html",
         "web/us-coverage.html",
         "web/us-coverage.js",
         "web/i18n.js",
         "web/brand.css",
+        "web/dossier.js",
         "web/landing.css",
         "web/style.css",
+        "web/studio.js",
         "web/us-coverage.css",
         "web/us-coverage-studio.css",
+        "web/workflow.css",
         "web/locales/en.json",
         "web/locales/es.json",
         "web/vendor/brand/clearance-mark.svg",
@@ -222,6 +231,8 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
     build_site(out, SHA)
     expected = {
         "index.html": (APEX_CANONICAL, "NearMiss"),
+        "dossier/index.html": (DOSSIER_CANONICAL, "NearMiss"),
+        "studio/index.html": (STUDIO_CANONICAL, "NearMiss"),
         "web/us-coverage.html": (NATIONAL_CANONICAL, "NearMiss Conflict Atlas"),
         NATIONAL_MANIFEST_PATH: (NATIONAL_CANONICAL, "NearMiss Conflict Atlas"),
     }
@@ -352,6 +363,11 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
         "web/index.html|web/index.html",
         "web/us-coverage.html|web/us-coverage.html",
         "fars/national/index.html|fars/national/",
+        "dossier/index.html|dossier/",
+        "studio/index.html|studio/",
+        "web/dossier.js|web/dossier.js",
+        "web/studio.js|web/studio.js",
+        "web/workflow.css|web/workflow.css",
         "web/us-coverage.js|web/us-coverage.js",
         "web/i18n.js|web/i18n.js",
         "web/locales/en.json|web/locales/en.json",
@@ -465,6 +481,8 @@ def _minimal_site_source(root: Path) -> None:
         destination.parent.mkdir(parents=True, exist_ok=True)
         content = "{}" if destination.suffix == ".json" else "public"
         destination.write_text(content, encoding="utf-8")
+    for relative in ("studio.html", "dossier.html"):
+        (root / "web" / relative).write_text("public workflow", encoding="utf-8")
     for locale in build_site_module.PUBLIC_WEB_LOCALES:
         destination = root / "web" / "locales" / locale
         destination.parent.mkdir(parents=True, exist_ok=True)

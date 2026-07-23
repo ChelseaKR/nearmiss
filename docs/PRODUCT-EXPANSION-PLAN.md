@@ -5,6 +5,16 @@ It evaluates what is useful and differentiated now, identifies the product gap,
 and sequences the smallest credible path from a strong methods repository to a
 tool that real advocates and planners repeatedly use.
 
+> **Implementation update, 2026-07-22:** the first public thin slice now exists. The gateway shows
+> a complete fictional dossier before the machinery; `/studio/` runs a browser-local CSV/JSON
+> readiness audit and fixes the controlled-language claim tier from that result; the Atlas can
+> carry saved official context into `/dossier/`; and Studio uses browser-local session state so
+> dossier claim text is regenerated from the canonical tier template rather than trusted from a
+> URL. The dossier exposes its tier, boundary, source context, and local fingerprint. This does
+> **not** satisfy the partner-validation exit gates below. The readiness
+> result remains a preflight heuristic, the default dossier is fictional, and real-data dossier
+> generation still requires the full pipeline and human review.
+
 ## Executive verdict
 
 **NearMiss is technically distinctive, but it is not yet a uniquely useful

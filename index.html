@@ -44,7 +44,12 @@
             <span>evidence to action</span>
           </span>
         </a>
-        <a class="gateway-nav-link" href="/fars/national/?lang=es" hreflang="es" lang="es">Español: Atlas nacional</a>
+        <div class="gateway-nav-links">
+          <a href="/studio/">Check your data</a>
+          <a href="/dossier/">Sample dossier</a>
+          <a href="/fars/national/">Conflict Atlas</a>
+          <a href="/fars/national/?lang=es" hreflang="es" lang="es">Atlas en español</a>
+        </div>
       </nav>
 
       <div class="gateway-hero">
@@ -56,8 +61,8 @@
           volume for risk.
         </p>
         <div class="gateway-actions">
-          <a class="gateway-action gateway-action-primary" href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/DECISION-DOSSIER-TEMPLATE.md">Use the Decision Dossier template</a>
-          <a class="gateway-action gateway-action-secondary" href="/fars/national/">Explore reviewed national reference data</a>
+          <a class="gateway-action gateway-action-primary" href="/dossier/">Inspect a complete sample dossier</a>
+          <a class="gateway-action gateway-action-secondary" href="/studio/">Check whether your data is ready</a>
         </div>
         <p class="gateway-caveat">
           <strong>Claim boundary:</strong> community reports can identify a signal worth examining.
@@ -67,6 +72,35 @@
     </header>
 
     <main id="main">
+      <section class="gateway-sample" aria-labelledby="sample-heading">
+        <div class="gateway-section-heading">
+          <p class="gateway-kicker">The output, before the machinery</p>
+          <h2 id="sample-heading">A case someone can review—not another map to interpret.</h2>
+          <p class="gateway-section-intro">
+            The complete fictional sample shows how the requested action, permitted claim,
+            evidence tracks, limitations, and follow-up measurement stay together.
+          </p>
+          <a class="gateway-text-link" href="/dossier/">Open the complete sample dossier</a>
+        </div>
+        <article class="gateway-dossier-preview" aria-label="Fictional Decision Dossier preview">
+          <div class="gateway-preview-meta">
+            <span>FICTIONAL SAMPLE</span>
+            <span>EVIDENCE TIER 2</span>
+          </div>
+          <h3>Mercer Avenue at 8th Street</h3>
+          <p class="gateway-preview-ask">
+            <strong>Requested action:</strong> conduct a field audit and return with a scoped
+            response within 60 days.
+          </p>
+          <ol class="gateway-preview-chain" aria-label="Dossier evidence chain">
+            <li><span>Source</span><strong>3 distinct tracks</strong></li>
+            <li><span>Claim</span><strong>Elevated observed rate</strong></li>
+            <li><span>Limit</span><strong>No causation</strong></li>
+            <li><span>Verify</span><strong>Boundary passes</strong></li>
+          </ol>
+        </article>
+      </section>
+
       <section class="gateway-process" aria-labelledby="process-heading">
         <div class="gateway-section-heading">
           <p class="gateway-kicker">The work is a chain of custody</p>
@@ -110,7 +144,11 @@
             <p>Unqualified safety claims, individual trip disclosure, cross-city leaderboards, and false before-and-after certainty.</p>
           </article>
         </div>
-        <a class="gateway-text-link" href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/PRODUCT-EXPANSION-PLAN.md">Read the product direction and validation gates</a>
+        <div class="gateway-dossier-links">
+          <a class="gateway-text-link" href="/studio/">Run the local readiness check</a>
+          <a class="gateway-text-link" href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/DECISION-DOSSIER-TEMPLATE.md">Open the Markdown template</a>
+          <a class="gateway-text-link" href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/PRODUCT-EXPANSION-PLAN.md">Read the product direction</a>
+        </div>
       </section>
 
       <section class="gateway-reference" aria-labelledby="reference-heading">

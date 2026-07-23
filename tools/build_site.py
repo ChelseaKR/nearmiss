@@ -24,10 +24,13 @@ PUBLIC_WEB_FILES = (
     "us-coverage.js",
     "i18n.js",
     "brand.css",
+    "dossier.js",
     "landing.css",
     "style.css",
+    "studio.js",
     "us-coverage.css",
     "us-coverage-studio.css",
+    "workflow.css",
     "vendor/brand/clearance-mark.svg",
     "vendor/fonts/LICENSE-atkinson-hyperlegible-next.txt",
     "vendor/fonts/LICENSE-fragment-mono.txt",
@@ -166,6 +169,16 @@ def build_site(out: Path, source_sha: str) -> SiteManifest:
     _copy_file(
         ROOT / "web" / "us-coverage.html",
         out / "fars" / "national" / "index.html",
+        allowed_root=ROOT / "web",
+    )
+    _copy_file(
+        ROOT / "web" / "studio.html",
+        out / "studio" / "index.html",
+        allowed_root=ROOT / "web",
+    )
+    _copy_file(
+        ROOT / "web" / "dossier.html",
+        out / "dossier" / "index.html",
         allowed_root=ROOT / "web",
     )
     published = ROOT / "data" / "published"

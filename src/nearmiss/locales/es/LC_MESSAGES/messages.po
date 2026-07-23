@@ -104,8 +104,9 @@ msgid ""
 "describes which analyses the declared sources support; it is not a safety"
 " rating."
 msgstr ""
-"**Nivel de evidencia declarado:** `{tier}` (evaluado el {as_of}). Describe qué "
-"análisis respaldan las fuentes declaradas; no es una calificación de seguridad."
+"**Nivel de evidencia declarado:** `{tier}` (evaluado el {as_of}). "
+"Describe qué análisis respaldan las fuentes declaradas; no es una "
+"calificación de seguridad."
 
 #, python-brace-format, python-format
 msgid ""
@@ -145,8 +146,8 @@ msgid ""
 "**Missing core source declarations:** {kinds}. The evidence tier reflects"
 " that gap."
 msgstr ""
-"**Faltan declaraciones de fuentes principales:** {kinds}. El nivel de evidencia "
-"refleja esa carencia."
+"**Faltan declaraciones de fuentes principales:** {kinds}. El nivel de "
+"evidencia refleja esa carencia."
 
 #, python-brace-format
 msgid ""
@@ -182,9 +183,9 @@ msgid ""
 "result, but it cannot claim an evidence tier, measured-city coverage, or "
 "partner review."
 msgstr ""
-"**No se declaró un registro de fuentes.** Este expediente puede mostrar el "
-"resultado del análisis, pero no puede afirmar un nivel de evidencia, cobertura "
-"de ciudad medida ni revisión de socios."
+"**No se declaró un registro de fuentes.** Este expediente puede mostrar "
+"el resultado del análisis, pero no puede afirmar un nivel de evidencia, "
+"cobertura de ciudad medida ni revisión de socios."
 
 msgid ""
 "**Under-represented vs exposure** (quiet in the data, not necessarily "
@@ -213,10 +214,10 @@ msgid ""
 " reported near-miss rate is **{rate} per {per} {unit}** (95% CI "
 "{lo}–{hi}; n={n})."
 msgstr ""
-"**{name}** es un agregado de {blocks} segmentos contiguos y publicables que "
-"superaron individualmente el filtro configurado de puntos calientes corregido por FDR. "
-"Su tasa agrupada de cuasi-accidentes reportados es **{rate} por {per} {unit}** "
-"(IC 95% {lo}–{hi}; n={n})."
+"**{name}** es un agregado de {blocks} segmentos contiguos y publicables "
+"que superaron individualmente el filtro configurado de puntos calientes "
+"corregido por FDR. Su tasa agrupada de cuasi-accidentes reportados es "
+"**{rate} por {per} {unit}** (IC 95% {lo}–{hi}; n={n})."
 
 msgid "*Small sample: too few timed reports to read these peaks with confidence.*"
 msgstr ""
@@ -370,15 +371,17 @@ msgid ""
 "- Rebuild: run `nearmiss dossier --config <city.toml> --corridor "
 "{corridor_id} --decision-request <request>` against the same inputs."
 msgstr ""
-"- Reconstrucción: ejecute `nearmiss dossier --config <city.toml> --corridor "
-"{corridor_id} --decision-request <request>` con las mismas entradas."
+"- Reconstrucción: ejecute `nearmiss dossier --config <city.toml> "
+"--corridor {corridor_id} --decision-request <request>` con las mismas "
+"entradas."
 
 msgid ""
 "- Reports can vary by route choice, access, language, and willingness to "
 "report; a quiet data signal is not evidence of safety."
 msgstr ""
-"- Los reportes pueden variar según la ruta elegida, el acceso, el idioma y la "
-"disposición a reportar; una señal silenciosa en los datos no prueba seguridad."
+"- Los reportes pueden variar según la ruta elegida, el acceso, el idioma "
+"y la disposición a reportar; una señal silenciosa en los datos no prueba "
+"seguridad."
 
 #, python-brace-format
 msgid "- Source registry SHA-256: `{sha256}`"
@@ -388,15 +391,15 @@ msgid ""
 "- The corridor boundary is a coarser view of block results. Read it "
 "alongside the underlying block layer, not instead of it."
 msgstr ""
-"- El límite del corredor es una vista más agregada de los resultados por bloque. "
-"Léalo junto con la capa de bloques subyacente, no en su lugar."
+"- El límite del corredor es una vista más agregada de los resultados por "
+"bloque. Léalo junto con la capa de bloques subyacente, no en su lugar."
 
 msgid ""
 "- The interval expresses sampling uncertainty in reported counts; it does"
 " not remove reporting bias."
 msgstr ""
-"- El intervalo expresa la incertidumbre muestral de los recuentos reportados; "
-"no elimina el sesgo de reporte."
+"- El intervalo expresa la incertidumbre muestral de los recuentos "
+"reportados; no elimina el sesgo de reporte."
 
 #, python-brace-format
 msgid "- `{source_id}` — {name} (updated {updated_at})"
@@ -413,8 +416,9 @@ msgid ""
 "> **Status: evidence for review.** This is a reproducible corridor "
 "finding, not a safety verdict or a treatment recommendation."
 msgstr ""
-"> **Estado: evidencia para revisión.** Este es un hallazgo de corredor reproducible, "
-"no un veredicto de seguridad ni una recomendación de intervención."
+"> **Estado: evidencia para revisión.** Este es un hallazgo de corredor "
+"reproducible, no un veredicto de seguridad ni una recomendación de "
+"intervención."
 
 #, python-brace-format
 msgid ""
@@ -431,8 +435,9 @@ msgid ""
 "context, and record what follow-up measure and review window would test "
 "the chosen action."
 msgstr ""
-"Antes de actuar, confirme quién decide, inspeccione el corredor en contexto y "
-"registre qué medida de seguimiento y periodo de revisión probarían la acción elegida."
+"Antes de actuar, confirme quién decide, inspeccione el corredor en "
+"contexto y registre qué medida de seguimiento y periodo de revisión "
+"probarían la acción elegida."
 
 msgid ""
 "Blocks are the unit of measurement; corridors are the unit council "
@@ -541,8 +546,8 @@ msgid ""
 "The corridor uses the same already-published block aggregates; it does "
 "not create a new hotspot test or reveal a withheld segment."
 msgstr ""
-"El corredor usa los mismos agregados por bloque ya publicados; no crea una "
-"nueva prueba de puntos calientes ni revela un segmento retenido."
+"El corredor usa los mismos agregados por bloque ya publicados; no crea "
+"una nueva prueba de puntos calientes ni revela un segmento retenido."
 
 msgid ""
 "The headline rate is pooled across every hazard type (a union). This "
@@ -582,9 +587,10 @@ msgid ""
 "a reported, exposure-normalized pattern that merits the decision request "
 "above."
 msgstr ""
-"Este expediente **no** establece peligro, culpa, causalidad, el efecto probable "
-"de una intervención ni las condiciones de un viaje individual. Registra un patrón "
-"reportado y normalizado por exposición que justifica la solicitud de decisión anterior."
+"Este expediente **no** establece peligro, culpa, causalidad, el efecto "
+"probable de una intervención ni las condiciones de un viaje individual. "
+"Registra un patrón reportado y normalizado por exposición que justifica "
+"la solicitud de decisión anterior."
 
 msgid ""
 "This is **report volume** by time of day, not a rate: there is no time-"
@@ -614,7 +620,9 @@ msgid "Where the danger actually is — {city}"
 msgstr "Dónde está realmente el peligro — {city}"
 
 msgid "all available data (no bounded analysis window configured)"
-msgstr "todos los datos disponibles (no se configuró una ventana de análisis delimitada)"
+msgstr ""
+"todos los datos disponibles (no se configuró una ventana de análisis "
+"delimitada)"
 
 msgid "blocked sightline"
 msgstr "línea de visión obstruida"
@@ -1131,6 +1139,12 @@ msgstr "Abrir la tabla accesible de comparación"
 msgid "web.coverage.add_to_brief"
 msgstr "Añadir al resumen"
 
+msgid "web.coverage.advanced_view_label"
+msgstr "Vistas avanzadas de evidencia"
+
+msgid "web.coverage.advanced_views"
+msgstr "Inspección avanzada"
+
 msgid "web.coverage.all_modes"
 msgstr "Todos los modos"
 
@@ -1187,6 +1201,20 @@ msgstr "Se añadió el estado al resumen."
 msgid "web.coverage.brief_unpublished"
 msgstr "Modo {mode}: no hay un conteo numérico publicado."
 
+msgid "web.coverage.brief_verification_copy"
+msgstr ""
+"Los conteos FARS guardados siguen siendo contexto oficial y no se convierten"
+" en afirmaciones de riesgo local, condado o corredor."
+
+msgid "web.coverage.brief_verification_h"
+msgstr "Límite de referencia verificado"
+
+msgid "web.coverage.brief_verification_label"
+msgstr "Verificación del resumen"
+
+msgid "web.coverage.build_dossier"
+msgstr "Crear expediente desde el resumen"
+
 msgid "web.coverage.can_h"
 msgstr "Lo que esto puede responder"
 
@@ -1239,6 +1267,14 @@ msgstr "{published} de {total}"
 msgid "web.coverage.choose_state"
 msgstr "Elija un estado o DC"
 
+msgid "web.coverage.citation_boundary"
+msgstr ""
+"Los conteos oficiales son contexto, no riesgo normalizado por exposición ni"
+" una afirmación de prioridad local."
+
+msgid "web.coverage.citation_copied"
+msgstr "Se copió la cita."
+
 msgid "web.coverage.clear_brief"
 msgstr "Borrar resumen"
 
@@ -1271,6 +1307,9 @@ msgstr "Contrato de proyección"
 msgid "web.coverage.contract_value"
 msgstr "Revisión {revision} · SHA-256 {sha}"
 
+msgid "web.coverage.copy_citation"
+msgstr "Copiar cita"
+
 msgid "web.coverage.copy_failed"
 msgstr "No se pudo copiar automáticamente. Copie la dirección del navegador."
 
@@ -1279,6 +1318,24 @@ msgstr "Copiar enlace a esta vista"
 
 msgid "web.coverage.correction_ledger"
 msgstr "Registro de correcciones de publicación"
+
+msgid "web.coverage.county_next_action"
+msgstr "Planificar la solicitud de evidencia local"
+
+msgid "web.coverage.county_next_copy"
+msgstr ""
+"El contexto del condado debe responder dónde se concentra la carga, qué "
+"celdas no se publican y qué evidencia local sigue faltando. Los totales "
+"estatales no se pueden dividir ni inferir como riesgo del condado o "
+"corredor."
+
+msgid "web.coverage.county_next_h"
+msgstr ""
+"El contexto del condado es una pregunta, no una clasificación por "
+"acercamiento"
+
+msgid "web.coverage.county_next_kicker"
+msgstr "Siguiente paso responsable"
 
 msgid "web.coverage.data_h"
 msgstr "Evidencia de estado × modo involucrado"
@@ -1291,6 +1348,10 @@ msgstr ""
 
 msgid "web.coverage.deployment"
 msgstr "Registro del despliegue"
+
+msgid "web.coverage.dossier_requires_evidence"
+msgstr ""
+"Guarde al menos un estado antes de crear un borrador de expediente."
 
 msgid "web.coverage.download"
 msgstr "Descargar JSON público"
@@ -1382,7 +1443,8 @@ msgstr ""
 msgid "web.coverage.map_keyboard_hint"
 msgstr ""
 "Teclado: Tab entra una vez al mapa. Las flechas, Inicio y Fin recorren "
-"las jurisdicciones en orden alfabético; Intro o Espacio abre la hoja de evidencia estatal."
+"las jurisdicciones en orden alfabético; Intro o Espacio abre la hoja de "
+"evidencia estatal."
 
 msgid "web.coverage.map_kicker"
 msgstr "Vista nacional"
@@ -1401,66 +1463,6 @@ msgstr "{state}: {count} choques fatales; modo involucrado: {mode}"
 
 msgid "web.coverage.map_state_unpublished"
 msgstr "{state}: suprimido o cero para {mode}"
-
-msgid "web.coverage.state_lens_active"
-msgstr "{year} · {mode}"
-
-msgid "web.coverage.state_lens_back"
-msgstr "Todos los estados"
-
-msgid "web.coverage.state_lens_caveat"
-msgstr "Los conteos describen carga revisada de choques fatales. No consideran la exposición ni establecen riesgo, culpa, causalidad o efecto de un tratamiento. Los modos se superponen."
-
-msgid "web.coverage.state_lens_fingerprint_h"
-msgstr "Seis modos involucrados, mantenidos por separado"
-
-msgid "web.coverage.state_lens_fingerprint_intro"
-msgstr "Cada fila se escala solo dentro de su propio modo involucrado. Las filas no son aditivas."
-
-msgid "web.coverage.state_lens_fingerprint_kicker"
-msgstr "Evidencia del año seleccionado"
-
-msgid "web.coverage.state_lens_fingerprint_table"
-msgstr "Abrir la tabla de datos de modos involucrados del año seleccionado"
-
-msgid "web.coverage.state_lens_kicker"
-msgstr "Hoja de evidencia estatal"
-
-msgid "web.coverage.state_lens_map_note"
-msgstr "La forma del estado sirve de orientación, no de evidencia geográfica más detallada."
-
-msgid "web.coverage.state_lens_profile_h"
-msgstr "Cinco marcas anuales, con la división de codificación visible"
-
-msgid "web.coverage.state_lens_profile_intro"
-msgstr "Los años son marcas discretas, no una sola tendencia continua. El divisor separa dos regímenes revisados de codificación del tipo de persona de FARS."
-
-msgid "web.coverage.state_lens_profile_kicker"
-msgstr "División de evidencia"
-
-msgid "web.coverage.state_lens_profile_loading"
-msgstr "Cargando y verificando los artefactos anuales restantes de este perfil…"
-
-msgid "web.coverage.state_lens_profile_table"
-msgstr "Abrir la tabla de datos de cinco años"
-
-msgid "web.coverage.state_lens_rank"
-msgstr "Puesto {rank} de {total} jurisdicciones publicadas para este modo. Es carga, no riesgo."
-
-msgid "web.coverage.state_lens_record_link"
-msgstr "Descargar este registro anual revisado"
-
-msgid "web.coverage.state_lens_seam"
-msgstr "2020–2021 y 2022–2024 usan regímenes diferentes revisados de codificación del tipo de persona. No lea a través del divisor como una sola serie ininterrumpida."
-
-msgid "web.coverage.state_lens_status"
-msgstr "Hoja de evidencia estatal de {state}, {year}, {mode}."
-
-msgid "web.coverage.state_lens_title"
-msgstr "Hoja de evidencia de {state}"
-
-msgid "web.coverage.state_lens_unavailable"
-msgstr "La hoja de evidencia del estado seleccionado no está disponible. Vuelva a todos los estados y elija una jurisdicción revisada."
 
 msgid "web.coverage.mapping_value"
 msgstr "Choques {crash} · personas {person}"
@@ -1754,6 +1756,83 @@ msgstr "Sistema de códigos estatales"
 msgid "web.coverage.state_label"
 msgstr "Estado"
 
+msgid "web.coverage.state_lens_active"
+msgstr "{year} · {mode}"
+
+msgid "web.coverage.state_lens_back"
+msgstr "Todos los estados"
+
+msgid "web.coverage.state_lens_caveat"
+msgstr ""
+"Los conteos describen carga revisada de choques fatales. No consideran la"
+" exposición ni establecen riesgo, culpa, causalidad o efecto de un "
+"tratamiento. Los modos se superponen."
+
+msgid "web.coverage.state_lens_fingerprint_h"
+msgstr "Seis modos involucrados, mantenidos por separado"
+
+msgid "web.coverage.state_lens_fingerprint_intro"
+msgstr ""
+"Cada fila se escala solo dentro de su propio modo involucrado. Las filas "
+"no son aditivas."
+
+msgid "web.coverage.state_lens_fingerprint_kicker"
+msgstr "Evidencia del año seleccionado"
+
+msgid "web.coverage.state_lens_fingerprint_table"
+msgstr "Abrir la tabla de datos de modos involucrados del año seleccionado"
+
+msgid "web.coverage.state_lens_kicker"
+msgstr "Hoja de evidencia estatal"
+
+msgid "web.coverage.state_lens_map_note"
+msgstr ""
+"La forma del estado sirve de orientación, no de evidencia geográfica más "
+"detallada."
+
+msgid "web.coverage.state_lens_profile_h"
+msgstr "Cinco marcas anuales, con la división de codificación visible"
+
+msgid "web.coverage.state_lens_profile_intro"
+msgstr ""
+"Los años son marcas discretas, no una sola tendencia continua. El divisor"
+" separa dos regímenes revisados de codificación del tipo de persona de "
+"FARS."
+
+msgid "web.coverage.state_lens_profile_kicker"
+msgstr "División de evidencia"
+
+msgid "web.coverage.state_lens_profile_loading"
+msgstr "Cargando y verificando los artefactos anuales restantes de este perfil…"
+
+msgid "web.coverage.state_lens_profile_table"
+msgstr "Abrir la tabla de datos de cinco años"
+
+msgid "web.coverage.state_lens_rank"
+msgstr ""
+"Puesto {rank} de {total} jurisdicciones publicadas para este modo. Es "
+"carga, no riesgo."
+
+msgid "web.coverage.state_lens_record_link"
+msgstr "Descargar este registro anual revisado"
+
+msgid "web.coverage.state_lens_seam"
+msgstr ""
+"2020–2021 y 2022–2024 usan regímenes diferentes revisados de codificación"
+" del tipo de persona. No lea a través del divisor como una sola serie "
+"ininterrumpida."
+
+msgid "web.coverage.state_lens_status"
+msgstr "Hoja de evidencia estatal de {state}, {year}, {mode}."
+
+msgid "web.coverage.state_lens_title"
+msgstr "Hoja de evidencia de {state}"
+
+msgid "web.coverage.state_lens_unavailable"
+msgstr ""
+"La hoja de evidencia del estado seleccionado no está disponible. Vuelva a"
+" todos los estados y elija una jurisdicción revisada."
+
 msgid "web.coverage.status_label"
 msgstr "Estado de publicación"
 
@@ -1764,13 +1843,13 @@ msgid "web.coverage.status_published"
 msgstr "Publicado"
 
 msgid "web.coverage.studio_h"
-msgstr "Un conjunto de evidencia, cinco formas de examinarlo"
+msgstr "Empiece por el lugar. Compare solo cuando la pregunta lo requiera."
 
 msgid "web.coverage.studio_intro"
 msgstr ""
-"Todas las vistas parten de las mismas celdas revisadas de estado por modo"
-" para el año seleccionado. Una selección hecha en una vista se conserva "
-"en las demás."
+"Seleccione un estado en el mapa nacional para abrir su hoja de evidencia. La"
+" matriz, la clasificación y las comparaciones siguen disponibles para la "
+"inspección avanzada de las mismas celdas revisadas."
 
 msgid "web.coverage.studio_kicker"
 msgstr "Explorar · comparar · citar"

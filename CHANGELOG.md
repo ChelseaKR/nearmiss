@@ -58,6 +58,14 @@ every entry.
 
 ### Added
 
+- A production evidence-to-action thin slice: a complete fictional Decision Dossier, a
+  browser-local CSV/JSON readiness audit, a controlled-language claim compiler, and an Atlas
+  evidence-brief handoff that carries official FARS cells as context without promoting them to
+  local risk. The workflow pages expose their claim boundary and local fingerprint, ship through
+  the allowlisted hash manifest, and run under the structural, axe, RTL, and jsdom contract gates.
+- Studio claim tiers are bound to the browser-local readiness result, while the dossier regenerates
+  canonical language through a session-scoped handoff. Crafted URLs cannot supply the tier, claim,
+  or requested-action text.
 - [`docs/adr/0013-keep-python-311-floor.md`](docs/adr/0013-keep-python-311-floor.md) — an accepted
   exception ADR recording *why* `requires-python = ">=3.11"` stays (Debian-12-class system Pythons,
   the merge-blocking 3.11 CI matrix leg, the "runs anywhere Python 3.11+ runs" property) and the
@@ -107,6 +115,10 @@ every entry.
 - A state-first national FARS experience with an exact 2020–2024 profile for every state and DC,
   strict `state`/`year`/`lang` share URLs, explicit 2020–2021 versus 2022–2024 person-coding regimes,
   isolated historical-load failures, and suppression-safe cells that never infer or expose a zero.
+- A place-first Atlas interaction hierarchy: the national map remains the default task, matrix/rank/
+  comparison tools move behind explicit advanced inspection, and each state evidence sheet ends
+  with a county/local-evidence question rather than implying that a state count can be zoomed into
+  county or corridor risk.
 - A scheduled and manually dispatchable read-only live-integrity sentinel. It rebuilds the exact
   `main` Pages artifact, verifies every remotely retrievable manifest file and annual FARS release
   pin, exercises localized share URLs, and requires representative private/non-allowlisted paths to

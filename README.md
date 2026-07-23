@@ -16,8 +16,11 @@
 [![Live site](https://img.shields.io/badge/live-nearmiss.chelseakr.com-success.svg)](https://nearmiss.chelseakr.com)
 
 **Live public preview:** [NearMiss](https://nearmiss.chelseakr.com) — an evidence-to-action gateway
-for a local-first Decision Dossier workflow, with the [Conflict Atlas](https://nearmiss.chelseakr.com/fars/national/)
-as its real, reviewed 2020–2024 NHTSA FARS reference-data surface.
+with a complete fictional [Decision Dossier](https://nearmiss.chelseakr.com/dossier/), a
+browser-local [readiness and claim-boundary Studio](https://nearmiss.chelseakr.com/studio/), and the
+[Conflict Atlas](https://nearmiss.chelseakr.com/fars/national/) as its real, reviewed 2020–2024
+NHTSA FARS reference-data surface. The readiness audit is a preflight heuristic, not the analysis,
+and selected report files are not uploaded.
 
 </div>
 
@@ -45,8 +48,10 @@ community-owned evidence base.
 > gates: `make demo`, `make verify`, and `make reproduce` run, the full test suite passes, and
 > ruff + mypy
 > `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
-> accessibility gate. What remains is genuinely small: the **manual NVDA/VoiceOver screen-reader
-> pass** that complements the automated axe run, and **deeper localization** beyond English/Spanish
+> accessibility gate. The analysis engine's remaining conformance work is genuinely small: the
+> **manual NVDA/VoiceOver screen-reader pass** that complements the automated axe run, and
+> **deeper localization** beyond English/Spanish. The public Studio/dossier thin slice is newer and
+> remains explicitly unvalidated with real partner decisions
 > (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta. The national
 > gateway is the deployed entry point; the reviewed national studio is its reference-data surface.
 > The Davis/Riverside methods UI, embed, and submission form are retained as local, synthetic test
