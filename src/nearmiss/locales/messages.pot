@@ -869,6 +869,12 @@ msgstr ""
 msgid "web.coverage.add_to_brief"
 msgstr ""
 
+msgid "web.coverage.advanced_view_label"
+msgstr ""
+
+msgid "web.coverage.advanced_views"
+msgstr ""
+
 msgid "web.coverage.all_modes"
 msgstr ""
 
@@ -920,6 +926,18 @@ msgstr ""
 msgid "web.coverage.brief_unpublished"
 msgstr ""
 
+msgid "web.coverage.brief_verification_copy"
+msgstr ""
+
+msgid "web.coverage.brief_verification_h"
+msgstr ""
+
+msgid "web.coverage.brief_verification_label"
+msgstr ""
+
+msgid "web.coverage.build_dossier"
+msgstr ""
+
 msgid "web.coverage.can_h"
 msgstr ""
 
@@ -959,6 +977,12 @@ msgstr ""
 msgid "web.coverage.choose_state"
 msgstr ""
 
+msgid "web.coverage.citation_boundary"
+msgstr ""
+
+msgid "web.coverage.citation_copied"
+msgstr ""
+
 msgid "web.coverage.clear_brief"
 msgstr ""
 
@@ -989,6 +1013,9 @@ msgstr ""
 msgid "web.coverage.contract_value"
 msgstr ""
 
+msgid "web.coverage.copy_citation"
+msgstr ""
+
 msgid "web.coverage.copy_failed"
 msgstr ""
 
@@ -998,6 +1025,18 @@ msgstr ""
 msgid "web.coverage.correction_ledger"
 msgstr ""
 
+msgid "web.coverage.county_next_action"
+msgstr ""
+
+msgid "web.coverage.county_next_copy"
+msgstr ""
+
+msgid "web.coverage.county_next_h"
+msgstr ""
+
+msgid "web.coverage.county_next_kicker"
+msgstr ""
+
 msgid "web.coverage.data_h"
 msgstr ""
 
@@ -1005,6 +1044,9 @@ msgid "web.coverage.data_intro"
 msgstr ""
 
 msgid "web.coverage.deployment"
+msgstr ""
+
+msgid "web.coverage.dossier_requires_evidence"
 msgstr ""
 
 msgid "web.coverage.download"

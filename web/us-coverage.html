@@ -35,7 +35,7 @@
 
     <header class="coverage-header">
       <nav class="coverage-nav" aria-label="Primary">
-        <a class="wordmark brand-lockup" href="/fars/national/" aria-label="nearmiss home">
+        <a class="wordmark brand-lockup" href="/" aria-label="nearmiss home">
           <svg class="clearance-mark" viewBox="0 0 48 32" aria-hidden="true" focusable="false">
             <path class="clearance-path clearance-path-a" d="M3 27 17 13h5" />
             <path class="clearance-path clearance-path-b" d="M45 5 31 19h-5" />
@@ -78,18 +78,23 @@
         <div class="section-heading-row">
           <div>
             <p class="section-kicker" data-i18n="studio_kicker">Explore · compare · cite</p>
-            <h2 id="studio-heading" data-i18n="studio_h">One evidence set, five ways to inspect it</h2>
+            <h2 id="studio-heading" data-i18n="studio_h">Start with place. Compare only when the question requires it.</h2>
             <p class="section-intro" data-i18n="studio_intro">
-              The national map and every analytic view are driven by the same 306 reviewed
-              state-by-mode cells. A selection in one view follows you into the others.
+              Select a state on the national map to open its evidence sheet. Matrix, rank, and
+              comparison views remain available for advanced inspection of the same reviewed cells.
             </p>
           </div>
-          <div class="view-switcher" role="group" aria-label="Evidence view" data-i18n-aria="view_label">
-            <button type="button" data-view="map" aria-controls="map-panel" aria-pressed="true" data-i18n="view_map">Map</button>
-            <button type="button" data-view="matrix" aria-controls="matrix-panel" aria-pressed="false" data-i18n="view_matrix">Matrix</button>
-            <button type="button" data-view="rank" aria-controls="rank-panel" aria-pressed="false" data-i18n="view_rank">Rank</button>
-            <button type="button" data-view="scatter" aria-controls="scatter-panel" aria-pressed="false" data-i18n="view_scatter">Compare modes</button>
-            <button type="button" data-view="compare" aria-controls="compare-panel" aria-pressed="false" data-i18n="view_compare">Compare states</button>
+          <div class="view-navigation">
+            <button class="primary-map-view" type="button" data-view="map" aria-controls="map-panel" aria-pressed="true" data-i18n="view_map">Map</button>
+            <details id="advanced-views" class="advanced-views">
+              <summary data-i18n="advanced_views">Advanced inspection</summary>
+              <div class="view-switcher" role="group" aria-label="Advanced evidence views" data-i18n-aria="advanced_view_label">
+                <button type="button" data-view="matrix" aria-controls="matrix-panel" aria-pressed="false" data-i18n="view_matrix">Matrix</button>
+                <button type="button" data-view="rank" aria-controls="rank-panel" aria-pressed="false" data-i18n="view_rank">Rank</button>
+                <button type="button" data-view="scatter" aria-controls="scatter-panel" aria-pressed="false" data-i18n="view_scatter">Compare modes</button>
+                <button type="button" data-view="compare" aria-controls="compare-panel" aria-pressed="false" data-i18n="view_compare">Compare states</button>
+              </div>
+            </details>
           </div>
         </div>
 
@@ -407,8 +412,12 @@
         </div>
         <div class="brief-actions">
           <button type="button" id="copy-view" data-i18n="copy_view">Copy this view</button>
+          <button type="button" id="copy-citation" data-i18n="copy_citation">Copy citation</button>
           <button type="button" id="print-brief" data-i18n="print_brief">Print brief</button>
           <button type="button" id="clear-brief" data-i18n="clear_brief">Clear brief</button>
+          <a id="build-dossier" class="brief-dossier-action" href="/dossier/?source=atlas" aria-disabled="true" data-i18n="build_dossier">
+            Build dossier from brief
+          </a>
         </div>
         <p id="brief-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
         <div id="brief-items" class="brief-items">
@@ -419,6 +428,13 @@
           or exposure. Modes can overlap in one crash, so mode counts are not additive and do not
           imply fault or causation.
         </p>
+        <aside class="brief-verification" aria-label="Brief verification" data-i18n-aria="brief_verification_label">
+          <strong data-i18n="brief_verification_h">Reference boundary verified</strong>
+          <span data-i18n="brief_verification_copy">
+            Saved FARS counts remain official context and are not promoted to local risk, county, or corridor claims.
+          </span>
+          <a href="/site-manifest.json" data-i18n="manifest">Site file manifest</a>
+        </aside>
       </section>
 
       <section class="data-ledger" aria-labelledby="data-heading">

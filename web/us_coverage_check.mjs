@@ -404,11 +404,19 @@ async function main() {
   if (coverageSource.querySelector(".skip-link")?.getAttribute("href") !== "#main") {
     die("nationwide page skip link no longer targets its main landmark");
   }
-  if (coverageSource.querySelector(".brand-lockup")?.getAttribute("href") !== NATIONAL_ROUTE) {
-    die("nationwide brand lockup does not resolve to the canonical national home");
+  if (coverageSource.querySelector(".brand-lockup")?.getAttribute("href") !== "/") {
+    die("nationwide brand lockup does not return to the evidence-to-action gateway");
   }
   if (coverageSource.querySelector('a[href="/web/index.html"]')) {
     die("nationwide page still links to the retired synthetic demo");
+  }
+  if (
+    !coverageSource.querySelector("#advanced-views .view-switcher") ||
+    !coverageSource.querySelector("#build-dossier") ||
+    !coverageSource.querySelector("#copy-citation") ||
+    !coverageSource.querySelector(".brief-verification")
+  ) {
+    die("nationwide page lost progressive disclosure, dossier handoff, citation, or verification");
   }
   for (const dependency of [
     "/web/style.css",

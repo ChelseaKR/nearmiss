@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#152a30" />
+    <meta
+      name="description"
+      content="Check whether community road-safety data can support a defensible public claim without uploading protected reports."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NearMiss" />
+    <meta property="og:title" content="NearMiss Studio — check the evidence before the claim" />
+    <meta
+      property="og:description"
+      content="Run a local data-readiness check and generate claim language bounded by the evidence you have."
+    />
+    <meta property="og:url" content="https://nearmiss.chelseakr.com/studio/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="NearMiss Studio — check the evidence before the claim" />
+    <meta
+      name="twitter:description"
+      content="Run a local data-readiness check and generate claim language bounded by the evidence you have."
+    />
+    <link rel="canonical" href="https://nearmiss.chelseakr.com/studio/" />
+    <link rel="icon" href="/web/vendor/brand/clearance-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/web/style.css" />
+    <link rel="stylesheet" href="/web/brand.css" />
+    <link rel="stylesheet" href="/web/workflow.css" />
+    <title>NearMiss Studio — check the evidence before the claim</title>
+  </head>
+  <body class="workflow-page">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="workflow-header">
+      <nav class="workflow-nav" aria-label="Primary">
+        <a class="brand-lockup" href="/" aria-label="NearMiss home">
+          <svg class="clearance-mark" viewBox="0 0 48 32" aria-hidden="true" focusable="false">
+            <path class="clearance-path clearance-path-a" d="M3 27 17 13h5" />
+            <path class="clearance-path clearance-path-b" d="M45 5 31 19h-5" />
+          </svg>
+          <span class="brand-lockup-copy">
+            <strong>nearmiss</strong>
+            <span>Studio</span>
+          </span>
+        </a>
+        <div class="workflow-nav-links">
+          <a href="/dossier/">Sample dossier</a>
+          <a href="/fars/national/">Conflict Atlas</a>
+        </div>
+      </nav>
+
+      <div class="workflow-hero">
+        <div>
+          <p class="workflow-kicker">Local-first evidence check</p>
+          <h1>Find the claim your data can carry.</h1>
+          <p class="workflow-lede">
+            Inspect a CSV or JSON file in this browser, see the gaps before analysis, and generate
+            language that stays inside the evidence boundary.
+          </p>
+        </div>
+        <aside class="workflow-privacy" aria-label="Privacy statement">
+          <strong>Your file stays here.</strong>
+          <p>
+            The readiness check runs in this browser. It does not upload, store, or transmit the
+            selected file. Close the tab to clear the working state.
+          </p>
+        </aside>
+      </div>
+    </header>
+
+    <main id="main" class="workflow-main">
+      <ol class="evidence-chain" aria-label="Evidence-to-action chain">
+        <li><span class="chain-step">Source</span><strong>Inspect what you have</strong></li>
+        <li><span class="chain-step">Boundary</span><strong>Name what is missing</strong></li>
+        <li><span class="chain-step">Claim</span><strong>Use permitted language</strong></li>
+        <li><span class="chain-step">Action</span><strong>Request the next step</strong></li>
+      </ol>
+
+      <section class="workflow-section" aria-labelledby="readiness-heading">
+        <div class="workflow-heading">
+          <div>
+            <p class="workflow-kicker">01 · Source readiness</p>
+            <h2 id="readiness-heading">Check the evidence before running an analysis.</h2>
+          </div>
+          <p>
+            This quick audit recognizes common report fields, checks whether the observation window
+            and location are usable, and estimates whether a privacy floor would suppress grouped
+            results. It is a readiness screen, not a statistical result.
+          </p>
+        </div>
+
+        <form id="readiness-form" class="readiness-form">
+          <div class="form-grid">
+            <label>
+              Decision you need to inform
+              <input id="decision" name="decision" type="text" value="Request a corridor field audit" maxlength="160" />
+            </label>
+            <label>
+              Corridor or place
+              <input id="corridor" name="corridor" type="text" value="Example corridor" maxlength="120" />
+            </label>
+            <label>
+              Intended decision owner
+              <input id="owner" name="owner" type="text" value="City transportation department" maxlength="120" />
+            </label>
+          </div>
+
+          <label>
+            Community-report file
+            <input id="evidence-file" name="evidence-file" type="file" accept=".csv,.json,text/csv,application/json" aria-describedby="file-help" />
+          </label>
+          <p id="file-help">
+            CSV and JSON are supported. Useful fields include latitude/longitude or address, date or
+            timestamp, hazard type, and a segment or corridor identifier.
+          </p>
+
+          <fieldset>
+            <legend>Other evidence already available</legend>
+            <div class="source-checks">
+              <label><input id="has-exposure" type="checkbox" /> Aligned exposure denominator</label>
+              <label><input id="has-official" type="checkbox" /> Independent official outcome source</label>
+              <label><input id="has-review" type="checkbox" /> Human data-quality review completed</label>
+            </div>
+          </fieldset>
+
+          <div class="workflow-actions">
+            <button class="workflow-action" type="submit">Run local readiness check</button>
+            <button class="workflow-action workflow-action-secondary" id="load-sample" type="button">
+              Use a safe sample
+            </button>
+          </div>
+          <p id="readiness-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        </form>
+
+        <section id="readiness-result" class="readiness-result" aria-labelledby="readiness-result-heading" hidden>
+          <div class="result-topline">
+            <h3 id="readiness-result-heading" tabindex="-1">Readiness result</h3>
+            <span id="evidence-tier" class="result-tier">Tier —</span>
+          </div>
+          <p id="readiness-summary"></p>
+          <ul id="readiness-findings" class="readiness-findings"></ul>
+          <p><strong>Recommended next step:</strong> <span id="readiness-next"></span></p>
+          <div class="workflow-actions">
+            <button id="copy-readiness" class="workflow-action workflow-action-secondary" type="button">
+              Copy readiness report
+            </button>
+            <a id="open-claim" class="workflow-link-action" href="#claim-heading">Set the claim boundary</a>
+          </div>
+        </section>
+      </section>
+
+      <section class="workflow-section" aria-labelledby="claim-heading">
+        <div class="workflow-heading">
+          <div>
+            <p class="workflow-kicker">02 · Claim compiler</p>
+            <h2 id="claim-heading">Say exactly what the evidence supports.</h2>
+          </div>
+          <p>
+            The readiness result sets the evidence tier; you choose the public task. NearMiss
+            supplies bounded language, forbidden shortcuts, and the next credible action. It never
+            turns observational data into causation or an engineering prescription.
+          </p>
+        </div>
+
+        <form id="claim-form" class="claim-form">
+          <div class="form-grid">
+            <label>
+              Evidence tier from readiness
+              <select id="claim-tier" name="claim-tier" disabled>
+                <option value="0" selected>Tier 0 · Coverage gap</option>
+                <option value="1">Tier 1 · Community signal</option>
+                <option value="2">Tier 2 · Elevated rate</option>
+                <option value="3">Tier 3 · Triangulated priority</option>
+              </select>
+              <span id="claim-tier-note" class="field-note">Run the readiness check to set this tier.</span>
+            </label>
+            <label>
+              Intended use
+              <select id="claim-use" name="claim-use">
+                <option value="field_audit">Request a field audit</option>
+                <option value="staff_memo">Prepare a staff or council memo</option>
+                <option value="grant">Support a funding application</option>
+                <option value="evaluation">Plan a follow-up evaluation</option>
+              </select>
+            </label>
+            <label>
+              Place named in the claim
+              <input
+                id="claim-place"
+                name="claim-place"
+                type="text"
+                value="Example corridor"
+                maxlength="120"
+                readonly
+              />
+            </label>
+          </div>
+          <button id="generate-claim" class="workflow-action" type="submit" disabled>
+            Generate bounded claim
+          </button>
+        </form>
+
+        <section id="claim-result" class="claim-result" aria-labelledby="claim-result-heading" hidden>
+          <h3 id="claim-result-heading" tabindex="-1">Permitted claim</h3>
+          <p id="claim-output" class="claim-output"></p>
+          <div class="claim-boundary">
+            <article>
+              <h4>What this supports</h4>
+              <p id="claim-supports"></p>
+            </article>
+            <article class="cannot-claim">
+              <h4>What this does not support</h4>
+              <p id="claim-cannot"></p>
+            </article>
+          </div>
+          <p><strong>Next credible action:</strong> <span id="claim-next"></span></p>
+          <div class="workflow-actions">
+            <button id="copy-claim" class="workflow-action workflow-action-secondary" type="button">
+              Copy claim and boundary
+            </button>
+            <a id="build-dossier" class="workflow-link-action" href="/dossier/">Open a dossier draft</a>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="workflow-footer">
+      <p>NearMiss checks readiness; it does not upload or publish the file you inspect.</p>
+      <a href="https://github.com/ChelseaKR/nearmiss">Inspect the source and methods</a>
+    </footer>
+
+    <script src="/web/studio.js"></script>
+  </body>
+</html>

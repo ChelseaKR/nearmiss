@@ -1673,6 +1673,19 @@
     content.appendChild(fingerprint);
     content.appendChild(renderStateLensProfile(state.state_abbreviation, mode));
     content.appendChild(renderStateLensActions(state));
+    var countyStep = cell("aside", "", "state-lens-county-next");
+    countyStep.appendChild(cell("p", t("county_next_kicker"), "panel-kicker"));
+    countyStep.appendChild(cell("h4", t("county_next_h")));
+    countyStep.appendChild(cell("p", t("county_next_copy")));
+    var countyLink = cell("a", t("county_next_action"));
+    var countyParams = new URLSearchParams({
+      source: "atlas",
+      state: state.state_abbreviation,
+      year: String(artifact.dataset_year),
+    });
+    countyLink.href = "/studio/?" + countyParams.toString();
+    countyStep.appendChild(countyLink);
+    content.appendChild(countyStep);
     content.appendChild(cell("p", t("state_lens_caveat"), "coverage-caveat state-lens-caveat"));
   }
 
@@ -2530,6 +2543,58 @@
     announceBrief(copied ? t("view_copied") : t("copy_failed"));
   }
 
+  function copyBriefCitation() {
+    syncUrl();
+    var year = artifact ? String(artifact.dataset_year) : "";
+    var saved = viewState.saved.length ? viewState.saved.join(", ") : t("brief_empty");
+    var citation = [
+      "NearMiss Conflict Atlas",
+      "Year: " + year,
+      "Mode: " + modeLabel(focusMode()),
+      "Saved states: " + saved,
+      "Source: " + (artifact ? artifact.source.name : "NHTSA FARS"),
+      "Claim boundary: " + t("citation_boundary"),
+      "URL: " + window.location.href,
+    ].join("\n");
+    if (window.navigator.clipboard && window.navigator.clipboard.writeText) {
+      window.navigator.clipboard.writeText(citation).then(
+        function () {
+          announceBrief(t("citation_copied"));
+        },
+        function () {
+          announceBrief(t("copy_failed"));
+        }
+      );
+      return;
+    }
+    var input = document.createElement("textarea");
+    input.value = citation;
+    input.setAttribute("readonly", "");
+    document.body.appendChild(input);
+    input.select();
+    var copied = document.execCommand && document.execCommand("copy");
+    input.remove();
+    announceBrief(copied ? t("citation_copied") : t("copy_failed"));
+  }
+
+  function updateDossierAction() {
+    var action = document.getElementById("build-dossier");
+    if (!action || !artifact) return;
+    if (!viewState.saved.length) {
+      action.href = "/dossier/?source=atlas";
+      action.setAttribute("aria-disabled", "true");
+      return;
+    }
+    var params = new URLSearchParams({
+      source: "atlas",
+      year: String(artifact.dataset_year),
+      mode: focusMode(),
+      states: viewState.saved.join(","),
+    });
+    action.href = "/dossier/?" + params.toString();
+    action.setAttribute("aria-disabled", "false");
+  }
+
   function saveState(abbreviation) {
     if (!abbreviation || !isValidState(abbreviation) || viewState.saved.indexOf(abbreviation) >= 0) return;
     viewState.saved.push(abbreviation);
@@ -2548,6 +2613,7 @@
     viewState.saved = validSaved;
     if (!validSaved.length) {
       container.appendChild(cell("p", t("brief_empty"), "brief-empty"));
+      updateDossierAction();
       return;
     }
     var mode = focusMode();
@@ -2593,6 +2659,7 @@
       card.appendChild(remove);
       container.appendChild(card);
     });
+    updateDossierAction();
   }
 
   function applyView() {
@@ -2602,6 +2669,8 @@
     document.querySelectorAll("[data-view]").forEach(function (button) {
       button.setAttribute("aria-pressed", button.getAttribute("data-view") === viewState.view ? "true" : "false");
     });
+    var advanced = document.getElementById("advanced-views");
+    if (advanced && viewState.view !== "map") advanced.open = true;
   }
 
   function normalizeViewState() {
@@ -3029,6 +3098,13 @@
       window.print();
     });
     document.getElementById("copy-view").addEventListener("click", copyCurrentView);
+    document.getElementById("copy-citation").addEventListener("click", copyBriefCitation);
+    document.getElementById("build-dossier").addEventListener("click", function (event) {
+      if (!viewState.saved.length) {
+        event.preventDefault();
+        announceBrief(t("dossier_requires_evidence"));
+      }
+    });
     document.querySelectorAll("[data-lang]").forEach(function (button) {
       button.addEventListener("click", function () {
         var next = button.getAttribute("data-lang");

@@ -5,9 +5,11 @@ The production artifact contains an evidence-to-action gateway and reviewed nati
 releases; it never touches a precise raw report. Synthetic city interfaces remain in the source tree as
 local known-answer demonstrations.
 
-**Production site:** [NearMiss Conflict Atlas](https://nearmiss.chelseakr.com) — the real-data national
-FARS studio is the deployed reference-data surface. The gateway links to the versioned Decision Dossier
-template; Davis, Riverside, the report form, and the embed are not copied into the production artifact.
+**Production site:** [NearMiss](https://nearmiss.chelseakr.com) — the gateway now exposes a complete
+fictional Decision Dossier, a browser-local readiness and claim-boundary Studio, and the real-data
+national FARS reference surface. The readiness check is a heuristic preflight, not the statistical
+analysis itself, and no selected report file is uploaded. Davis, Riverside, the report form, and the
+embed are not copied into the production artifact.
 
 ## The two maps (local methods demonstration)
 
@@ -68,6 +70,8 @@ required human NVDA/VoiceOver release gate have not yet been completed.
 | File | Role | Production |
 | --- | --- | --- |
 | `index.html` + `landing.css` | evidence-to-action gateway and Decision Dossier entry point | Yes |
+| `studio.html` + `studio.js` + `workflow.css` | local CSV/JSON readiness audit; the result fixes the maximum controlled-language claim tier | Yes, at `/studio/` |
+| `dossier.html` + `dossier.js` + `workflow.css` | complete fictional dossier plus bounded Atlas and browser-local, canonical Studio handoffs | Yes, at `/dossier/` |
 | `us-coverage.html` + `us-coverage.js` | nationwide annual FARS evidence studio | Yes |
 | `davis-demo.html` + `app.js` + the synthetic city artifacts | Davis/Riverside two-map known-answer methods demonstration | No — local/CI only |
 | `submit.html` + `submit.js` | schema-valid report-export prototype | No — local/CI only |

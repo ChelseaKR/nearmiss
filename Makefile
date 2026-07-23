@@ -103,7 +103,7 @@ qgis-plugin-test: ## Test the QGIS plugin's honest-symbology rules (EXP-11, no Q
 	cd integrations/qgis && $(PYTHON) -m pytest tests/ -q
 
 accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
-	$(PYTHON) tools/a11y_check.py 404.html web/index.html web/davis-demo.html web/submit.html web/embed.html web/us-coverage.html
+	$(PYTHON) tools/a11y_check.py 404.html web/index.html web/davis-demo.html web/submit.html web/embed.html web/us-coverage.html web/studio.html web/dossier.html
 	@echo "accessibility: structural checks passed."
 	@echo "NOTE: CI also runs axe; full conformance also requires manual NVDA + VoiceOver"
 	@echo "      review — see docs/accessibility/ACR.md (this gate is the floor, not the ceiling)."
