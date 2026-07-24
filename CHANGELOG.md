@@ -56,6 +56,11 @@ every entry.
 
 ## [Unreleased]
 
+### Changed
+
+- Moved the synthetic, no-cloud quick start into the README's opening screen so
+  a first-time visitor can reach `make demo` before the project audit narrative.
+
 ### Added
 
 - A production evidence-to-action thin slice: a complete fictional Decision Dossier, a
