@@ -24,6 +24,19 @@ and selected report files are not uploaded.
 
 </div>
 
+## Quick start
+
+```bash
+git clone https://github.com/ChelseaKR/nearmiss.git
+cd nearmiss
+make install
+make demo
+make verify
+```
+
+The demo uses synthetic planted-hotspot fixtures: no real reports, API key, or
+cloud account. See [Install](#install) for toolchain details.
+
 > Turns the hazard reports cyclists and pedestrians already make — the close pass, the door zone,
 > the blind corner, the pothole that nearly threw someone — into a rigorous, open, reusable dataset
 > and a statistically honest analysis of where the danger actually is. Report intake, a documented
@@ -189,28 +202,6 @@ These five are encoded in tests, CI gates, and the publish path. See
 [`docs/adr/0002-exposure-normalization-and-confidence-intervals.md`](docs/adr/0002-exposure-normalization-and-confidence-intervals.md)
 for why rules 1 and 2 are non-negotiable, and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for how
 rule 4 is defended.
-
-## Quick start
-
-```bash
-# 1. Clone
-git clone https://github.com/ChelseaKR/nearmiss.git
-cd nearmiss
-
-# 2. Install (editable, with dev tooling and pre-commit hooks)
-make install
-
-# 3. See it work end to end on synthetic fixtures with known answers —
-#    runs the full pipeline and renders a sample advocacy brief.
-make demo
-
-# 4. Run the full merge gate locally (lint, types, tests, accessibility, security)
-make verify
-```
-
-`make demo` uses the planted-hotspot fixtures in `tests/fixtures/`, so it needs no real data, no API
-keys, and no cloud account. If `make demo` recovers the planted hotspots and `make verify` is green,
-your environment is good. Run `make help` to list every target.
 
 ## Install
 
