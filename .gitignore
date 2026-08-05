@@ -74,6 +74,14 @@ mutmut-stats.json
 mutmut-cicd-stats.json
 html/
 
+# i18n pseudo-locale (G9 gate) — the build-only "xx" catalog must never ship under
+# the package locales tree. tools/make_pseudolocale.py already refuses to write
+# there (see tests/test_pseudolocale.py::test_pseudo_catalog_never_ships_under_package_locales);
+# this is defense in depth for the same invariant against an older tool version or
+# a manual run. See docs/I18N.md.
+src/nearmiss/locales/xx/
+src/nearmiss/locales/xx-build/
+
 # Notebooks
 .ipynb_checkpoints/
 
