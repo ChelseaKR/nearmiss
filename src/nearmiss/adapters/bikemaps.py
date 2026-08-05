@@ -109,6 +109,36 @@ def map_feature(
     }
 
 
+def source_term(feature: dict[str, Any], kind: str) -> str | None:
+    """This feature's own conflict vocabulary, verbatim and unmapped.
+
+    ``hazard_type`` is a closed enum built around hazard *features* -- pothole,
+    sightline, debris -- plus close-pass and dooring. BikeMaps' vocabulary is
+    mostly conflict *geometry*: side, head on, turning right, turning left,
+    angle, rear end. Those have no enum member, so the crosswalk correctly
+    declines to invent one and falls back to ``other``.
+
+    Measured against BikeMaps' live near-miss extract (6,222 reports, fetched
+    2026-08-04), that fallback takes **76.6%** of the corpus, and 4,768 of those
+    reports name a specific geometry at source. Discarding it silently would
+    leave an analysis that can locate a significant hotspot but cannot say
+    whether it is a right-hook corner or a rear-end corridor -- different
+    findings, different interventions.
+
+    So the term travels beside the report rather than inside it, the same way
+    :class:`Provenance` does and for the same reason: ``report.schema.json``
+    sets ``additionalProperties: false`` deliberately, and a source's raw
+    vocabulary is not an intake claim. Nothing downstream has to consume this;
+    it just stops the detail being unrecoverable.
+    """
+    props = feature.get("properties") or {}
+    raw = props.get("incident_with") if kind != "hazard" else props.get("hazard_type")
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    return text or None
+
+
 def in_bbox(feature: dict[str, Any], bbox: tuple[float, float, float, float]) -> bool:
     coords = (feature.get("geometry") or {}).get("coordinates")
     if not isinstance(coords, list) or len(coords) < 2:
@@ -130,10 +160,17 @@ def collect(
     bbox: tuple[float, float, float, float] | None,
     utc_offset: str,
     crosswalk: Crosswalk | None = None,
-) -> tuple[list[dict[str, Any]], dict[str, int]]:
+) -> tuple[list[dict[str, Any]], dict[str, int], dict[str, str]]:
+    """Map features to intake reports, keeping each one's source term beside it.
+
+    Returns ``(reports, counts_by_kind, source_terms)``. ``source_terms`` maps a
+    report id to that record's unmapped source vocabulary -- see
+    :func:`source_term` for why it travels separately.
+    """
     crosswalk = crosswalk or load_crosswalk("bikemaps")
     reports: list[dict[str, Any]] = []
     counts: dict[str, int] = {}
+    source_terms: dict[str, str] = {}
     for kind, feats in features_by_kind.items():
         kept = 0
         for f in feats:
@@ -142,9 +179,12 @@ def collect(
             report = map_feature(f, kind, utc_offset, crosswalk)
             if report is not None:
                 reports.append(report)
+                term = source_term(f, kind)
+                if term is not None:
+                    source_terms[report["id"]] = term
                 kept += 1
         counts[kind] = kept
-    return reports, counts
+    return reports, counts, source_terms
 
 
 class BikeMapsAdapter:
@@ -154,6 +194,11 @@ class BikeMapsAdapter:
 
     def __init__(self) -> None:
         self.crosswalk = load_crosswalk("bikemaps")
+        # Populated by parse(): report id -> unmapped source vocabulary. Kept off the
+        # SourceAdapter protocol's (reports, Provenance) return so every other adapter
+        # stays unchanged; callers wanting the terms use collect() or read this after
+        # parse(). See source_term() for what it is and why it is not in the payload.
+        self.last_source_terms: dict[str, str] = {}
 
     def fetch(self, **kwargs: Any) -> Any:
         """Live-fetch BikeMaps' public GeoJSON endpoints for the given kinds.
@@ -179,5 +224,5 @@ class BikeMapsAdapter:
         ``utc_offset`` (default ``"+00:00"``, applied to naive timestamps)."""
         bbox: tuple[float, float, float, float] | None = kwargs.get("bbox")
         utc_offset: str = kwargs.get("utc_offset", "+00:00")
-        reports, counts = collect(raw, bbox, utc_offset, self.crosswalk)
+        reports, counts, self.last_source_terms = collect(raw, bbox, utc_offset, self.crosswalk)
         return reports, self.crosswalk.provenance(counts)

@@ -146,8 +146,9 @@ def main(argv: list[str]) -> int:
                 return 1
             features_by_kind.setdefault(kind, []).extend(gj.get("features", []))
 
-    reports, counts = collect(features_by_kind, bbox, args.utc_offset)
-    payload = {"reports": reports}
+    reports, counts, source_terms = collect(features_by_kind, bbox, args.utc_offset)
+    # Sibling to "reports", never inside them: the intake schema is closed on purpose.
+    payload = {"reports": reports, "source_terms": source_terms}
     text = json.dumps(payload, ensure_ascii=False, indent=2)
     if args.out == "-":
         print(text)

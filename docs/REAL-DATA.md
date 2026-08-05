@@ -246,6 +246,34 @@ Derived from `SPARLab/BikeMaps` `mapApp/models/incident.py`. Where BikeMaps draw
 closed `hazard_type` vocabulary cannot represent, we fall back to `other` rather than overstate the
 conflict — honesty over precision we don't have.
 
+**How much falls through, measured.** That fallback is not a small tail. Against BikeMaps' live
+near-miss extract — 6,222 reports, fetched 2026-08-04, every one schema-valid — it takes **76.6%** of
+the corpus:
+
+| | reports | share |
+|---|---:|---:|
+| Named conflict geometry, no enum member → `other` | 4,768 | 76.6% |
+| Mapped to a specific `hazard_type` | 1,047 | 16.8% |
+| Genuinely miscellaneous (pedestrian, cyclist, animal, "Other") | 397 | 6.4% |
+| Unmapped source value (`E-scooter`) | 10 | 0.2% |
+
+The discarded majority is conflict *geometry* — `Vehicle, side` (1,515), `Vehicle, turning right`
+(904), `Vehicle, head on` (893), `Vehicle, turning left` (539), `Vehicle, angle` (504),
+`Vehicle, rear end` (413). `hazard_type` has no member for any of it, because that enum is built
+around hazard *features* (pothole, sightline, debris) plus close-pass and dooring.
+
+This costs interpretation, not correctness: exposure normalization, confidence intervals, and
+hotspot significance are all unaffected by type. What is lost is the ability to say whether a
+significant hotspot is a right-hook corner or a rear-end corridor — different findings calling for
+different interventions.
+
+So the adapter keeps each record's source vocabulary verbatim in a **`source_terms`** map (report id
+→ source term), written as a sibling key to `reports` and never inside a report:
+`schema/report.schema.json` sets `additionalProperties: false` deliberately, and a source's raw
+vocabulary is not an intake claim. All 5,175 `other` reports in that extract are recoverable through
+it. Nothing downstream is required to consume it; it exists so the detail is not destroyed at
+intake, and so a later decision to widen the enum has the evidence to justify itself.
+
 | BikeMaps field / value | intake field | Mapping |
 |---|---|---|
 | endpoint `nearmiss` / `hazards` | `severity` | `near_miss` |
@@ -255,7 +283,7 @@ conflict — honesty over precision we don't have.
 | `incident_with` = "Vehicle, open door" | `hazard_type` | `dooring` |
 | `incident_with` = Pothole / Curb / Train Tracks / Lane divider / Roadway | `hazard_type` | `surface_hazard` |
 | `incident_with` = Sign/Post | `hazard_type` | `sightline` |
-| `incident_with` = other vehicle / person / animal | `hazard_type` | `other` |
+| `incident_with` = turning / head-on / side / angle / rear-end, or person / animal | `hazard_type` | `other` (76.6% of the live extract — the source term is kept in `source_terms`) |
 | `date` | `occurred_at` | passed through; a naive value gets `--utc-offset` |
 | `pk` | `id` | deterministic `uuid5` (stable, never personal) |
 | (reporter is a cyclist) | `mode` | `cyclist` |
