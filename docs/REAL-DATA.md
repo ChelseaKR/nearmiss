@@ -405,6 +405,47 @@ rate without a denominator is forbidden). `--model-fallback` will, only if you a
 segments with a clearly-labeled flat prior (`source: modeled_flat_prior …`) — a weak placeholder for
 visualization, never to be passed off as measured. Prefer real counts.
 
+### Measured 2026-08-04: the two open California datasets do not overlap
+
+Both halves of the California recipe exist, are open, and are real. They are also in different
+places, which is the finding that matters before anyone budgets time for a real run.
+
+The [CA AT Count Dataset](https://data.ca.gov/dataset/at-count-dataset) (CC-BY) 2025 bicycle file is
+857,656 hourly rows over **81 counter locations** statewide, 837,917 bicycles counted — genuinely
+usable as a denominator. BikeMaps' live near-miss extract the same day held 6,222 reports worldwide.
+Intersecting them:
+
+| Area | BikeMaps reports | AT counters | bicycles counted 2025 |
+|---|---:|---:|---:|
+| Santa Barbara | 113 | 1 | 24,534 |
+| Irvine / Orange County | 57 | 25 | 253,563 |
+| Berkeley / Oakland | 1 | 9 | 129,321 |
+| San Diego | 44 | 0 | 0 |
+| Davis | 0 | 0 | 0 |
+| Sacramento | 1 | 0 | 0 |
+
+They are close to anti-correlated: the places with reports have no counters, and the place with 25
+counters has 57 reports. Testing every counter against every report directly:
+
+| search radius | counters with ≥1 report | counters with ≥3 reports (`min_publish_n`) |
+|---|---:|---:|
+| 25 m (the configured `snap_max_m`) | 1 of 81 | **0** |
+| 100 m | 2 of 81 | **0** |
+| 250 m | 4 of 81 | **0** |
+
+So a California run pairing these two sources publishes **no rate at all** — not because the pipeline
+is wrong but because it is right: HR1 forbids a rate without a denominator, and `min_publish_n`
+withholds any segment under three reports. Both rules fire on every segment. That is the correct
+outcome, and it is worth knowing before the run rather than after.
+
+**What this does not license.** A 311 or SeeClickFix export is the obvious-looking substitute for the
+empty incident half, and it is the wrong shape. A 311 record is a static infrastructure complaint —
+a pothole, a blocked lane — with no person in it. An intake report carries `mode` (who was involved)
+and `severity` (`near_miss`/`minor`/`serious`), because the statistics downstream are about conflict
+*events* per unit of exposure. Mixing condition reports into that numerator would produce a ratio of
+two unrelated quantities and quietly invalidate every rate built on it. A substitute incident source
+has to be reports of conflicts involving a person, not reports of infrastructure.
+
 Real options, roughly in order of fidelity:
 
 - **Strava Metro** — segment-level ridership, free for governments/researchers but access-gated.
