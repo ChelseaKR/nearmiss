@@ -31,13 +31,31 @@ ENDPOINTS = {
     "hazard": "/hazards.json",
 }
 
-# A few convenience bounding boxes (W, S, E, N) for cities where BikeMaps data is
-# dense. Add your own; a bbox is all the pipeline needs to scope an extract.
+# Convenience bounding boxes (W, S, E, N). Add your own; a bbox is all the pipeline
+# needs to scope an extract.
+#
+# Report counts are measured, not estimated: they are what the live ``/nearmiss.json``
+# extract of 2026-08-04 (6,222 reports worldwide) actually contained inside each box.
+# BikeMaps is a Canadian project and its data reflects that -- Victoria and Vancouver
+# alone hold a third of the worldwide corpus, while the densest US city has ~2% of it.
+# That matters for a nearmiss run: exposure-normalized rates need enough reports per
+# segment to survive ``min_publish_n``, so a US city here is a genuinely thin dataset,
+# not a scaled-down Victoria.
 CITY_BBOX = {
-    "victoria": (-123.46, 48.40, -123.28, 48.50),  # Victoria, BC — BikeMaps' home, densest data
-    "vancouver": (-123.27, 49.20, -123.02, 49.32),  # Vancouver, BC
-    "davis": (-121.78, 38.53, -121.70, 38.57),  # Davis, CA — sparse; for parity with the demo
-    "sacramento": (-121.56, 38.44, -121.36, 38.68),  # Sacramento, CA
+    # Canada -- BikeMaps' home ground.
+    "victoria": (-123.46, 48.40, -123.28, 48.50),  # 1,071 reports; densest anywhere
+    "vancouver": (-123.27, 49.20, -123.02, 49.32),  # 982
+    # United States -- the densest boxes in a nationally-framed project.
+    "phoenix": (-112.20, 33.35, -111.85, 33.55),  # 126 (Phoenix-Tempe)
+    "charlotte": (-80.95, 35.10, -80.70, 35.32),  # 121
+    "santa-barbara": (-119.85, 34.38, -119.63, 34.47),  # 113
+    "santa-fe": (-106.10, 35.60, -105.88, 35.72),  # 74
+    "missoula": (-114.12, 46.82, -113.92, 46.94),  # 63
+    "san-diego": (-117.30, 32.68, -117.10, 32.80),  # 44
+    # Kept for continuity with the Davis demo config, but BikeMaps has effectively
+    # nothing here: these return an empty or single-report extract, not a small one.
+    "davis": (-121.78, 38.53, -121.70, 38.57),  # 0 reports
+    "sacramento": (-121.56, 38.44, -121.36, 38.68),  # 1 report
 }
 
 # Stable namespace so the same BikeMaps record always yields the same report id
@@ -109,6 +127,36 @@ def map_feature(
     }
 
 
+def source_term(feature: dict[str, Any], kind: str) -> str | None:
+    """This feature's own conflict vocabulary, verbatim and unmapped.
+
+    ``hazard_type`` is a closed enum built around hazard *features* -- pothole,
+    sightline, debris -- plus close-pass and dooring. BikeMaps' vocabulary is
+    mostly conflict *geometry*: side, head on, turning right, turning left,
+    angle, rear end. Those have no enum member, so the crosswalk correctly
+    declines to invent one and falls back to ``other``.
+
+    Measured against BikeMaps' live near-miss extract (6,222 reports, fetched
+    2026-08-04), that fallback takes **76.6%** of the corpus, and 4,768 of those
+    reports name a specific geometry at source. Discarding it silently would
+    leave an analysis that can locate a significant hotspot but cannot say
+    whether it is a right-hook corner or a rear-end corridor -- different
+    findings, different interventions.
+
+    So the term travels beside the report rather than inside it, the same way
+    :class:`Provenance` does and for the same reason: ``report.schema.json``
+    sets ``additionalProperties: false`` deliberately, and a source's raw
+    vocabulary is not an intake claim. Nothing downstream has to consume this;
+    it just stops the detail being unrecoverable.
+    """
+    props = feature.get("properties") or {}
+    raw = props.get("incident_with") if kind != "hazard" else props.get("hazard_type")
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    return text or None
+
+
 def in_bbox(feature: dict[str, Any], bbox: tuple[float, float, float, float]) -> bool:
     coords = (feature.get("geometry") or {}).get("coordinates")
     if not isinstance(coords, list) or len(coords) < 2:
@@ -130,10 +178,17 @@ def collect(
     bbox: tuple[float, float, float, float] | None,
     utc_offset: str,
     crosswalk: Crosswalk | None = None,
-) -> tuple[list[dict[str, Any]], dict[str, int]]:
+) -> tuple[list[dict[str, Any]], dict[str, int], dict[str, str]]:
+    """Map features to intake reports, keeping each one's source term beside it.
+
+    Returns ``(reports, counts_by_kind, source_terms)``. ``source_terms`` maps a
+    report id to that record's unmapped source vocabulary -- see
+    :func:`source_term` for why it travels separately.
+    """
     crosswalk = crosswalk or load_crosswalk("bikemaps")
     reports: list[dict[str, Any]] = []
     counts: dict[str, int] = {}
+    source_terms: dict[str, str] = {}
     for kind, feats in features_by_kind.items():
         kept = 0
         for f in feats:
@@ -142,9 +197,12 @@ def collect(
             report = map_feature(f, kind, utc_offset, crosswalk)
             if report is not None:
                 reports.append(report)
+                term = source_term(f, kind)
+                if term is not None:
+                    source_terms[report["id"]] = term
                 kept += 1
         counts[kind] = kept
-    return reports, counts
+    return reports, counts, source_terms
 
 
 class BikeMapsAdapter:
@@ -154,6 +212,11 @@ class BikeMapsAdapter:
 
     def __init__(self) -> None:
         self.crosswalk = load_crosswalk("bikemaps")
+        # Populated by parse(): report id -> unmapped source vocabulary. Kept off the
+        # SourceAdapter protocol's (reports, Provenance) return so every other adapter
+        # stays unchanged; callers wanting the terms use collect() or read this after
+        # parse(). See source_term() for what it is and why it is not in the payload.
+        self.last_source_terms: dict[str, str] = {}
 
     def fetch(self, **kwargs: Any) -> Any:
         """Live-fetch BikeMaps' public GeoJSON endpoints for the given kinds.
@@ -179,5 +242,5 @@ class BikeMapsAdapter:
         ``utc_offset`` (default ``"+00:00"``, applied to naive timestamps)."""
         bbox: tuple[float, float, float, float] | None = kwargs.get("bbox")
         utc_offset: str = kwargs.get("utc_offset", "+00:00")
-        reports, counts = collect(raw, bbox, utc_offset, self.crosswalk)
+        reports, counts, self.last_source_terms = collect(raw, bbox, utc_offset, self.crosswalk)
         return reports, self.crosswalk.provenance(counts)

@@ -246,6 +246,34 @@ Derived from `SPARLab/BikeMaps` `mapApp/models/incident.py`. Where BikeMaps draw
 closed `hazard_type` vocabulary cannot represent, we fall back to `other` rather than overstate the
 conflict — honesty over precision we don't have.
 
+**How much falls through, measured.** That fallback is not a small tail. Against BikeMaps' live
+near-miss extract — 6,222 reports, fetched 2026-08-04, every one schema-valid — it takes **76.6%** of
+the corpus:
+
+| | reports | share |
+|---|---:|---:|
+| Named conflict geometry, no enum member → `other` | 4,768 | 76.6% |
+| Mapped to a specific `hazard_type` | 1,047 | 16.8% |
+| Genuinely miscellaneous (pedestrian, cyclist, animal, "Other") | 397 | 6.4% |
+| Unmapped source value (`E-scooter`) | 10 | 0.2% |
+
+The discarded majority is conflict *geometry* — `Vehicle, side` (1,515), `Vehicle, turning right`
+(904), `Vehicle, head on` (893), `Vehicle, turning left` (539), `Vehicle, angle` (504),
+`Vehicle, rear end` (413). `hazard_type` has no member for any of it, because that enum is built
+around hazard *features* (pothole, sightline, debris) plus close-pass and dooring.
+
+This costs interpretation, not correctness: exposure normalization, confidence intervals, and
+hotspot significance are all unaffected by type. What is lost is the ability to say whether a
+significant hotspot is a right-hook corner or a rear-end corridor — different findings calling for
+different interventions.
+
+So the adapter keeps each record's source vocabulary verbatim in a **`source_terms`** map (report id
+→ source term), written as a sibling key to `reports` and never inside a report:
+`schema/report.schema.json` sets `additionalProperties: false` deliberately, and a source's raw
+vocabulary is not an intake claim. All 5,175 `other` reports in that extract are recoverable through
+it. Nothing downstream is required to consume it; it exists so the detail is not destroyed at
+intake, and so a later decision to widen the enum has the evidence to justify itself.
+
 | BikeMaps field / value | intake field | Mapping |
 |---|---|---|
 | endpoint `nearmiss` / `hazards` | `severity` | `near_miss` |
@@ -255,7 +283,7 @@ conflict — honesty over precision we don't have.
 | `incident_with` = "Vehicle, open door" | `hazard_type` | `dooring` |
 | `incident_with` = Pothole / Curb / Train Tracks / Lane divider / Roadway | `hazard_type` | `surface_hazard` |
 | `incident_with` = Sign/Post | `hazard_type` | `sightline` |
-| `incident_with` = other vehicle / person / animal | `hazard_type` | `other` |
+| `incident_with` = turning / head-on / side / angle / rear-end, or person / animal | `hazard_type` | `other` (76.6% of the live extract — the source term is kept in `source_terms`) |
 | `date` | `occurred_at` | passed through; a naive value gets `--utc-offset` |
 | `pk` | `id` | deterministic `uuid5` (stable, never personal) |
 | (reporter is a cyclist) | `mode` | `cyclist` |
@@ -377,6 +405,47 @@ rate without a denominator is forbidden). `--model-fallback` will, only if you a
 segments with a clearly-labeled flat prior (`source: modeled_flat_prior …`) — a weak placeholder for
 visualization, never to be passed off as measured. Prefer real counts.
 
+### Measured 2026-08-04: the two open California datasets do not overlap
+
+Both halves of the California recipe exist, are open, and are real. They are also in different
+places, which is the finding that matters before anyone budgets time for a real run.
+
+The [CA AT Count Dataset](https://data.ca.gov/dataset/at-count-dataset) (CC-BY) 2025 bicycle file is
+857,656 hourly rows over **81 counter locations** statewide, 837,917 bicycles counted — genuinely
+usable as a denominator. BikeMaps' live near-miss extract the same day held 6,222 reports worldwide.
+Intersecting them:
+
+| Area | BikeMaps reports | AT counters | bicycles counted 2025 |
+|---|---:|---:|---:|
+| Santa Barbara | 113 | 1 | 24,534 |
+| Irvine / Orange County | 57 | 25 | 253,563 |
+| Berkeley / Oakland | 1 | 9 | 129,321 |
+| San Diego | 44 | 0 | 0 |
+| Davis | 0 | 0 | 0 |
+| Sacramento | 1 | 0 | 0 |
+
+They are close to anti-correlated: the places with reports have no counters, and the place with 25
+counters has 57 reports. Testing every counter against every report directly:
+
+| search radius | counters with ≥1 report | counters with ≥3 reports (`min_publish_n`) |
+|---|---:|---:|
+| 25 m (the configured `snap_max_m`) | 1 of 81 | **0** |
+| 100 m | 2 of 81 | **0** |
+| 250 m | 4 of 81 | **0** |
+
+So a California run pairing these two sources publishes **no rate at all** — not because the pipeline
+is wrong but because it is right: HR1 forbids a rate without a denominator, and `min_publish_n`
+withholds any segment under three reports. Both rules fire on every segment. That is the correct
+outcome, and it is worth knowing before the run rather than after.
+
+**What this does not license.** A 311 or SeeClickFix export is the obvious-looking substitute for the
+empty incident half, and it is the wrong shape. A 311 record is a static infrastructure complaint —
+a pothole, a blocked lane — with no person in it. An intake report carries `mode` (who was involved)
+and `severity` (`near_miss`/`minor`/`serious`), because the statistics downstream are about conflict
+*events* per unit of exposure. Mixing condition reports into that numerator would produce a ratio of
+two unrelated quantities and quietly invalidate every rate built on it. A substitute incident source
+has to be reports of conflicts involving a person, not reports of infrastructure.
+
 Real options, roughly in order of fidelity:
 
 - **Strava Metro** — segment-level ridership, free for governments/researchers but access-gated.
@@ -392,9 +461,20 @@ Two committed real configs — `config/davis.toml` and `config/sacramento.toml` 
 for these California cities. Their inputs and outputs live under the gitignored `data/real/` tree, so a
 real run never clobbers the committed synthetic demo or the `make reproduce` gate.
 
+> **Measured 2026-08-04: the BikeMaps half of this recipe does not execute for either city.**
+> The live `/nearmiss.json` extract (6,222 reports worldwide) contains **0** reports inside the
+> `davis` bbox and **1** inside `sacramento`. "Thin coverage" and "denser" below were optimistic;
+> the correct word is empty. BikeMaps is a Canadian project — Victoria (1,071) and Vancouver (982)
+> hold a third of the worldwide corpus between them, and the densest *US* box is Phoenix–Tempe at
+> 126. So the exposure half of this recipe is the half that works in California: the CA AT Count
+> Dataset is real, open, and statewide, while the incidents it would normalize do not exist here.
+> Pairing a California exposure layer with a non-BikeMaps incident source (a city 311/SeeClickFix
+> export, an advocacy-group dataset) is the open path; see the adapter framework above, which is
+> built for exactly that substitution.
+
 | | Davis, CA | Sacramento, CA |
 |---|---|---|
-| Incidents | BikeMaps.org (`--city davis`) — thin coverage | BikeMaps.org (`--city sacramento`) — denser |
+| Incidents | BikeMaps.org (`--city davis`) — **0 reports as of 2026-08-04**; needs another source | BikeMaps.org (`--city sacramento`) — **1 report**; needs another source |
 | Streets | OpenStreetMap / Overpass (`--city davis`) | OpenStreetMap / Overpass (`--city sacramento`) |
 | Exposure | [California AT Count Dataset](https://lab.data.ca.gov/dataset/at-count-dataset) (statewide bike counts); City of Davis counters | [SACOG regional bike/ped counts](https://www.sacog.org/planning/transportation/active-transportation/bike-ped-counting-equipment) + the CA AT Count Dataset |
 
