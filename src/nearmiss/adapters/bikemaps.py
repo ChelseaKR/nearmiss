@@ -31,13 +31,31 @@ ENDPOINTS = {
     "hazard": "/hazards.json",
 }
 
-# A few convenience bounding boxes (W, S, E, N) for cities where BikeMaps data is
-# dense. Add your own; a bbox is all the pipeline needs to scope an extract.
+# Convenience bounding boxes (W, S, E, N). Add your own; a bbox is all the pipeline
+# needs to scope an extract.
+#
+# Report counts are measured, not estimated: they are what the live ``/nearmiss.json``
+# extract of 2026-08-04 (6,222 reports worldwide) actually contained inside each box.
+# BikeMaps is a Canadian project and its data reflects that -- Victoria and Vancouver
+# alone hold a third of the worldwide corpus, while the densest US city has ~2% of it.
+# That matters for a nearmiss run: exposure-normalized rates need enough reports per
+# segment to survive ``min_publish_n``, so a US city here is a genuinely thin dataset,
+# not a scaled-down Victoria.
 CITY_BBOX = {
-    "victoria": (-123.46, 48.40, -123.28, 48.50),  # Victoria, BC — BikeMaps' home, densest data
-    "vancouver": (-123.27, 49.20, -123.02, 49.32),  # Vancouver, BC
-    "davis": (-121.78, 38.53, -121.70, 38.57),  # Davis, CA — sparse; for parity with the demo
-    "sacramento": (-121.56, 38.44, -121.36, 38.68),  # Sacramento, CA
+    # Canada -- BikeMaps' home ground.
+    "victoria": (-123.46, 48.40, -123.28, 48.50),  # 1,071 reports; densest anywhere
+    "vancouver": (-123.27, 49.20, -123.02, 49.32),  # 982
+    # United States -- the densest boxes in a nationally-framed project.
+    "phoenix": (-112.20, 33.35, -111.85, 33.55),  # 126 (Phoenix-Tempe)
+    "charlotte": (-80.95, 35.10, -80.70, 35.32),  # 121
+    "santa-barbara": (-119.85, 34.38, -119.63, 34.47),  # 113
+    "santa-fe": (-106.10, 35.60, -105.88, 35.72),  # 74
+    "missoula": (-114.12, 46.82, -113.92, 46.94),  # 63
+    "san-diego": (-117.30, 32.68, -117.10, 32.80),  # 44
+    # Kept for continuity with the Davis demo config, but BikeMaps has effectively
+    # nothing here: these return an empty or single-report extract, not a small one.
+    "davis": (-121.78, 38.53, -121.70, 38.57),  # 0 reports
+    "sacramento": (-121.56, 38.44, -121.36, 38.68),  # 1 report
 }
 
 # Stable namespace so the same BikeMaps record always yields the same report id

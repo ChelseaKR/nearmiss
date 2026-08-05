@@ -420,9 +420,20 @@ Two committed real configs — `config/davis.toml` and `config/sacramento.toml` 
 for these California cities. Their inputs and outputs live under the gitignored `data/real/` tree, so a
 real run never clobbers the committed synthetic demo or the `make reproduce` gate.
 
+> **Measured 2026-08-04: the BikeMaps half of this recipe does not execute for either city.**
+> The live `/nearmiss.json` extract (6,222 reports worldwide) contains **0** reports inside the
+> `davis` bbox and **1** inside `sacramento`. "Thin coverage" and "denser" below were optimistic;
+> the correct word is empty. BikeMaps is a Canadian project — Victoria (1,071) and Vancouver (982)
+> hold a third of the worldwide corpus between them, and the densest *US* box is Phoenix–Tempe at
+> 126. So the exposure half of this recipe is the half that works in California: the CA AT Count
+> Dataset is real, open, and statewide, while the incidents it would normalize do not exist here.
+> Pairing a California exposure layer with a non-BikeMaps incident source (a city 311/SeeClickFix
+> export, an advocacy-group dataset) is the open path; see the adapter framework above, which is
+> built for exactly that substitution.
+
 | | Davis, CA | Sacramento, CA |
 |---|---|---|
-| Incidents | BikeMaps.org (`--city davis`) — thin coverage | BikeMaps.org (`--city sacramento`) — denser |
+| Incidents | BikeMaps.org (`--city davis`) — **0 reports as of 2026-08-04**; needs another source | BikeMaps.org (`--city sacramento`) — **1 report**; needs another source |
 | Streets | OpenStreetMap / Overpass (`--city davis`) | OpenStreetMap / Overpass (`--city sacramento`) |
 | Exposure | [California AT Count Dataset](https://lab.data.ca.gov/dataset/at-count-dataset) (statewide bike counts); City of Davis counters | [SACOG regional bike/ped counts](https://www.sacog.org/planning/transportation/active-transportation/bike-ped-counting-equipment) + the CA AT Count Dataset |
 
