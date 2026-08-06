@@ -521,7 +521,7 @@ silent 0% coverage.
 **durability** — the published GeoJSON schema is versioned in
 [`schema/dataset.schema.md`](schema/dataset.schema.md) and schema changes are recorded in
 [`CHANGELOG.md`](CHANGELOG.md) with a migration path; stability across releases is a commitment, not
-yet a track record (v0.1.0).
+yet a track record (v0.2.0).
 
 ### Operability, serviceability, sustainability
 
