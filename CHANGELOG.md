@@ -58,6 +58,13 @@ every entry.
 
 ### Changed
 
+- **Packaging: the PyPI distribution is now `nearmiss-safety`.** The name `nearmiss`
+  on PyPI belongs to an unrelated suffix-array text-search library published since
+  2020, so Trusted Publishing could never resolve a publisher for it and the v0.2.0
+  release job failed with `invalid-publisher`. Only the distribution name changes:
+  the import package is still `nearmiss`, the installed command is still `nearmiss`,
+  and the repository is unchanged. Install with `pipx install nearmiss-safety`.
+
 - **BREAKING (source-adapter contract):** a crosswalk manifest's free-form
   `bias_notes` array is replaced by a required `[source.bias_profile]` table that
   must answer all eight bias axes the data card names (`route_choice`,

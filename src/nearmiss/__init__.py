@@ -19,10 +19,12 @@ __all__ = ["__version__"]
 
 try:
     # Single source of truth: derived from the installed distribution metadata
-    # (itself built from `version = "0.1.0"` in pyproject.toml), not a
-    # hand-duplicated literal (REL-02).
-    __version__ = version("nearmiss")
+    # (itself built from `version` in pyproject.toml), not a hand-duplicated
+    # literal (REL-02). The distribution is `nearmiss-safety` because the PyPI
+    # name `nearmiss` belongs to an unrelated project; the import package and
+    # the installed command are both still `nearmiss`.
+    __version__ = version("nearmiss-safety")
 except PackageNotFoundError:
     # Not installed (e.g. a source checkout with no editable install yet) —
     # fall back so `import nearmiss` still works for local tooling and tests.
-    __version__ = "0.1.0"
+    __version__ = "0.2.0"
