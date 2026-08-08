@@ -58,6 +58,21 @@ every entry.
 
 ### Changed
 
+- **BREAKING (source-adapter contract):** a crosswalk manifest's free-form
+  `bias_notes` array is replaced by a required `[source.bias_profile]` table that
+  must answer all eight bias axes the data card names (`route_choice`,
+  `reporter_pool`, `app_access`, `language`, `demographic_skew`, `survivorship`,
+  `salience`, `temporal_campaign`). `load_crosswalk` now rejects a missing,
+  blank, placeholder (`n/a`, `none`, `TBD`), too-short, or non-string answer, so
+  an under-documented source fails at import instead of passing a truthiness
+  check. `Provenance.bias_notes` becomes a derived property over the profile, so
+  `as_dict()` keeps its previous key and gains `bias_profile`. Both shipped
+  manifests are migrated. Hard rule 3 was previously enforced only as "the list
+  is non-empty", which a single word satisfied.
+- Corrected the SimRa manifest license from CC BY 4.0 to CC BY-**NC** 4.0,
+  verified against the upstream README. `NOTICE` now records that the
+  NonCommercial condition survives aggregation and that no SimRa-derived data is
+  currently published.
 - Moved the synthetic, no-cloud quick start into the README's opening screen so
   a first-time visitor can reach `make demo` before the project audit narrative.
 

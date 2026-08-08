@@ -15,14 +15,39 @@
 id = "simra"
 name = "SimRa (TU Berlin)"
 url = "https://github.com/simra-project/dataset"
-license = "SimRa dataset; CC BY 4.0 (see the simra-project/dataset repository for current terms)."
+# Verified 2026-08-07 against simra-project/dataset README: the licence is CC BY-NC
+# 4.0, NOT CC BY 4.0 as this field previously claimed. The NonCommercial clause is
+# load-bearing -- it is not an Open Definition licence, and a published dataset that
+# merges SimRa reports inherits the restriction. TU Berlin additionally grants
+# journalistic use "as if it were a non-commercial use", and all use is subject to
+# the repository's separate terms of use. Re-check before any commercial deployment
+# or before merging SimRa into a dataset published under different terms.
+license = "SimRa dataset (TU Berlin); CC BY-NC 4.0 <https://creativecommons.org/licenses/by-nc/4.0/>, plus an explicit additional grant for journalistic use; subject to the terms of use in the simra-project/dataset repository."
 bias_label = "app-recruited cyclists in a handful of instrumented regions, near-miss-only"
-bias_notes = [
-    "Reporters are cyclists who installed the SimRa smartphone app (often via a local university or advocacy-group recruitment drive), which skews toward tech-comfortable, already-engaged riders rather than a representative cross-section of who bikes.",
-    "Coverage exists only where a SimRa research partner ran a data-collection campaign (Berlin, and a handful of other regions); a segment with zero SimRa reports may simply be outside any campaign's area, not actually safe.",
-    "SimRa records near-misses only (an app-detected sudden deceleration/swerve, confirmed by the rider) — it has no collision or injury severity data, so every report from this source is intake severity near_miss and this source alone cannot speak to collision outcomes.",
-    "The app's automatic detection favors abrupt, sensor-visible near-misses (hard braking, swerving); a close pass a confident rider absorbs smoothly without a sudden motion may go undetected and unreported.",
-]
+
+# --- bias profile ------------------------------------------------------------
+# Every axis in adapters/base.py:BIAS_AXES must be answered, in this source's own
+# terms; load_crosswalk() rejects a missing, blank, or placeholder answer. See
+# docs/DATA-CARD.md ("Known reporting biases") for what each axis means. SimRa's
+# skew is meaningfully different from BikeMaps', which is the whole point of
+# keeping these profiles per-source rather than averaging them together.
+[source.bias_profile]
+# Where reports land vs. where people actually ride.
+route_choice = "Incidents are recorded only along routes SimRa participants actually rode, so this is a map of participants' commutes. A street no participant uses generates no incidents regardless of how hazardous it is."
+# Who files a report at all.
+reporter_pool = "Reporters are cyclists who installed the SimRa app, usually via a university or advocacy-group recruitment drive, which skews toward tech-comfortable, already-engaged riders rather than a representative cross-section of who bikes. Non-cyclists are wholly absent."
+# Device, connectivity, and awareness needed to report.
+app_access = "Participation needs a modern smartphone with usable sensors, enough battery tolerance to run a recording app for a whole ride, and a data plan. That is a materially higher bar than a one-off web form, and it excludes riders on older or borrowed devices."
+# Which languages the reporting form actually serves.
+language = "The app and its recruitment materials are German-first with limited English, so riders who read neither are excluded from participating at all. This is a recruitment-stage exclusion rather than a per-report one, and it cannot be corrected after the fact."
+# Race, income, tenure, age skew of the reporter pool.
+demographic_skew = "Recruitment ran through universities and cycling advocacy groups in mostly affluent European cities, so participants skew younger, more educated, and higher-income than the general cycling population, and migrant and working-class riders are under-represented."
+# The streets nobody rides produce no data.
+survivorship = "A segment participants consider too dangerous to ride never appears in a trace at all, so the most hostile infrastructure can be entirely invisible in this source rather than showing up as a hotspot."
+# Dramatic events get reported; chronic ones do not.
+salience = "Automatic detection favours abrupt, sensor-visible events such as hard braking or swerving. A close pass that a confident rider absorbs smoothly without a sudden motion may go undetected, so the data over-weights startling incidents. SimRa also records near-misses only, with no injury outcome at all."
+# Campaigns and news coverage create spikes.
+temporal_campaign = "Coverage exists only where a research partner ran a time-boxed collection campaign, mostly Berlin plus a handful of other regions, so both the geography and the date range are artefacts of funding cycles. A segment with zero reports may simply sit outside any campaign, not be safe."
 
 # --- hazard_type -------------------------------------------------------------
 # SimRa's numeric incident code -> our closed hazard_type enum

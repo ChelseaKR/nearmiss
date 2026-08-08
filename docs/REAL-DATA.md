@@ -22,21 +22,43 @@ how available they are.
 Incident sources (this section) are implemented as **source adapters**: a `SourceAdapter`
 (`src/nearmiss/adapters/base.py`) is a small `fetch()`/`parse()` contract, and the source-specific
 vocabulary mapping — the crosswalk tables below rendered as prose — is **declarative data**, not code:
-a TOML manifest per source under `src/nearmiss/adapters/crosswalks/`. Adding a new source (a city
-311/SeeClickFix export, an advocacy-group spreadsheet, …) is meant to touch no pipeline code: write a
-crosswalk TOML, a small adapter module that reads that source's file format, and a conformance test
-(`tests/test_adapters_conformance.py` round-trips every registered adapter's output through
-`validation.validate_report`).
+a TOML manifest per source under `src/nearmiss/adapters/crosswalks/`. Adding a new source (another
+crowdsourced near-miss platform, an advocacy-group spreadsheet, …) is meant to touch no pipeline
+code: write a crosswalk TOML, a small adapter module that reads that source's file format, and a
+conformance test (`tests/test_adapters_conformance.py` round-trips every registered adapter's output
+through `validation.validate_report`).
+
+**Not every point dataset qualifies.** An intake report is a conflict *event experienced by a
+person*, so it carries `mode` (who was involved) and `severity` (what happened to them). A source of
+*condition* records — a 311/SeeClickFix service request, a pavement-inspection export, an asset
+inventory — describes infrastructure with no person in it and can supply neither field. Read
+[What this does not license](#what-this-does-not-license) below before
+you invest in a source, and open a
+[source proposal](../.github/ISSUE_TEMPLATE/source_proposal.yml) first so record kind, licensing,
+and bias labeling are settled before any code is written.
 
 Every adapter also returns a **provenance block** alongside its reports — not part of the report
 payload itself (`schema/report.schema.json` sets `additionalProperties: false` on purpose, so
 provenance never gets tangled with the schema-validated payload), but a sibling record naming the
 source, its license, and, critically, **that source's own reporting-bias profile** (`bias_label` +
-`bias_notes`). This is what lets an imported dataset carry its own honesty into `stats/bias.py`'s
-narrative and this project's data card, rather than quietly averaging every source's skew into one
-undifferentiated pile of points — see each source's crosswalk manifest for its specific biases, and
+an eight-axis `bias_profile`). This is what lets an imported dataset carry its own honesty into
+`stats/bias.py`'s narrative and this project's data card, rather than quietly averaging every
+source's skew into one undifferentiated pile of points — see each source's crosswalk manifest for its
+specific biases, and
 [`docs/DATA-CARD.md`](DATA-CARD.md#known-reporting-biases-who-is-over--and-under-represented) for how
 that shows up in the published dataset's own documentation.
+
+### The bias profile every source must answer
+
+`bias_label` is a one-line summary. The `[source.bias_profile]` table is the real work: a manifest
+must answer **all eight** of the bias axes the data card names, in its own source's terms, and
+`load_crosswalk` rejects a manifest that leaves one blank or fills it with a placeholder. The axes
+are `route_choice`, `reporter_pool`, `app_access`, `language`, `demographic_skew`, `survivorship`,
+`salience`, and `temporal_campaign`; each is documented inline in
+[`crosswalks/bikemaps.toml`](../src/nearmiss/adapters/crosswalks/bikemaps.toml). If an axis genuinely
+does not apply to a source, say so **and say why** — "not applicable" without a reason is the thing
+this check exists to stop. Answering these honestly is usually the hardest part of adding a source,
+and it is the part reviewers will push on.
 
 Two adapters exist today: `bikemaps` and `simra` (below). Both are `--from-file`/`--dir` testable with
 no network, and both are exercised by `tests/test_adapters_conformance.py` in addition to their own
@@ -438,13 +460,54 @@ is wrong but because it is right: HR1 forbids a rate without a denominator, and 
 withholds any segment under three reports. Both rules fire on every segment. That is the correct
 outcome, and it is worth knowing before the run rather than after.
 
-**What this does not license.** A 311 or SeeClickFix export is the obvious-looking substitute for the
+### What this does not license
+
+A 311 or SeeClickFix export is the obvious-looking substitute for the
 empty incident half, and it is the wrong shape. A 311 record is a static infrastructure complaint —
 a pothole, a blocked lane — with no person in it. An intake report carries `mode` (who was involved)
 and `severity` (`near_miss`/`minor`/`serious`), because the statistics downstream are about conflict
 *events* per unit of exposure. Mixing condition reports into that numerator would produce a ratio of
 two unrelated quantities and quietly invalidate every rate built on it. A substitute incident source
 has to be reports of conflicts involving a person, not reports of infrastructure.
+
+Three of the six **required** intake fields have no honest value in a 311 record, which is what makes
+this a contract violation rather than a preference:
+
+| Required field | Why a 311 record cannot fill it |
+|---|---|
+| `mode` | The enum is `cyclist`/`pedestrian`/`wheelchair`/`scooter`/`other` and has **no `unknown`** — `other` means "a mode we did not enumerate", not "no idea". The existing adapters hardcode `cyclist` because BikeMaps and SimRa are cycling-specific tools; a service request has no traveller in it at all. |
+| `severity` | Documented as *self-reported outcome severity*, where `near_miss` means a hazard avoided with no contact. A standing pothole is not an avoided event, and calling it `near_miss` invents an experience nobody had. |
+| `occurred_at` | Defined as **event time, not submission time**. 311 supplies `requested_datetime`, i.e. when someone got annoyed enough to call, which for a chronic condition can be months late. |
+
+`hazard_type` would in fact map cleanly (four of its seven members are condition-shaped:
+`surface_hazard`, `sightline`, `signal`, `debris`). The crosswalk is not the problem; the
+person-shaped fields are.
+
+**Measured 2026-08-07, San Francisco's 311 export (8,820,143 records).** The categories plausibly
+describing a road-surface or obstruction hazard — Street Defects, Sidewalk or Curb, Blocked Street or
+Sidewalk — total 230,548, or **2.61%** of the corpus. Complaints about encampments, graffiti,
+parking, abandoned vehicles, illegal postings, and noise total 2,908,181, or **33%**. So even a
+tightly category-scoped 311 adapter would salvage under 3% of the feed, still with no mode and no
+severity, from a stream whose single largest component is complaints about unhoused people.
+
+There is a second, independent blocker: **licensing**. SeeClickFix's own API terms
+([dev.seeclickfix.com](https://dev.seeclickfix.com/)) license its data **CC BY-NC-SA 3.0 US**. The
+NonCommercial clause fails the Open Definition and is incompatible with this project's Apache-2.0
+posture; the ShareAlike clause is viral and would force NC-SA onto any dataset it were merged into;
+and the same terms require prior permission for "more than occasional queries", so bulk reuse is not
+a standing grant. Open311 does not fix that — it is a *specification*, not a data license, and
+conveys no reuse rights. Per-city open-data portals are the license-clean route but are uneven and
+must be checked one city at a time: San Francisco is PDDL 1.0, Boston ODC-PDDL, Los Angeles CC0 1.0,
+Austin and Kansas City public domain, while New York City sets **no license field at all** and
+Chicago's terms reserve a right to require you to stop distributing and expressly grant no IP
+rights. "It is on an open data portal" is not evidence of a redistribution right.
+
+**The general rule.** An intake report is a conflict event experienced by a person, so it has a mode
+and an outcome. A condition record describes a place. Sources of the second kind do not become
+sources of the first kind by way of a crosswalk. Condition data is a legitimate subject for
+exposure-normalized analysis — that is exactly what the sibling
+[`honest_rates`](../src/honest_rates/README.md) library is for — it just is not a nearmiss intake
+source.
 
 Real options, roughly in order of fidelity:
 
@@ -468,9 +531,13 @@ real run never clobbers the committed synthetic demo or the `make reproduce` gat
 > hold a third of the worldwide corpus between them, and the densest *US* box is Phoenix–Tempe at
 > 126. So the exposure half of this recipe is the half that works in California: the CA AT Count
 > Dataset is real, open, and statewide, while the incidents it would normalize do not exist here.
-> Pairing a California exposure layer with a non-BikeMaps incident source (a city 311/SeeClickFix
-> export, an advocacy-group dataset) is the open path; see the adapter framework above, which is
-> built for exactly that substitution.
+> Pairing a California exposure layer with a non-BikeMaps incident source is the open path; see the
+> adapter framework above, which is built for exactly that substitution. It has to be a source of
+> *conflict events involving a person* — a 311/SeeClickFix export cannot fill the gap, for the
+> reasons in [What this does not license](#what-this-does-not-license)
+> below. The nearest in-scope candidate is a California crowdsourced near-miss platform that records
+> traveller mode and injury outcome; whichever is chosen, its license and redistribution terms have
+> to be confirmed in writing before any adapter is written.
 
 | | Davis, CA | Sacramento, CA |
 |---|---|---|
