@@ -33,7 +33,9 @@ def test_built_wheel_contains_report_schema(tmp_path: Path) -> None:
     pytest.importorskip("build", reason="the `build` package is not installed")
     subprocess.run(
         [sys.executable, "-m", "build", "--wheel", "--outdir", str(tmp_path)],
-        cwd=ROOT, check=True, capture_output=True,
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
     )
     wheel = next(tmp_path.glob("*.whl"))
     names = zipfile.ZipFile(wheel).namelist()
