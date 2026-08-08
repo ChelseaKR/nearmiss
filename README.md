@@ -214,7 +214,8 @@ scale to zero.
 make install                 # pip install -e ".[dev]" + pre-commit install
 
 # As a tool, isolated (the packaging/release goal once published to PyPI)
-pipx install nearmiss
+# The PyPI distribution is `nearmiss-safety`; the command it installs is `nearmiss`.
+pipx install nearmiss-safety
 
 # Reproducible, hash-verified install — what CI actually runs (make lock-dev / requirements-dev.lock)
 python -m pip install --require-hashes -r requirements-dev.lock
@@ -724,7 +725,7 @@ If you use nearmiss in research or advocacy, please cite it — citation metadat
 
 ### Definition of done
 
-An advocacy group can `pipx install nearmiss`, stand up a report form with no cloud account or a cheap
+An advocacy group can `pipx install nearmiss-safety`, stand up a report form with no cloud account or a cheap
 scale-to-zero deploy, run real reports through the pipeline into a clean versioned dataset, produce
 exposure-normalized risk rates with confidence intervals and Getis-Ord hotspots that recover known
 answers on the test fixtures, publish an open GeoJSON aligned to the documented schema with a data card

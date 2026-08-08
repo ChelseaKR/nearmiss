@@ -5,7 +5,7 @@ requires = ["hatchling>=1.31.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nearmiss"
+name = "nearmiss-safety"
 version = "0.2.0"
 description = "An open dataset and statistically honest analysis of road hazards and near misses for safe-streets advocacy."
 readme = "README.md"
