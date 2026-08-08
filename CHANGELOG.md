@@ -56,6 +56,23 @@ every entry.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-08-08
+
+### Fixed
+
+- **The wheel now ships the JSON schemas it reads at runtime.** `validation.find_report_schema`
+  resolves `schema/report.schema.json` by walking up from `__file__`, which finds the repository
+  root in a source checkout and finds nothing under `site-packages`. Every release through 0.3.0
+  therefore installed cleanly and then raised `could not locate schema/report.schema.json` on the
+  first report validation. `0.3.0` was the first release ever installed from an index, which is why
+  this surfaced now rather than in June. The schemas are force-included into the wheel as
+  `nearmiss/schema/`, and the resolver checks that packaged location before the tree walk, so a
+  source checkout still reads the authoritative root copy.
+- **A release now has to prove the built artifact runs.** `make smoke-wheel` installs the wheel into
+  a clean virtualenv, resolves the schema, and runs the CLI from outside the checkout; the release
+  workflow runs the same check after the build and before SBOM, signing, and publication. Building,
+  signing, and attesting an artifact said nothing about whether the installed thing worked.
+
 ## [0.3.0] - 2026-08-08
 
 ### Changed

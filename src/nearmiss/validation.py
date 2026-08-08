@@ -26,6 +26,12 @@ def find_report_schema() -> Path:
     if override:
         return Path(override)
     here = Path(__file__).resolve()
+    # Installed from a wheel, the schemas ship as package data beside this
+    # module (pyproject force-include). In a source checkout that directory
+    # does not exist and the walk below finds the authoritative repo copy.
+    packaged = here.parent / "schema" / "report.schema.json"
+    if packaged.is_file():
+        return packaged
     for parent in [here.parent, *here.parents]:
         candidate = parent / "schema" / "report.schema.json"
         if candidate.is_file():
