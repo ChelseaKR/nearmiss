@@ -190,9 +190,10 @@ smoke-wheel: ## Install the built wheel into a clean venv and exercise the CLI
 	@# runs. Validation reads schema/report.schema.json at runtime, which the
 	@# wheel did not ship, so the CLI raised on first use from PyPI.
 	rm -rf dist .smoke-venv
-	uv build --wheel
-	uv venv .smoke-venv
-	VIRTUAL_ENV=.smoke-venv uv pip install --quiet dist/*.whl
+	$(PYTHON) -m build --wheel
+	$(PYTHON) -m venv .smoke-venv
+	./.smoke-venv/bin/python -m pip install --quiet --upgrade pip
+	./.smoke-venv/bin/python -m pip install --quiet dist/*.whl
 	@# Run from / so nothing resolves against this checkout.
 	cd / && $(CURDIR)/.smoke-venv/bin/python -c "import nearmiss, nearmiss.validation as v; \
 	  p = v.find_report_schema(); \
