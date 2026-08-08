@@ -666,6 +666,22 @@ restrictive license — the data is meant to be free.
 denominators retain their own licenses and terms; consult `exposure_source` /
 `exposure_date` and the metadata sidecar before redistributing derived exposure values.
 
+**Third-party incident sources** (the numerator) are the harder case, and they are not
+interchangeable. Apache-2.0 covers this project's code, schema, and methods. It cannot
+relicense somebody else's data, and an adapter does not launder a source's terms.
+
+| Source | License | Redistribution of derived data |
+|---|---|---|
+| BikeMaps.org | CC BY 4.0 | Permitted with attribution |
+| SimRa | CC BY-**NC** 4.0 | NonCommercial condition survives aggregation |
+
+The NonCommercial condition on SimRa is load-bearing: a published dataset containing SimRa
+reports is not distributable under Apache-2.0 alone, and aggregation does not dissolve the
+clause. No SimRa-derived data is currently published from this repository. Before publishing
+any dataset that merges incident sources, check each source's license individually and record
+the most restrictive terms that apply to the merged result; see the licensing checklist in
+CONTRIBUTING.md.
+
 ### How to cite
 
 Cite the dataset with its version, the access date, and the repository. Suggested form:

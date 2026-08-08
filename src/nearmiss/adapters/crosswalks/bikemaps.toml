@@ -16,11 +16,30 @@ name = "BikeMaps.org"
 url = "https://bikemaps.org"
 license = "BikeMaps.org public data; see https://bikemaps.org/terms for reuse terms."
 bias_label = "self-selected app-user cyclists, skewed toward confident/regular riders"
-bias_notes = [
-    "Reporters are cyclists who know BikeMaps.org exists and choose to file a report; this under-represents casual, new, or fearful riders and anyone who avoided a street entirely rather than experiencing a near miss on it (the routes people avoid produce zero reports).",
-    "Coverage is uneven by city: reports concentrate where BikeMaps has been promoted (its home city, Victoria BC, is densest), not where risk is highest.",
-    "Pedestrians, wheelchair users, and scooter riders are essentially absent — BikeMaps is a cycling-specific tool, so this source alone cannot speak to non-cyclist road-user risk.",
-]
+
+# --- bias profile ------------------------------------------------------------
+# Every axis in adapters/base.py:BIAS_AXES must be answered, in this source's own
+# terms; load_crosswalk() rejects a missing, blank, or placeholder answer. The
+# axis list mirrors the named biases in docs/DATA-CARD.md ("Known reporting
+# biases"). An axis that genuinely does not apply must still say WHY, because
+# "n/a" is exactly the non-answer this check exists to reject.
+[source.bias_profile]
+# Where reports land vs. where people actually ride.
+route_choice = "Reports trace the routes confident cyclists already choose, so a street with no reports may be empty of reports because riders avoid it entirely, not because it is safe. The routes people refuse to ride produce zero reports and therefore look perfect."
+# Who files a report at all.
+reporter_pool = "Reporters are cyclists who know BikeMaps.org exists and choose to file; this under-represents casual, new, and fearful riders. Pedestrians, wheelchair users, and scooter riders are essentially absent because BikeMaps is a cycling-specific tool, so this source alone cannot speak to non-cyclist road-user risk."
+# Device, connectivity, and awareness needed to report.
+app_access = "Filing requires a smartphone or a web browser plus the awareness that the site exists, so lower-income and less-connected riders are under-counted even where their risk is higher. There is no phone-in or paper channel to offset it."
+# Which languages the reporting form actually serves.
+language = "The BikeMaps form is English-first, so riders who do not read English are under-represented; a segment through a predominantly non-English-speaking neighbourhood may be under-reported for language reasons alone rather than being safer."
+# Race, income, tenure, age skew of the reporter pool.
+demographic_skew = "The cycling-advocacy pool BikeMaps recruits from skews whiter, more male, higher-income, and more middle-aged than the population that actually cycles, so report density partly tracks advocacy presence rather than hazard density."
+# The streets nobody rides produce no data.
+survivorship = "A segment with few reports may be one almost nobody will ride. Low report volume is never read as safety here, which is why the pipeline publishes 'exposure unknown' rather than a flattering rate when the denominator is missing."
+# Dramatic events get reported; chronic ones do not.
+salience = "A frightening close pass at speed is far more likely to be filed than a chronic, mundane hazard such as a persistently bad surface, so the hazard-type mix over-weights dramatic vehicle conflicts and under-weights slow-burn infrastructure problems."
+# Campaigns and news coverage create spikes.
+temporal_campaign = "Reports cluster around local promotion: BikeMaps' home city, Victoria BC, is by far the densest, and a local campaign, news story, or serious crash produces a reporting spike that reflects attention rather than any change in danger."
 
 # --- hazard_type -------------------------------------------------------------
 # BikeMaps' `incident_with` free choice -> our closed hazard_type enum

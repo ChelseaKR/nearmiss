@@ -1,0 +1,160 @@
+name: Source proposal (new incident source adapter)
+description: Propose a new real-data source before writing an adapter, so record kind, licensing, and bias labeling are settled first.
+title: "[source]: <dataset name>"
+labels:
+  - "enhancement"
+  - "source-proposal"
+  - "needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a source. Please open this **before** writing an adapter. The
+        framework is deliberately easy to extend, which makes it easy to extend in the wrong
+        direction, and the expensive mistakes here are editorial rather than technical.
+
+        **Read first:** [`docs/REAL-DATA.md` — What this does not
+        license](../blob/main/docs/REAL-DATA.md#what-this-does-not-license) and
+        [`CONTRIBUTING.md` — Proposing a new incident
+        source](../blob/main/CONTRIBUTING.md#proposing-a-new-incident-source-source-adapters).
+
+        The single question that decides most proposals: **is this an event record or a condition
+        record?** An intake report is a conflict *event experienced by a person*, which is why the
+        schema requires `mode` and `severity`. A 311/SeeClickFix service request, a
+        pavement-inspection export, or an asset inventory describes a *place* with no person in it
+        and cannot fill those fields honestly. That is a "no" for intake, not a "yes with caveats".
+
+        Condition data is still worth analysing with exposure normalization — that is exactly what
+        the sibling [`honest_rates`](../blob/main/src/honest_rates/README.md) library is for, and a
+        worked example there is a welcome contribution.
+  - type: input
+    id: source-name
+    attributes:
+      label: Source name and URL
+      placeholder: "BikeMaps.org — https://bikemaps.org"
+    validations:
+      required: true
+  - type: dropdown
+    id: record-kind
+    attributes:
+      label: Record kind
+      description: What does one row of this dataset describe? If you are unsure, that is worth saying in the notes below rather than guessing.
+      options:
+        - "Event — a conflict experienced by a person (near miss, collision, close pass)"
+        - "Condition — an observed state of infrastructure (pothole, blocked lane, broken signal)"
+        - "Mixed — some rows are events, some are conditions"
+        - "Unsure"
+    validations:
+      required: true
+  - type: checkboxes
+    id: required-fields
+    attributes:
+      label: Required intake fields
+      description: |
+        Every intake report needs these. Tick only what the source **actually carries per record** —
+        not what could be inferred, assumed, or defaulted. `mode` has no `unknown` member, so a
+        source that does not record who was travelling cannot supply it honestly.
+      options:
+        - label: "`mode` — the travel mode of the person involved (cyclist / pedestrian / wheelchair / scooter)"
+        - label: "`severity` — an injury or outcome level per record (near miss / minor / serious)"
+        - label: "`occurred_at` — the time the **event happened**, not the time it was reported"
+        - label: "Coordinates (lat/lon) or a geocodable address"
+  - type: textarea
+    id: field-notes
+    attributes:
+      label: Field notes
+      description: For each box you could not tick, say what the source has instead. This is the most useful part of the proposal.
+      placeholder: |
+        mode: not recorded per row, but the whole platform is cycling-specific, so every
+              reporter is a cyclist (same justification as the BikeMaps adapter).
+        severity: free-text injury field, values look like "none / bruising / hospital".
+        occurred_at: ISO timestamps, no timezone offset — would need --utc-offset.
+    validations:
+      required: true
+  - type: input
+    id: license
+    attributes:
+      label: License
+      description: The specific license, not "open data". E.g. "PDDL 1.0", "CC BY 4.0", "CC0 1.0", "no license field set".
+    validations:
+      required: true
+  - type: input
+    id: license-evidence
+    attributes:
+      label: License evidence (URL)
+      description: |
+        A link to the actual license field or terms clause — not the homepage. For portals, the
+        machine-readable endpoint is best: Socrata `/api/views/<id>.json`, CKAN
+        `/api/3/action/package_show?id=<slug>`, ArcGIS `/FeatureServer/0?f=json`.
+    validations:
+      required: true
+  - type: textarea
+    id: redistribution
+    attributes:
+      label: Redistribution rights
+      description: |
+        Quote the operative sentence. Permission to *read* an API is not permission to *republish*
+        a derived dataset. Flag NonCommercial terms (incompatible with Apache-2.0 and the Open
+        Definition) and ShareAlike terms (viral onto any dataset they are merged into), and say
+        whether bulk extraction needs prior written permission.
+      placeholder: |
+        > "..." (quoted from <url>)
+
+        Derived/aggregated publication permitted: yes / no / unclear
+        Attribution string required: ...
+        Bulk use requires prior permission: yes / no
+    validations:
+      required: true
+  - type: textarea
+    id: bias-profile
+    attributes:
+      label: Bias profile — all eight axes
+      description: |
+        Answer every axis in this source's own terms. `load_crosswalk` rejects a missing, blank, or
+        placeholder answer, and the conformance suite checks the axes are answered distinctly, so
+        "n/a" will not pass. If an axis genuinely does not apply, say so **and say why**. This is
+        hard rule 3 ("reporting bias is named, not hidden") and it is where review will push
+        hardest. See [`docs/DATA-CARD.md`](../blob/main/docs/DATA-CARD.md#known-reporting-biases-who-is-over--and-under-represented).
+      value: |
+        route_choice:
+        reporter_pool:
+        app_access:
+        language:
+        demographic_skew:
+        survivorship:
+        salience:
+        temporal_campaign:
+    validations:
+      required: true
+  - type: textarea
+    id: access
+    attributes:
+      label: Access path and offline fixture
+      description: |
+        How is the data obtained (public API, bulk download, per-city export, emailed extract)? An
+        adapter must be testable with **no network**, so describe the small fixture payload you
+        would commit. Do not paste real precise report data into this issue.
+      placeholder: |
+        Public GeoJSON endpoint at https://.../nearmiss.json, plus a documented CSV export.
+        Fixture: a 2-feature GeoJSON trimmed from the public export, no personal detail.
+    validations:
+      required: true
+  - type: input
+    id: coverage
+    attributes:
+      label: Coverage and volume
+      description: Roughly how many records, over what geography and what date range? Note if coverage is concentrated somewhere specific.
+      placeholder: "~6,200 reports worldwide; densest in Victoria BC; 2014-present"
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I have read [What this does not license](../blob/main/docs/REAL-DATA.md#what-this-does-not-license) and believe this source is an *event* source.
+          required: true
+        - label: I have checked the actual license field or terms clause, and linked it above.
+          required: true
+        - label: This issue contains no precise raw report data, real home/route coordinates, or identifying details.
+          required: true
+        - label: I understand the maintainer may say no to a source, and that proposing before coding is exactly why this form exists.
+          required: true

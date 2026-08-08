@@ -1,8 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
 """SourceAdapter framework: a small protocol plus declarative TOML crosswalks so
-each new real-data source (BikeMaps, SimRa, a future city 311/SeeClickFix export,
-an advocacy-group spreadsheet, ...) becomes a manifest and a thin fetch/parse
-module instead of a bespoke one-off script.
+each new real-data source (BikeMaps, SimRa, another crowdsourced near-miss
+platform, an advocacy-group spreadsheet, ...) becomes a manifest and a thin
+fetch/parse module instead of a bespoke one-off script.
+
+Eligibility is narrower than "any dataset with points on a map". An intake
+report is a *conflict event experienced by a person*, so it carries ``mode``
+(who was involved) and ``severity`` (what happened to them). A source of
+*condition* records — a 311/SeeClickFix service request, a pavement-inspection
+export, an asset inventory — describes infrastructure with no person in it and
+can supply neither field honestly: ``mode`` has no ``unknown`` member, and
+``occurred_at`` is event time, not the moment somebody filed a complaint. Such
+a source does not become an incident source by way of a crosswalk. See
+``docs/REAL-DATA.md`` ("What this does not license") for the full argument.
 
 Every adapter maps its source's own vocabulary onto the *closed* intake enums in
 ``schema/report.schema.json`` and returns reports in that contract, never
@@ -36,6 +46,37 @@ from ..validation import find_report_schema
 
 CROSSWALK_DIR = Path(__file__).resolve().parent / "crosswalks"
 
+#: The bias axes every source must answer, mirroring the named biases in
+#: ``docs/DATA-CARD.md`` ("Known reporting biases"). Hard rule #3 is "reporting
+#: bias is named, not hidden"; before this list existed the only thing enforced
+#: was that ``bias_notes`` was non-empty, so ``["some reports"]`` passed. A
+#: source's skew is only useful downstream if it is answered axis by axis, in
+#: that source's own terms, so two sources' profiles can be compared rather than
+#: blended. Keep this tuple in sync with the data card's section.
+BIAS_AXES: tuple[str, ...] = (
+    "route_choice",
+    "reporter_pool",
+    "app_access",
+    "language",
+    "demographic_skew",
+    "survivorship",
+    "salience",
+    "temporal_campaign",
+)
+
+#: Shortest acceptable answer for one bias axis. Not a quality bar -- it only
+#: catches the empty string and one-word dismissals like "none" or "n/a". A
+#: genuinely inapplicable axis still has to say *why* it does not apply, which
+#: does not fit in 40 characters.
+_MIN_BIAS_ANSWER_CHARS = 40
+
+#: Answers that assert nothing. An axis that truly does not apply must explain
+#: the reason ("SimRa has no free-text field, so language bias cannot ..."),
+#: because "n/a" is exactly the non-answer this check exists to reject.
+_PLACEHOLDER_BIAS_ANSWERS = frozenset(
+    {"", "-", "--", "n/a", "na", "none", "tbd", "todo", "unknown", "not applicable", "?"}
+)
+
 
 @dataclass(frozen=True)
 class Provenance:
@@ -53,8 +94,17 @@ class Provenance:
     source_url: str
     license: str
     bias_label: str
-    bias_notes: tuple[str, ...]
+    bias_profile: dict[str, str]
     counts_by_kind: dict[str, int] = field(default_factory=dict)
+
+    @property
+    def bias_notes(self) -> tuple[str, ...]:
+        """The bias profile as a flat tuple, in :data:`BIAS_AXES` order.
+
+        Kept so callers that just want to print a source's caveats do not have
+        to know the axis vocabulary. The profile is the source of truth.
+        """
+        return tuple(self.bias_profile[axis] for axis in BIAS_AXES if axis in self.bias_profile)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -63,6 +113,7 @@ class Provenance:
             "source_url": self.source_url,
             "license": self.license,
             "bias_label": self.bias_label,
+            "bias_profile": dict(self.bias_profile),
             "bias_notes": list(self.bias_notes),
             "counts_by_kind": dict(self.counts_by_kind),
         }
@@ -117,7 +168,16 @@ class Crosswalk:
         url = "https://bikemaps.org"
         license = "..."
         bias_label = "..."
-        bias_notes = ["...", "..."]
+
+        [source.bias_profile]   # every axis in BIAS_AXES, no exceptions
+        route_choice = "..."
+        reporter_pool = "..."
+        app_access = "..."
+        language = "..."
+        demographic_skew = "..."
+        survivorship = "..."
+        salience = "..."
+        temporal_campaign = "..."
 
         [hazard_type]
         default = "other"
@@ -140,6 +200,9 @@ class Crosswalk:
     crosswalk's "honesty over precision we don't have" rule (see
     ``docs/REAL-DATA.md``) — unmapped values fall back to ``default`` rather
     than overstate a distinction the closed intake vocabulary cannot represent.
+
+    ``[source.bias_profile]`` must answer every axis in :data:`BIAS_AXES`;
+    :func:`load_crosswalk` rejects a missing, blank, or placeholder answer.
     """
 
     source_id: str
@@ -147,7 +210,7 @@ class Crosswalk:
     source_url: str
     license: str
     bias_label: str
-    bias_notes: tuple[str, ...]
+    bias_profile: dict[str, str]
     hazard_default: str
     hazard_rules: tuple[tuple[str, str, str], ...]  # (when, value, rationale)
     severity_default: str
@@ -175,9 +238,61 @@ class Crosswalk:
             source_url=self.source_url,
             license=self.license,
             bias_label=self.bias_label,
-            bias_notes=self.bias_notes,
+            bias_profile=dict(self.bias_profile),
             counts_by_kind=dict(counts_by_kind or {}),
         )
+
+
+def _load_bias_profile(name: str, source: dict[str, Any]) -> dict[str, str]:
+    """Validate ``[source.bias_profile]`` against :data:`BIAS_AXES`.
+
+    Hard rule #3 says reporting bias is named, not hidden. A source that skips
+    an axis, or answers it with "n/a", has hidden it, so this fails the load
+    rather than letting an under-documented source into the registry.
+    """
+    raw = source.get("bias_profile")
+    if not isinstance(raw, dict):
+        raise ValueError(
+            f"crosswalk {name!r}: [source.bias_profile] is required and must answer every axis "
+            f"in {list(BIAS_AXES)} (see docs/REAL-DATA.md, 'The bias profile every source must "
+            f"answer')"
+        )
+
+    missing = [axis for axis in BIAS_AXES if axis not in raw]
+    if missing:
+        raise ValueError(
+            f"crosswalk {name!r}: [source.bias_profile] missing required axis/axes {missing}. "
+            f"Every axis must be answered in this source's own terms; if one genuinely does not "
+            f"apply, say so and say why."
+        )
+
+    unknown = sorted(set(raw) - set(BIAS_AXES))
+    if unknown:
+        raise ValueError(
+            f"crosswalk {name!r}: [source.bias_profile] has unrecognized axis/axes {unknown}; "
+            f"the closed axis list is {list(BIAS_AXES)}"
+        )
+
+    problems: list[str] = []
+    for axis in BIAS_AXES:
+        answer = raw[axis]
+        if not isinstance(answer, str):
+            problems.append(f"{axis}: must be a string, got {type(answer).__name__}")
+            continue
+        stripped = answer.strip()
+        if stripped.lower().rstrip(".") in _PLACEHOLDER_BIAS_ANSWERS:
+            problems.append(
+                f"{axis}: {stripped!r} asserts nothing; explain the axis or why it does not apply"
+            )
+        elif len(stripped) < _MIN_BIAS_ANSWER_CHARS:
+            problems.append(
+                f"{axis}: {stripped!r} is {len(stripped)} chars, under the "
+                f"{_MIN_BIAS_ANSWER_CHARS}-char floor for a substantive answer"
+            )
+    if problems:
+        raise ValueError(f"crosswalk {name!r}: [source.bias_profile] " + "; ".join(problems))
+
+    return {axis: str(raw[axis]).strip() for axis in BIAS_AXES}
 
 
 def load_crosswalk(name: str) -> Crosswalk:
@@ -187,6 +302,10 @@ def load_crosswalk(name: str) -> Crosswalk:
     ``default``) is checked against the intake schema's closed enum for that
     field; a manifest that targets a value the schema does not accept raises
     ``ValueError`` immediately rather than failing later as a rejected report.
+
+    ``[source.bias_profile]`` is validated the same way: every axis in
+    :data:`BIAS_AXES` must carry a substantive answer, so a new source cannot
+    reach the registry with its skew undocumented.
     """
     path = CROSSWALK_DIR / f"{name}.toml"
     if not path.is_file():
@@ -201,6 +320,7 @@ def load_crosswalk(name: str) -> Crosswalk:
     for required in ("id", "name", "url", "license", "bias_label"):
         if required not in source:
             raise ValueError(f"crosswalk {name!r}: [source] missing required key {required!r}")
+    bias_profile = _load_bias_profile(name, source)
 
     hazard = data.get("hazard_type", {})
     severity = data.get("severity", {})
@@ -242,7 +362,7 @@ def load_crosswalk(name: str) -> Crosswalk:
         source_url=source["url"],
         license=source["license"],
         bias_label=source["bias_label"],
-        bias_notes=tuple(source.get("bias_notes", [])),
+        bias_profile=bias_profile,
         hazard_default=hazard_default,
         hazard_rules=hazard_rules,
         severity_default=severity_default,

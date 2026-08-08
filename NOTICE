@@ -42,6 +42,24 @@ BikeMaps.org (https://bikemaps.org, SPARLab/BikeMaps). BikeMaps data is the
 property of its contributors and the BikeMaps project; consult BikeMaps.org for
 its terms before redistributing data derived from it.
 
+The SimRa bridge (tools/fetch_simra.py) reads the openly published SimRa dataset
+(TU Berlin, https://github.com/simra-project/dataset). SimRa data is licensed
+CC BY-NC 4.0 (https://creativecommons.org/licenses/by-nc/4.0/), with an
+additional grant from the project for journalistic use, and is subject to the
+terms of use in that repository. The NonCommercial condition is a real
+constraint and does not disappear when the data is aggregated: a published
+dataset assembled from SimRa reports carries it, and such a dataset is therefore
+not distributable under Apache-2.0 alone. No SimRa-derived data is currently
+committed to or published from this repository; the adapter is a local ingestion
+path only.
+
+Incident source adapters generally (src/nearmiss/adapters/) read third-party
+datasets that retain their own licenses and terms. Each source's license is
+recorded in its crosswalk manifest under src/nearmiss/adapters/crosswalks/.
+Apache-2.0 covers this project's code, schema, and methods; it does not and
+cannot relicense someone else's data. Check the manifest before redistributing
+anything derived from a source.
+
 This NOTICE file is provided for attribution under Section 4(d) of the License.
 Attribution notices from within this work are included here. This NOTICE text
 is for informational purposes only and does not modify the License.

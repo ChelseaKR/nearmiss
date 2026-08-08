@@ -28,6 +28,8 @@ finding more accessible — not just prettier.
 - [The gates you must pass locally (`make verify`)](#the-gates-you-must-pass-locally-make-verify)
 - [Commit message format (conventional commits)](#commit-message-format-conventional-commits)
 - [Developer Certificate of Origin and licensing](#developer-certificate-of-origin-and-licensing)
+  - [Data rights are a separate question from code rights](#data-rights-are-a-separate-question-from-code-rights)
+- [Proposing a new incident source (source adapters)](#proposing-a-new-incident-source-source-adapters)
 - [Proposing a schema change](#proposing-a-schema-change)
 - [Adding a city, an exposure source, or a hazard type](#adding-a-city-an-exposure-source-or-a-hazard-type)
 - [Pull request checklist](#pull-request-checklist)
@@ -322,6 +324,85 @@ New source files carry an SPDX header so the license is machine-readable:
 Do not contribute code, data, or text that you do not have the right to license under
 Apache-2.0. In particular, this project contains **no proprietary or client material**, and
 contributions must keep it that way.
+
+### Data rights are a separate question from code rights
+
+The DCO covers **code you wrote**. It says nothing about **data you did not write**, and adding a
+source adapter means republishing someone else's dataset in derived form. Those are different
+rights and they fail in different ways, so a source proposal must answer all five of these before
+any adapter is written:
+
+1. **Redistribution, not just access.** Permission to *read* an API is not permission to
+   *republish* what it returns. Free, public, and keyless are not licenses. The question is
+   whether you may distribute a derived dataset, not whether the endpoint answers.
+2. **Derived and aggregated publication.** nearmiss publishes an aggregated, segment-level
+   GeoJSON, so confirm the license permits derivative works *and* their distribution. Watch for
+   **NonCommercial** terms (incompatible with Apache-2.0 and with the Open Definition) and
+   **ShareAlike** terms (viral: they force their own license onto the combined dataset and can
+   contaminate otherwise-clean sources merged alongside them).
+3. **Attribution obligations.** Record the exact attribution string required and where it must
+   appear. It belongs in the crosswalk manifest's `license` field and in the data card.
+4. **Evidence, as a URL to the actual license.** Not the homepage, not "it is open data" — a link
+   to the machine-readable license field or the specific terms clause, with the operative sentence
+   quoted in the proposal.
+5. **Bulk-use and rate terms.** Some sources allow incidental queries but require prior permission
+   for bulk extraction, which is exactly what building a dataset is. If permission is needed, get
+   it in writing and say so.
+
+**"It is on an open data portal" is not evidence.** Municipal 311 datasets, checked 2026-08-07, are
+genuinely uneven: San Francisco publishes under PDDL 1.0, Boston under ODC-PDDL, Los Angeles under
+CC0 1.0, and Austin and Kansas City as public domain, all cleanly redistributable — while New York
+City's 311 dataset sets **no license field at all**, and Chicago's terms reserve the right to
+require you to stop distributing, expressly grant no intellectual property rights, and attach a
+mandatory disclaimer and an indemnity. Same kind of data, four different answers. Check the source
+you are actually using.
+
+Most portals expose the license in machine-readable form, so quote it rather than paraphrase it:
+
+```bash
+# Socrata (SF, NYC, Chicago, LA, Austin, KCMO, ...)
+curl -s "https://data.sfgov.org/api/views/vw6y-z8j6.json" | jq '.license, .licenseId'
+# CKAN (Boston, ...)
+curl -s "https://data.boston.gov/api/3/action/package_show?id=311-service-requests" \
+  | jq '.result.license_id, .result.license_url'
+# ArcGIS feature services
+curl -s "https://<host>/FeatureServer/0?f=json" | jq '.copyrightText'
+```
+
+If the license field is `null`, empty, or "see terms of use", that is a finding to report in the
+proposal, not a detail to smooth over.
+
+## Proposing a new incident source (source adapters)
+
+Before writing an adapter, open a
+[source proposal](.github/ISSUE_TEMPLATE/source_proposal.yml) and let it be agreed. The framework
+is deliberately easy to extend, which makes it easy to extend in the wrong direction, so the
+gate is editorial rather than technical.
+
+**The first question decides the rest: is this an event record or a condition record?** An intake
+report is a conflict *event experienced by a person*, which is why
+[`schema/report.schema.json`](schema/report.schema.json) requires `mode` (who was involved) and
+`severity` (what happened to them), and defines `occurred_at` as the time of the event rather than
+the time of the report. A source of *condition* records — a 311/SeeClickFix service request, a
+pavement-inspection export, an asset inventory — describes a place with no person in it and cannot
+fill those fields honestly. `mode` has no `unknown` member, so there is no honest value to write.
+Such a source does not become an incident source by way of a crosswalk; see
+[`docs/REAL-DATA.md`](docs/REAL-DATA.md#what-this-does-not-license).
+
+Condition data is still a legitimate subject for exposure-normalized analysis. That is what the
+sibling [`honest_rates`](src/honest_rates/README.md) library is for, and a worked example there is
+a welcome contribution. It is just not a nearmiss intake source.
+
+A source that clears the record-kind gate then needs:
+
+1. **Data rights**, per the five questions above.
+2. **A bias profile answering all eight axes** (`route_choice`, `reporter_pool`, `app_access`,
+   `language`, `demographic_skew`, `survivorship`, `salience`, `temporal_campaign`), in that
+   source's own terms. `load_crosswalk` rejects a missing, blank, or placeholder answer, and the
+   conformance suite asserts the axes are answered distinctly. This is usually the hardest part
+   and the part review will push on hardest, because hard rule 3 lives or dies here.
+3. **An offline fixture**, so `parse()` is testable with no network, mirroring the existing
+   `--from-file` / `--dir` paths.
 
 ## Proposing a schema change
 
