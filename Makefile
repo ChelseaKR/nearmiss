@@ -31,7 +31,7 @@ PUBLISHED_DIR := data/published
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install lock lock-dev lint type test accessibility axe rtl web-check security verify \
+.PHONY: help install lock lock-dev lint type test accessibility axe rtl web-check security verify smoke-wheel \
         conformance i18n i18n-compile i18n-pseudo claims qgis-plugin-test \
         reproduce sensitivity demo teach publish serve bench bench-suite bench-suite-verify \
         bikemaps simra osm-streets real clean mutation release-build
@@ -182,6 +182,25 @@ claims: ## Claims-parity gate: docs/CLAIMS.md manifest <-> doc claim tags <-> wi
 	# this fails on drift in either direction (tagged-but-unlisted, or a listed
 	# claim whose tag/witness went missing). Local == CI.
 	$(PYTHON) tools/check_claims.py
+
+
+smoke-wheel: ## Install the built wheel into a clean venv and exercise the CLI
+	@# The gate that 0.3.0 needed and did not have: building, signing and
+	@# attesting an artifact proves nothing about whether the installed thing
+	@# runs. Validation reads schema/report.schema.json at runtime, which the
+	@# wheel did not ship, so the CLI raised on first use from PyPI.
+	rm -rf dist .smoke-venv
+	uv build --wheel
+	uv venv .smoke-venv
+	VIRTUAL_ENV=.smoke-venv uv pip install --quiet dist/*.whl
+	@# Run from / so nothing resolves against this checkout.
+	cd / && $(CURDIR)/.smoke-venv/bin/python -c "import nearmiss, nearmiss.validation as v; \
+	  p = v.find_report_schema(); \
+	  assert p.is_file(), p; \
+	  print('installed', nearmiss.__version__, 'resolved schema at', p)"
+	cd / && $(CURDIR)/.smoke-venv/bin/nearmiss --help > /dev/null
+	rm -rf .smoke-venv
+	@echo "smoke-wheel: the installed artifact runs"
 
 verify: lint type test accessibility web-check security i18n claims conformance ## Full merge gate: lint + type + test + web/a11y + security + i18n + claims + conformance
 	@echo "verify: all merge gates green (lint, type, test, web/a11y, security, i18n, claims, conformance)."

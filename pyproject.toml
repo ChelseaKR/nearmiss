@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nearmiss-safety"
-version = "0.3.0"
+version = "0.3.1"
 description = "An open dataset and statistically honest analysis of road hazards and near misses for safe-streets advocacy."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -116,6 +116,14 @@ nearmiss = "nearmiss.__main__:main"
 # statistics core — no nearmiss import anywhere in it — that nearmiss itself
 # consumes; see src/honest_rates/README.md.
 packages = ["src/nearmiss", "src/honest_rates"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"schema" = "nearmiss/schema"
+
+# The JSON schemas are read at runtime (validation.find_report_schema), not just
+# referenced by docs. They live at the repository root, outside src/, so without
+# this the wheel ships code that cannot find its own contract: every release
+# through 0.3.0 installed fine and then raised on the first report validation.
 
 # ---------------------------------------------------------------------------
 # Lint — ruff (style + a broad rule set). Part of `make verify`.

@@ -27,4 +27,4 @@ try:
 except PackageNotFoundError:
     # Not installed (e.g. a source checkout with no editable install yet) —
     # fall back so `import nearmiss` still works for local tooling and tests.
-    __version__ = "0.3.0"
+    __version__ = "0.3.1"

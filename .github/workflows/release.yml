@@ -112,6 +112,19 @@ jobs:
       - name: Build the sdist + wheel (reproducible, deterministic)
         run: make release-build
 
+      - name: Smoke the built wheel in a clean environment
+        # Building, signing and attesting an artifact says nothing about
+        # whether the installed thing runs. 0.3.0 passed every gate above and
+        # then raised on first use because the wheel shipped no
+        # schema/report.schema.json. Install it somewhere else and run it.
+        run: |
+          set -euo pipefail
+          uv venv /tmp/release-smoke
+          VIRTUAL_ENV=/tmp/release-smoke uv pip install --quiet dist/*.whl
+          cd /
+          /tmp/release-smoke/bin/python -c "import nearmiss, nearmiss.validation as v; p = v.find_report_schema(); assert p.is_file(), p; print('resolved', p)"
+          /tmp/release-smoke/bin/nearmiss --help > /dev/null
+
       - name: Generate a CycloneDX 1.7 SBOM for the release artifacts
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
