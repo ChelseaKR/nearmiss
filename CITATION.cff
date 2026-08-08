@@ -31,8 +31,8 @@ authors:
   - given-names: Chelsea
     family-names: Kelly-Reif
     alias: ChelseaKR
-version: 0.1.0
-date-released: '2026-06-16'
+version: 0.3.0
+date-released: '2026-08-08'
 license: Apache-2.0
 repository-code: https://github.com/ChelseaKR/nearmiss
 url: https://nearmiss.chelseakr.com

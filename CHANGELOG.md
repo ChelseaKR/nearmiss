@@ -56,6 +56,8 @@ every entry.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-08
+
 ### Changed
 
 - **Packaging: the PyPI distribution is now `nearmiss-safety`.** The name `nearmiss`
