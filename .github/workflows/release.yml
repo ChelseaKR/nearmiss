@@ -119,8 +119,9 @@ jobs:
         # schema/report.schema.json. Install it somewhere else and run it.
         run: |
           set -euo pipefail
-          uv venv /tmp/release-smoke
-          VIRTUAL_ENV=/tmp/release-smoke uv pip install --quiet dist/*.whl
+          python -m venv /tmp/release-smoke
+          /tmp/release-smoke/bin/python -m pip install --quiet --upgrade pip
+          /tmp/release-smoke/bin/python -m pip install --quiet dist/*.whl
           cd /
           /tmp/release-smoke/bin/python -c "import nearmiss, nearmiss.validation as v; p = v.find_report_schema(); assert p.is_file(), p; print('resolved', p)"
           /tmp/release-smoke/bin/nearmiss --help > /dev/null
