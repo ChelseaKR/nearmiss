@@ -287,8 +287,8 @@ ledger for the item-by-item map.
 - **Hashed CI installs.** `make lock-dev` compiles the dev toolchain (`.[dev]`: pytest, ruff, mypy,
   pip-audit, babel, ...) to a new committed, hashed `requirements-dev.lock`. Every CI job in
   `.github/workflows/ci.yml` now installs from it with `pip install --require-hashes`, then the local
-  package `--no-deps -e .`, instead of resolving `pip install -e ".[dev]"` fresh on every run. Closes
-  `audit-2026-07-05/nearmiss-REMEDIATION.md` P1-4.
+  package `--no-deps -e .`, instead of resolving `pip install -e ".[dev]"` fresh on every run. This
+  closed P1-4 from the 2026-07-05 remediation pass.
 - **Single-sourced version strings.** `publish.py`'s embedded and sidecar metadata now read
   `dataset_version` and `schema_version` from the new `src/nearmiss/versions.py`
   (`DATASET_VERSION`, `DATASET_SCHEMA_VERSION`), instead of hand-duplicated `"0.1.0"` / `"1.0.0"`

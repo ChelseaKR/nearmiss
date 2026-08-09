@@ -2,7 +2,7 @@
 # OpenSSF Scorecard — a weekly, third-party-verifiable check of this repo's own supply-chain
 # posture (branch protection, token permissions, dangerous-workflow patterns, pinned dependencies,
 # signed releases, etc.), published to https://scorecard.dev so the score is independently checkable
-# rather than self-asserted. Added 2026-07-05 per audit-2026-07-05/nearmiss-REMEDIATION.md P1-3
+# rather than self-asserted. Added in the 2026-07-05 remediation pass
 # (SEC-36, SEC-37, CICD-03, CICD-11, CICD-21).
 #
 # NOTE: this workflow only takes effect once committed and pushed to GitHub, where the schedule

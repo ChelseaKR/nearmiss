@@ -11,7 +11,7 @@
 > row, an ARIA-APG audit for the submission form's custom controls, a plain-language/cognitive review
 > of the form (WCAG 3.3.7/3.3.8 redundant-entry), or a third-party/embed audit for the vendored
 > Leaflet map used in the widget. A full re-issue covering both new surfaces is an M-effort item
-> (`P2-3` in `audit-2026-07-05/nearmiss-REMEDIATION.md`) and was judged out of scope for this pass;
+> (`P2-3` in the 2026-07-05 remediation pass) and was judged out of scope for this pass;
 > this banner exists so the gap is loud rather than silently implied-covered by an unchanged document.
 > Do not read this ACR as certifying `submit.html` or `embed.html`.
 > As of 2026-07-16 those synthetic methods, submission, and embed surfaces remain source/CI fixtures

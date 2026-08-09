@@ -1,8 +1,8 @@
 # Responsible-Tech Audits — nearmiss
 
 Instantiates `docs/standards/RESPONSIBLE-TECH-FRAMEWORK.md`. **Last regenerated: 2026-07-05** (initial
-version — this file did not exist before this date; see `audit-2026-07-05/nearmiss-REMEDIATION.md`
-P2-1). Regenerate on each release per the framework's audit-as-artifact discipline.
+version — this file did not exist before this date; P2-1 in that day's remediation pass). Regenerate
+on each release per the framework's audit-as-artifact discipline.
 
 ## Applicability
 

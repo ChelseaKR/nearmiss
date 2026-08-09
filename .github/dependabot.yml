@@ -6,7 +6,7 @@
 # `requirements-dev.lock` (runtime + the full dev toolchain) are both generated, fully pinned,
 # hashed lockfiles produced by `pip-compile --generate-hashes` (`make lock` / `make lock-dev`),
 # committed at the repo root; CI installs from `requirements-dev.lock` with `--require-hashes`
-# (FIX-11, closes audit-2026-07-05/nearmiss-REMEDIATION.md P1-4). `uv.lock` is also committed;
+# (FIX-11 from the 2026-07-05 remediation pass). `uv.lock` is also committed;
 # whether to consolidate the whole toolchain onto `uv` instead of pip-tools remains an open,
 # separate decision — not resolved by this pinning. GitHub Actions in this
 # repo's workflows are SHA-pinned (every `uses:` carries a full commit SHA with
