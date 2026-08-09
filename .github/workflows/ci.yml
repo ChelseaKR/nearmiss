@@ -49,8 +49,8 @@ concurrency:
 env:
   # CI installs from the hashed dev-toolchain lock (`requirements-dev.lock`,
   # `make lock-dev`) with `--require-hashes`, then the local package editable
-  # and `--no-deps` (FIX-11 — closes audit-2026-07-05/nearmiss-REMEDIATION.md
-  # P1-4). `requirements.lock` (`make lock`) remains the separate, smaller
+  # and `--no-deps` (FIX-11 from the 2026-07-05 remediation pass).
+  # `requirements.lock` (`make lock`) remains the separate, smaller
   # RUNTIME-only lock for consumers who just `pip install nearmiss`.
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   PIP_NO_PYTHON_VERSION_WARNING: "1"
