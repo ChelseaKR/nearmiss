@@ -74,7 +74,7 @@ dev = [
 # merge gate. Mutation testing is advisory and non-blocking (see `make mutation`).
 # Install on demand:  pip install -e ".[mutation]"
 mutation = [
-  "mutmut>=3.6",
+  "mutmut>=3.7.0",
 ]
 # The PEP 517 build front-end used ONLY by the tag-triggered release workflow
 # (`.github/workflows/release.yml`, `make release-build`) to build the sdist +
