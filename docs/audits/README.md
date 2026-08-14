@@ -86,12 +86,19 @@ the index, the header is the record.
 
 ## Regenerated and re-committed on each release
 
-Audits are **regenerated and re-committed on every release.** A tagged release is not complete until the
-audit set for that version is produced and committed. This keeps the evidence honest in two directions:
+**This is the intended cadence, and it is not yet a description of what happened.** This directory
+holds two audit artifacts and this README. Neither artifact is a manual screen-reader review, and no
+audit set has been produced for a tagged release. Read the rest of this section as the commitment it
+is; read [`2026-07-16-national-evidence-studio-a11y.md`](2026-07-16-national-evidence-studio-a11y.md)
+for what an honest, explicitly incomplete record looks like in the meantime.
 
-1. **Every release has a matching, dated audit set.** There is no released version whose security,
-   accessibility, dependency, and reproducibility state is undocumented. The audit dated nearest a
-   release tag *is* that release's evidence.
+Audits are to be **regenerated and re-committed on every release.** A tagged release is not complete
+until the audit set for that version is produced and committed. This keeps the evidence honest in two
+directions:
+
+1. **Every release should have a matching, dated audit set,** so that no released version's
+   security, accessibility, dependency, and reproducibility state is undocumented. The audit dated
+   nearest a release tag *is* that release's evidence. No release has met this yet.
 2. **Drift is visible.** Because old artifacts are kept rather than overwritten in place, the diff
    between one release's audit and the next shows the project's trajectory — advisories opened and
    closed, accessibility criteria gained or regressed, interval-coverage holding or slipping. The
