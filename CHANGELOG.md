@@ -56,6 +56,38 @@ every entry.
 
 ## [Unreleased]
 
+### Added
+
+- **`tools/doc_audit.py` + `make docs-audit` / `make docs-audit-check`.** The documentation audit's
+  inventory, counts, and local-link check are now generated from the tree between
+  `BEGIN GENERATED` / `END GENERATED` markers in `docs/DOCUMENTATION-AUDIT.md`, so the numbers can
+  drift for at most one pull request. `tests/test_doc_audit.py` runs the drift check as part of
+  `make test`, re-derives the counts independently of the generator, and asserts that the drift check
+  itself fails on drift.
+
+### Fixed
+
+- **`docs/DOCUMENTATION-AUDIT.md` reported `pass` on counts that no longer described the repository.**
+  Its test-file count was low by roughly 3x, its workflow list named four of six — omitting
+  `live-integrity.yml` and `release.yml`, the daily live-site sentinel and the signed release
+  pipeline — and its architecture-doc count was smaller than the ADR directory alone. Nothing in the
+  repository generated or checked the file, so a document published to show that the project's
+  process claims are real had become a validation surface reporting success about records it no
+  longer inspected.
+- **`pass` is now reserved for a real predicate.** Presence checks and the relative-link check can
+  pass or fail; an inventory count cannot, and the old table's standing `pass` on a count row
+  borrowed authority the number never had. Counts are reported as inventory.
+- The generated block carries no timestamp: a generated date would drift daily and make the drift
+  check meaningless. The dated narrative of the 2026-07-08 sweep is preserved outside the generated
+  block as history rather than as a current verdict.
+- **The link check is case-sensitive regardless of the host filesystem.** `Path.exists()` folds case
+  on macOS/APFS and does not on the Linux hosts CI and github.com run on, so a link whose case is
+  wrong passed on a laptop and 404'd for every reader. Each path component is now matched against the
+  real directory listing. This is not hypothetical: `docs/README.md` carried a duplicate
+  "Accessibility" entry pointing at `accessibility.md` — the file is `ACCESSIBILITY.md`, and
+  `docs/accessibility.md` does not exist — on the first page of the docs index, under an audit line
+  that read "0 unresolved". The duplicate is deleted and the check now catches its kind.
+
 ## [0.3.1] - 2026-08-08
 
 ### Fixed
