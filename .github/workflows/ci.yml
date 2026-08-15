@@ -309,6 +309,13 @@ jobs:
       - name: Claims-parity gate (make claims)
         run: make claims
 
+      # CQ-34 is declared an AUTO-GATE by the vendored CODE-QUALITY-STANDARD and
+      # had no implementation anywhere until tools/check_debt_markers.py. Runs in
+      # this job rather than its own so the two "the docs and the tree agree"
+      # gates share one checkout. Pure stdlib: no extra install cost.
+      - name: Debt-marker gate, CQ-34 (make markers)
+        run: make markers
+
   accessibility:
     name: accessibility (structural WCAG gate + axe-core on web UI)
     if: github.event_name != 'schedule'
