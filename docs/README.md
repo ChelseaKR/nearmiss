@@ -1,13 +1,13 @@
 # NearMiss Docs
 
-This index is the handoff point for the documentation sweep last reviewed on 2026-07-08. It keeps the project map, audit record, and main operating docs in one place.
+This index keeps the project map, audit record, and main operating docs in one place. It is hand-maintained; the audit's inventory and counts are not, and are regenerated from the tree.
 
 **Live public preview:** [NearMiss Conflict Atlas](https://nearmiss.chelseakr.com)
 
 ## Documentation Audit
 
 - [Project scope](PROJECT-SCOPE.md) names the product, users, code and data surfaces, safety boundaries, and out-of-scope items.
-- [Documentation audit](DOCUMENTATION-AUDIT.md) records the inventory, link check, findings, and remediations from this sweep.
+- [Documentation audit](DOCUMENTATION-AUDIT.md) carries the doc inventory, counts, and local-link check, generated from the tree by `tools/doc_audit.py` (`make docs-audit`) and gated against drift, plus the dated remediation history of the sweeps behind it.
 
 ## Primary Docs
 
@@ -22,7 +22,6 @@ This index is the handoff point for the documentation sweep last reviewed on 202
 - [Contributing](../CONTRIBUTING.md)
 - [I18N](I18N.md)
 - [Accessibility](ACCESSIBILITY.md)
-- [Accessibility](accessibility.md)
 - [Adapting](ADAPTING.md)
 - [Data Card](DATA-CARD.md)
 - [Dpia](DPIA.md)

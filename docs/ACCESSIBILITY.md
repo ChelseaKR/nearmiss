@@ -1,8 +1,6 @@
 # Accessibility statement and approach
 
-**Last reviewed:** 2026-07-16
-**Applies to:** the nearmiss local web map and table view (`src/nearmiss/server.py` + `web/`),
-the nationwide FARS evidence studio, the report form, and the published advocacy briefs and data card.
+**Last reviewed:** 2026-08-14
 **Conformance target:** WCAG 2.2 Level AA, and conformance with the Revised Section 508
 Standards (36 CFR Part 1194).
 **Maintainer:** Chelsea Kelly-Reif (GitHub [@ChelseaKR](https://github.com/ChelseaKR)).
@@ -11,6 +9,46 @@ This is a living statement. It describes what nearmiss commits to, how that comm
 tested, and how to tell us when we have fallen short. It is meant to hold up the same way the
 statistics are meant to hold up: when a skeptical reviewer pushes back, the claims here should
 survive scrutiny.
+
+**If you use a screen reader, read this first.** No part of nearmiss has been tested by a human
+using a screen reader. Two automated gates run on every change and both pass, but automated tooling
+catches at best roughly half of real barriers, and one of the two gates cannot see the parts of the
+studio that JavaScript builds. Section 6 states exactly what has and has not been checked. Nothing in
+this document should be read as "a blind user has successfully used this," because as of the review
+date above, to our knowledge, none has been asked to and none has reported back.
+
+---
+
+## 0. Scope: which surfaces this statement covers
+
+The public site serves six HTML documents across seven routes. The repository also keeps three
+source-only surfaces that are exercised by the accessibility gates but are **not** deployed.
+
+| Surface | Route(s) on the live site | Per-criterion ACR coverage |
+| --- | --- | --- |
+| Evidence-to-action gateway (`index.html`) | `/` | **Not covered** |
+| Error page (`404.html`) | `/404.html` | **Not covered** |
+| Legacy redirect stub (`web/index.html`) | `/web/index.html` | **Not covered** |
+| Nationwide FARS evidence studio (`web/us-coverage.html`) | `/fars/national/`, `/web/us-coverage.html` | **Not covered** — explicitly excluded by the ACR |
+| Studio (`web/studio.html`) | `/studio/` | **Not covered** |
+| Decision dossier sample (`web/dossier.html`) | `/dossier/` | **Not covered** |
+| Davis synthetic methods lab (`web/davis-demo.html`) | not deployed — source/CI fixture | This is the surface the ACR's tables evaluate |
+| Submission prototype (`web/submit.html`) | not deployed — source/CI fixture | **Not covered** |
+| Embed fixture (`web/embed.html`) | not deployed — source/CI fixture | **Not covered** |
+
+Two things follow from that table, and both are stated here rather than left to be discovered:
+
+1. **No page the public can load has per-criterion ACR coverage.** The
+   [ACR](accessibility/ACR.md) evaluates the former `index.html` + `app.js` + `style.css` map/table
+   surface, retained source-only as `davis-demo.html`. Extending the ACR to the deployed pages
+   requires evaluating them, which has not been done; a row invented without an evaluation would be
+   the exact failure this project exists to refuse. The honest position is the gap, named.
+2. **The published advocacy brief and data card are text, not web pages.** `nearmiss brief` renders
+   Markdown and plain text (`src/nearmiss/brief.py`); there is no HTML brief anywhere in `web/`, and
+   no automated accessibility gate runs against a brief.
+
+Sections 3, 4, 5, and 7 describe mechanisms in the `web/` sources, including the source-only
+surfaces. Where a mechanism belongs to a surface the public cannot load, that is said in place.
 
 ---
 
@@ -150,6 +188,11 @@ distinction; it is never allowed to be the *only* carrier of one.
 
 ## 5. The report form: keyboard operability, labels, and errors
 
+> **Not a deployed surface.** `web/submit.html` is a source-only prototype: it runs through the
+> structural and axe gates, and it is **not** part of the published artifact (see section 0). The
+> commitments below describe what that prototype implements and what any deployed form would have to
+> implement; they are not a statement about a form the public can currently use.
+
 The intake form (the contributor-facing front of `intake.py`) is the place where a real person,
 often on a phone at the roadside, hands us a report. It is held to the same bar as the map.
 
@@ -189,18 +232,67 @@ not forced into English to report a hazard on their own street; we are part of t
 
 ---
 
-## 6. Testing: automated and manual
+## 6. Testing: what has been checked, and by what
 
-Conformance is verified, not asserted. Two layers, both required for a conformance claim.
+A conformance claim needs two layers. **One of them runs. The other has never been performed.** This
+section separates them, because the difference is the whole of what a reader needs to know.
 
-**Automated.** [axe-core](https://github.com/dequelabs/axe-core) runs against the rendered map,
-table, report form, and brief pages in CI on every pull request. axe catches the machine-checkable
-failures — missing labels, contrast violations, broken name/role/value, invalid ARIA, structural
-problems — fast and on every change.
+### 6.1 What runs today (automated)
 
-**Manual screen-reader review.** Automated tools catch at best roughly half of real barriers, so
-nearmiss does not stop there. Each release is walked through with **NVDA** (Firefox, on Windows)
-and **VoiceOver** (Safari, on macOS/iOS), exercising the journeys that matter:
+Two automated gates run locally and in CI on every pull request, and both are merge-blocking.
+
+- **Structural gate** — [`tools/a11y_check.py`](../tools/a11y_check.py), part of `make verify` and
+  `make accessibility`. Dependency-free, and checks the page-level foundations: a language, a title,
+  landmarks and a heading, labeled data tables (`<caption>`, `<th scope>`), a skip link, and image
+  alternatives. It confirms the scaffolding is present; it says nothing about how the page behaves.
+- **axe-core in jsdom** — `make axe` → [`web/package.json`](../web/package.json) →
+  [`web/axe_check.mjs`](../web/axe_check.mjs). It runs against **nine files**: `index.html`,
+  `404.html`, `web/index.html`, `web/davis-demo.html`, `web/submit.html`, `web/embed.html`,
+  `web/us-coverage.html`, `web/studio.html`, and `web/dossier.html`. Every one currently passes with
+  no violations.
+
+Three limits on the axe run, stated because they are easy to miss and they matter:
+
+1. **It is a static-DOM scan, not a rendered-browser one.** `axe_check.mjs` parses each file's
+   shipped HTML into jsdom with `runScripts: "outside-only"` — page scripts do not execute. Any view
+   built at runtime by JavaScript, including the studio's national map, its state-by-mode matrix, and
+   every data row in it, is **not in the DOM this scan inspects**. What axe checks there is the
+   static shell.
+2. **Colour contrast is switched off in this run.** jsdom has no layout and no canvas, so rendered
+   contrast cannot be computed; enabling the rule would produce a meaningless result rather than a
+   real one. Contrast is instead reasoned about from the documented CSS tokens, and a measured pass
+   against the rendered page has not been performed.
+3. **Automated tooling catches at best roughly half of real barriers**, even on the DOM it does see.
+
+One narrower gate does exercise a JavaScript-populated DOM: the national studio's consumer contract
+([`web/us_coverage_check.mjs`](../web/us_coverage_check.mjs), run by `make web-check`) drives the
+studio's views in jsdom and runs axe against the populated result. That is still jsdom, still without
+the contrast rule, and still not a browser.
+
+There are **no brief pages** in any of these scans, and there never have been: `nearmiss brief`
+emits Markdown and plain text (`src/nearmiss/brief.py`), not HTML.
+
+### 6.2 What has never been performed (manual screen-reader review)
+
+**No manual screen-reader testing has been performed.** Not on the studio, not on the gateway, not
+on the source-only Davis map and table, not on any release. This is the same sentence the
+[ACR](accessibility/ACR.md) carries, and where this statement and the ACR ever disagree, **the ACR
+is the source of truth**.
+
+The evidence for that, in the project's own records:
+
+- [`docs/accessibility/ACR.md`](accessibility/ACR.md) — "No manual screen-reader testing has been
+  performed"; every per-criterion verdict that depends on it is marked *(target)*, not a finding.
+- [`docs/audits/2026-07-16-national-evidence-studio-a11y.md`](audits/2026-07-16-national-evidence-studio-a11y.md)
+  — NVDA + Firefox, VoiceOver + Safari (macOS), and VoiceOver + Safari (iOS) are each recorded as
+  **Not performed**, with "no human screen-reader evidence"; actual browser 200% zoom is likewise
+  **Not performed**.
+- [`docs/audits/`](audits/) holds two audit artifacts and a README. Neither artifact is a manual
+  screen-reader review, because none has happened.
+
+The required matrix is **NVDA** (Firefox, on Windows) and **VoiceOver** (Safari, on macOS and iOS).
+Those checks are **outstanding**. When they are performed, these are the journeys they will exercise
+— the list is a commitment, not a record:
 
 - read the ranked findings from the **table** end to end and confirm rates, intervals, and
   significance flags are announced;
@@ -209,18 +301,25 @@ and **VoiceOver** (Safari, on macOS/iOS), exercising the journeys that matter:
   with Enter and Space, and confirm focus remains visible and stable after linked views redraw;
 - read the nationwide **matrix, comparison table, five-year profile, and complete ledger**, and
   confirm that their counts and publication-status text provide the information in the visual views;
-- complete the **report form** by keyboard and screen reader, including triggering and recovering
-  from a validation error;
-- confirm **no information is lost** when color is removed (grayscale / forced-colors pass).
+- confirm **no information is lost** when color is removed (grayscale / forced-colors pass);
+- confirm the **gateway, studio, and dossier** pages are navigable and readable end to end, since
+  those are the pages the public actually lands on.
 
-Manual review is logged in [`docs/audits/`](audits/) so each release has a record of what was
-checked, with what tool, and what was found. Keyboard-only testing (no pointer) is part of every
-manual pass. For the nationwide evidence studio, a targeted browser keyboard and narrow-viewport pass
-is recorded; the uninterrupted full keyboard/200% zoom checks and required NVDA/VoiceOver passes
-remain pending, and the pre-release record does not count them as completed. While this portfolio has
-one accountable maintainer, ADR 0012 allows synthetic/browser evidence plus explicit owner attestation
-to provisionally satisfy the REVIEW-GATE for a time-bounded public preview. The audit must identify
-the exact evidence, unperformed checks, residual risk, rollback, and expiry; the underlying human work
+Each performed pass will be logged in [`docs/audits/`](audits/) with the exact assistive-technology
+and browser versions, the date, the flows exercised, and what was found — the same record any other
+audit here carries. Keyboard-only testing (no pointer) is part of a manual pass.
+
+### 6.3 The one thing that is neither
+
+For the nationwide evidence studio, a targeted **in-app browser** keyboard and 390×844
+narrow-viewport pass is recorded in the 2026-07-16 review, along with CSS-viewport proxies standing
+in for 200% and 400% zoom. Those found and closed six real defects, and they are recorded as what
+they are: automated and simulated evidence, explicitly not a conformance result and explicitly not a
+screen-reader result. While this project has one accountable maintainer,
+[ADR 0012](adr/0012-solo-maintainer-provisional-review-attestation.md) allows that evidence plus an
+explicit, expiring owner attestation to provisionally satisfy the REVIEW-GATE for a time-bounded
+public preview. The audit must identify the exact evidence, the unperformed checks, the residual
+risk, the rollback, and the expiry. It converts nothing pending into a pass, and the human work
 stays open.
 
 ---
@@ -240,7 +339,8 @@ that blocks the merge.
   source) is a normal test in the suite, so the equivalent view cannot silently rot.
 
 Manual screen-reader review is **not** fully automatable and therefore is not a per-PR status
-check; it is a stable-release and conformance gate recorded in `docs/audits/`. Automated
+check; it is a stable-release and conformance gate to be recorded in `docs/audits/` — a gate that
+has not yet been exercised (section 6.2), so no release to date has passed it. Automated
 accessibility checks block every merge. A one-person, explicitly labeled public preview may proceed
 only through ADR 0012's provisional REVIEW disposition: all AUTO-GATEs stay mandatory; a dated
 artifact records exact synthetic/browser evidence, checks not performed, owner-accepted residual
@@ -263,10 +363,14 @@ Honesty about limits is a hard rule for the statistics; it applies here too.
   barriers (section 10). Reports
   from real assistive-technology users are weighted heavily and are the most valuable kind of
   feedback this project can get.
-- The required manual matrix is NVDA + Firefox and VoiceOver + Safari, but those checks have not yet
-  been performed for the national studio. JAWS, TalkBack, and other combinations are also not yet in
-  the regular cycle; barriers found there are still triaged and fixed, and any divergence is recorded
-  in the ACR rather than hidden.
+- The required manual matrix is NVDA + Firefox and VoiceOver + Safari, and **those checks have not
+  been performed on any surface** — not the national studio, not the gateway, not the source-only
+  Davis map and table (section 6.2). JAWS, TalkBack, and other combinations are not in a cycle
+  either; barriers reported in any of them are still triaged and fixed, and any divergence is
+  recorded in the ACR rather than hidden.
+- **No page the public can load carries per-criterion ACR coverage** (section 0). The ACR evaluates
+  the source-only `davis-demo.html` surface. Widening it is real evaluation work, not a documentation
+  edit, so the gap is named rather than papered over with rows nobody earned.
 
 These limitations are stated in the ACR as well, so a reader of the formal report sees the same
 caveats a reader of this statement sees.
@@ -285,13 +389,19 @@ template. It contains the standard tables:
 - **Table 2 — Revised Section 508 Report**, covering the Chapter 3 **Functional Performance
   Criteria**, Chapter 5 (Software), and Chapter 6 (Support Documentation and Services).
 
-The ACR is treated as an **audit artifact, regenerated and re-committed on each release** — the
-same audit-as-artifact discipline applied to the statistics, where every published number records
-its method and source. A release whose accessibility behavior changed but whose ACR did not is a
-defect. The ACR carries its own evaluation date, the methods actually used, the checks still
-outstanding, and the version of the site evaluated, so a city reviewer can see exactly what was
-tested and when. A provisional public preview does not alter an ACR row or count a planned manual
-method as performed.
+**Intended cadence:** the ACR is an audit artifact, to be re-evaluated and re-committed on each
+release — the same audit-as-artifact discipline applied to the statistics, where every published
+number records its method and source. A release whose accessibility behavior changed but whose ACR
+did not is a defect.
+
+**Actual state, stated plainly:** that cadence is a commitment this project has not yet kept. The
+ACR carries a **report date of 2026-06-17** and has not been re-issued for any tagged release. It
+therefore predates every surface the public site now serves. The ACR says so in its own banner; this
+statement says so too, so a reader does not have to click through to find it out.
+
+The ACR carries its own evaluation date, the methods actually used, the checks still outstanding, and
+the version of the site evaluated, so a city reviewer can see exactly what was tested and when. A
+provisional public preview does not alter an ACR row or count a planned manual method as performed.
 
 An ACR is a self-assessment by the maintainer, not a third-party certification, and it says so on
 its face. Conformance claims in the ACR are scoped to the evaluated release.
@@ -315,7 +425,8 @@ technology and their versions, what you were trying to do, and what happened ins
 
 **What to expect.** As a single-maintainer project there is no staffed support desk and no
 contractual SLA, but accessibility barriers are triaged as high-priority defects: we aim to
-acknowledge a report within a few days, and fixes ship in the normal release cycle with the
-change noted and the ACR updated to match. If a barrier blocks you from getting a finding out of
+acknowledge a report within a few days, to ship the fix in the normal release cycle with the change
+noted, and to update the ACR to match — a cadence section 9 records as not yet kept, so read it as
+the commitment it is. If a barrier blocks you from getting a finding out of
 the map entirely, tell us that — the non-visual equivalent failing is the most serious kind of
 bug this project can have.
