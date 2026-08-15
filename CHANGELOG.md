@@ -56,6 +56,38 @@ every entry.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The accessibility statement no longer claims screen-reader testing that never happened.**
+  `docs/ACCESSIBILITY.md` described an NVDA (Firefox/Windows) and VoiceOver (Safari/macOS/iOS) pass
+  on "each release" while the ACR, the 2026-07-16 studio review, and the same file's own limitations
+  section all recorded that no manual screen-reader review had ever been performed. Section 6 is now
+  split into what runs (structural gate + axe-core, with its jsdom/static-DOM and colour-contrast
+  limits named) and what has never been performed, and the journey list is stated as a commitment
+  rather than a record. The ACR is declared the source of truth where the two disagree. A false
+  accessibility claim misleads exactly the reader least able to absorb it, so this was fixed as a
+  defect, not as copy.
+- **The stated axe scope matches the scan.** `docs/ACCESSIBILITY.md` claimed axe ran "against the
+  rendered map, table, report form, and brief pages"; it runs against nine named static HTML files in
+  jsdom with page scripts disabled and the colour-contrast rule off, and there are no HTML brief
+  pages at all (`nearmiss brief` emits Markdown/text).
+- **Documented scope now covers the pages the site actually serves.** A new § 0 lists all six shipped
+  HTML documents with their routes, and records plainly that none of them has per-criterion ACR
+  coverage — the ACR evaluates the source-only `davis-demo.html` surface. `docs/RESPONSIBLE-TECH-AUDITS.md`
+  said "Three shipped HTML surfaces (`index.html`, `submit.html`, `embed.html`)", two of which are
+  retired.
+- **The ACR release cadence is stated as a commitment, not a history.** `README.md`,
+  `docs/ACCESSIBILITY.md`, and `docs/audits/README.md` asserted that the ACR and the audit set are
+  regenerated and re-committed on every release. The ACR's report date is 2026-06-17 and it has not
+  been re-issued for any tagged release; all three documents now say so, and publish the date.
+- **The structural accessibility gate now checks the apex gateway.** `index.html` — the page most
+  visitors land on — was in the axe script but missing from `make accessibility`, so the deployed
+  front door was outside the merge-blocking structural gate. It passes, and it is now covered.
+- `tests/test_accessibility_claims.py` keeps all of the above from recurring: it derives the axe
+  scope from `web/package.json`, the shipped-document set from `tools/build_site.py`, and the ACR
+  report date from the ACR, and it fails any sentence that pairs an assistive technology with a
+  completed-work verb and no negation.
+
 ## [0.3.1] - 2026-08-08
 
 ### Fixed
