@@ -30,6 +30,48 @@ Two deliberate choices about honesty:
 
 Pure standard library; no network; deterministic (identical tree, identical bytes).
 Style mirrors ``tools/check_catalog_parity.py``.
+
+Porting this to another repository
+----------------------------------
+
+This has been ported once, to ``davis-bike-hazard-map`` (as ``scripts/doc_audit.py``),
+which is enough of a sample to say where the seam actually is. Copy the file; do **not**
+turn it into a shared package. It is ~450 lines of standard library with no dependencies,
+and a vendored copy that each repo can edit is worth more than a dependency that has to
+grow options for every repo's layout. The two ports have already diverged in ways a shared
+version would have had to configure rather than express.
+
+What travelled unchanged, and is the actual reusable content:
+
+* the BEGIN/END splice plus ``--check`` drift gate — regenerate into a marked block, fail
+  if the committed bytes differ, wire both into ``make`` and into a test so a stale audit
+  is a red build rather than a stale document;
+* ``_exists_case_sensitively`` — the defect worth copying. ``Path.exists()`` is
+  case-insensitive on macOS and case-sensitive on Linux runners and on github.com, so a
+  mis-cased relative link passes on a laptop and 404s for every reader. Walking each path
+  component against the real directory listing is what makes the link check agree with
+  github.com instead of with whichever filesystem it happened to run on;
+* ``_link_targets`` with its fenced-code stripping and its skip rule for absolute URLs,
+  ``mailto:``, and pure anchors;
+* the honesty split — ``pass`` only for a real predicate, counts reported as inventory —
+  and the refusal to stamp a generated timestamp, which would make the drift check
+  meaningless.
+
+What had to change per repository, i.e. everything a port must review:
+
+* ``BEGIN`` (it names the tool's own path, which differed) and ``AUDIT``;
+* ``EXCLUDED_DIR_NAMES``, plus an ``EXCLUDED_FILES`` set if the repo has generated files
+  inside otherwise-authored directories;
+* ``GROUPED_DIRS``, ``CATEGORY_RULES``, ``ENTRY_AND_PROCESS``, and the ``ROOT_*`` tuples —
+  all of them are this repository's documentation taxonomy and none of it generalises;
+* the inventory collectors: ``_test_files``, ``_workflows``, ``_npm_scripts``, and
+  ``_requires_python`` are Python-plus-npm shaped. The davis port replaced the test
+  collector with a Vitest/Playwright declaration regex, because "test file" is not the
+  same countable thing in every stack;
+* whether a link that escapes the tree is resolved or merely counted. This one is a real
+  fork, not a preference: a repo whose README links a sibling checkout (``../STANDARDS/``)
+  would have a gate that passes on a laptop and fails on CI, so those links are counted
+  separately there and resolved here.
 """
 
 from __future__ import annotations
