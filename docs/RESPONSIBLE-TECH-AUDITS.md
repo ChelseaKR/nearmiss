@@ -13,8 +13,14 @@ on each release per the framework's audit-as-artifact discipline.
   bias (raw counts confounding danger with traffic). See [§B](#b-bias--fairness-audit).
 - **C Privacy:** Applies (DPIA: [`docs/DPIA.md`](DPIA.md)). See [§C](#c-privacy--data-protection-audit-dpia-style).
 - **D Transparency:** Applies. See [§D](#d-transparency--explainability-audit).
-- **E Accessibility:** Applies (ACR: [`docs/accessibility/ACR.md`](accessibility/ACR.md)). Three shipped
-  HTML surfaces (`index.html`, `submit.html`, `embed.html`). See [§E](#e-accessibility-audit).
+- **E Accessibility:** Applies (ACR: [`docs/accessibility/ACR.md`](accessibility/ACR.md)). **Six
+  shipped HTML documents** over seven routes: `index.html` (`/`), `404.html`, `web/index.html`
+  (legacy redirect stub), `web/us-coverage.html` (`/fars/national/` and `/web/us-coverage.html`),
+  `web/studio.html` (`/studio/`), and `web/dossier.html` (`/dossier/`) — see
+  [`tools/build_site.py`](../tools/build_site.py) for the deployed allowlist. `web/davis-demo.html`,
+  `web/submit.html`, and `web/embed.html` are source/CI fixtures and are **not** deployed. The ACR
+  evaluates only the source-only `davis-demo.html` surface, so no shipped document has per-criterion
+  coverage. See [§E](#e-accessibility-audit).
 - **F Security:** Applies (threat model: [`docs/THREAT-MODEL.md`](THREAT-MODEL.md), residual-risk
   register: [`docs/THREAT-MODEL.md#residual-risk-register`](THREAT-MODEL.md#residual-risk-register)).
   See [§F](#f-security-audit).

@@ -1,5 +1,20 @@
 # Accessibility Conformance Report (ACR)
 
+> **⚠ NO DEPLOYED PAGE IS COVERED BY THIS REPORT.** The public site serves six HTML documents over
+> seven routes — `index.html` (`/`), `404.html`, `web/index.html` (legacy redirect stub),
+> `web/us-coverage.html` (`/fars/national/` and `/web/us-coverage.html`), `web/studio.html`
+> (`/studio/`), and `web/dossier.html` (`/dossier/`); see `tools/build_site.py` for the deployed
+> allowlist. **None of them has a per-criterion row anywhere in this document.** Every table below
+> evaluates the former `index.html` + `app.js` + `style.css` map/table surface, retained source-only
+> as `web/davis-demo.html`, which the public cannot load. Extending this ACR to the deployed pages
+> requires evaluating them; that has not been done, and a row written without an evaluation would be
+> worse than the gap. This report is also **the source of truth** where it and
+> [`docs/ACCESSIBILITY.md`](../ACCESSIBILITY.md) disagree.
+>
+> **This report has not been re-issued for any tagged release.** Its report date below is 2026-06-17.
+> The stated discipline — re-evaluate and re-commit on each release — is a commitment the project has
+> not yet kept, and it is recorded here rather than left for a reader to infer from the date.
+>
 > **⚠ STALE (updated 2026-07-16):** this report's date (below) and every table in it describe only
 > the former `index.html` + `app.js` + `style.css` surface (now retained source-only as
 > `davis-demo.html`) — the surfaces that existed on 2026-06-17. **The public
