@@ -390,9 +390,9 @@ ledger for the item-by-item map.
   1.7 SBOM, Sigstore-signs (keyless, OIDC) the sdist, wheel, SBOM, **and every published city
   GeoJSON**, attaches SLSA build provenance, cuts a GitHub Release, and publishes to PyPI via Trusted
   Publishing (OIDC — no stored token). See "How to verify a release" in
-  [`docs/DATA-CARD.md`](docs/DATA-CARD.md). **Not yet exercised**: no tag has been pushed and PyPI
-  Trusted Publishing has not yet been registered for this repository — see the NOTE at the top of
-  `release.yml`.
+  [`docs/DATA-CARD.md`](docs/DATA-CARD.md). *(Historical note as of this entry: not yet exercised.
+  It was first exercised on 2026-08-08 across v0.2.0, v0.3.0, and v0.3.1; see `SECURITY.md`
+  § Supply-chain posture for the current state.)*
 - **Moderation transparency report** (`nearmiss moderate stats`). Publishes an aggregate, privacy-floored
   view of the moderation queue: submission totals by status (pending/approved/rejected), review-flag
   frequencies, rejection-reason **category** counts, and the median review latency in hours

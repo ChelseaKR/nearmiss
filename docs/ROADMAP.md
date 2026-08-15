@@ -40,6 +40,18 @@ and deployment rework become meaningful only after a tagged release or Pages
 deployment incident exists; they must remain N/A rather than be filled with
 invented zeroes.
 
+**That precondition was met on 2026-08-08 and these rows are now overdue, not N/A.**
+Three tags shipped (v0.2.0, v0.3.0, v0.3.1) across four `release.yml` runs, and two of
+those runs did not complete: the v0.2.0 run signed and cut its release but failed the
+PyPI publish (the name `nearmiss` was taken), and the first v0.3.1 run failed the
+clean-environment wheel smoke test before signing, so no release was cut and the tag was
+moved to `976cf5e` and re-run about sixteen minutes later. That is a real release-failure
+record with a real recovery interval. The remaining work is to fix the *metric
+definitions* — what counts as a deployment here, and whether a partially-failed release
+run is a change failure — and then populate the rows from that record. Carrying "N/A —
+no tagged release exists" is now the invented answer, which is the failure mode the
+paragraph above was written to prevent, arriving from the other side.
+
 ## Open review and owner actions
 
 - Complete and commit actual NVDA/VoiceOver evidence; an automated agent cannot
@@ -48,8 +60,11 @@ invented zeroes.
   this work or change any **Not performed** row.
 - Approve the preregistered scoring rule with a real statistician after the
   evaluation window; fixture success is not predictive-validity evidence.
-- Configure PyPI Trusted Publishing and exercise the signed tag workflow for the
-  first release.
+- Mint a DOI (Zenodo or equivalent) against a shipped tag and fill in
+  `CITATION.cff`'s `doi:` field, which is still a bare `TODO`. PyPI Trusted
+  Publishing and the signed tag workflow are done: `nearmiss-safety` 0.3.0 and
+  0.3.1 are published, and v0.2.0, v0.3.0, and v0.3.1 each cut a signed GitHub
+  Release with an SBOM and a SLSA attestation on 2026-08-08.
 - Provide real exposure counts and official-collision validation where the
   research roadmap explicitly requires external data.
 
