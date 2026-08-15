@@ -3,7 +3,7 @@
 # with new paths and an exposure layer; no code changes (configurability).
 # Paths resolve relative to this file's directory.
 city = "Davis"
-dataset_note = "Synthetic demonstration data — not real reports."
+dataset_note = "Synthetic demonstration data — not real reports. The hotspots are planted in the fixture, so the method finds what was put there; see docs/findings/ for the one real-city run, where it did not."
 exposure_unit = "bike trips (synthetic)"
 
 streets = "../tests/fixtures/davis/streets.geojson"
