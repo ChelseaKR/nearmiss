@@ -33,6 +33,7 @@ PUBLISHED_DIR := data/published
 
 .PHONY: help install lock lock-dev lint type test accessibility axe rtl web-check security verify smoke-wheel \
         conformance i18n i18n-compile i18n-pseudo claims qgis-plugin-test \
+        docs-audit docs-audit-check \
         reproduce sensitivity demo teach publish serve bench bench-suite bench-suite-verify \
         bikemaps simra osm-streets real clean mutation release-build
 
@@ -211,6 +212,16 @@ smoke-wheel: ## Install the built wheel into a clean venv and exercise the CLI
 	cd / && $(CURDIR)/.smoke-venv/bin/nearmiss --help > /dev/null
 	rm -rf .smoke-venv
 	@echo "smoke-wheel: the installed artifact runs"
+
+docs-audit: ## Regenerate the derived block of docs/DOCUMENTATION-AUDIT.md from the tree
+	# The audit's inventory, counts, and local-link check are read off the tree,
+	# never typed. Run this after adding docs, tests, or workflows and commit the
+	# diff; `docs-audit-check` (and tests/test_doc_audit.py, so `make test`) fail
+	# if the committed block no longer describes the repository.
+	$(PYTHON) tools/doc_audit.py
+
+docs-audit-check: ## Fail if docs/DOCUMENTATION-AUDIT.md has drifted from the tree
+	$(PYTHON) tools/doc_audit.py --check
 
 verify: lint type test accessibility web-check security i18n claims conformance ## Full merge gate: lint + type + test + web/a11y + security + i18n + claims + conformance
 	@echo "verify: all merge gates green (lint, type, test, web/a11y, security, i18n, claims, conformance)."
