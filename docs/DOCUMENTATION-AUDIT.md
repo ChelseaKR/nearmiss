@@ -66,7 +66,7 @@ These are real predicates, so they can pass or fail.
 | Root process docs | pass | `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md` |
 | Root legal, citation, and conduct docs | pass | `LICENSE`, `NOTICE`, `CITATION.cff`, `CODE_OF_CONDUCT.md` |
 | Root-adjacent GitHub templates | pass | `.github/PULL_REQUEST_TEMPLATE.md`, `.github/CODEOWNERS` |
-| Local doc links resolve | pass | 423 relative links checked in 88 Markdown files; 0 unresolved |
+| Local doc links resolve | pass | 437 relative links checked in 88 Markdown files; 0 unresolved |
 
 ## Inventory
 
@@ -75,7 +75,7 @@ Counts, not verdicts. A count cannot pass or fail; it can only be current, which
 | Surface | Count | Evidence |
 | --- | ---: | --- |
 | Hand-authored docs | 92 | Markdown at the repository root and under `docs/`, `data/`, `infra/`, `notebooks/`, `schema/`, `src/`, `tests/`, `web/`, plus the root legal and template files |
-| Test files | 102 | `tests/test_*.py` |
+| Test files | 104 | `tests/test_*.py` |
 | Workflow files | 6 | `.github/workflows/*.yml` |
 | Grouped/vendored doc content | 16 | `docs/standards/` (16) |
 

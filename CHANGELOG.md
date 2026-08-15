@@ -64,6 +64,35 @@ every entry.
   drift for at most one pull request. `tests/test_doc_audit.py` runs the drift check as part of
   `make test`, re-derives the counts independently of the generator, and asserts that the drift check
   itself fails on drift.
+- `docs/DECISION-DOSSIER-TEMPLATE.md` § 2 carries the first tagged claim in a doc the live site links
+  to: the claim boundary travels into every generated dossier, witnessed by
+  `tests/test_dossier.py::test_dossier_is_corridor_specific_and_claim_limited`.
+- `tests/test_claims_gate.py` runs the real gate against miniature repositories and asserts each
+  failure mode — skipped, xfailed, failing, and uncollected witnesses; an unlisted tag outside the
+  three original docs; an unlisted tag in a doc the site links to; and a site link to a missing doc.
+
+### Changed
+
+- **The claims-parity gate now proves the witness passes, not that it exists.**
+  `tools/check_claims.py` checked that a witness file existed and that `def <name>(` appeared
+  somewhere in it. A witness that was `@pytest.mark.skip`ped, `xfail`ed, emptied out, or sitting
+  where pytest never collects it satisfied the gate exactly as well as a green test — the manifest
+  promised "the thing a reviewer can open to confirm the sentence is not an overclaim" and enforced
+  only the opening half. Witnesses that name a test are now executed through
+  `pytest --junitxml`; a skip, an xfail, a failure, or a missing collection fails the build.
+- **The gate reads the docs the site links to.** The scan covered `README.md`,
+  `docs/METHODOLOGY.md` and `CHANGELOG.md` — three files against ~40 under `docs/`, none of them the
+  ones a visitor opens from the live site. It now covers every root-level and `docs/**/*.md` file,
+  and separately resolves every `docs/…md` link in the shipped HTML (the atlas footer's
+  `docs/ACCESSIBILITY.md`, the gateway's `docs/DECISION-DOSSIER-TEMPLATE.md` and
+  `docs/PRODUCT-EXPANSION-PLAN.md`) so those are always scanned. A site link to a doc that does not
+  exist is now an error too.
+- **A witness that cannot be run is reported as unrun.** Three witnesses name a lockfile, a schema,
+  or a module rather than a test, and nothing can execute them. The gate prints which ones fell into
+  that category instead of counting them as green — the same "declare the limit rather than approve
+  it" rule the dataset validators follow.
+- Documented-example tags inside code spans and fenced blocks are no longer read as claims, so a doc
+  that explains the convention (`docs/CLAIMS.md` itself) does not fail the wider scan.
 
 ### Fixed
 
@@ -87,6 +116,35 @@ every entry.
   "Accessibility" entry pointing at `accessibility.md` — the file is `ACCESSIBILITY.md`, and
   `docs/accessibility.md` does not exist — on the first page of the docs index, under an audit line
   that read "0 unresolved". The duplicate is deleted and the check now catches its kind.
+- **The accessibility statement no longer claims screen-reader testing that never happened.**
+  `docs/ACCESSIBILITY.md` described an NVDA (Firefox/Windows) and VoiceOver (Safari/macOS/iOS) pass
+  on "each release" while the ACR, the 2026-07-16 studio review, and the same file's own limitations
+  section all recorded that no manual screen-reader review had ever been performed. Section 6 is now
+  split into what runs (structural gate + axe-core, with its jsdom/static-DOM and colour-contrast
+  limits named) and what has never been performed, and the journey list is stated as a commitment
+  rather than a record. The ACR is declared the source of truth where the two disagree. A false
+  accessibility claim misleads exactly the reader least able to absorb it, so this was fixed as a
+  defect, not as copy.
+- **The stated axe scope matches the scan.** `docs/ACCESSIBILITY.md` claimed axe ran "against the
+  rendered map, table, report form, and brief pages"; it runs against nine named static HTML files in
+  jsdom with page scripts disabled and the colour-contrast rule off, and there are no HTML brief
+  pages at all (`nearmiss brief` emits Markdown/text).
+- **Documented scope now covers the pages the site actually serves.** A new § 0 lists all six shipped
+  HTML documents with their routes, and records plainly that none of them has per-criterion ACR
+  coverage — the ACR evaluates the source-only `davis-demo.html` surface. `docs/RESPONSIBLE-TECH-AUDITS.md`
+  said "Three shipped HTML surfaces (`index.html`, `submit.html`, `embed.html`)", two of which are
+  retired.
+- **The ACR release cadence is stated as a commitment, not a history.** `README.md`,
+  `docs/ACCESSIBILITY.md`, and `docs/audits/README.md` asserted that the ACR and the audit set are
+  regenerated and re-committed on every release. The ACR's report date is 2026-06-17 and it has not
+  been re-issued for any tagged release; all three documents now say so, and publish the date.
+- **The structural accessibility gate now checks the apex gateway.** `index.html` — the page most
+  visitors land on — was in the axe script but missing from `make accessibility`, so the deployed
+  front door was outside the merge-blocking structural gate. It passes, and it is now covered.
+- `tests/test_accessibility_claims.py` keeps all of the above from recurring: it derives the axe
+  scope from `web/package.json`, the shipped-document set from `tools/build_site.py`, and the ACR
+  report date from the ACR, and it fails any sentence that pairs an assistive technology with a
+  completed-work verb and no negation.
 
 ## [0.3.1] - 2026-08-08
 
