@@ -56,6 +56,38 @@ every entry.
 
 ## [Unreleased]
 
+### Added
+
+- `docs/DECISION-DOSSIER-TEMPLATE.md` § 2 carries the first tagged claim in a doc the live site links
+  to: the claim boundary travels into every generated dossier, witnessed by
+  `tests/test_dossier.py::test_dossier_is_corridor_specific_and_claim_limited`.
+- `tests/test_claims_gate.py` runs the real gate against miniature repositories and asserts each
+  failure mode — skipped, xfailed, failing, and uncollected witnesses; an unlisted tag outside the
+  three original docs; an unlisted tag in a doc the site links to; and a site link to a missing doc.
+
+### Changed
+
+- **The claims-parity gate now proves the witness passes, not that it exists.**
+  `tools/check_claims.py` checked that a witness file existed and that `def <name>(` appeared
+  somewhere in it. A witness that was `@pytest.mark.skip`ped, `xfail`ed, emptied out, or sitting
+  where pytest never collects it satisfied the gate exactly as well as a green test — the manifest
+  promised "the thing a reviewer can open to confirm the sentence is not an overclaim" and enforced
+  only the opening half. Witnesses that name a test are now executed through
+  `pytest --junitxml`; a skip, an xfail, a failure, or a missing collection fails the build.
+- **The gate reads the docs the site links to.** The scan covered `README.md`,
+  `docs/METHODOLOGY.md` and `CHANGELOG.md` — three files against ~40 under `docs/`, none of them the
+  ones a visitor opens from the live site. It now covers every root-level and `docs/**/*.md` file,
+  and separately resolves every `docs/…md` link in the shipped HTML (the atlas footer's
+  `docs/ACCESSIBILITY.md`, the gateway's `docs/DECISION-DOSSIER-TEMPLATE.md` and
+  `docs/PRODUCT-EXPANSION-PLAN.md`) so those are always scanned. A site link to a doc that does not
+  exist is now an error too.
+- **A witness that cannot be run is reported as unrun.** Three witnesses name a lockfile, a schema,
+  or a module rather than a test, and nothing can execute them. The gate prints which ones fell into
+  that category instead of counting them as green — the same "declare the limit rather than approve
+  it" rule the dataset validators follow.
+- Documented-example tags inside code spans and fenced blocks are no longer read as claims, so a doc
+  that explains the convention (`docs/CLAIMS.md` itself) does not fail the wider scan.
+
 ### Fixed
 
 - **The accessibility statement no longer claims screen-reader testing that never happened.**

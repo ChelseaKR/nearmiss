@@ -185,6 +185,11 @@ claims: ## Claims-parity gate: docs/CLAIMS.md manifest <-> doc claim tags <-> wi
 	# <!-- claim:ID --> pair listed in docs/CLAIMS.md with a witness file/test;
 	# this fails on drift in either direction (tagged-but-unlisted, or a listed
 	# claim whose tag/witness went missing). Local == CI.
+	#
+	# A witness that names a test is RUN, not just found: it has to be collected
+	# and to pass, so a skipped/xfailed/uncollected witness fails here. The scan
+	# covers every root and docs/ Markdown file plus every doc the shipped HTML
+	# links to — the docs a stranger reads with the live site open.
 	$(PYTHON) tools/check_claims.py
 
 
