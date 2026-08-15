@@ -569,17 +569,24 @@ among the most endangered on bad streets and the most likely to be reading a map
 and meeting the standard agencies audit to gives an advocate a clean, public artifact when the analysis
 lands in front of a city. Full statement: [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md).
 
+- **No manual screen-reader testing has been performed** — not on any surface, not for any release.
+  Two automated gates run and pass; a human with NVDA or VoiceOver has never walked this software.
+  If you use a screen reader, treat nearmiss as untested with one. See
+  [`docs/ACCESSIBILITY.md` § 6.2](docs/ACCESSIBILITY.md).
 - A committed **Accessibility Conformance Report (ACR)** using the **VPAT 2.5 (Rev 508)** template
   lives at [`docs/accessibility/ACR.md`](docs/accessibility/ACR.md), with tables for the WCAG 2.x
   A/AA success criteria, the Revised 508 software (Chapter 5) and support-documentation (Chapter 6)
   criteria, and the **Functional Performance Criteria** (use without vision, with limited vision,
-  without hearing, with limited reach and strength, with limited cognition).
-- The web view runs against automated checks on every CI run (`axe-core` via `make axe`, plus the
-  structural gate in `make verify`); the segment-name table column is sticky for use at 200% zoom and column sorts announce
-  through an `aria-live` region. The complementary **manual** screen-reader review (NVDA, VoiceOver) is
-  still pending and is named honestly as such. Risk level and significance are conveyed in text and
-  pattern, never by color alone; the report form is fully keyboard-operable with clear labels and error
-  text.
+  without hearing, with limited reach and strength, with limited cognition). Its tables evaluate the
+  source-only `davis-demo.html` map/table surface, so **no page the public site serves has
+  per-criterion ACR coverage** — a gap named rather than implied away.
+- The web pages run against automated checks on every CI run: the structural gate in `make verify`
+  plus `axe-core` via `make axe`, which scans nine files' **static HTML in jsdom** (page scripts do
+  not run, so JavaScript-built views are not in the scanned DOM, and the colour-contrast rule is off
+  because jsdom has no layout). The segment-name table column is sticky for use at 200% zoom and
+  column sorts announce through an `aria-live` region. Risk level and significance are conveyed in
+  text and pattern, never by color alone; the source-only report prototype is keyboard-operable with
+  clear labels and error text.
 - The nationwide FARS studio's custom map states and mode-comparison points are implemented as
   named roving-focus controls with arrow/Home/End navigation and Enter/Space activation. Native
   selectors and semantic matrix, comparison, five-year profile, and complete-ledger tables expose the
@@ -589,8 +596,10 @@ lands in front of a city. Full statement: [`docs/ACCESSIBILITY.md`](docs/ACCESSI
   the same ranked locations, rates, intervals, and significance flags, so every finding is reachable
   without seeing the local map; the national studio uses its redundant semantic tables for the same
   purpose.
-- Accessibility is a **merge-blocking CI gate**; a regression fails the build. The ACR is regenerated
-  and re-committed on each release, the same audit-as-artifact discipline applied to the statistics.
+- Accessibility is a **merge-blocking CI gate**; a regression fails the build. Re-evaluating and
+  re-committing the ACR on each release is the intended discipline, and it is one this project has
+  not yet kept: the ACR's report date is **2026-06-17** and it has not been re-issued for any tagged
+  release. Stated here so the aspiration is not read as a history.
 - The national studio's current **public-preview** disposition is recorded in the
   [2026-07-16 component review](docs/audits/2026-07-16-national-evidence-studio-a11y.md): all automated
   gates remain mandatory, NVDA/VoiceOver and actual browser zoom remain **Not performed**, and the

@@ -33,6 +33,7 @@ PUBLISHED_DIR := data/published
 
 .PHONY: help install lock lock-dev lint type test accessibility axe rtl web-check security verify smoke-wheel \
         conformance i18n i18n-compile i18n-pseudo claims qgis-plugin-test \
+        docs-audit docs-audit-check \
         reproduce sensitivity demo teach publish serve bench bench-suite bench-suite-verify \
         bikemaps simra osm-streets real clean mutation release-build
 
@@ -103,7 +104,11 @@ qgis-plugin-test: ## Test the QGIS plugin's honest-symbology rules (EXP-11, no Q
 	cd integrations/qgis && $(PYTHON) -m pytest tests/ -q
 
 accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
-	$(PYTHON) tools/a11y_check.py 404.html web/index.html web/davis-demo.html web/submit.html web/embed.html web/us-coverage.html web/studio.html web/dossier.html
+	# index.html is the apex gateway — the page most public visitors land on first.
+	# It was missing from this list while the axe run already covered it, so the
+	# structural gate skipped the deployed front door. Every file `npm run axe`
+	# scans is checked here too (tests/test_accessibility_claims.py asserts it).
+	$(PYTHON) tools/a11y_check.py index.html 404.html web/index.html web/davis-demo.html web/submit.html web/embed.html web/us-coverage.html web/studio.html web/dossier.html
 	@echo "accessibility: structural checks passed."
 	@echo "NOTE: CI also runs axe; full conformance also requires manual NVDA + VoiceOver"
 	@echo "      review — see docs/accessibility/ACR.md (this gate is the floor, not the ceiling)."
@@ -181,6 +186,11 @@ claims: ## Claims-parity gate: docs/CLAIMS.md manifest <-> doc claim tags <-> wi
 	# <!-- claim:ID --> pair listed in docs/CLAIMS.md with a witness file/test;
 	# this fails on drift in either direction (tagged-but-unlisted, or a listed
 	# claim whose tag/witness went missing). Local == CI.
+	#
+	# A witness that names a test is RUN, not just found: it has to be collected
+	# and to pass, so a skipped/xfailed/uncollected witness fails here. The scan
+	# covers every root and docs/ Markdown file plus every doc the shipped HTML
+	# links to — the docs a stranger reads with the live site open.
 	$(PYTHON) tools/check_claims.py
 
 
@@ -202,6 +212,16 @@ smoke-wheel: ## Install the built wheel into a clean venv and exercise the CLI
 	cd / && $(CURDIR)/.smoke-venv/bin/nearmiss --help > /dev/null
 	rm -rf .smoke-venv
 	@echo "smoke-wheel: the installed artifact runs"
+
+docs-audit: ## Regenerate the derived block of docs/DOCUMENTATION-AUDIT.md from the tree
+	# The audit's inventory, counts, and local-link check are read off the tree,
+	# never typed. Run this after adding docs, tests, or workflows and commit the
+	# diff; `docs-audit-check` (and tests/test_doc_audit.py, so `make test`) fail
+	# if the committed block no longer describes the repository.
+	$(PYTHON) tools/doc_audit.py
+
+docs-audit-check: ## Fail if docs/DOCUMENTATION-AUDIT.md has drifted from the tree
+	$(PYTHON) tools/doc_audit.py --check
 
 verify: lint type test accessibility web-check security i18n claims conformance ## Full merge gate: lint + type + test + web/a11y + security + i18n + claims + conformance
 	@echo "verify: all merge gates green (lint, type, test, web/a11y, security, i18n, claims, conformance)."

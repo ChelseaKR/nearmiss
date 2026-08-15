@@ -35,8 +35,14 @@ Choose the strongest statement the evidence supports. Delete stronger statements
 
 **Permitted claim:**
 
+<!-- claim:dossier-claim-boundary -->
 **This dossier does not establish:** danger, fault, causation, the likely effect
-of a treatment, or that a treatment worked. Add any local limitations here.
+of a treatment, or that a treatment worked. Add any local limitations here. The
+generated dossier carries the same boundary: `nearmiss dossier` renders "does
+**not** establish danger, fault, causation" and a declared evidence tier into
+every corridor artifact, so the limit travels with the document rather than
+depending on whoever filled the template in.
+<!-- /claim:dossier-claim-boundary -->
 
 ## 3. Evidence snapshot
 

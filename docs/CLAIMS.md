@@ -9,13 +9,29 @@ file that makes the claim true (or, for a "planned, not yet implemented" claim, 
 directions:
 
 - every claim ID below appears as a **matched** open/close tag pair in its doc file;
-- every witness path exists, and a `path::test_name` witness names a function that exists;
-- every `<!-- claim:… -->` tag found in `README.md`, `docs/METHODOLOGY.md`, or `CHANGELOG.md` is
-  listed here — a tagged claim missing from this table fails the gate (drift is caught both ways).
+- every witness path exists, and a `path::test_name` witness names a function that exists **and that
+  test is collected by pytest and passes**;
+- every `<!-- claim:… -->` tag found in any root-level or `docs/` Markdown file — including every doc
+  the shipped HTML links to — is listed here; a tagged claim missing from this table fails the gate
+  (drift is caught both ways).
 
 The witness is deliberately narrow: it is the thing a reviewer can open to confirm the sentence is
 not an overclaim. When a claim says a feature is *planned*, the witness is the file that would house
 it, so the gap stays visible instead of drifting back into a promise.
+
+**What the gate can and cannot confirm.** A witness that names a test is *run*: it has to be
+collected and to pass, so a skipped, xfailed, emptied-out, or uncollected witness fails the build
+rather than satisfying it. A witness that names a plain file — a lockfile, a schema, a module whose
+*absence* of a feature is the claim — has no test to run, and is checked for existence only. The gate
+prints which witnesses fell into that second category rather than reporting them as green, because
+"this file is here" is weaker evidence than "this test passes" and a reader should be told which one
+a given sentence rests on.
+
+**Scope.** The scan covers every `*.md` at the repository root and every `docs/**/*.md`, and it
+separately resolves every `docs/…md` link in the repository's HTML so the docs a visitor reaches from
+the live site are always read (a site link to a doc that does not exist is an error here too). Since
+this is a drift gate for *tagged* sentences, a wide scan costs nothing until a claim is tagged — it
+only removes blind spots.
 
 | Claim ID | Doc anchor (file + section) | Witness (test or file) |
 | --- | --- | --- |
@@ -30,3 +46,4 @@ it, so the gap stays visible instead of drifting back into a promise.
 | `gi-on-rate-not-count` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_hotspot.py::test_getis_ord_flags_the_planted_corridor_cluster` |
 | `gi-weights-network` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_network.py` |
 | `coverage-sims-implemented` | `docs/METHODOLOGY.md` — § 9.2 Interval-coverage checks | `tests/test_coverage_simulation.py::test_byar_poisson_interval_coverage` |
+| `dossier-claim-boundary` | `docs/DECISION-DOSSIER-TEMPLATE.md` — § 2. Claim boundary | `tests/test_dossier.py::test_dossier_is_corridor_specific_and_claim_limited` |
