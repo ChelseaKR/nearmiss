@@ -104,6 +104,22 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+
+      # CQ-09. This runs before anything else touches the environment, deliberately:
+      # `uv lock --check` has to come before any command that could rewrite uv.lock
+      # (a bare `uv run` silently relocks, which would repair the very drift this
+      # gate exists to catch). Note that `uv sync --frozen` is NOT a drift gate — it
+      # installs from uv.lock without reading pyproject.toml and exits 0 even when the
+      # two disagree, which is how this repository's committed lock reached `main`
+      # describing `nearmiss 0.2.0` while pyproject.toml declared `nearmiss-safety 0.3.1`.
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          enable-cache: false
+
+      - name: uv.lock is in sync with pyproject.toml (CQ-09)
+        run: make lock-check
+
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
