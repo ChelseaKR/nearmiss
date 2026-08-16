@@ -31,7 +31,7 @@ PUBLISHED_DIR := data/published
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install lock lock-dev lint type test accessibility axe rtl web-check security verify smoke-wheel \
+.PHONY: help install lock lock-check lock-dev lint type test accessibility axe rtl web-check security verify smoke-wheel \
         conformance i18n i18n-compile i18n-pseudo claims markers qgis-plugin-test \
         docs-audit docs-audit-check \
         reproduce sensitivity demo teach publish serve bench bench-suite bench-suite-verify \
@@ -69,6 +69,16 @@ install: ## Install the package (editable) with dev extras and pre-commit hooks
 		exit 1; }
 	$(PIP) install -e ".[dev]"
 	-pre-commit install --install-hooks
+
+lock-check: ## CQ-09: fail if uv.lock has drifted from pyproject.toml
+	# `uv sync --frozen` CANNOT serve as the drift gate: it installs from uv.lock
+	# WITHOUT reading pyproject.toml, so by construction it cannot notice that the two
+	# disagree, and it exits 0 on a drifted lock. `uv lock --check` is the gate.
+	#
+	# This must run before anything that can rewrite the lock — a bare `uv run`
+	# silently relocks first, so a gate invoked that way repairs the very thing it
+	# checks. In CI it is the first step of the lint job, before any install.
+	uv lock --check
 
 lock: ## Generate the hashed reproducible RUNTIME lockfile (requirements.lock)
 	$(PYTHON) -m piptools compile --generate-hashes -o requirements.lock pyproject.toml

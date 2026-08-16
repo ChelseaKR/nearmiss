@@ -56,6 +56,8 @@ every entry.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-16
+
 ### Added
 
 - **`tools/doc_audit.py` + `make docs-audit` / `make docs-audit-check`.** The documentation audit's
@@ -70,6 +72,27 @@ every entry.
 - `tests/test_claims_gate.py` runs the real gate against miniature repositories and asserts each
   failure mode — skipped, xfailed, failing, and uncollected witnesses; an unlisted tag outside the
   three original docs; an unlisted tag in a doc the site links to; and a site link to a missing doc.
+- **CQ-34's declared bare-marker AUTO-GATE is now implemented** (`tools/check_debt_markers.py`,
+  `make markers`, wired into `make verify` and CI). The vendored standard declared "bare markers fail
+  CI" and shipped a regex; nothing in this repository ran it — not `make verify`, not a workflow, not
+  pre-commit, and ruff's select set carries neither `FIX` nor `TD`. The repository was conformant by
+  assertion, which is the failure mode a conformance table cannot see, because nothing is failing.
+  The gate's scope is deliberately wider than the standard's `src/`-only example: the single real
+  marker was in `CITATION.cff`, so an `src/`-scoped gate would have shipped green over a live
+  violation. `docs/` is excluded on purpose, because the vendored standard that *defines* the rule
+  spells the forbidden words out. `tests/test_debt_markers.py` tests both directions and imports
+  `MARKER_WORDS` from the tool rather than retyping it, so the test file is not exempted by an
+  allowlist hole. CQ-35 (coded `noqa`/`type: ignore` suppressions) is deliberately **not** wired: the
+  repo has roughly two dozen suppressions carrying rule codes and mostly reasons but no issue links,
+  and deciding what satisfies CQ-35 is a judgment call, not something to attach to a CQ-34 fix.
+- **A lockfile-drift gate for `uv.lock`** (`make lock-check`, run first in CI's lint job). `uv.lock`
+  has been committed and scanned by OSV since it was introduced, but nothing ever checked it against
+  `pyproject.toml`. It had silently drifted two releases: the committed lock described the project as
+  `nearmiss` at `0.2.0` while `pyproject.toml` declared `nearmiss-safety` at `0.3.1`, and the
+  Dependabot constraint bumps below never regenerated it. `uv lock --check` runs before any command
+  that could rewrite the lock, per CQ-09.
+- An "Idea or feature request" issue form (`.github/ISSUE_TEMPLATE/feature_request.yml`), so a
+  reporter is not handed a blank box.
 
 ### Changed
 
@@ -93,6 +116,23 @@ every entry.
   it" rule the dataset validators follow.
 - Documented-example tags inside code spans and fenced blocks are no longer read as claims, so a doc
   that explains the convention (`docs/CLAIMS.md` itself) does not fail the wider scan.
+- **The committed demo cities are labeled as planted, and the MAUP result travels with the brief.**
+  Both committed demo cities are synthetic fixtures whose hotspots are planted, so a reader who only
+  ever sees them concludes the method finds hotspots. `dataset_note` now says the hotspots are
+  planted, and `render_ranked_md` carries both that note and a plain-language re-segmentation (MAUP)
+  result into the generated ranked brief, so the warning travels with the artifact instead of sitting
+  in a metadata key nobody opens. The wording distinguishes rank loss from significance loss, because
+  `maup.rank_stability` sets `top_hotspot_survives` only when the top-rate unit is *both* still rank 1
+  *and* still a significant Gi\* cluster on the coarser partition, and a bare "did not survive" hides
+  which half failed. That immediately surfaced something already true and invisible: Riverside's own
+  top hotspot does not survive re-segmentation, a fact that until now lived only in a metadata
+  boolean.
+- Vendored the portfolio standards at **v2.0.0** (`docs/standards/`, `.standards-version`, and a new
+  `.standards-manifest.json`), adding the AI-development-measurement, data-governance,
+  incident-response, and performance standards to the vendored set.
+- Dev-toolchain constraints raised by Dependabot: `ruff>=0.16.2`, `hypothesis>=6.165.0`, and
+  `mutmut>=3.7.0`; six pinned GitHub Actions digests updated across `ci.yml`, `release.yml`, and
+  `scorecard.yml`.
 
 ### Fixed
 
@@ -145,6 +185,36 @@ every entry.
   scope from `web/package.json`, the shipped-document set from `tools/build_site.py`, and the ACR
   report date from the ACR, and it fails any sentence that pairs an assistive technology with a
   completed-work verb and no negation.
+- **The scheduled secret scan now pins what actually scans.** The action's `version` input defaults
+  to `latest` and its command runs `ghcr.io/trufflesecurity/trufflehog:${VERSION}`, so SHA-pinning
+  the action did not pin the scanner: upstream published 3.96.0 and this repository picked it up on
+  its next run with no commit here. Pinned to 3.96.0, so the scanner moves only when the diff says so.
+- **Eight stale claims that the release pipeline had never been exercised.** `README.md` and seven
+  other places said an SBOM/signing/SLSA pipeline "is not yet exercised — no tag has been pushed."
+  All eight had been false since 2026-08-08: `v0.2.0`, `v0.3.0`, and `v0.3.1` are annotated, verified
+  tags; `release.yml` has run four times; three runs cut GitHub Releases carrying `sbom.cdx.json`,
+  `attestation.json`, and Sigstore bundles for the sdist, wheel, SBOM, and every published city
+  GeoJSON; and PyPI Trusted Publishing is registered and working. The corrected text also records the
+  two runs that failed rather than rounding up: the `v0.2.0` run signed and released but failed the
+  PyPI step because the name `nearmiss` was taken, and the first `v0.3.1` run failed the
+  clean-environment wheel smoke test before signing, so no release was cut and the tag was moved to
+  the fix and re-run. The knock-on correction matters more than the stale sentence: `docs/ROADMAP.md`
+  held three DORA rows at N/A "only after a tagged release or Pages deployment incident exists," and
+  that precondition had been met, so those rows are recorded as overdue rather than N/A. Every one of
+  these understated shipped work, which is the rarely-checked direction.
+
+### Data (per-city `dataset_version`, in `data/published/`)
+
+- `davis` and `riverside` were regenerated so their `dataset_note` carries the planted-hotspot
+  warning described under **Changed**, and `davis-ranked.md` / `riverside-ranked.md` gained that note
+  plus the re-segmentation (MAUP) line. **Prose only:** no rate, confidence interval, `n`, count,
+  geometry, or exposure value changed in either city, and the k-anonymity floor and Getis-Ord
+  significance filtering are untouched. The recorded `geojson_sha256` digests are updated to match the
+  regenerated bytes. `dataset_version` stays `0.1.1` for both cities, because no published value
+  changed.
+- No schema changed in this release. The intake report schema (`1.0.0`), published dataset schema
+  (`1.1.0`), official outcome schema (`1.0.0`), official outcome artifact schema (`1.0.0`), and
+  ingestion receipt schema (`1.0.0`) all carry forward unchanged.
 
 ## [0.3.1] - 2026-08-08
 
