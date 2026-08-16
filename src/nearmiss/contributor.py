@@ -39,7 +39,6 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TypeVar
 
 from .config import Config
 from .errors import NearmissError
@@ -266,22 +265,19 @@ class DeletionResult:
         return self.raw_removed + self.pending_removed + self.approved_removed
 
 
-_T = TypeVar("_T")
-
-
-def _split_matches(
-    items: Iterable[_T],
+def _split_matches[T](
+    items: Iterable[T],
     token: str,
-    report_of: Callable[[_T], dict[str, object]],
+    report_of: Callable[[T], dict[str, object]],
     deleted_ids: list[object],
-) -> tuple[list[_T], int]:
+) -> tuple[list[T], int]:
     """Partition ``items`` into (kept, removed_count), recording matched ids.
 
     ``report_of`` extracts the report dict a given item wraps (identity for raw/
     approved records, ``.report`` for queue :class:`Submission` entries) so the
     same matching logic serves all three stores in :func:`delete_reports`.
     """
-    kept: list[_T] = []
+    kept: list[T] = []
     removed = 0
     for item in items:
         report = report_of(item)
