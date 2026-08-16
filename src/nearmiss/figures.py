@@ -13,8 +13,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from .config import Config
-from .engine import build_analysis
+from .engine import AnalysisBundle, build_analysis
 from .models import SegmentStats
+from .stats.maup import RankStability
 
 _W = 680
 _ROW_H = 26
@@ -27,7 +28,9 @@ def _esc(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def _published_ranked(config: Config) -> tuple[list[SegmentStats], dict[str, str]]:
+def _published_ranked(
+    config: Config,
+) -> tuple[list[SegmentStats], dict[str, str], AnalysisBundle]:
     bundle = build_analysis(config)
     names = {s.id: s.name for s in bundle.segments}
     ranked = sorted(
@@ -35,11 +38,45 @@ def _published_ranked(config: Config) -> tuple[list[SegmentStats], dict[str, str
         key=lambda s: s.rate or 0.0,
         reverse=True,
     )
-    return ranked, names
+    return ranked, names, bundle
+
+
+def _stability_note(stability: RankStability) -> str:
+    """One sentence saying what the MAUP re-segmentation check actually returned.
+
+    ``maup.rank_stability`` sets ``top_hotspot_survives`` only when the top-rate unit is
+    *both* still rank 1 and still a significant Gi* cluster on the coarser partition, so a
+    bare "did not survive" hides which half failed: rank can hold while Gi* significance is
+    lost, and reporting that as "the hotspot dissolved" would be an overstatement in the
+    direction that flatters the check. The wording below distinguishes the two cases so a
+    reader of the artifact never has to open the metadata to find out which happened.
+    """
+    scale = f"{stability.fine_units} block units re-segmented into {stability.coarse_units}"
+    overlap = f"top-{stability.k} rank overlap {stability.topk_overlap:.2f}"
+    if stability.top_hotspot_id is None:
+        return f"**Re-segmentation (MAUP) check:** {scale}; no rated segment to test ({overlap})."
+    if stability.top_hotspot_survives:
+        return (
+            f"**Re-segmentation (MAUP) check:** {scale}. The top-rate segment stays rank 1 "
+            f"*and* stays a significant Gi\\* cluster at the coarser scale ({overlap})."
+        )
+    if stability.top_hotspot_coarse_rank == 1:
+        return (
+            f"**Re-segmentation (MAUP) check:** {scale}. The top-rate segment stays rank 1 at "
+            f"the coarser scale but is **no longer a significant Gi\\* cluster** — scale-"
+            f"sensitive, a lead to confirm rather than a settled cluster ({overlap})."
+        )
+    rank = stability.top_hotspot_coarse_rank
+    where = f"rank {rank}" if rank is not None else "off the rated ranking"
+    sig = "still significant" if stability.top_hotspot_still_significant else "not significant"
+    return (
+        f"**Re-segmentation (MAUP) check:** {scale}. The top-rate segment falls to {where} at "
+        f"the coarser scale and is {sig} there ({overlap})."
+    )
 
 
 def render_bar_svg(config: Config, top_n: int = 10) -> str:
-    ranked, names = _published_ranked(config)
+    ranked, names, _bundle = _published_ranked(config)
     rows = ranked[:top_n]
     per = int(config.rate_per)
     max_rate = max((s.rate or 0.0 for s in rows), default=1.0) or 1.0
@@ -95,9 +132,17 @@ def render_bar_svg(config: Config, top_n: int = 10) -> str:
 
 
 def render_ranked_md(config: Config, top_n: int = 10) -> str:
-    ranked, names = _published_ranked(config)
+    ranked, names, bundle = _published_ranked(config)
     per = int(config.rate_per)
     out = [f"# Ranked segments — {config.city}", ""]
+    # The provenance and robustness lines travel WITH the artifact. A reader who
+    # downloads a ranked table and never opens the metadata sidecar should still
+    # learn (a) whether these are real reports and (b) what the project's own
+    # re-segmentation check said about the segment sitting at rank 1.
+    if config.dataset_note:
+        out += [f"> **{config.dataset_note}**", ""]
+    if bundle.result.rank_stability is not None:
+        out += [_stability_note(bundle.result.rank_stability), ""]
     out.append(f"| Rank | Segment | Rate /{per} | 95% CI | n | Hotspot |")
     out.append("| ---: | --- | ---: | --- | ---: | --- |")
     for i, s in enumerate(ranked[:top_n], start=1):

@@ -1,7 +1,7 @@
 # Second demo city — proves config-over-code: a new city is a new config + data,
 # no Python changes. See docs/ADAPTING.md.
 city = "Riverside"
-dataset_note = "Synthetic demonstration data — not real reports."
+dataset_note = "Synthetic demonstration data — not real reports. The hotspots are planted in the fixture, so the method finds what was put there."
 exposure_unit = "bike trips (synthetic)"
 
 streets = "../tests/fixtures/riverside/streets.geojson"

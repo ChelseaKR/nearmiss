@@ -113,9 +113,9 @@ named plainly rather than implied away.
 |---|---|---|
 | Quality & Metrics | Applies | AUTO gates strong (90% branch-coverage floor, advisory mutation testing on the stats core); the committed [`DEFINITION_OF_DONE.md`](DEFINITION_OF_DONE.md) and [`docs/ROADMAP.md`](docs/ROADMAP.md) metrics ledger name every gate's disposition (AUTO-GATE, REVIEW-GATE, or an explicit reasoned N/A — never a silent skip). |
 | Code Quality | Applies | Lint/type/test are merge-blocking and green (ruff, `mypy --strict`, pytest); a few config/floor gaps are open (see [Contributing](#contributing)). |
-| Security & Supply-Chain | Applies | `pip-audit --strict` (blocking, no mute) + gitleaks + locally enforced CodeQL run in CI, from a hashed dev-toolchain lock (`requirements-dev.lock`, `--require-hashes`); an SBOM/signing/SLSA pipeline exists (`.github/workflows/release.yml`) but is **not yet exercised** — no tag has been pushed. ASVS 5.0 L2 is declared; the control-by-control checklist remains open (see [Security](#security) and [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md)). |
+| Security & Supply-Chain | Applies | `pip-audit --strict` (blocking, no mute) + gitleaks + locally enforced CodeQL run in CI, from a hashed dev-toolchain lock (`requirements-dev.lock`, `--require-hashes`); the SBOM/signing/SLSA pipeline (`.github/workflows/release.yml`) has been **exercised on v0.2.0, v0.3.0, and v0.3.1** (2026-08-08): each cut a GitHub Release carrying a CycloneDX SBOM, Sigstore bundles for the sdist, wheel, SBOM, and every published city GeoJSON, and a SLSA provenance attestation. ASVS 5.0 L2 is declared; the control-by-control checklist remains open (see [Security](#security) and [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md)). |
 | CI/CD | Applies | The core pipeline (lint/type/test/i18n/accessibility/security/reproducibility) is merge-blocking; high-severity `zizmor` and CodeQL for GitHub Actions and web JS are enabled. A committed branch-ruleset artifact remains open (branch protection is a live GitHub setting with no committed evidence yet). |
-| Release & Versioning | Applies | SemVer + [`CHANGELOG.md`](CHANGELOG.md) are maintained; a tag-triggered release pipeline now exists (`.github/workflows/release.yml`) but **no version has ever been git-tagged and PyPI Trusted Publishing is not yet registered** — see the dated correction at the top of the CHANGELOG and the NOTE at the top of `release.yml`. |
+| Release & Versioning | Applies | SemVer + [`CHANGELOG.md`](CHANGELOG.md) are maintained; the tag-triggered release pipeline (`.github/workflows/release.yml`) has run for real. **v0.2.0, v0.3.0, and v0.3.1 are annotated, GPG-verified tags** (2026-08-08), each with a signed GitHub Release. **PyPI Trusted Publishing is registered and working** — `nearmiss-safety` 0.3.0 and 0.3.1 are on PyPI (the name `nearmiss` was already taken; see `aea68e3`). The one thing still outstanding is a DOI (`CITATION.cff`). |
 | Accessibility | Applies | WCAG 2.2 AA target; the structural gate and an automated axe-core (jsdom) run are both merge-blocking; manual NVDA/VoiceOver review and browser-rendered gates (Lighthouse, pa11y) are still pending — see [Accessibility and Section 508 conformance](#accessibility-and-section-508-conformance). |
 | Observability | Applies (Tier C) | Structured JSON logs + `/livez`/`/readyz`; Tier C is a local-only CLI/library tier (OTel tracing/metrics/SLOs out of scope) — see [Operability, serviceability, sustainability](#operability-serviceability-sustainability). |
 | Internationalization | Applies | The strongest area: gettext catalogs with four blocking CI gates (POT drift, `msgfmt --check`, EN/ES parity, BCP-47 validity) — see [`docs/I18N.md`](docs/I18N.md). |
@@ -525,8 +525,8 @@ silent 0% coverage.
 **Redundancy** — multiple exposure sources can corroborate a denominator. **Stability** and
 **durability** — the published GeoJSON schema is versioned in
 [`schema/dataset.schema.md`](schema/dataset.schema.md) and schema changes are recorded in
-[`CHANGELOG.md`](CHANGELOG.md) with a migration path; stability across releases is a commitment, not
-yet a track record (v0.1.0).
+[`CHANGELOG.md`](CHANGELOG.md) with a migration path; stability across releases is a commitment with
+a short track record (three tags to date, v0.3.1 current).
 
 ### Operability, serviceability, sustainability
 
@@ -693,9 +693,9 @@ participants are bound by the [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 
 Engineering practices: pytest for every deterministic component with known-answer fixtures; ruff +
 mypy strict in CI, installed from a hashed toolchain lock; reproducible, content-hashed dataset and
-analysis runs; conventional commits; pinned, SLSA-friendly GitHub Actions; a tag-triggered SBOM/Sigstore/SLSA release pipeline (not yet
-exercised — see `.github/workflows/release.yml` and "How to verify a release" in
-[`docs/DATA-CARD.md`](docs/DATA-CARD.md)); Dependabot; and committed audit artifacts.
+analysis runs; conventional commits; pinned, SLSA-friendly GitHub Actions; a tag-triggered SBOM/Sigstore/SLSA release pipeline,
+exercised on three tags — see `.github/workflows/release.yml` and "How to verify a release" in
+[`docs/DATA-CARD.md`](docs/DATA-CARD.md); Dependabot; and committed audit artifacts.
 
 ## Security
 

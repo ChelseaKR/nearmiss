@@ -32,7 +32,7 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lock-dev lint type test accessibility axe rtl web-check security verify smoke-wheel \
-        conformance i18n i18n-compile i18n-pseudo claims qgis-plugin-test \
+        conformance i18n i18n-compile i18n-pseudo claims markers qgis-plugin-test \
         docs-audit docs-audit-check \
         reproduce sensitivity demo teach publish serve bench bench-suite bench-suite-verify \
         bikemaps simra osm-streets real clean mutation release-build
@@ -223,8 +223,15 @@ docs-audit: ## Regenerate the derived block of docs/DOCUMENTATION-AUDIT.md from 
 docs-audit-check: ## Fail if docs/DOCUMENTATION-AUDIT.md has drifted from the tree
 	$(PYTHON) tools/doc_audit.py --check
 
-verify: lint type test accessibility web-check security i18n claims conformance ## Full merge gate: lint + type + test + web/a11y + security + i18n + claims + conformance
-	@echo "verify: all merge gates green (lint, type, test, web/a11y, security, i18n, claims, conformance)."
+markers: ## CQ-34: no bare debt markers — each one carries a linked issue reference
+	# The vendored CODE-QUALITY-STANDARD declares CQ-34 an AUTO-GATE. Nothing
+	# implemented it until tools/check_debt_markers.py, so the repo was conformant
+	# by assertion rather than by gate. Local == CI. CQ-35 (suppressions needing an
+	# issue reference) is deliberately NOT wired here — see the tool's docstring.
+	$(PYTHON) tools/check_debt_markers.py
+
+verify: lint type test accessibility web-check security i18n claims conformance markers ## Full merge gate: lint + type + test + web/a11y + security + i18n + claims + conformance + debt markers
+	@echo "verify: all merge gates green (lint, type, test, web/a11y, security, i18n, claims, conformance, markers)."
 
 mutation: ## ADVISORY (never a merge gate): mutation-test the spatial-stats core with mutmut
 	@echo "mutation: ADVISORY ONLY — this is NOT part of 'make verify' and never gates a PR"

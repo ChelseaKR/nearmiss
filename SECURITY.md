@@ -172,6 +172,7 @@ quietly lie is a security issue:
 Dependencies and the release pipeline are treated as part of the attack surface. This section states
 plainly what is a **mechanism today** (running, verifiable in `.github/workflows/`) versus what is
 **specified but not yet exercised** (code exists on `main`, but has not yet processed a real release).
+As of 2026-08-08 the release pipeline is in the first category: it has processed three real tags.
 
 - **Pinned and hashed dependencies.** Committed and CI-enforced. `requirements.lock` (`make lock`,
   runtime only) and `requirements-dev.lock` (`make lock-dev`, runtime + the full dev toolchain —
@@ -193,15 +194,20 @@ plainly what is a **mechanism today** (running, verifiable in `.github/workflows
 - **OpenSSF Scorecard** runs weekly and on every push to `main` (`scorecard.yml`), publishing to
   [scorecard.dev](https://scorecard.dev) so the score is third-party-verifiable rather than
   self-asserted.
-- **Signed releases — specified, not yet exercised.** `.github/workflows/release.yml` triggers on a
+- **Signed releases — exercised.** `.github/workflows/release.yml` triggers on a
   `vX.Y.Z` tag push: it re-verifies version consistency and the CHANGELOG entry, re-runs the full
   merge gate at the tagged commit, builds the sdist/wheel, generates a CycloneDX 1.7 SBOM,
   Sigstore-signs (keyless, GitHub Actions OIDC — no long-lived key) the sdist, wheel, SBOM, **and
   every published city GeoJSON**, attaches SLSA build provenance, cuts a GitHub Release, and publishes
-  to PyPI via Trusted Publishing (OIDC, no stored `PYPI_API_TOKEN`). **As of this writing no tag has
-  ever been pushed** — the workflow has never actually run, and PyPI Trusted Publishing has not yet
-  been registered for this repository (a one-time manual step on pypi.org; see the NOTE at the top of
-  `release.yml`). Once a tag lands, verify a signed artifact per "How to verify a release" in
+  to PyPI via Trusted Publishing (OIDC, no stored `PYPI_API_TOKEN`). **It has run on three tags —
+  v0.2.0, v0.3.0, and v0.3.1, all annotated and GPG-verified, on 2026-08-08.** Each produced a
+  GitHub Release carrying `sbom.cdx.json`, `attestation.json`, and Sigstore bundles for the sdist,
+  wheel, SBOM, and every published city GeoJSON. PyPI Trusted Publishing is registered and working:
+  `nearmiss-safety` 0.3.0 and 0.3.1 are on PyPI. Two runs are on the record as failures and are worth
+  knowing about: the v0.2.0 run signed and released correctly but failed at the PyPI step because the
+  name `nearmiss` was taken (fixed in `aea68e3`), and the first v0.3.1 run failed the clean-environment
+  wheel smoke test before signing, so no release was cut — the tag was moved to the fix (`976cf5e`) and
+  re-run. Verify a signed artifact per "How to verify a release" in
   [`docs/DATA-CARD.md`](docs/DATA-CARD.md).
 - **Conventional commits, semver, ADRs, and `docs/audits/`** keep the provenance of every change
   auditable.

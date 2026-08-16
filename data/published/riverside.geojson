@@ -244,7 +244,7 @@
     "corridor_dataset": "riverside.corridors.geojson",
     "corridors_published": 0,
     "data_card": "docs/DATA-CARD.md",
-    "dataset_note": "Synthetic demonstration data — not real reports.",
+    "dataset_note": "Synthetic demonstration data — not real reports. The hotspots are planted in the fixture, so the method finds what was put there.",
     "dataset_version": "0.1.1",
     "exposure_unit": "bike trips (synthetic)",
     "license": "Apache-2.0",
