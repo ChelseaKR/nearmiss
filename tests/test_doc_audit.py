@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -148,3 +149,56 @@ def test_generated_artifacts_do_not_change_the_inventory(tmp_path: Path) -> None
     """`npm ci` and `make verify` leave directories behind; the audit must ignore them."""
     for polluted in ("web/node_modules/pkg/README.md", "build/pseudolocale/NOTES.md"):
         assert doc_audit._excluded(polluted), f"{polluted} would be counted as authored docs"
+
+
+def test_local_data_runs_do_not_change_the_inventory() -> None:
+    """`make real` writes Markdown into a gitignored tree; the audit must ignore it.
+
+    The failure this pins was not hypothetical. A real-city run left a generated brief at
+    `data/real/berlin/published-potsdam/potsdam-brief.md`, and from then on
+    `make docs-audit-check` and `make test` failed on a checkout with no changes in it —
+    while the remedy they printed, `make docs-audit`, wanted to commit that ignored path
+    into a public document, city name and all.
+    """
+    for local in (
+        "data/real/berlin/published-potsdam/potsdam-brief.md",
+        "data/raw/victoria/NOTES.md",
+        "data/pending/queue/README.md",
+    ):
+        assert doc_audit._excluded(local), f"{local} is gitignored but would be counted"
+
+
+def test_published_artifacts_are_still_counted() -> None:
+    """`data/published/` is committed, so excluding local data must not swallow it."""
+    for published in ("data/published/davis-ranked.md", "data/published/riverside-ranked.md"):
+        assert not doc_audit._excluded(published), f"{published} is committed and must count"
+        assert published in doc_audit._authored_docs()
+
+
+def test_no_gitignored_markdown_reaches_the_inventory() -> None:
+    """The audit describes the repository, not whatever this checkout happens to hold.
+
+    Asserted against git's own ignore rules rather than a second copy of the exclusion
+    list, so a future ignored directory that grows a Markdown file fails here instead of
+    silently entering a committed document.
+    """
+    if shutil.which("git") is None or not (ROOT / ".git").exists():
+        pytest.skip("no git checkout available to read ignore rules from")
+
+    docs = doc_audit._authored_docs()
+    result = subprocess.run(
+        ["git", "check-ignore", "--stdin"],
+        input="\n".join(docs),
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        check=False,
+    )
+    if result.returncode not in (0, 1):  # 0 = some ignored, 1 = none ignored
+        pytest.skip(f"git check-ignore unavailable: {result.stderr.strip()}")
+
+    ignored = sorted(line for line in result.stdout.splitlines() if line)
+    assert not ignored, (
+        "the audit counted gitignored paths as authored documentation, so its numbers "
+        f"describe this checkout rather than the repository: {ignored}"
+    )

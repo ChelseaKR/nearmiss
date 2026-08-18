@@ -62,6 +62,14 @@ What had to change per repository, i.e. everything a port must review:
 * ``BEGIN`` (it names the tool's own path, which differed) and ``AUDIT``;
 * ``EXCLUDED_DIR_NAMES``, plus an ``EXCLUDED_FILES`` set if the repo has generated files
   inside otherwise-authored directories;
+* ``EXCLUDED_PATH_PREFIXES`` — every gitignored directory a repo's own tooling writes
+  Markdown into. This is the one exclusion a port is most likely to get wrong, because
+  the symptom appears only on the machine that ran the tooling: the audit describes that
+  checkout instead of the repository, the drift gate fails on an unmodified tree, and
+  regenerating commits a local, ignored path into a public document. Cross-check the set
+  against the repo's ``.gitignore`` rather than against the directories you remember;
+  ``test_no_gitignored_markdown_reaches_the_inventory`` does that automatically and is
+  the more valuable half of this item to copy;
 * ``GROUPED_DIRS``, ``CATEGORY_RULES``, ``ENTRY_AND_PROCESS``, and the ``ROOT_*`` tuples —
   all of them are this repository's documentation taxonomy and none of it generalises;
 * the inventory collectors: ``_test_files``, ``_workflows``, ``_npm_scripts``, and
@@ -114,6 +122,27 @@ EXCLUDED_DIR_NAMES = frozenset(
         "node_modules",
         "site",
     }
+)
+
+# Root-relative directory prefixes holding a contributor's local working data rather
+# than repository content. `.gitignore` excludes `data/raw/`, `data/pending/`, and
+# `data/real/` under HR4 — only aggregated, published artifacts are ever committed — so
+# any Markdown beneath them belongs to one checkout and not to the repository.
+#
+# Counting it is not cosmetic. `make real` writes a generated brief under
+# `data/real/<city>/`, after which `make docs-audit-check` and `make test` fail on a
+# checkout with no changes in it at all, and the fix those failures ask for
+# (`make docs-audit`) writes the ignored path — city name included — into a public,
+# committed document. `data/published/` is deliberately absent: it *is* committed, and
+# its briefs are part of the inventory.
+#
+# These need a root-relative prefix where `EXCLUDED_DIR_NAMES` above needs a bare name.
+# "raw", "real", and "pending" are ordinary words a genuine docs directory could use,
+# and excluding them wherever they appear would silently drop authored documentation.
+EXCLUDED_PATH_PREFIXES = (
+    "data/pending/",
+    "data/raw/",
+    "data/real/",
 )
 
 ROOT_PROCESS_DOCS = ("CONTRIBUTING.md", "SECURITY.md", "CHANGELOG.md")
@@ -182,6 +211,8 @@ def _relative(path: Path) -> str:
 
 
 def _excluded(rel: str) -> bool:
+    if rel.startswith(EXCLUDED_PATH_PREFIXES):
+        return True
     return any(part in EXCLUDED_DIR_NAMES for part in rel.split("/")[:-1])
 
 
