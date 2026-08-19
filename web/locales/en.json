@@ -41,6 +41,7 @@
   "web.app.flag_geocode_low_confidence": "low location confidence",
   "web.app.flag_low_sample": "low sample",
   "web.app.flag_modeled_exposure": "modeled exposure (not measured)",
+  "web.app.flag_singleton_neighborhood": "Gi* neighborhood had no other rated segment (global z, not a cluster)",
   "web.app.footer": "Open data, Apache-2.0. <a href=\"https://github.com/ChelseaKR/nearmiss\">Source on GitHub</a> · <a href=\"https://chelseakr.com\">chelseakr.com</a>. Maps © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors. Methods: <code>docs/METHODOLOGY.md</code>; what it can't tell you: <code>docs/LIMITATIONS.md</code>; limits and biases: <code>docs/DATA-CARD.md</code>. Every figure regenerates with <code>make reproduce</code>.",
   "web.app.h1": "nearmiss — where the danger actually is",
   "web.app.hsEmpty": "No analyzed segments to summarize.",

@@ -47,7 +47,7 @@
       "properties": {
         "schema_version": {
           "description": "The version of THIS published-dataset schema the file conforms to. Pinned to the version this JSON Schema encodes; publish.py writes the same string.",
-          "const": "1.1.0"
+          "const": "1.2.0"
         },
         "dataset_version": {
           "description": "The version of the data (the city release), independent of the schema version.",
@@ -275,7 +275,7 @@
           ]
         },
         "getis_ord_significant": {
-          "description": "Significance flag: true when getis_ord_z clears the project threshold after multiple-comparison (FDR) correction. false means \"not significant at our threshold\", NOT \"safe\". null when getis_ord_z is null.",
+          "description": "Significance flag: true when getis_ord_z clears the project threshold after multiple-comparison (FDR) correction AND the feature's Gi* neighborhood contained at least one other rated feature. false means \"not significant at our threshold\", NOT \"safe\". Always false when quality_flags contains singleton_neighborhood, because Gi* on a one-unit neighborhood returns a global z-score rather than a cluster statistic (schema 1.2.0). null when getis_ord_z is null.",
           "type": [
             "boolean",
             "null"
@@ -319,7 +319,8 @@
               "low_sample",
               "geocode_low_confidence",
               "exposure_unknown",
-              "exposure_stale"
+              "exposure_stale",
+              "singleton_neighborhood"
             ]
           }
         },

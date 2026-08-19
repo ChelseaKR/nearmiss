@@ -41,6 +41,7 @@
   "web.app.flag_geocode_low_confidence": "ubicación poco confiable",
   "web.app.flag_low_sample": "muestra pequeña",
   "web.app.flag_modeled_exposure": "exposición modelada (no medida)",
+  "web.app.flag_singleton_neighborhood": "el vecindario Gi* no tenía otro segmento con tasa (z global, no un agrupamiento)",
   "web.app.footer": "Datos abiertos, Apache-2.0. <a href=\"https://github.com/ChelseaKR/nearmiss\">Código en GitHub</a> · <a href=\"https://chelseakr.com\">chelseakr.com</a>. Mapas © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contribuyentes. Métodos: <code>docs/METHODOLOGY.md</code>; lo que no puede decirle: <code>docs/LIMITATIONS.md</code>; límites y sesgos: <code>docs/DATA-CARD.md</code>. Cada cifra se regenera con <code>make reproduce</code>.",
   "web.app.h1": "nearmiss — dónde está realmente el peligro",
   "web.app.hsEmpty": "No hay segmentos analizados para resumir.",

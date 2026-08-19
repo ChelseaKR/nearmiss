@@ -179,7 +179,7 @@ feature is a GeoJSON `LineString` (the public street centerline) whose `properti
 | `rate_sensitivity_delta` | number \| `null`                                                         | Signed difference (all-records rate minus the published primary rate), reported only when excluding low-confidence records (`low_accuracy`/`far_snap`) would move the rate outside its confidence interval; `null` when the exclusion is immaterial. |
 | `confidence_label`       | `certain` \| `uncertain` \| `exposure_unknown`                           | Plain-language reliability label surfaced in the map and table. |
 | `hazard_breakdown`       | object (closed hazard vocabulary → integer)                              | Counts of reports at this feature by hazard type; suppressed (emitted as `{}`) for segments below `small_n`. |
-| `quality_flags`          | array of strings                                                         | Pipeline quality flags from the published vocabulary `low_sample`, `geocode_low_confidence`, `exposure_unknown`, `exposure_stale` (see [Quality flags](#published-quality-flags)). |
+| `quality_flags`          | array of strings                                                         | Pipeline quality flags from the published vocabulary `low_sample`, `geocode_low_confidence`, `exposure_unknown`, `exposure_stale`, `singleton_neighborhood` (see [Quality flags](#published-quality-flags)). |
 
 The intake (private) report schema — what a contributor actually submits — is separately
 documented in `schema/report.schema.json` and includes the optional free-text note, the
@@ -218,6 +218,7 @@ dataset are:
 | `geocode_low_confidence` | This segment aggregates one or more low-positional-accuracy or geocoded-from-address locations; placement is less certain. |
 | `exposure_unknown` | No exposure denominator was available (including a denominator at or below the configured exposure floor); `exposure_estimate`, `rate`, and the CI bounds are `null`, and the feature is labeled exposure-unknown rather than rated. |
 | `exposure_stale` | The exposure vintage (`exposure_date`) is more than the configured `exposure_stale_days` from the reports the rate is built from — a temporal-alignment caveat: exposure measured in a different period than the reports is a different measurement, not the same one revisited. |
+| `singleton_neighborhood` | This segment's Gi\* neighborhood held no other **rated** segment, so its `getis_ord_z` is a **global** z-score (this segment against the whole city's rate distribution), not the local cluster statistic Gi\* is normally read as. The z is published and labeled rather than hidden, and `getis_ord_significant` is always `false` for such a segment, so no ★ in a brief ever rests on one. Raised by a disconnected segment, a segment longer than twice `gi_band_m` (which cannot reach a neighbor under the half-length edge weight), or a segment whose neighbors all lack an exposure denominator. See ADR-0015. |
 
 These names replace any earlier flag spellings (e.g. `low_geocode_confidence`,
 `outside_study_area`, `small_n`). The authoritative, versioned flag vocabulary — including

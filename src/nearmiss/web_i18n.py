@@ -141,6 +141,7 @@ _APP_IDS: tuple[str, ...] = (
     N_("web.app.flag_low_sample"),
     N_("web.app.flag_geocode_low_confidence"),
     N_("web.app.flag_exposure_unknown"),
+    N_("web.app.flag_singleton_neighborhood"),
     N_("web.app.fail"),
     N_("web.app.none"),
 )
