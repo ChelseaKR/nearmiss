@@ -17,7 +17,7 @@ release so a schema change is never buried in a code change:
 <!-- claim:dataset-schema-prose -->
 - **Published dataset schema** — `schema/dataset.schema.md` (prose) together with its mirroring
   machine-readable JSON Schema `schema/dataset.schema.json`, validated in CI and at publish time
-  (FIX-10), currently `1.1.0`. The contract for the open per-city
+  (FIX-10), currently `1.2.0`. The contract for the open per-city
   `data/published/<city-slug>.geojson` artifact (e.g. `davis.geojson`).
   Carried per file in `metadata.schema_version`.
   [Correction history: an earlier revision claimed a "mirroring JSON Schema validated in CI" before
@@ -58,6 +58,21 @@ every entry.
 
 ### Added
 
+- **`singleton_neighborhood` joins the published `quality_flags` vocabulary (published dataset schema
+  `1.1.0` -> `1.2.0`, additive), and a feature carrying it can never be `getis_ord_significant`.**
+  Getis-Ord Gi\* is published here as a *local* statistic — a ★ claims "hot relative to its
+  surroundings." For a unit whose neighbourhood is itself alone, the binary-weight algebra collapses
+  (`w_sum == w2_sum == 1`, so `denom == s`) and Gi\* returns the plain **global** z-score
+  `(x - mean) / s`: a different question, published under the local question's name, with nothing
+  downstream able to tell the two apart. The z is still published — withholding a real number would be
+  its own distortion — but it is now labelled, and it can no longer earn a ★. Decided in
+  [ADR-0015](docs/adr/0015-a-singleton-gi-star-neighborhood-is-labeled-and-never-significant.md);
+  closes #193. Both committed demos were re-run: `riverside` flags all 5 published features (all six of
+  its segments are singletons, so *every* Gi\* z it has ever published was a global z-score — it
+  shipped no ★ only because Benjamini-Hochberg happened to reject them, not because anything detected
+  the degeneracy), and `davis` flags `seg-03`. **No published ★ changed**: davis's five significant
+  segments all have real neighbourhoods, and riverside published none. The datasets now *say* what was
+  previously true only by luck.
 - **`docs/findings/`, and the first entry in it: the Potsdam real-city run.** The pipeline has been
   run end to end against a real city exactly once — Potsdam, Germany, 2023-11-27 to 2023-12-31, SimRa
   near-miss reports and ride GPS traces over an OSM extract, with the first real exposure denominator
@@ -86,6 +101,28 @@ every entry.
 - `src/nearmiss/figures.py`'s `_stability_note` docstring now cites the real run as the reason its
   wording distinguishes "rank lost" from "significance lost", rather than arguing the distinction
   hypothetically.
+- **The singleton rule is applied at every site that turns a z-score into a published significance
+  claim**, not only the dataset: `nearmiss.stats.analyze`, `nearmiss.stats.maup.rank_stability`
+  (coarsening makes a singleton *more* likely, so exempting the re-segmentation check would let it
+  answer a laxer question than the one it audits), `nearmiss.stats.calibration` (a null model counting
+  discoveries the pipeline cannot make would report the false-positive rate of a procedure nobody
+  runs), and the standalone `honest_rates.unit.analyze`, whose `UnitRate` gains a
+  `singleton_neighborhood: bool` field. `honest_rates.hotspot.singleton_neighborhoods` is the single
+  definition, sharing its `_effective_neighbors` helper with `getis_ord_star` itself so the two cannot
+  disagree about what a unit's neighbourhood was.
+- **"Singleton" means *effective*, which is why detection reads the values and not just the neighbour
+  map.** Beyond graph islands and the half-length arithmetic, a segment with real, reachable street
+  neighbours none of which has an exposure denominator is arithmetically alone while looking connected.
+  That third path is why `davis` — a dense grid whose longest segment is 178 m against a 600 m
+  threshold, and which has **zero** structural singletons — nonetheless had two rated segments
+  publishing global z-scores. `src/nearmiss/network.py`'s docstring said neither fixture reached the
+  case; measurement says both do.
+- The ranked tables (`brief.py` and the standalone `data/published/<city>-ranked.md`) now print
+  `no Gi\* neighbors — global z=…` instead of leaving the Hotspot cell blank, because a blank cell
+  reads as "the multiple-comparison correction rejected it," which is a different and untrue statement.
+- `integrations/qgis`'s mirror of the published flag vocabulary had drifted: it still listed three flags
+  and would have rejected a dataset carrying `exposure_stale` (published since schema 1.1.0) as an
+  "unrecognized flag". It now mirrors all five.
 
 ### Fixed
 

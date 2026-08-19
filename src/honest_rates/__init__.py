@@ -43,7 +43,13 @@ conclusion using only this library.
 from __future__ import annotations
 
 from .bias import BiasFinding, BiasReport, characterize_bias
-from .hotspot import band_neighbors, benjamini_hochberg, getis_ord_star, two_sided_p
+from .hotspot import (
+    band_neighbors,
+    benjamini_hochberg,
+    getis_ord_star,
+    singleton_neighborhoods,
+    two_sided_p,
+)
 from .rates import (
     Z95,
     pearson_dispersion,
@@ -72,6 +78,7 @@ __all__ = [
     "poisson_ci",
     "quasi_poisson_ci",
     "rate_with_ci",
+    "singleton_neighborhoods",
     "two_sided_p",
     "wilson_ci",
 ]

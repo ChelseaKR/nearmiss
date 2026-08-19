@@ -8,6 +8,19 @@ busy." A binary weight (including the focal unit itself, as Gi* requires) is
 used; the result is a z-score per unit, and :func:`benjamini_hochberg`
 controls the false-discovery rate across the many simultaneous per-unit tests.
 
+**Gi\\* stops being a local statistic when a unit's neighborhood is a
+singleton.** With binary weights and a neighborhood of just the focal unit,
+``w_sum == w2_sum == 1``, so the denominator collapses::
+
+    denom = s * sqrt((n*1 - 1*1) / (n - 1)) = s * sqrt((n-1)/(n-1)) = s
+    z     = (x_i - mean) / s
+
+— a plain **global** z-score of one unit against the whole value set, emitted
+through the Gi\\* code path where nothing downstream can tell it apart from a
+real cluster. :func:`singleton_neighborhoods` reports exactly which units this
+happened to, so a caller can label or suppress them rather than publish a
+global z-score wearing a local statistic's name (nearmiss issue #193).
+
 The core statistic takes a **precomputed neighbor map**, so the caller decides
 what "neighbor" means for its domain: nearmiss feeds it street-network
 adjacency/distance (``nearmiss.network.SegmentGraph.neighbors_within``), so
@@ -94,6 +107,57 @@ def band_neighbors(
     return neighbors
 
 
+def _effective_neighbors(
+    unit_id: str,
+    neighbor_ids: dict[str, set[str]],
+    ids_set: set[str],
+) -> set[str]:
+    """The neighborhood Gi* actually weights for ``unit_id``.
+
+    Gi* always includes the focal unit in its own neighborhood, and a listed
+    neighbor with no usable value (absent from ``values``) contributes nothing,
+    so the *effective* neighborhood is the listed set plus the focal unit,
+    intersected with the ids that have values. Both :func:`getis_ord_star` and
+    :func:`singleton_neighborhoods` go through here so the two can never
+    disagree about what a unit's neighborhood was.
+    """
+    return (neighbor_ids.get(unit_id, set()) | {unit_id}) & ids_set
+
+
+def singleton_neighborhoods(
+    values: dict[str, float],
+    neighbor_ids: dict[str, set[str]],
+) -> frozenset[str]:
+    """Ids whose *effective* Gi* neighborhood is the unit alone.
+
+    For these units the statistic :func:`getis_ord_star` returns is not a
+    cluster statistic at all — the binary-weight algebra collapses it to the
+    global z-score ``(x_i - mean) / s`` (see the module docstring). Treat the
+    result as a degeneracy label: suppress the unit's significance, flag it, or
+    both, but do not publish its z as evidence of a local cluster.
+
+    "Effective" is the operative word, and it is why this takes ``values``
+    rather than only the neighbor map. Three different situations land here:
+
+    1. a genuine graph island, with no adjacent unit at all;
+    2. a unit whose listed neighbors are all unreachable under the caller's own
+       distance rule (for a street network, ``nearmiss.network`` weights an edge
+       by half of each segment's length, so a segment longer than twice the band
+       can never reach one — the case that dominated on real data); and
+    3. a unit with real, reachable neighbors none of which has a usable value —
+       structurally connected, arithmetically alone.
+
+    Only (1) is visible in the neighbor map by itself. Deciding degeneracy on
+    the raw map would miss (3) entirely.
+    """
+    ids_set = set(values.keys())
+    return frozenset(
+        unit_id
+        for unit_id in ids_set
+        if len(_effective_neighbors(unit_id, neighbor_ids, ids_set)) <= 1
+    )
+
+
 def getis_ord_star(
     values: dict[str, float],
     neighbor_ids: dict[str, set[str]],
@@ -108,6 +172,13 @@ def getis_ord_star(
     this function adds it, since Gi* always includes the focal unit in its own
     neighborhood. Ids with no usable value (absent from ``values``) are
     ignored even if listed as a neighbor.
+
+    A unit left with only itself gets a number back like any other, but that
+    number is a **global** z-score, not a cluster statistic — call
+    :func:`singleton_neighborhoods` alongside this to find out which units that
+    happened to. This function does not suppress them on its own: the caller
+    owns the publication decision, and silently returning ``0.0`` would be a
+    different lie.
     """
     ids = list(values.keys())
     ids_set = set(ids)
@@ -132,7 +203,7 @@ def getis_ord_star(
 
     z: dict[str, float] = {}
     for i in ids:
-        neighbors = (neighbor_ids.get(i, set()) | {i}) & ids_set
+        neighbors = _effective_neighbors(i, neighbor_ids, ids_set)
         # Binary weights (1.0 for a neighbor, 0.0 otherwise): w*w == w, so the
         # sum-of-squares term collapses to the same neighbor count.
         w_sum = float(len(neighbors))

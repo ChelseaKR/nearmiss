@@ -36,10 +36,20 @@ city this pipeline has been run against (``docs/findings/``), 148 of 8,129
 segments got a singleton neighborhood and only 20 of them were genuine
 islands; the other 128 had real street adjacency and were excluded purely by
 this arithmetic, median length 675 m. Downstream, a singleton neighborhood
-collapses Gi* to a global z-score — see issue #193, which is where the fix and
-the decision about what to publish for such a unit belong. Neither committed
-fixture reaches the case: davis's longest segment is 178 m against a 600 m
-threshold, and riverside is 6 mutually disconnected segments.
+collapses Gi* to a global z-score; ADR-0015 settles what gets published for such
+a unit (labeled ``singleton_neighborhood``, never significant).
+
+A third path makes the map returned here an UNDER-count of the problem, so do
+not read a segment's presence in someone's neighbor set as proof it has one:
+``getis_ord_star`` ignores neighbor ids with no usable value, so a segment whose
+neighbors all lack an exposure denominator is *effectively* alone while looking
+connected here. That is why the degeneracy check
+(``honest_rates.hotspot.singleton_neighborhoods``) takes the values as well as
+this map — and why both committed fixtures reach the case despite neither being
+long enough for the arithmetic above: riverside is 6 mutually disconnected
+segments (6 of 6 singletons), and davis, a dense grid whose longest segment is
+178 m against a 600 m threshold, still has 2 of its 12 rated segments
+effectively alone because their neighbors carry no exposure.
 
 Reference: the shared-endpoint construction mirrors how
 ``tools/fetch_osm_streets.py`` itself identifies intersections (``_node_key``,
@@ -209,9 +219,15 @@ class SegmentGraph:
         """For every segment, the set of segment ids (including itself) within
         network distance ``band_m`` — the Gi* spatial-weights neighbor map.
 
-        An isolated segment (no adjacent segment) maps to ``{itself}`` only:
-        it has no honest network neighbors, so Gi* for it degenerates to
-        comparing the segment to itself, which is the correct behavior for an
-        island in the extract, not an error to hide.
+        A segment with no reachable neighbor maps to ``{itself}`` only. That is
+        the honest neighborhood — inventing an edge to the nearest segment would
+        be worse — but it is NOT a usable Gi* neighborhood: the statistic
+        collapses to a global z-score there (module docstring above, ADR-0015).
+        Callers must pass the result through
+        ``honest_rates.hotspot.singleton_neighborhoods`` and label or suppress
+        those units rather than publishing their z as a cluster. Note that map
+        alone under-reports the problem: a segment listed here with neighbors can
+        still be *effectively* alone once neighbors without a usable value drop
+        out, which is why that check takes the values too.
         """
         return {sid: self._dijkstra_within(sid, band_m) for sid in self.adjacency}

@@ -14,11 +14,29 @@ nearmiss always feeds Gi* **street-network** neighborhoods
 straight-line ``band_neighbors`` fallback is for standalone consumers
 without a network graph and is not used in this pipeline.
 
+``singleton_neighborhoods`` is re-exported alongside them because it is not
+optional here: a unit whose effective neighborhood is itself alone gets a
+**global** z-score out of Gi*, and every place in this package that turns a
+z-score into a published "significant" must subtract those ids first
+(ADR-0015). Sharing one implementation is what keeps the published dataset,
+the MAUP re-segmentation check, and the shuffle calibration from drifting
+into three different definitions of the same word.
+
 Reference: Getis & Ord (1992); Ord & Getis (1995); Benjamini & Hochberg (1995).
 """
 
 from __future__ import annotations
 
-from honest_rates.hotspot import benjamini_hochberg, getis_ord_star, two_sided_p
+from honest_rates.hotspot import (
+    benjamini_hochberg,
+    getis_ord_star,
+    singleton_neighborhoods,
+    two_sided_p,
+)
 
-__all__ = ["benjamini_hochberg", "getis_ord_star", "two_sided_p"]
+__all__ = [
+    "benjamini_hochberg",
+    "getis_ord_star",
+    "singleton_neighborhoods",
+    "two_sided_p",
+]

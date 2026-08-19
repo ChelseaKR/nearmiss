@@ -32,7 +32,12 @@ from ..exposure import attach_exposure, is_usable
 from ..geometry import haversine_m, polyline_centroid
 from ..models import Exposure, Segment, SegmentStats
 from ..network import SegmentGraph
-from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
+from .getis_ord import (
+    benjamini_hochberg,
+    getis_ord_star,
+    singleton_neighborhoods,
+    two_sided_p,
+)
 
 
 @dataclass(frozen=True)
@@ -143,7 +148,14 @@ def rank_stability(
                 coarse_neighbors[u].add(str(nb_unit))
     z = getis_ord_star(coarse_rate, coarse_neighbors)
     rejected = benjamini_hochberg({u: two_sided_p(zi) for u, zi in z.items()}, config.fdr_alpha)
-    coarse_significant = {u for u in rejected if z.get(u, 0.0) > 0.0}
+    # Same degeneracy rule as the published dataset (ADR-0015, issue #193):
+    # re-segmentation can leave a coarse unit alone in its own neighborhood, and a
+    # global z-score must not be able to report "still significant" here either.
+    # Coarsening makes this MORE likely, not less — there are fewer units to be
+    # adjacent to — so applying the rule only to the fine analysis would let the
+    # stability check answer a laxer question than the one it is checking.
+    coarse_degenerate = singleton_neighborhoods(coarse_rate, coarse_neighbors)
+    coarse_significant = {u for u in rejected if z.get(u, 0.0) > 0.0} - coarse_degenerate
 
     coarse_ranked = sorted(coarse_rate, key=lambda u: coarse_rate[u], reverse=True)
     coarse_top = coarse_ranked[:k]

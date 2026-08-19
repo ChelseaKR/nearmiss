@@ -28,7 +28,8 @@
         "n": 3,
         "name": "Main St (5th–6th)",
         "quality_flags": [
-          "low_sample"
+          "low_sample",
+          "singleton_neighborhood"
         ],
         "rate": 2.0,
         "rate_ci_high": 5.8437,
@@ -68,7 +69,8 @@
         "n": 4,
         "name": "Market St (5th–6th)",
         "quality_flags": [
-          "low_sample"
+          "low_sample",
+          "singleton_neighborhood"
         ],
         "rate": 5.0,
         "rate_ci_high": 12.8011,
@@ -110,7 +112,9 @@
         },
         "n": 8,
         "name": "University Ave (Market–Lemon)",
-        "quality_flags": [],
+        "quality_flags": [
+          "singleton_neighborhood"
+        ],
         "rate": 32.0,
         "rate_ci_high": 63.0566,
         "rate_ci_low": 13.7785,
@@ -155,7 +159,9 @@
         "hazard_breakdown": {},
         "n": 0,
         "name": "7th St (Market–Lemon)",
-        "quality_flags": [],
+        "quality_flags": [
+          "singleton_neighborhood"
+        ],
         "rate": 0.0,
         "rate_ci_high": 2.4454,
         "rate_ci_low": 0.0,
@@ -194,7 +200,8 @@
         "n": 4,
         "name": "Lemon St (University–10th)",
         "quality_flags": [
-          "low_sample"
+          "low_sample",
+          "singleton_neighborhood"
         ],
         "rate": 5.0,
         "rate_ci_high": 12.8011,
@@ -245,13 +252,13 @@
     "corridors_published": 0,
     "data_card": "docs/DATA-CARD.md",
     "dataset_note": "Synthetic demonstration data — not real reports. The hotspots are planted in the fixture, so the method finds what was put there.",
-    "dataset_version": "0.1.1",
+    "dataset_version": "0.1.2",
     "exposure_unit": "bike trips (synthetic)",
     "license": "Apache-2.0",
     "privacy": "Aggregated to public street segments; low-count segments withheld (k-anonymity); no per-report coordinate, time, reporter, mode, or severity is published.",
     "schema_doc": "schema/dataset.schema.md",
     "schema_json": "schema/dataset.schema.json",
-    "schema_version": "1.1.0",
+    "schema_version": "1.2.0",
     "segments_published": 5,
     "segments_withheld_low_count": 1,
     "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",
