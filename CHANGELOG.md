@@ -87,6 +87,24 @@ every entry.
   wording distinguishes "rank lost" from "significance lost", rather than arguing the distinction
   hypothetically.
 
+### Fixed
+
+- **`tools/doc_audit.py` counted gitignored local data runs as repository documentation.** The
+  audit walked every `*.md` in the checkout with only a build-artifact denylist (`node_modules/`,
+  `build/`, `.venv/`, …) in the way, so the gitignored real-city working trees — `data/raw/`,
+  `data/pending/`, `data/real/` — were inventoried as authored docs. Two consequences, both
+  observed: after any `make real` run wrote a generated brief under `data/real/<city>/`,
+  `make docs-audit-check` and `make test` failed on a checkout containing no changes at all; and
+  the remedy those failures print, `make docs-audit`, would have committed the ignored path — city
+  name included — into a public document, against the HR4 boundary that keeps `data/real/` out of
+  the repository. A new `EXCLUDED_PATH_PREFIXES` (root-relative, because "raw", "real", and
+  "pending" are ordinary words a real docs directory could use) excludes them, while
+  `data/published/` stays counted because it is committed. `tests/test_doc_audit.py` gains three
+  gates, one of which checks the inventory against **git's own ignore rules** rather than a second
+  copy of the exclusion list, so a future ignored directory that grows a Markdown file fails the
+  build instead of quietly entering a committed document. The committed audit block is byte-identical
+  before and after, which is the evidence that only the tool was wrong.
+
 ## [0.4.0] - 2026-08-16
 
 ### Added
