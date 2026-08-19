@@ -9,6 +9,11 @@ This index keeps the project map, audit record, and main operating docs in one p
 - [Project scope](PROJECT-SCOPE.md) names the product, users, code and data surfaces, safety boundaries, and out-of-scope items.
 - [Documentation audit](DOCUMENTATION-AUDIT.md) carries the doc inventory, counts, and local-link check, generated from the tree by `tools/doc_audit.py` (`make docs-audit`) and gated against drift, plus the dated remediation history of the sweeps behind it.
 
+## Findings
+
+- [Findings index](findings/README.md) — dated write-ups of what happened when this project's checkers were pointed at real data, negative results included.
+- [2026-08-15 — Potsdam: the first real-city run, and what its MAUP check actually found](findings/2026-08-15-potsdam-real-run.md)
+
 ## Primary Docs
 
 - [Readme](../README.md)

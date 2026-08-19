@@ -330,7 +330,11 @@ Adapting nearmiss to a real city is mostly *data* work, not code work, and the h
 genuinely hard. The tool will not paper over them, and this section is the honest list so you can plan
 the effort.
 
-- **Source real exposure data — this is the long pole.** The Davis demo ships *synthetic* exposure.
+- **Source real exposure data — this is the long pole.** The Davis demo ships *synthetic* exposure,
+  with planted hotspots; do not read it as evidence that the pipeline finds real ones. Real exposure
+  has been derived exactly once, from ride GPS traces for Potsdam, Germany — see
+  [`findings/2026-08-15-potsdam-real-run.md`](findings/2026-08-15-potsdam-real-run.md) for what that
+  produced and what broke.
   For a real rate you need a real denominator per segment: a bike/pedestrian count program,
   manual or sensor counts, a travel-demand model, or a purchased exposure layer
   (Strava Metro, StreetLight, Replica). Acquiring, cleaning, and joining that to your `segment_id`s is

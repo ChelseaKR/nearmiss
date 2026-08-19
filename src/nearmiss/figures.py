@@ -46,10 +46,11 @@ def _stability_note(stability: RankStability) -> str:
 
     ``maup.rank_stability`` sets ``top_hotspot_survives`` only when the top-rate unit is
     *both* still rank 1 and still a significant Gi* cluster on the coarser partition, so a
-    bare "did not survive" hides which half failed: rank can hold while Gi* significance is
-    lost, and reporting that as "the hotspot dissolved" would be an overstatement in the
-    direction that flatters the check. The wording below distinguishes the two cases so a
-    reader of the artifact never has to open the metadata to find out which happened.
+    bare "did not survive" hides which half failed. On the one real-city run this project
+    has done (``docs/findings/2026-08-15-potsdam-real-run.md``) rank held and significance
+    did not, and reporting that as "the hotspot dissolved" would have been an overstatement
+    in the direction that flatters the check. The wording below distinguishes the two cases
+    so a reader of the artifact never has to open the metadata to find out which happened.
     """
     scale = f"{stability.fine_units} block units re-segmented into {stability.coarse_units}"
     overlap = f"top-{stability.k} rank overlap {stability.topk_overlap:.2f}"

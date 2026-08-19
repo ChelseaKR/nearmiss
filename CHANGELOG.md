@@ -56,6 +56,37 @@ every entry.
 
 ## [Unreleased]
 
+### Added
+
+- **`docs/findings/`, and the first entry in it: the Potsdam real-city run.** The pipeline has been
+  run end to end against a real city exactly once — Potsdam, Germany, 2023-11-27 to 2023-12-31, SimRa
+  near-miss reports and ride GPS traces over an OSM extract, with the first real exposure denominator
+  this project has ever had. That run sat gitignored under `data/real/` since 2026-07-15 and appeared
+  nowhere in the repository, while both committed demo cities are synthetic fixtures with *planted*
+  hotspots. A reader who saw only the demos would reasonably conclude the method finds hotspots.
+  `docs/findings/2026-08-15-potsdam-real-run.md` publishes what actually happened, including the part
+  that does not flatter the tool: the MAUP rank-stability check returned
+  `top_hotspot_survives: false`. The entry is careful that this means *significance* lost and not
+  *rank* lost — rank 1 held — because "the hotspot dissolved" would be an overstatement in the
+  direction that flatters the check. No SimRa-derived file is committed and none can be (CC BY-NC 4.0,
+  per `docs/DATA-CARD.md`); what is published is the project's analysis of its own method. Closes the
+  gap that #185 named. `docs/LIMITATIONS.md`, `docs/REAL-DATA.md`, `docs/ADAPTING.md`, and
+  `docs/README.md` now route a reader to it before they read either demo.
+
+### Changed
+
+- **`src/nearmiss/network.py`'s docstring was measurably wrong about singleton Gi\* neighbourhoods.**
+  It named the island case — a segment with no adjacent segment — and called the resulting
+  self-only neighbourhood "the correct, honest answer, not a special case to work around." On real
+  data islands were 20 of 148 singletons; the other 128 had genuine street adjacency and were
+  excluded purely by the module's own half-length edge weighting, under which a segment longer than
+  twice `gi_band_m` can never reach any neighbour. The docstring now states that arithmetic, carries
+  the measurement, and points at #193, where a singleton neighbourhood collapsing Gi\* to a global
+  z-score is filed. Documentation only; no behaviour change.
+- `src/nearmiss/figures.py`'s `_stability_note` docstring now cites the real run as the reason its
+  wording distinguishes "rank lost" from "significance lost", rather than arguing the distinction
+  hypothetically.
+
 ## [0.4.0] - 2026-08-16
 
 ### Added

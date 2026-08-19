@@ -27,6 +27,20 @@ possibility in sparse or disconnected network extracts) simply has no
 reachable neighbors beyond itself; that is the correct, honest answer, not a
 special case to work around.
 
+That is right about the *neighborhood* and, it turns out, incomplete about the
+consequences — and the island framing above understates how often a singleton
+happens. Because the edge weight below is half of each segment's length, **a
+segment longer than twice ``band_m`` can never reach any neighbor**: its own
+half-length exceeds the band before the neighbor's is added. On the one real
+city this pipeline has been run against (``docs/findings/``), 148 of 8,129
+segments got a singleton neighborhood and only 20 of them were genuine
+islands; the other 128 had real street adjacency and were excluded purely by
+this arithmetic, median length 675 m. Downstream, a singleton neighborhood
+collapses Gi* to a global z-score — see issue #193, which is where the fix and
+the decision about what to publish for such a unit belong. Neither committed
+fixture reaches the case: davis's longest segment is 178 m against a 600 m
+threshold, and riverside is 6 mutually disconnected segments.
+
 Reference: the shared-endpoint construction mirrors how
 ``tools/fetch_osm_streets.py`` itself identifies intersections (``_node_key``,
 ``intersection_nodes``) — segment endpoints are principled network nodes, not

@@ -52,6 +52,18 @@ The five [hard rules](../README.md) are referenced as HR1–HR5.
    re-segmentation, not every possible one — but the honest place to push now comes
    with a published answer you can check.
 
+   **And the answer is not always yes.** Read
+   [`findings/2026-08-15-potsdam-real-run.md`](findings/2026-08-15-potsdam-real-run.md)
+   before you read either committed demo. `davis` and `riverside` are synthetic fixtures
+   with planted hotspots, so they are not evidence that the method finds hotspots in the
+   wild; the one real-city run this project has done returned
+   `top_hotspot_survives: false`. Note carefully what that flag does and does not mean.
+   On that run rank 1 held and Gi\* significance did not, and the reason was
+   diagnosable: the segment was longer than twice the Gi\* neighbourhood band, so at the
+   block scale it had no reachable neighbours and its z-score was a global one wearing a
+   local statistic's name. A robustness check whose result is only ever published when it
+   passes is not a robustness check.
+
 ## More specific limits
 
 - **Small numbers are loud.** A single extra report can swing a low-`n` block.

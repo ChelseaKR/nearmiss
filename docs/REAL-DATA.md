@@ -597,6 +597,16 @@ Steps 1 and 2 are solved today. **Step 3 (exposure) is the remaining real work**
 input that distinguishes this project from a dot-map, so it is worth doing properly rather than
 faking.
 
+> **It has been done once, outside California.** A full end-to-end run against Potsdam, Germany
+> derived a real exposure denominator from SimRa ride GPS traces (distinct rides per OSM segment,
+> floored at five rides for k-anonymity) and produced a published artifact. The inputs are
+> CC BY-NC 4.0, so no file from that run is committed and none can be; the method result is written
+> up in [`findings/2026-08-15-potsdam-real-run.md`](findings/2026-08-15-potsdam-real-run.md),
+> including a coverage figure of 1.5% of segments (holding 91% of the reports) and a MAUP
+> rank-stability failure worth reading before you trust either committed demo. Anyone building step
+> 3 should read that finding first: it is the only evidence this project has about what its own
+> pipeline does when the denominators are real and sparse.
+
 Last verified: 2026-07-12
 
 Recheck cadence: Quarterly, and before changing any external source URL, field mapping, or access
