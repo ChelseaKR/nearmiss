@@ -36,7 +36,7 @@ means and what each regime tests.
 > measurement of the method.** A city with no topology has no local clusters to
 > find; refusing to claim one is the correct behaviour. Until `generator.py`
 > emits a connected grid, treat every hotspot column below as unmeasured.
-> Filed as a follow-up to #193.
+> Filed as #196.
 >
 > The `interval_coverage` column is unaffected — it scores the published
 > confidence intervals, which never depended on the neighbourhood graph.

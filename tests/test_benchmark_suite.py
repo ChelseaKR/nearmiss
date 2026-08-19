@@ -112,7 +112,7 @@ def test_every_benchmark_city_is_currently_a_disconnected_grid(name: str) -> Non
     ``gi_node_snap_m`` — so no two segments share an endpoint and the adjacency
     graph has no edges at all. Every Gi* z this suite ever scored was therefore
     a global z-score (issue #193), and every hotspot column in SCORECARD.md is
-    unmeasured rather than measured-and-zero.
+    unmeasured rather than measured-and-zero. The generator fix is issue #196.
 
     This test pins the broken state ON PURPOSE. When someone fixes the generator
     it will fail, which is the signal to re-score the suite and rewrite the
