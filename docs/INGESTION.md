@@ -46,9 +46,9 @@ result = run_ingestion(
     max_normalized_bytes=128 * 1024 * 1024,
 )
 
-print(result.current_path)       # validated active receipt / commit marker
-print(result.normalized_path)    # immutable normalized bytes
-print(result.receipt_path)       # immutable attempt history
+print(result.current_path)  # validated active receipt / commit marker
+print(result.normalized_path)  # immutable normalized bytes
+print(result.receipt_path)  # immutable attempt history
 ```
 
 The byte ceilings are post-materialization activation gates. `fetch` and `normalize` must apply their

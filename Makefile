@@ -91,8 +91,17 @@ lock-dev: ## Generate the hashed reproducible DEV-TOOLCHAIN lockfile (requiremen
 	# `pip install -e ".[dev]"` resolve, so the toolchain a merge gate runs is reproducible
 	# and tamper-evident, not "whatever PyPI serves today." Dependabot (`.github/dependabot.yml`)
 	# and Renovate both regenerate this file's pins/hashes on a dependency bump.
-	$(PYTHON) -m piptools compile --extra=dev --generate-hashes -o requirements-dev.lock pyproject.toml
+	#
+	# --allow-unsafe keeps `pip` itself pinned and hashed in the lock. Without it,
+	# pip-tools silently drops "unsafe" packages (pip, setuptools, ...) from the output
+	# entirely, which is worse than an outdated pin: pip-audit can only scan what the
+	# lock lists, so a dropped pip would make a real, live CVE against it invisible
+	# rather than merely stale (issue #189).
+	$(PYTHON) -m piptools compile --extra=dev --generate-hashes --allow-unsafe -o requirements-dev.lock pyproject.toml
 	@echo "lock-dev: wrote requirements-dev.lock (generated; do not edit by hand)."
+
+lock-dev-check: ## CQ-09-equivalent: fail if requirements-dev.lock has drifted from pyproject.toml
+	$(PYTHON) tools/check_lock_drift.py
 
 lint: ## Lint with ruff (style + import order + bugbear) and check formatting
 	$(PYTHON) -m ruff check .

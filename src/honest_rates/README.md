@@ -60,7 +60,7 @@ units = [
     SimpleUnit(id="store-2", lat=38.546, lon=-121.744),
     SimpleUnit(id="store-3", lat=38.560, lon=-121.700),
 ]
-counts = {"store-1": 9, "store-2": 11, "store-3": 40}       # raw complaint counts
+counts = {"store-1": 9, "store-2": 11, "store-3": 40}  # raw complaint counts
 exposure = {"store-1": 50.0, "store-2": 50.0, "store-3": 8000.0}  # e.g. foot traffic
 
 results = analyze(units, counts, exposure, band_m=250.0)
