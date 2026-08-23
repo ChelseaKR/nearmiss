@@ -1,6 +1,6 @@
 # Standards and metrics ledger
 
-Last measured: 2026-07-16 · Owner: Chelsea Kelly-Reif · Review cadence: per
+Last measured: 2026-08-22 · Owner: Chelsea Kelly-Reif · Review cadence: per
 release and quarterly.
 
 Feature and research hypotheses live in [`RESEARCH-ROADMAP.md`](RESEARCH-ROADMAP.md)
@@ -30,27 +30,66 @@ N/A-with-reason—never an unowned aspiration.
 | Threat model / DPIA | Review on every new collection, publication, or network surface | [`THREAT-MODEL.md`](THREAT-MODEL.md), [`DPIA.md`](DPIA.md) | REVIEW | Maintainer |
 | Statistical validity | Method changes carry known-answer/differential evidence; external-validity claims require specialist review | [`METHODOLOGY.md`](METHODOLOGY.md), preregistration sign-off | REVIEW | Statistician / maintainer |
 | AI evaluation / GenAI telemetry | N/A—deterministic statistics and rules only; no model, prompt, retrieval, embedding, or AI ranking path | ADR 0004 plus dependency/import scan | N/A | Maintainer |
+| Change-fail rate (release pipeline) | Track and drive down; no fixed numeric target at this release cadence | `gh run list --workflow=release.yml` cross-referenced with `gh release list` — see Delivery health below for the definition and the record | REVIEW | Maintainer |
+| Failed-deployment recovery time | Track and drive down; no fixed numeric target at this release cadence | same | REVIEW | Maintainer |
+| Deployment rework | Track and drive down; no fixed numeric target at this release cadence | same | REVIEW | Maintainer |
 
 ## Delivery health
 
 Portfolio automation measures delivery/quality-debt metrics from Git and CI.
 For this library/static-site repo, deployment frequency and change lead time are
-the applicable DORA signals. Change-fail rate, failed-deployment recovery time,
-and deployment rework become meaningful only after a tagged release or Pages
-deployment incident exists; they must remain N/A rather than be filled with
-invented zeroes.
+the applicable DORA signals, tracked by that automation. Change-fail rate,
+failed-deployment recovery time, and deployment rework become meaningful only
+after a tagged release or Pages deployment incident exists; they were carried
+as N/A rather than filled with invented zeroes until that precondition was
+met, on 2026-08-08.
 
-**That precondition was met on 2026-08-08 and these rows are now overdue, not N/A.**
-Three tags shipped (v0.2.0, v0.3.0, v0.3.1) across four `release.yml` runs, and two of
-those runs did not complete: the v0.2.0 run signed and cut its release but failed the
-PyPI publish (the name `nearmiss` was taken), and the first v0.3.1 run failed the
-clean-environment wheel smoke test before signing, so no release was cut and the tag was
-moved to `976cf5e` and re-run about sixteen minutes later. That is a real release-failure
-record with a real recovery interval. The remaining work is to fix the *metric
-definitions* — what counts as a deployment here, and whether a partially-failed release
-run is a change failure — and then populate the rows from that record. Carrying "N/A —
-no tagged release exists" is now the invented answer, which is the failure mode the
-paragraph above was written to prevent, arriving from the other side.
+**Definitions, since none of the three metrics has one obvious reading for a
+tag-triggered release pipeline (issue #184):** a *deployment* is one
+`release.yml` run triggered by pushing a version tag. A deployment *fails* if
+either of its two jobs (build/verify/SBOM/sign/attest/GitHub-Release, then
+publish-to-PyPI) does not complete successfully — a signed GitHub Release
+with no PyPI publish still counts as a failed deployment, because the release
+was not fully shipped. *Recovery* is the next deployment that completes the
+same intended release; where no such deployment exists, that is recorded as
+unrecovered rather than averaged away. *Rework* is any deployment that needed
+a second attempt, on the same tag or a superseding one, to ship completely.
+
+**The record, verified against `gh run list --workflow=release.yml` and `gh
+release list` directly (not retyped from a prior summary):** four tags have
+shipped — v0.2.0, v0.3.0, v0.3.1 (2026-08-08), and v0.4.0 (2026-08-16) —
+across **five** `release.yml` runs, not the three tags / four runs an earlier
+revision of this section reported before v0.4.0 shipped.
+
+| Tag | Runs | Outcome |
+|---|---|---|
+| v0.2.0 | 1 | Build/sign/GitHub-Release job succeeded; PyPI publish **failed** (the name `nearmiss` was taken). Not retried on this tag — see below. |
+| v0.3.0 | 1 | Both jobs succeeded on the first run. |
+| v0.3.1 | 2 | First run **failed** the build job's clean-environment wheel smoke test before signing, so no release was cut and PyPI publish was correctly skipped. Tag moved to `976cf5e`; the retry, started 2026-08-08T23:25:10Z, ~16 minutes after the failed run started (2026-08-08T23:08:56Z) and ~7 minutes after it finished, succeeded fully. |
+| v0.4.0 | 1 | Both jobs succeeded on the first run. |
+
+**Computed:**
+
+- **Change-fail rate: 2 of 5 deployments (40%).** v0.2.0's PyPI leg and
+  v0.3.1's first attempt.
+- **Deployment rework: 2 of 5 deployments, on 2 of 4 tags (50% of tags
+  shipped so far needed rework).**
+- **Failed-deployment recovery time: the two failures are not the same kind
+  of event, and averaging them would misstate both.** v0.3.1 recovered on
+  its own tag in ~16 minutes (push-to-push) / ~7 minutes (failure-end to
+  retry-start). v0.2.0 **never recovered on its own tag** — the PyPI leg for
+  the name `nearmiss` was abandoned rather than retried; the underlying
+  problem (the name was taken) was instead fixed by publishing under the
+  renamed package `nearmiss-safety`, first shipped with v0.3.0 about 1h15m
+  later (`aea68e3`). Two data points are too few for a stable average in any
+  case; both are reported so a reader can see which kind of recovery — a
+  same-tag retry, or a later release superseding the failure — actually
+  happened each time.
+
+These are now measured rows, not an aspiration. Re-measure after the next
+release and update this section rather than letting it go stale again — the
+"three tags" figure this section carried through 2026-08-16 is exactly the
+failure mode this paragraph exists to prevent, arriving from the other side.
 
 ## Open review and owner actions
 
@@ -61,10 +100,12 @@ paragraph above was written to prevent, arriving from the other side.
 - Approve the preregistered scoring rule with a real statistician after the
   evaluation window; fixture success is not predictive-validity evidence.
 - Mint a DOI (Zenodo or equivalent) against a shipped tag and fill in
-  `CITATION.cff`'s `doi:` field, which is still a bare `TODO`. PyPI Trusted
-  Publishing and the signed tag workflow are done: `nearmiss-safety` 0.3.0 and
-  0.3.1 are published, and v0.2.0, v0.3.0, and v0.3.1 each cut a signed GitHub
-  Release with an SBOM and a SLSA attestation on 2026-08-08.
+  `CITATION.cff`'s `doi:` field — the marker now carries this issue's
+  reference (`TODO(#184)`, satisfying CQ-34's no-bare-marker gate) but the DOI
+  itself is not yet minted. PyPI Trusted Publishing and the signed tag
+  workflow are done: `nearmiss-safety` 0.3.0, 0.3.1, and 0.4.0 are published,
+  and v0.2.0, v0.3.0, v0.3.1, and v0.4.0 each cut a signed GitHub Release with
+  an SBOM and a SLSA attestation (2026-08-08 and 2026-08-16).
 - Provide real exposure counts and official-collision validation where the
   research roadmap explicitly requires external data.
 
