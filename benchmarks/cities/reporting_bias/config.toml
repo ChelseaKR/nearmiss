@@ -9,7 +9,7 @@ exposure = "exposure.json"
 raw_dir = "/tmp/nm-bench-reporting_bias-raw"
 out_dir = "/tmp/nm-bench-reporting_bias-pub"
 exposure_unit = "synthetic exposure units"
-dataset_note = "SYNTHETIC benchmark city (planted-truth suite v1.0.0, regime=reporting_bias)."
+dataset_note = "SYNTHETIC benchmark city (planted-truth suite v2.0.0, regime=reporting_bias)."
 
 [thresholds]
 rate_per = 1000.0
