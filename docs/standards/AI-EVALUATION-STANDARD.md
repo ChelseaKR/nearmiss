@@ -70,19 +70,28 @@ from deepeval import assert_test
 from deepeval.metrics import FaithfulnessMetric, ContextualRecallMetric, ContextualPrecisionMetric
 from deepeval.test_case import LLMTestCase
 
-CASES = [json.loads(l) for l in (pathlib.Path(__file__).parent / "benchmark/civic.jsonl").read_text().splitlines()]
+CASES = [
+    json.loads(l)
+    for l in (pathlib.Path(__file__).parent / "benchmark/civic.jsonl").read_text().splitlines()
+]
+
 
 @pytest.mark.parametrize("row", CASES, ids=lambda r: r["id"])
 def test_rag(row):
     tc = LLMTestCase(
-        input=row["query"], actual_output=row["answer"],
-        retrieval_context=row["contexts"], expected_output=row["reference"],
+        input=row["query"],
+        actual_output=row["answer"],
+        retrieval_context=row["contexts"],
+        expected_output=row["reference"],
     )
-    assert_test(tc, [
-        FaithfulnessMetric(threshold=0.80),
-        ContextualRecallMetric(threshold=0.80),    # k=20 retrieval
-        ContextualPrecisionMetric(threshold=0.70),
-    ])
+    assert_test(
+        tc,
+        [
+            FaithfulnessMetric(threshold=0.80),
+            ContextualRecallMetric(threshold=0.80),  # k=20 retrieval
+            ContextualPrecisionMetric(threshold=0.70),
+        ],
+    )
 ```
 
 ```makefile

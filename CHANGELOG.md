@@ -141,6 +141,37 @@ every entry.
   copy of the exclusion list, so a future ignored directory that grows a Markdown file fails the
   build instead of quietly entering a committed document. The committed audit block is byte-identical
   before and after, which is the evidence that only the tool was wrong.
+- **`requirements-dev.lock` — the hashed lock CI actually installs the merge-gate toolchain
+  from — had drifted from `pyproject.toml`, and nothing checked it.** `uv.lock` (runtime) has had
+  a drift gate (`uv lock --check`, CQ-09) since FIX-11; the pip-tools lane never got its
+  equivalent. Measured: the lock pinned `ruff==0.15.20` against `pyproject.toml`'s
+  `ruff>=0.16.2`, `mypy==2.2.0` against `>=2.3.0`, and `hypothesis==6.156.6` against
+  `>=6.165.0` — every merge-gate result was produced by a toolchain older than the one the
+  project declared it required. Surfaced acutely while this was being fixed: `pip==26.1.2`,
+  pinned transitively via `pip-audit`'s own `pip-api` dependency, carries a live vulnerability
+  (PYSEC-2026-3721, fixed in 26.2) newly disclosed on 2026-08-22 — `main`'s own CI went red on
+  that date for a commit that had passed the day before, purely from the vulnerability database
+  moving under a stale lock. `requirements-dev.lock` is regenerated (`make lock-dev`, now with
+  `--allow-unsafe` — without it, `pip-compile` silently drops "unsafe" packages like `pip` from
+  the output entirely, which is worse than stale: pip-audit can only scan what the lock lists,
+  so a dropped `pip` would make a live CVE against it invisible rather than merely outdated).
+  `uv.lock` carried the identical vulnerable `pip==26.1.2`, transitively and un-audited (`pip-audit`
+  only scans `requirements-dev.lock`); `pip>=26.2` joining `pyproject.toml`'s dev dependencies as
+  an explicit pin — the same pattern already used for the `msgpack` CVE below it — fixed both
+  lockfiles' copies in one change, confirmed via `uv lock` (`Updated pip v26.1.2 -> v26.2.1`) and
+  `uv lock --check`. New: `tools/check_lock_drift.py` / `tests/test_lock_drift.py` / `make
+  lock-dev-check` — parses `pyproject.toml`'s declared specifiers and the lock's pins (no network
+  re-resolution, so it runs on every PR for free) and fails if any locked version does not satisfy
+  its own declared specifier, mirroring `uv lock --check`'s purpose for the pip-tools lane.
+  Regenerating moved the gate toolchain to `ruff` 0.16.4, `mypy` 2.3.1, and `hypothesis` 6.165.10;
+  the newer `ruff format` surfaced one real, previously-invisible finding — six files (five vendored
+  `docs/standards/*.md` policy docs, one `src/honest_rates/README.md`) had comment-spacing drift in
+  embedded Python code blocks that `ruff==0.15.20` did not flag but `ruff>=0.16.2` (what
+  `pyproject.toml` has required all along) does — reformatted here, cosmetic only. The vendored
+  files' next `portfolio-standards` sync may need `make lint` re-run for the same reason: the
+  upstream source is not necessarily `ruff format`-clean under this project's pinned version.
+  The full local gate (lint, `mypy --strict`, the complete test suite, coverage floor) was re-run
+  against the new pins from a clean, hash-installed virtualenv before committing.
 
 ## [0.4.0] - 2026-08-16
 

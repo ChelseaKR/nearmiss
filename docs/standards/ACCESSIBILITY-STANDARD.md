@@ -427,11 +427,15 @@ Civic repositories serve a public that did not choose to be users and cannot rou
 ```python
 # tests/test_plain_language.py  (civic repos)
 import textstat
-from app.i18n import extract_ui_strings   # en + es catalogs (see INTERNATIONALIZATION-STANDARD)
+from app.i18n import extract_ui_strings  # en + es catalogs (see INTERNATIONALIZATION-STANDARD)
+
 
 def test_ui_copy_reading_level():
-    failures = {k: g for k, v in extract_ui_strings("en").items()
-                if (g := textstat.flesch_kincaid_grade(v)) > 8.0}
+    failures = {
+        k: g
+        for k, v in extract_ui_strings("en").items()
+        if (g := textstat.flesch_kincaid_grade(v)) > 8.0
+    }
     assert not failures, f"UI strings above grade 8: {failures}"
 ```
 
