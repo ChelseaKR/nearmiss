@@ -1,6 +1,6 @@
 # nearmiss planted-truth benchmark suite
 
-**Version 1.0.0.** A versioned, seeded, public benchmark suite for
+**Version 2.0.0.** A versioned, seeded, public benchmark suite for
 hotspot-detection methods: synthetic cities with a KNOWN answer (which
 segments are truly elevated risk, which are decoys, which are statistical
 traps) that any tool — not just nearmiss — can run itself against, in the
@@ -55,12 +55,18 @@ benchmarks/
 | `exposure_error` | published exposure is true exposure × mean-1 lognormal noise (σ=0.35) | sensitivity to imperfect real-world exposure estimates |
 | `maup_fine` / `maup_coarse` | identical report locations, republished at 1-cell vs. 3-cell-merged segment granularity | Modifiable Areal Unit Problem: does the signal survive a change of spatial units |
 
-Every city plants, out of an R×C grid of street segments:
+Every city is a real, connected street grid — R×C east-west avenue blocks,
+one per grid cell, plus north-south cross-streets tying every pair of
+consecutive avenue rows together at every intersection (issue #196; see
+`generator.py`'s module docstring, "The street grid," for exactly how the
+segments meet). It plants:
 
-- a **true hotspot** cluster (a plus-shape of 5 segments: 1 strongly elevated
-  centre + 4 moderately elevated neighbors, so a spatial-clustering statistic
-  like Getis-Ord Gi* has neighborhood support — an isolated single hot cell
-  is a much weaker, less realistic test),
+- a **true hotspot** cluster (a plus-shape of 5 avenue segments: 1 strongly
+  elevated centre + 4 moderately elevated neighbors — the centre's east/west
+  neighbors share its intersection directly, the north/south neighbors are
+  two hops away via a cross-street, both well inside the default
+  `gi_band_m` — so a spatial-clustering statistic like Getis-Ord Gi* has real
+  street-network neighborhood support, not an isolated cell),
 - a few **exposure decoys** (very high exposure, baseline rate — many raw
   reports, unremarkable once normalized),
 - a few **reporting-bias decoys** (baseline true rate AND baseline exposure,
@@ -140,12 +146,17 @@ _(No external submissions yet — see step 5 above to add yours.)_
 
 ## Versioning and drift
 
-`SUITE_VERSION` in `generator.py` (currently `1.0.0`) is bumped whenever a
+`SUITE_VERSION` in `generator.py` (currently `2.0.0`) is bumped whenever a
 regime's parameters, the grid layout, or the ground-truth format changes in a
 way that would change a previously-computed scorecard's meaning — treat it
 like SemVer for a dataset: a patch/minor bump for additive changes (a new
 regime), a major bump for anything that invalidates old scorecards
 (different grid, different planted multipliers, different report format).
+`1.0.0` -> `2.0.0` (issue #196) is exactly that: the grid went from isolated
+stubs to a connected two-layer network, segment counts and ids changed
+(cross-streets are new), and every hotspot column in `SCORECARD.md` moved
+from unmeasured to measured — no `1.0.0` scorecard is comparable to a
+`2.0.0` one.
 Old scorecards should always say which suite version they were computed
 against (`ground_truth.json["suite_version"]`, copied into every
 `scorecard.json`), so a stale scorecard is visibly stale rather than silently

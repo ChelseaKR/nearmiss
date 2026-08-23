@@ -172,6 +172,25 @@ every entry.
   upstream source is not necessarily `ruff format`-clean under this project's pinned version.
   The full local gate (lint, `mypy --strict`, the complete test suite, coverage floor) was re-run
   against the new pins from a clean, hash-installed virtualenv before committing.
+- **`benchmarks/generator.py` laid every planted-truth city out as mutually non-touching stubs, so
+  the street-network adjacency graph it fed `nearmiss.network.SegmentGraph` had no edges at all —
+  every segment was a singleton neighbourhood (ADR-0015), and every "Gi\* z" this suite ever scored
+  was actually the plain global z-score.** Found while implementing that ADR (#193); filed as #196.
+  Cities are now a real, connected two-layer grid — east-west avenue segments that share exact
+  intersection endpoints (a group's own boundaries survive `merge_cols` MAUP aggregation, so a
+  merged block still meets its row neighbours exactly), plus north-south cross-street segments,
+  always at full granularity, tying every pair of consecutive avenue rows together at every
+  intersection. Grid spacing (~100 m blocks) is calibrated so the plus-shaped hotspot cluster's
+  north/south neighbours — two network hops away via a cross-street — clear the default `gi_band_m`
+  (300 m) with real margin. Every one of the 161 segments in every regenerated city (107 in
+  `maup_coarse`) now has at least one genuine network neighbour, up from 0. `SUITE_VERSION` moves
+  `1.0.0` -> `2.0.0` (segment ids, counts, and ground truth all changed); `benchmarks/SCORECARD.md`'s
+  hotspot columns move from the `n/m` placeholder ADR-0015 required to real measurements — recall is
+  low and zero in three of six regimes, `baseline` precision is 36%, and the coarse MAUP variant's
+  signal genuinely does not survive re-aggregation at this suite's scale, none of it tuned to look
+  better. The former tripwire test
+  (`test_every_benchmark_city_is_currently_a_disconnected_grid`) is replaced by its mirror,
+  `test_every_benchmark_city_has_a_connected_street_network`, pinning the fix as a regression guard.
 
 ## [0.4.0] - 2026-08-16
 
