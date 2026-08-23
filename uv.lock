@@ -1410,7 +1410,7 @@ teaching = [
 requires-dist = [
     { name = "babel", marker = "extra == 'dev'", specifier = ">=2.18.0" },
     { name = "build", marker = "extra == 'release'", specifier = ">=1.5.1" },
-    { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.165.0" },
+    { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.165.2" },
     { name = "ipykernel", marker = "extra == 'teaching'", specifier = ">=7.3.0" },
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "msgpack", marker = "extra == 'dev'", specifier = ">=1.2.1" },
