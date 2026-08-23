@@ -42,7 +42,7 @@
   "corridors_published": 1,
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports. The hotspots are planted in the fixture, so the method finds what was put there.",
-  "geojson_sha256": "a521c8ac0106b894508101f819903037b1c48d65d636c3c39924372643d6160c",
+  "geojson_sha256": "45ae40f0f295a604a78976af8a35c981fc62c06b63c96a9820aed5f08f1790d2",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -79,7 +79,7 @@
   "report_intensity_peak_segment": "seg-06",
   "schema": "schema/dataset.schema.md",
   "schema_json": "schema/dataset.schema.json",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "segment_time_bands_dp": {
     "enabled": false
   },
@@ -136,7 +136,7 @@
     "suppressed_low_count": false,
     "total_reports_timed": 58
   },
-  "version": "0.1.1",
+  "version": "0.1.2",
   "window": {
     "end": "2026-12-31",
     "start": "2026-01-01"

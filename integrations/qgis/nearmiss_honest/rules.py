@@ -29,7 +29,17 @@ from typing import Any
 # --- Closed vocabularies mirrored from schema/dataset.schema.md ------------
 
 CONFIDENCE_LABELS = ("certain", "uncertain", "exposure_unknown")
-PUBLISHED_QUALITY_FLAGS = ("low_sample", "geocode_low_confidence", "exposure_unknown")
+PUBLISHED_QUALITY_FLAGS = (
+    "low_sample",
+    "geocode_low_confidence",
+    "exposure_unknown",
+    # Both of these were already in schema/dataset.schema.md's published vocabulary
+    # while this mirror still listed three: `exposure_stale` since schema 1.1.0, and
+    # `singleton_neighborhood` as of 1.2.0 (ADR-0015). A published dataset carrying
+    # either would have tripped _verify_quality_flags' "unrecognized flag" check.
+    "exposure_stale",
+    "singleton_neighborhood",
+)
 
 # Symbology classes for the graduated rate renderer. "unknown" is a real,
 # always-present class (HR1 degradability) rather than an implicit fallback,

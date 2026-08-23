@@ -27,11 +27,11 @@ out of sync (the exact failure mode this module closes: before it existed,
 from __future__ import annotations
 
 REPORT_SCHEMA_VERSION = "1.0.0"
-DATASET_SCHEMA_VERSION = "1.1.0"
+DATASET_SCHEMA_VERSION = "1.2.0"
 
 # The per-city published DATA version (metadata.dataset_version), independent of
 # both the package version and the schema versions above: it moves when the
 # published dataset *content* changes for the same inputs (e.g. FIX-02's
 # network-topology Gi* weights changed every getis_ord_z), not when the code or
 # the contract shape changes.
-DATASET_VERSION = "0.1.1"
+DATASET_VERSION = "0.1.2"

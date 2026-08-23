@@ -19,6 +19,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+msgid ""
+"  A segment marked *no Gi\\* neighbors* had no other rated segment near "
+"enough to cluster with — because it is disconnected, too long to reach "
+"one, or surrounded by segments with no exposure count. Its z compares it "
+"to the whole city rather than to its surroundings, so it is shown but "
+"never starred."
+msgstr ""
+"  A segment marked *no Gi\\* neighbors* had no other rated segment near "
+"enough to cluster with — because it is disconnected, too long to reach "
+"one, or surrounded by segments with no exposure count. Its z compares it "
+"to the whole city rather than to its surroundings, so it is shown but "
+"never starred."
+
 #, python-brace-format
 msgid "# Decision Dossier — {city}: {corridor}"
 msgstr "# Decision Dossier — {city}: {corridor}"
@@ -637,6 +650,10 @@ msgstr "morning commute (06–10)"
 msgid "n"
 msgstr "n"
 
+#, python-brace-format
+msgid "no Gi\\* neighbors — global z={z}"
+msgstr "no Gi\\* neighbors — global z={z}"
+
 msgid "observed"
 msgstr "observed"
 
@@ -827,6 +844,9 @@ msgstr "low sample"
 
 msgid "web.app.flag_modeled_exposure"
 msgstr "modeled exposure (not measured)"
+
+msgid "web.app.flag_singleton_neighborhood"
+msgstr "Gi* neighborhood had no other rated segment (global z, not a cluster)"
 
 msgid "web.app.footer"
 msgstr ""

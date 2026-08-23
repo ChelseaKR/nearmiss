@@ -129,6 +129,14 @@ def _render_glossary(out: list[str], config: Config, translation: gettext.NullTr
             "significant cluster."
         )
     )
+    out.append(
+        _(
+            "  A segment marked *no Gi\\* neighbors* had no other rated segment near enough to "
+            "cluster with — because it is disconnected, too long to reach one, or surrounded by "
+            "segments with no exposure count. Its z compares it to the whole city rather than to "
+            "its surroundings, so it is shown but never starred."
+        )
+    )
     out.append("")
 
 
@@ -168,6 +176,25 @@ def _render_bottom_line(
     out.append("")
 
 
+def _hotspot_cell(s: SegmentStats, translation: gettext.NullTranslations) -> str:
+    """The ranked table's Hotspot cell for one segment.
+
+    A ★ means a cluster. A segment flagged ``singleton_neighborhood`` had no other
+    rated segment in its Gi* neighborhood, so its z is a GLOBAL z-score and can
+    never earn one (ADR-0015) — but leaving the cell blank would read as "the FDR
+    correction rejected it," which is a different and untrue statement. Name the
+    reason and show the number for what it is.
+    """
+    _ = translation.gettext
+    if s.getis_ord_z is None:
+        return ""
+    if s.significant:
+        return f"★ Gi* z={s.getis_ord_z:.2f}"
+    if "singleton_neighborhood" in s.quality_flags:
+        return _("no Gi\\* neighbors — global z={z}").format(z=f"{s.getis_ord_z:.2f}")
+    return ""
+
+
 def _render_top_table(
     out: list[str],
     ranked: list[SegmentStats],
@@ -197,9 +224,7 @@ def _render_top_table(
     out.append("| ---: | --- | ---: | --- | ---: | --- | --- | --- |")
     for i, s in enumerate(ranked[:10], start=1):
         ci = f"{_fmt(s.rate_ci_low)}-{_fmt(s.rate_ci_high)}"
-        hotspot = (
-            f"★ Gi* z={s.getis_ord_z:.2f}" if (s.significant and s.getis_ord_z is not None) else ""
-        )
+        hotspot = _hotspot_cell(s, translation)
         tier = exposure_tier_label(translation, s.exposure_tier)
         out.append(
             f"| {i} | {name_of(s.segment_id)} | {_fmt(s.rate)} | "

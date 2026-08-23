@@ -12,56 +12,75 @@ The numbers below are copied from the committed `benchmarks/cities/*/scorecard.j
 regenerate them from source — see [README.md](README.md) for what each column
 means and what each regime tests.
 
+> ## ⚠️ Read this before the table: the hotspot columns currently measure the fixture, not the method
+>
+> **Every segment in every generated city is a graph island.** `generator.py`
+> lays the grid out as short, mutually non-touching stubs — consecutive
+> segments end and begin about 122 m apart, against a `gi_node_snap_m` of 5 m —
+> so no two segments share an endpoint and the street-network adjacency graph
+> has **no edges at all** (81 of 81 segments isolated in `baseline`; the same in
+> every regime).
+>
+> A segment alone in its own Gi\* neighbourhood does not get a local cluster
+> statistic. The binary-weight algebra collapses and Gi\* returns the plain
+> **global** z-score `(x - mean) / s`
+> ([ADR-0015](../docs/adr/0015-a-singleton-gi-star-neighborhood-is-labeled-and-never-significant.md),
+> issue #193). So every "Gi\* z" this suite has ever scored was a global
+> z-score, and the recall/precision numbers published here through 2026-08-18 —
+> 60% baseline recall, 100% precision, the 67% `reporting_bias` trap rate —
+> were measuring a global-z threshold while describing it as street-network
+> Gi\*. Under ADR-0015 such a unit can never be significant, so the suite now
+> flags **nothing**, in every regime.
+>
+> **0% recall here is a true statement about these fixtures and not a
+> measurement of the method.** A city with no topology has no local clusters to
+> find; refusing to claim one is the correct behaviour. Until `generator.py`
+> emits a connected grid, treat every hotspot column below as unmeasured.
+> Filed as #196.
+>
+> The `interval_coverage` column is unaffected — it scores the published
+> confidence intervals, which never depended on the neighbourhood graph.
+
 | Regime | Recall | Precision | Decoy FP | Bias trap | Background FP | CI coverage |
 |---|---|---|---|---|---|---|
-| baseline | 60% | 100% | 0% | 0% | 0% | 99% |
-| reporting_bias | 40% | 50% | 0% | 67% | 0% | 99% |
-| overdispersion | 20% | 100% | 0% | 0% | 0% | 90% |
-| exposure_error | 20% | 100% | 0% | 0% | 0% | 92% |
-| maup_fine | 60% | 100% | 0% | 0% | 0% | 99% |
-| maup_coarse | 33% | 100% | 0% | 0% | 0% | 100% |
+| baseline | n/m | n/m | n/m | n/m | n/m | 99% |
+| reporting_bias | n/m | n/m | n/m | n/m | n/m | 99% |
+| overdispersion | n/m | n/m | n/m | n/m | n/m | 90% |
+| exposure_error | n/m | n/m | n/m | n/m | n/m | 92% |
+| maup_fine | n/m | n/m | n/m | n/m | n/m | 99% |
+| maup_coarse | n/m | n/m | n/m | n/m | n/m | 100% |
 
-**What this says about nearmiss, plainly, including where it is NOT perfect
-(numbers reflect the FIX-02 street-network Gi\* weights):**
+`n/m` = not measured. The committed `scorecard.json` files record the literal
+computed values (`hotspot_recall: 0.0`, `hotspot_precision: null`, every
+false-positive rate `0.0`, `n_flagged_significant: 0`); they are reported as
+`n/m` here because a rate whose denominator is "detections a degenerate fixture
+made structurally impossible" is not evidence about nearmiss in either
+direction. Reading `0%` false-positive rates as a good result would be the same
+error in the flattering direction — nothing was flagged, so nothing could be
+flagged wrongly.
 
-- **`decoy_exposure_fp_rate` is 0% everywhere.** The busy-but-average-rate
-  decoy (the classic "raw count vs. normalized rate" heat-map lie) never
-  fools the Getis-Ord layer, in every regime tested. That is the one property
-  exposure normalization is specifically supposed to guarantee, and it holds.
-- **`reporting_bias` is the honest sore spot: 67% bias-trap rate and 50%
-  precision.** Under the street-network neighborhoods (FIX-02), the planted
-  reporting-bias decoys — segments whose elevated observed rate comes purely
-  from reporting propensity — DO reach Gi\* significance when they sit on a
-  connected corridor: 2 of the 3 planted decoys are flagged. The prior
-  Euclidean-band run happened to score 0% on this trap because its wider,
-  straight-line neighborhoods diluted the decoys' support; the network graph
-  concentrates neighborhoods on the street, which is truer to the geometry
-  AND more willing to flag a spatially clustered bias artifact. Nothing in
-  nearmiss's Getis-Ord layer models reporting propensity — only
-  `stats/bias.py`'s report-share-vs-exposure-share panel surfaces it, as a
-  caveat, not a correction. Treat this number as the standing, measured
-  reminder of that limit.
-- **Recall is well below 100% in every regime (20-60%), by design of the
-  method, not a bug in the benchmark.** The Benjamini-Hochberg FDR correction
-  at `alpha=0.05` across ~80 simultaneous per-segment tests is conservative,
-  and the network-topology neighborhoods (smaller, street-true neighbor sets)
-  are more conservative still than the old straight-line band: a real but
-  modestly elevated segment can fail to clear the bar. This is the intended
-  tradeoff of controlling false discoveries over maximizing detections.
-- **`overdispersion` degrades detection (20% recall) and interval coverage
-  (90%)** relative to baseline (60%, 99%) — exactly what the regime is
-  designed to show: the published confidence interval assumes Poisson
-  variance, and a real-world overdispersed reporting process (Var > mean)
-  will make that interval too narrow more often than the nominal 95%
-  promises.
-- **MAUP: the planted hotspot cluster survives BOTH the fine (60% recall)
-  and coarse (33% recall) unit boundaries**, from the identical underlying
-  report locations (see `maup_fine/reports.json` ==
-  `maup_coarse/reports.json`). Aggregation changed WHICH segment ids are
-  significant and how many clear the bar, not whether the signal survived —
-  a reasonable outcome, though a single merge factor (3 columns) is not
-  exhaustive evidence of MAUP robustness in general.
+**What can still be said, plainly:**
+
+- **Interval coverage is measured and holds up.** 99% in `baseline`,
+  `maup_fine`, and `reporting_bias`, and 100% in `maup_coarse`, against the
+  nominal 95% — the published confidence intervals contain the planted true
+  rate at least as often as they promise.
+- **`overdispersion` degrades interval coverage to 90%**, and `exposure_error`
+  to 92%, relative to baseline's 99% — exactly what those regimes are designed
+  to show. The published interval assumes Poisson variance, so a real-world
+  overdispersed reporting process (Var > mean) makes it too narrow more often
+  than the nominal 95% promises, and error in the exposure denominator
+  propagates into the rate the interval is built around. These two numbers are
+  the part of this suite that is doing its job today.
+- **Nothing here currently tests the exposure-normalization claim, the
+  reporting-bias trap, or MAUP rank stability.** Those all route through
+  significance, which is unmeasurable on a disconnected grid. The previous
+  revision of this file drew confident conclusions about all three — including
+  that reporting-bias decoys "DO reach Gi\* significance when they sit on a
+  connected corridor," in a suite with no connected corridors. Those
+  conclusions are withdrawn, not restated.
 
 None of this is tuned to make nearmiss look good — regenerate it yourself
 and, if you find nearmiss's numbers wrong, that is exactly the kind of bug
-report this suite exists to make possible.
+report this suite exists to make possible. This page is what that looks like
+when the bug report is about the benchmark.

@@ -12,7 +12,13 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
-from .hotspot import band_neighbors, benjamini_hochberg, getis_ord_star, two_sided_p
+from .hotspot import (
+    band_neighbors,
+    benjamini_hochberg,
+    getis_ord_star,
+    singleton_neighborhoods,
+    two_sided_p,
+)
 from .rates import Z95, rate_with_ci
 
 
@@ -53,6 +59,12 @@ class UnitRate:
     rate_ci_high: float | None
     getis_ord_z: float | None
     significant: bool
+    # True when this unit's effective Gi* neighborhood was itself alone, in which
+    # case ``getis_ord_z`` is a GLOBAL z-score, not a cluster statistic (see
+    # :func:`honest_rates.hotspot.singleton_neighborhoods`). ``significant`` is
+    # always False for such a unit; the z is still reported, labeled rather than
+    # hidden, so a caller can see the number and know what it is.
+    singleton_neighborhood: bool = False
 
 
 def analyze(
@@ -76,6 +88,14 @@ def analyze(
     still returned (rate fields ``None``) but are excluded from the hotspot
     computation — a rate without a real denominator is never produced, per
     :func:`honest_rates.rates.rate_with_ci`.
+
+    A unit left alone in its own Gi* neighborhood is reported with
+    ``singleton_neighborhood=True`` and ``significant=False``, because the z-score
+    Gi* returns for it is a global one, not a cluster statistic
+    (:func:`honest_rates.hotspot.singleton_neighborhoods`). With the straight-line
+    ``band_neighbors`` map used here that means a unit more than ``band_m`` from
+    every other *rated* unit — including one whose nearby units all lack a
+    denominator.
 
     This is a convenience orchestrator; nothing it does cannot be done by
     calling ``rates`` and ``hotspot`` directly, which a caller with more
@@ -116,9 +136,11 @@ def analyze(
             )
 
     if rate_values:
-        zscores = getis_ord_star(rate_values, band_neighbors(centroids, band_m))
+        neighbors = band_neighbors(centroids, band_m)
+        zscores = getis_ord_star(rate_values, neighbors)
         pvalues = {uid: two_sided_p(zi) for uid, zi in zscores.items()}
         rejected = benjamini_hochberg(pvalues, alpha)
+        degenerate = singleton_neighborhoods(rate_values, neighbors)
         for uid, zi in zscores.items():
             row = rows[uid]
             rows[uid] = UnitRate(
@@ -129,7 +151,8 @@ def analyze(
                 rate_ci_low=row.rate_ci_low,
                 rate_ci_high=row.rate_ci_high,
                 getis_ord_z=zi,
-                significant=uid in rejected and zi > 0.0,
+                significant=uid in rejected and zi > 0.0 and uid not in degenerate,
+                singleton_neighborhood=uid in degenerate,
             )
 
     return [rows[u.id] for u in units]

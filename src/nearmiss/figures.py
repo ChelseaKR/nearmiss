@@ -148,9 +148,19 @@ def render_ranked_md(config: Config, top_n: int = 10) -> str:
     out.append("| ---: | --- | ---: | --- | ---: | --- |")
     for i, s in enumerate(ranked[:top_n], start=1):
         ci = f"{s.rate_ci_low:.2f}–{s.rate_ci_high:.2f}" if s.rate_ci_low is not None else "—"
-        hot = (
-            f"★ Gi* z={s.getis_ord_z:.2f}" if (s.significant and s.getis_ord_z is not None) else ""
-        )
+        # Mirrors brief._hotspot_cell (this artifact is read standalone, so it
+        # cannot lean on the brief's legend). A ★ means a cluster; a segment with
+        # no rated neighbor has a GLOBAL z and can never earn one (ADR-0015), and
+        # naming that is not the same as leaving the cell blank, which would read
+        # as "the multiple-comparison correction rejected it."
+        if s.getis_ord_z is None:
+            hot = ""
+        elif s.significant:
+            hot = f"★ Gi* z={s.getis_ord_z:.2f}"
+        elif "singleton_neighborhood" in s.quality_flags:
+            hot = f"no Gi\\* neighbors — global z={s.getis_ord_z:.2f}"
+        else:
+            hot = ""
         nm = names.get(s.segment_id, s.segment_id)
         out.append(f"| {i} | {nm} | {s.rate:.2f} | {ci} | {s.n} | {hot} |")
     out.append("")

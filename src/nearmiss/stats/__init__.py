@@ -22,7 +22,12 @@ from .aggregate import _LOW_CONFIDENCE_RAW, SegmentAgg, aggregate
 from .bias import BiasReport, characterize_bias
 from .corridors import CorridorStats, build_corridors
 from .dp_temporal import DPSegmentTimeRelease, dp_segment_time_release
-from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
+from .getis_ord import (
+    benjamini_hochberg,
+    getis_ord_star,
+    singleton_neighborhoods,
+    two_sided_p,
+)
 from .kde import KdeResult, kde
 from .maup import RankStability, rank_stability
 from .rates import pearson_dispersion, rate_with_ci
@@ -269,11 +274,21 @@ def analyze(
     z = getis_ord_star(rate_values, neighbor_map)
     pvals = {sid: two_sided_p(zi) for sid, zi in z.items()}
     rejected = benjamini_hochberg(pvals, config.fdr_alpha)
+    # ADR-0015. A segment whose EFFECTIVE Gi* neighborhood is itself alone gets a
+    # global z-score out of Gi*, not a cluster statistic (issue #193). Publish the
+    # z — withholding it would be its own dishonesty — but say what it is with the
+    # `singleton_neighborhood` flag, and never let it earn a ★, so "significant"
+    # keeps meaning "hot relative to its surroundings" everywhere it appears.
+    degenerate = singleton_neighborhoods(rate_values, neighbor_map)
     for st in stats:
         if st.segment_id in z:
             zi = z[st.segment_id]
             st.getis_ord_z = round_stable(zi, 4)
-            st.significant = st.segment_id in rejected and zi > 0.0
+            st.significant = (
+                st.segment_id in rejected and zi > 0.0 and st.segment_id not in degenerate
+            )
+            if st.segment_id in degenerate:
+                st.quality_flags = tuple(sorted({*st.quality_flags, "singleton_neighborhood"}))
 
     seg_counts = {s.id: (agg[s.id].count if s.id in agg else 0) for s in segments}
     bias = characterize_bias(seg_counts, exposure_map)

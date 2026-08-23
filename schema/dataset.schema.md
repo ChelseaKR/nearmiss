@@ -1,7 +1,7 @@
 # Published dataset schema (open GeoJSON)
 
 **Schema name:** `nearmiss.published.dataset`
-**Schema version:** 1.1.0 (semantic; see [Versioning and deprecation](#versioning-and-deprecation-policy))
+**Schema version:** 1.2.0 (semantic; see [Versioning and deprecation](#versioning-and-deprecation-policy))
 **Artifact:** `data/published/<city-slug>.geojson` (e.g. `davis.geojson`), with a sidecar
 `data/published/<city-slug>.metadata.json` (e.g. `davis.metadata.json`) and the data card at
 [`docs/DATA-CARD.md`](../docs/DATA-CARD.md)
@@ -98,7 +98,7 @@ parameters that govern interpretation.
 {
   "type": "FeatureCollection",
   "metadata": {
-    "schema_version": "1.1.0",
+    "schema_version": "1.2.0",
     "dataset_version": "0.1.1",
     "city": "Davis",
     "license": "Apache-2.0",
@@ -248,7 +248,7 @@ not rank features whose intervals overlap as if the ordering were established.
 | Property | Type | Nullable | Description |
 |---|---|---|---|
 | `getis_ord_z` | number | yes | The Getis-Ord Gi\* z-score for this feature from `getis_ord.py`, computed on the **exposure-normalized rate** (not raw counts) over the spatial neighborhood. A high positive z indicates a feature whose rate, together with its neighbors', is higher than chance and spatial structure would predict — a candidate "hot because dangerous" cluster, as opposed to merely "hot because busy." `null` when the feature has no rate (exposure unknown) and is therefore excluded from the cluster statistic. |
-| `getis_ord_significant` | boolean | yes | Significance flag: `true` when `getis_ord_z` clears the project's significance threshold **after multiple-comparison correction** (e.g. a false-discovery-rate adjustment across features). The threshold, the correction method, and the spatial weights definition are recorded in the data card and the config. `false` means "not a statistically significant hot or cold spot at our threshold," **not** "safe." `null` when `getis_ord_z` is `null`. |
+| `getis_ord_significant` | boolean | yes | Significance flag: `true` when `getis_ord_z` clears the project's significance threshold **after multiple-comparison correction** (e.g. a false-discovery-rate adjustment across features) **and** the feature's Gi\* neighborhood held at least one other rated feature. The threshold, the correction method, and the spatial weights definition are recorded in the data card and the config. `false` means "not a statistically significant hot or cold spot at our threshold," **not** "safe." Since schema 1.2.0 it is also always `false` on a feature flagged [`singleton_neighborhood`](#46-quality-flags), whose z is a global rather than a local statistic (ADR-0015) — so `true` always means a *cluster*, never one unusual feature compared against the city. `null` when `getis_ord_z` is `null`. |
 | `rate_sensitivity_delta` | number | yes | Sensitivity of the published rate to the quality-tier split. The published `rate` is the **primary** rate — computed only from high-confidence records (records flagged `low_accuracy` or `far_snap` are excluded, per METHODOLOGY §2 step 4). This field is the signed difference (all-records rate minus primary rate, same units as `rate`) reported **only** when the all-records rate falls outside the primary rate's confidence interval — i.e. when including the excluded low-confidence reports would materially move the rate. `null` (the common case) means the two rates agree within the interval, so the exclusion did not change the published claim. |
 
 `getis_ord_significant` is the field a map should use to mark a cluster as significant, and the
@@ -290,8 +290,9 @@ vocabulary, so a consumer never has to know the internal flag names:
 | `geocode_low_confidence` | Aggregated reports here include low-positional-accuracy or far-snap locations (the internal `low_accuracy`/`far_snap` flags); placement is less certain. Address-only reports resolved by the geocoder can also raise this when the resolved location is uncertain. |
 | `exposure_unknown` | No exposure denominator was available (including a denominator at or below the configured exposure floor); `exposure_estimate`/`rate`/`rate_ci_low`/`rate_ci_high` are `null` and `confidence_label` is `"exposure_unknown"`. Shown as "exposure unknown," not rated (**HR1**, degradability). |
 | `exposure_stale` | The exposure vintage (`exposure_date`) and the reports this feature's rate is built from are more than the configured threshold apart — a temporal-alignment caveat (METHODOLOGY §3.2: "a rate whose exposure was measured in a different period than its reports has a temporal mismatch"). Never set on a feature with `exposure_unknown` — a rate has to exist before its temporal alignment is meaningful. |
+| `singleton_neighborhood` | *(schema 1.2.0)* This feature's Gi\* neighborhood contained no other **rated** feature, so `getis_ord_z` is a **global** z-score — this feature against the whole city's rate distribution — and not the local cluster statistic Gi\* is normally read as. The z is still published, because hiding it would be its own distortion, but it answers "is this unusual for the city?" rather than "is this hot relative to its surroundings?", and `getis_ord_significant` is **always `false`** on such a feature so a significance claim never rests on it. Causes: a genuinely disconnected segment, a segment too long to reach a neighbour within the configured Gi\* band, or a segment whose neighbours all lack an exposure denominator. See [ADR-0015](../docs/adr/0015-a-singleton-gi-star-neighborhood-is-labeled-and-never-significant.md). |
 
-These four are the **published** flags emitted by `publish.py`. Flags are intentionally conservative:
+These five are the **published** flags emitted by `publish.py`. Flags are intentionally conservative:
 it is better to over-mark a feature as uncertain than to present a thin or biased estimate as solid. The
 full definitions, thresholds, and the config values behind each flag are in the data card so the
 flagging is reproducible and auditable. Wider caveats that apply to the dataset as a whole — notably
@@ -500,7 +501,7 @@ What each bump means for this published artifact:
    (**HR5**).
 4. `$schema`/machine-validation: the published GeoJSON is validated in CI against the JSON Schema
    [`schema/dataset.schema.json`](dataset.schema.json), which mirrors this document; that validator is
-   versioned in lockstep (`const` `schema_version` `1.1.0`) and is the authoritative, machine-checkable
+   versioned in lockstep (`const` `schema_version` `1.2.0`) and is the authoritative, machine-checkable
    form of this contract. `publish.py` runs the same validation before writing any file, so a build that
    would violate the contract fails instead of shipping.
 

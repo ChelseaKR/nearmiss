@@ -37,7 +37,12 @@ from ..config import Config
 from ..models import Segment, SegmentStats
 from ..network import SegmentGraph
 from ..util import round_stable
-from .getis_ord import benjamini_hochberg, getis_ord_star, two_sided_p
+from .getis_ord import (
+    benjamini_hochberg,
+    getis_ord_star,
+    singleton_neighborhoods,
+    two_sided_p,
+)
 from .rates import rate_with_ci
 
 __all__ = ["CalibrationResult", "run_null_calibration", "shuffled_count_sequences"]
@@ -170,6 +175,15 @@ def run_null_calibration(
     # fixed across shuffles, so build the graph and neighbor map once.
     graph = SegmentGraph.build(segments, node_snap_m=config.gi_node_snap_m)
     neighbor_map = graph.neighbors_within(config.gi_band_m)
+    # Mirror the real analysis on degeneracy too (ADR-0015, issue #193): the
+    # published pipeline refuses to call a singleton-neighborhood unit significant,
+    # so the null model must refuse it as well — a calibration that counted
+    # discoveries the pipeline cannot make would be reporting the false-positive
+    # rate of a procedure nobody runs. The effective neighborhood depends only on
+    # the neighbor map and WHICH ids carry a value, and shuffling permutes counts
+    # among a fixed `usable_ids`, so this is invariant across shuffles: compute it
+    # once (values are irrelevant here — only the key set is read).
+    degenerate = singleton_neighborhoods(dict.fromkeys(usable_ids, 0.0), neighbor_map)
 
     false_positive_counts: list[int] = []
     for shuffled_counts in shuffled_count_sequences(count_values, n_shuffles, seed):
@@ -182,7 +196,7 @@ def run_null_calibration(
         z = getis_ord_star(rate_values, neighbor_map)
         pvalues = {sid: two_sided_p(zi) for sid, zi in z.items()}
         rejected = benjamini_hochberg(pvalues, config.fdr_alpha)
-        false_positives = sum(1 for sid in rejected if z[sid] > 0.0)
+        false_positives = sum(1 for sid in rejected if z[sid] > 0.0 and sid not in degenerate)
         false_positive_counts.append(false_positives)
 
     mean_fp = sum(false_positive_counts) / n_shuffles

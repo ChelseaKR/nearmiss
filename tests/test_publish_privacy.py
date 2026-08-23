@@ -173,8 +173,10 @@ def test_published_geojson_is_self_describing(config: Config, tmp_path: object) 
     result = publish(dataclasses.replace(config, out_dir=tmp_path))
     gj = json.loads(result.geojson_path.read_text(encoding="utf-8"))
     meta = gj["metadata"]
-    assert meta["dataset_version"] == "0.1.1"  # FIX-02: Gi* values changed (data version)
-    assert meta["schema_version"] == "1.1.0"  # FIX-04: MINOR bump (exposure_tier, etc.)
+    # ADR-0015: the singleton_neighborhood flag changed published content (data
+    # version) and added a quality_flags vocabulary entry (schema MINOR).
+    assert meta["dataset_version"] == "0.1.2"
+    assert meta["schema_version"] == "1.2.0"
     assert meta["license"] == "Apache-2.0"
     # The embedded metadata must also be privacy-clean.
     assert_metadata_clean(meta, load_city(config).reports)
