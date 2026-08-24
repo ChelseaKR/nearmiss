@@ -113,6 +113,7 @@ def _rates_by_type(
     hazard_breakdown: dict[str, int],
     exposure_estimate: float | None,
     config: Config,
+    dispersion: float = 1.0,
 ) -> dict[str, dict[str, float]]:
     """Per-hazard-type rate layers: for a usable, aggregated segment, each
     hazard type whose own count clears the small-sample threshold gets its
@@ -129,7 +130,7 @@ def _rates_by_type(
         if type_count < config.small_n:
             continue
         t_rate, t_lo, t_hi = rate_with_ci(
-            type_count, exposure_estimate, config.rate_per, config.confidence_z
+            type_count, exposure_estimate, config.rate_per, config.confidence_z, dispersion
         )
         r4, lo4, hi4 = (
             round_stable(t_rate, 4),
@@ -227,6 +228,7 @@ def analyze(
             a.hazard_breakdown if a else {},
             exp.estimate if exp else None,
             config,
+            ci_dispersion,
         )
         raw_flags = set(a.quality_flags) if a else set()
         stale = (

@@ -59,3 +59,20 @@ def test_adjustment_widens_every_interval_when_enabled(config: Config) -> None:
             assert s.rate_ci_low is not None and s.rate_ci_low >= 0.0
             widened += 1
     assert widened > 0
+
+
+def test_adjustment_widens_rates_by_type_intervals_when_enabled(config: Config) -> None:
+    off = build_analysis(config)
+    on = build_analysis(dataclasses.replace(config, overdispersion_adjust=True))
+    off_by_id = {s.segment_id: s for s in off.result.segments}
+    type_widened = 0
+    for s in on.result.segments:
+        base = off_by_id[s.segment_id]
+        for hazard_type, t_stats in s.rates_by_type.items():
+            base_t = base.rates_by_type[hazard_type]
+            assert t_stats["rate"] == base_t["rate"]  # point estimate unchanged
+            assert t_stats["count"] == base_t["count"]
+            assert t_stats["rate_ci_high"] > base_t["rate_ci_high"]
+            assert t_stats["rate_ci_low"] <= base_t["rate_ci_low"]
+            type_widened += 1
+    assert type_widened > 0
