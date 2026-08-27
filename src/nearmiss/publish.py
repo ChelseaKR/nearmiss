@@ -32,6 +32,7 @@ from .models import Report, Segment, SegmentStats
 from .stats.bias import to_metadata as bias_to_metadata
 from .stats.corridors import CorridorStats
 from .stats.dp_temporal import to_metadata as dp_segment_time_to_metadata
+from .stats.exposure_sensitivity import to_metadata as exposure_sensitivity_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
 from .versions import DATASET_SCHEMA_VERSION, DATASET_VERSION
@@ -428,6 +429,16 @@ def publish(config: Config) -> PublishResult:
         "maup_rank_stability": (
             maup_to_metadata(bundle.result.rank_stability)
             if bundle.result.rank_stability is not None
+            else None
+        ),
+        # RR-03: does the ranking survive the alternative denominators the exposure
+        # records themselves declare? The published interval covers the count, not
+        # the denominator (METHODOLOGY §5.2), so this is where the denominator's own
+        # uncertainty is answered. `evaluated: false` when no segment declared an
+        # alternative — an unanswered question, never a passed check.
+        "exposure_sensitivity": (
+            exposure_sensitivity_to_metadata(bundle.result.exposure_sensitivity)
+            if bundle.result.exposure_sensitivity is not None
             else None
         ),
         # EXP-05 prototype: segment x part-of-day counts under epsilon-DP noise, instead of

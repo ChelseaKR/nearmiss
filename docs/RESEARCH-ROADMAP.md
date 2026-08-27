@@ -276,3 +276,13 @@ and the plan for it, are meant to be checked.
 ---
 ## Implementation status — 2026-06-30 (working tree, uncommitted)
 Shipped this pass: **RR-02** overdispersion check (quasi-Poisson / negative-binomial — the methodology's flagged gap) · **RR-05** MAUP rank-stability artifact (`stats/maup.py`) · **RR-01** literature citations behind the underreporting premise. Verify: ruff + mypy + tests green (the `security` step flags a pre-existing `msgpack` CVE — bump to 1.2.1). Deferred: RE-01 official-collision validation (external data).
+
+## Implementation status — 2026-08-27
+**RR-03 lands its sensitivity half, not its interval half.** `stats/exposure_sensitivity.py` re-runs
+the published ranking under the alternative denominators each segment's exposure record already
+declares (`Exposure.sources`) and publishes `stable` / `fragile` / `not_evaluated` per dataset — the
+behaviour `METHODOLOGY` §3.3 and ADR 0002 had described in the present tense since 2026-06-16 without
+any code behind it. Nothing is invented: where no segment declares a second reading the pass reports
+an unanswered question rather than a pass. **The other half of RR-03 is still open** — the published
+confidence interval still covers the count and not the denominator, so RR-03 stays on this backlog
+rather than being marked shipped, and `LIMITATIONS.md` §4 still says so in the reader's own words.

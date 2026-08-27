@@ -42,7 +42,21 @@
   "corridors_published": 1,
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports. The hotspots are planted in the fixture, so the method finds what was put there.",
-  "geojson_sha256": "45ae40f0f295a604a78976af8a35c981fc62c06b63c96a9820aed5f08f1790d2",
+  "exposure_sensitivity": {
+    "alternative_coverage": 0.0,
+    "basis": "re-ranking under the alternative denominators each segment's sources declare",
+    "evaluated": false,
+    "k": 5,
+    "rated_segments": 12,
+    "reason": "no rated segment declares an alternative exposure reading, so the ranking was never re-run under a different denominator; this is an unanswered question, not a passed check",
+    "scenarios": [],
+    "segments_with_alternatives": 0,
+    "top_segment": null,
+    "top_segment_significant": false,
+    "top_segment_survives": null,
+    "verdict": "not_evaluated"
+  },
+  "geojson_sha256": "f59dc599446bddb74958f9b04f622005ef622a497a3795aff6905d3f136e86ed",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -79,7 +93,7 @@
   "report_intensity_peak_segment": "seg-06",
   "schema": "schema/dataset.schema.md",
   "schema_json": "schema/dataset.schema.json",
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "segment_time_bands_dp": {
     "enabled": false
   },

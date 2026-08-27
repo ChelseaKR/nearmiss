@@ -37,7 +37,41 @@
   "corridors_published": 0,
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports. The hotspots are planted in the fixture, so the method finds what was put there.",
-  "geojson_sha256": "612f708362df424e9a62525692c28d2cec2d454b4e94715fdfb584bf094dc69d",
+  "exposure_sensitivity": {
+    "alternative_coverage": 0.1667,
+    "basis": "re-ranking under the alternative denominators each segment's sources declare",
+    "evaluated": true,
+    "k": 5,
+    "rated_segments": 6,
+    "scenarios": [
+      {
+        "basis": "smallest denominator this segment's own sources declare (highest rate)",
+        "name": "declared_low",
+        "significance_flips": 0,
+        "substituted_segments": 1,
+        "top_segment": "rs-3",
+        "top_segment_rank": 1,
+        "top_segment_significant": false,
+        "topk_overlap": 1.0
+      },
+      {
+        "basis": "largest denominator this segment's own sources declare (lowest rate)",
+        "name": "declared_high",
+        "significance_flips": 0,
+        "substituted_segments": 0,
+        "top_segment": "rs-3",
+        "top_segment_rank": 1,
+        "top_segment_significant": false,
+        "topk_overlap": 1.0
+      }
+    ],
+    "segments_with_alternatives": 1,
+    "top_segment": "rs-3",
+    "top_segment_significant": false,
+    "top_segment_survives": true,
+    "verdict": "stable"
+  },
+  "geojson_sha256": "75a8c3ba8f6d161ee70086a13aa979369a0a35013556299c0bd127b8621f143f",
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
@@ -74,7 +108,7 @@
   "report_intensity_peak_segment": "rs-3",
   "schema": "schema/dataset.schema.md",
   "schema_json": "schema/dataset.schema.json",
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "segment_time_bands_dp": {
     "enabled": false
   },

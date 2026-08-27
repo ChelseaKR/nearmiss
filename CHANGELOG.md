@@ -17,7 +17,7 @@ release so a schema change is never buried in a code change:
 <!-- claim:dataset-schema-prose -->
 - **Published dataset schema** — `schema/dataset.schema.md` (prose) together with its mirroring
   machine-readable JSON Schema `schema/dataset.schema.json`, validated in CI and at publish time
-  (FIX-10), currently `1.2.0`. The contract for the open per-city
+  (FIX-10), currently `1.3.0`. The contract for the open per-city
   `data/published/<city-slug>.geojson` artifact (e.g. `davis.geojson`).
   Carried per file in `metadata.schema_version`.
   [Correction history: an earlier revision claimed a "mirroring JSON Schema validated in CI" before
@@ -57,6 +57,43 @@ every entry.
 ## [Unreleased]
 
 ### Added
+
+- **The exposure-sensitivity pass exists now, and it is allowed to say it did not run
+  (published dataset schema `1.2.0` -> `1.3.0`, additive).** `docs/METHODOLOGY.md` §3.3 and
+  [ADR 0002](docs/adr/0002-exposure-normalization-and-confidence-intervals.md) have both described,
+  in the present tense, "an exposure-sensitivity pass [that] re-runs the ranking under plausible
+  alternative denominators" and reports a ranking resting on one exposure source as **fragile**. No
+  such pass existed. The denominator is the shakiest input this project has and the published
+  interval does not cover it, so that sentence was the load-bearing answer to the question the
+  interval cannot answer — and it was describing code that was never written.
+  `stats/exposure_sensitivity.py` is that pass: for every segment whose exposure record already
+  carries corroborating readings (`Exposure.sources`), the published ranking is re-run under the
+  smallest and the largest denominator those sources declare, with Getis-Ord Gi\* recomputed at the
+  same FDR level and the same singleton-neighbourhood suppression, and the verdict published in the
+  metadata sidecar's `exposure_sensitivity` block, in the standalone ranked table, and in the
+  brief's robustness section (EN and ES).
+
+  **No alternative denominator is invented** — no perturbation model, no tier-derived multiplier, no
+  assumed error bar — so the pass frequently *cannot run*, and it says so: `verdict:
+  "not_evaluated"` with `top_segment_survives: null` and a stated reason, never `"stable"`. That is
+  the whole design. A robustness check that reports success when it had nothing to test is a green
+  light wired to a battery, and this repository already ships one honest artifact (`riverside`'s
+  MAUP result) whose value is entirely that it can come back negative. Both committed demos were
+  re-run: `davis` declares no alternative reading anywhere and publishes `not_evaluated`;
+  `riverside` publishes `stable` at `alternative_coverage: 0.1667` — one of six rated segments — and
+  the coverage figure is published beside the verdict precisely so "stable" cannot be read as more
+  than it is. **No published rate, interval, or ★ changed:** this is a sensitivity analysis, not a
+  widening, and the confidence interval still covers the count only (RR-03's interval half stays
+  open, and `docs/LIMITATIONS.md` still says so).
+
+  `schema/dataset.schema.md` gains a §10 documenting both robustness artifacts field by field —
+  `maup_rank_stability` had been published since RR-05 without ever being described in the contract
+  — and its sidecar field list, which had silently omitted `window`, `maup_rank_stability`, `bias`,
+  and the three corridor fields, is corrected. `tests/test_exposure_sensitivity.py` checks the
+  METHODOLOGY paragraph's own figures against the committed artifacts and every published key
+  against the schema's table, so the prose cannot drift away from the numbers again. The decision is recorded in
+  [ADR 0016](docs/adr/0016-exposure-sensitivity-uses-declared-denominators-and-may-refuse-to-run.md);
+  ADR 0002 is deliberately left unedited, since ADRs here are immutable once accepted.
 
 - **`singleton_neighborhood` joins the published `quality_flags` vocabulary (published dataset schema
   `1.1.0` -> `1.2.0`, additive), and a feature carrying it can never be `getis_ord_significant`.**

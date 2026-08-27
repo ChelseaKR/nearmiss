@@ -4,6 +4,8 @@
 
 **Re-segmentation (MAUP) check:** 6 block units re-segmented into 3. The top-rate segment stays rank 1 at the coarser scale but is **no longer a significant Gi\* cluster** — scale-sensitive, a lead to confirm rather than a settled cluster (top-5 rank overlap 1.00).
 
+**Exposure-sensitivity check:** the top-rate segment stays rank 1 under every alternative denominator its sources declare (1 of 6 rated segments had an alternative denominator to test).
+
 | Rank | Segment | Rate /1000 | 95% CI | n | Hotspot |
 | ---: | --- | ---: | --- | ---: | --- |
 | 1 | University Ave (Market–Lemon) | 32.00 | 13.78–63.06 | 8 | no Gi\* neighbors — global z=2.20 |

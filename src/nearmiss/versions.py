@@ -27,7 +27,7 @@ out of sync (the exact failure mode this module closes: before it existed,
 from __future__ import annotations
 
 REPORT_SCHEMA_VERSION = "1.0.0"
-DATASET_SCHEMA_VERSION = "1.2.0"
+DATASET_SCHEMA_VERSION = "1.3.0"
 
 # The per-city published DATA version (metadata.dataset_version), independent of
 # both the package version and the schema versions above: it moves when the

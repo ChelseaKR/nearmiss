@@ -401,16 +401,17 @@ def _render_robustness(
     translation: gettext.NullTranslations,
     name_of: Callable[[str], str],
 ) -> None:
-    """Append the RR-02 overdispersion and RR-05 MAUP re-segmentation checks.
+    """Append the RR-02 overdispersion, RR-05 MAUP, and RR-03 exposure-sensitivity checks.
 
     These are the skeptic-facing robustness answers: whether the Poisson intervals
-    understate uncertainty (clustered reporting) and whether the top hotspot is an
-    artifact of where the block lines were drawn.
+    understate uncertainty (clustered reporting), whether the top hotspot is an
+    artifact of where the block lines were drawn, and whether it survives a
+    different choice of denominator.
     """
     _ = translation.gettext
     phi = bundle.result.dispersion
     stability = bundle.result.rank_stability
-    out.append(_("## Robustness checks (overdispersion & re-segmentation)"))
+    out.append(_("## Robustness checks (overdispersion, re-segmentation & denominator)"))
     out.append("")
 
     if phi >= _OVERDISPERSION_MATERIAL:
@@ -471,7 +472,82 @@ def _render_robustness(
                     overlap=overlap,
                 )
             )
+
+    _render_exposure_sensitivity(out, bundle, translation, name_of)
     out.append("")
+
+
+def _render_exposure_sensitivity(
+    out: list[str],
+    bundle: AnalysisBundle,
+    translation: gettext.NullTranslations,
+    name_of: Callable[[str], str],
+) -> None:
+    """Append the RR-03 exposure-sensitivity line: does the denominator change the answer?
+
+    Three outcomes, and the first is not a pass. When no segment declared an
+    alternative denominator the pass could not run, and the brief says so instead
+    of quietly omitting the line — a robustness check that only speaks when it
+    passes is not one.
+    """
+    _ = translation.gettext
+    sens = bundle.result.exposure_sensitivity
+    if sens is None:
+        return
+    if not sens.evaluated or sens.baseline_top_segment is None:
+        out.append(
+            _(
+                "- **Exposure sensitivity (the denominator).** Not evaluated: no rated segment "
+                "declares a second exposure reading, so the ranking was never re-run under a "
+                "different denominator. That is an unanswered question, not a passed check — the "
+                "intervals above cover the count, never the denominator."
+            )
+        )
+        return
+
+    name = name_of(sens.baseline_top_segment)
+    covered = sens.segments_with_alternatives
+    rated = sens.rated_segments
+    if sens.top_segment_survives:
+        out.append(
+            _(
+                "- **Exposure sensitivity (the denominator).** Re-ranking under the alternative "
+                "denominators the exposure records themselves declare leaves **{name}** first in "
+                "every scenario. Only {covered} of {rated} rated segments had an alternative "
+                "denominator to test, so this holds exactly as far as that reaches."
+            ).format(name=name, covered=covered, rated=rated)
+        )
+        return
+
+    fell = next((s for s in sens.scenarios if s.baseline_top_rank != 1), None)
+    if fell is not None:
+        out.append(
+            _(
+                "- **Exposure sensitivity (the denominator).** The ranking does not survive it: "
+                "under the {scenario} denominators **{name}** falls to rank {rank}. A conclusion "
+                "that holds for only one choice of exposure source is fragile, and this one is. "
+                "({covered} of {rated} rated segments had an alternative denominator to test.)"
+            ).format(
+                scenario=fell.name,
+                name=name,
+                rank=fell.baseline_top_rank,
+                covered=covered,
+                rated=rated,
+            )
+        )
+        return
+
+    lost = next((s for s in sens.scenarios if not s.baseline_top_significant), None)
+    scenario = lost.name if lost is not None else ""
+    out.append(
+        _(
+            "- **Exposure sensitivity (the denominator).** **{name}** stays first under every "
+            "alternative denominator, but under the {scenario} denominators it is no longer a "
+            "significant cluster — read it as denominator-sensitive, a lead to confirm rather "
+            "than a settled result. ({covered} of {rated} rated segments had an alternative "
+            "denominator to test.)"
+        ).format(name=name, scenario=scenario, covered=covered, rated=rated)
+    )
 
 
 def _render_bias_section(

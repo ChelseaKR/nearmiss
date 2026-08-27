@@ -176,7 +176,7 @@ def test_published_geojson_is_self_describing(config: Config, tmp_path: object) 
     # ADR-0015: the singleton_neighborhood flag changed published content (data
     # version) and added a quality_flags vocabulary entry (schema MINOR).
     assert meta["dataset_version"] == "0.1.2"
-    assert meta["schema_version"] == "1.2.0"
+    assert meta["schema_version"] == "1.3.0"
     assert meta["license"] == "Apache-2.0"
     # The embedded metadata must also be privacy-clean.
     assert_metadata_clean(meta, load_city(config).reports)

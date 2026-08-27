@@ -15,6 +15,7 @@ from pathlib import Path
 from .config import Config
 from .engine import AnalysisBundle, build_analysis
 from .models import SegmentStats
+from .stats.exposure_sensitivity import ExposureSensitivity
 from .stats.maup import RankStability
 
 _W = 680
@@ -73,6 +74,47 @@ def _stability_note(stability: RankStability) -> str:
     return (
         f"**Re-segmentation (MAUP) check:** {scale}. The top-rate segment falls to {where} at "
         f"the coarser scale and is {sig} there ({overlap})."
+    )
+
+
+def _exposure_note(sensitivity: ExposureSensitivity) -> str:
+    """One sentence saying what the exposure-sensitivity pass actually returned.
+
+    The MAUP note above answers "does rank 1 survive re-drawing the units?"; this
+    one answers "does it survive a different denominator?" (METHODOLOGY §3.3). The
+    not-evaluated case gets a sentence of its own rather than being omitted: a
+    reader who sees a re-segmentation line and no denominator line would
+    reasonably assume the denominator check passed, and it did not run.
+    """
+    if not sensitivity.evaluated or sensitivity.baseline_top_segment is None:
+        return (
+            "**Exposure-sensitivity check:** not evaluated — no rated segment declares an "
+            "alternative exposure reading, so the ranking was never re-run under a different "
+            "denominator. An unanswered question, not a passed check."
+        )
+    scope = (
+        f"{sensitivity.segments_with_alternatives} of {sensitivity.rated_segments} rated "
+        f"segments had an alternative denominator to test"
+    )
+    if sensitivity.top_segment_survives:
+        return (
+            f"**Exposure-sensitivity check:** the top-rate segment stays rank 1 under every "
+            f"alternative denominator its sources declare ({scope})."
+        )
+    fell = next((s for s in sensitivity.scenarios if s.baseline_top_rank != 1), None)
+    if fell is not None:
+        where = f"rank {fell.baseline_top_rank}" if fell.baseline_top_rank else "off the ranking"
+        return (
+            f"**Exposure-sensitivity check:** the top-rate segment falls to {where} under the "
+            f"{fell.name} denominators — the ranking depends on the exposure source chosen "
+            f"({scope})."
+        )
+    lost = next((s for s in sensitivity.scenarios if not s.baseline_top_significant), None)
+    which = lost.name if lost is not None else "alternative"
+    return (
+        f"**Exposure-sensitivity check:** the top-rate segment stays rank 1 but is **no longer "
+        f"a significant Gi\\* cluster** under the {which} denominators — denominator-sensitive, "
+        f"a lead to confirm rather than a settled cluster ({scope})."
     )
 
 
@@ -139,11 +181,15 @@ def render_ranked_md(config: Config, top_n: int = 10) -> str:
     # The provenance and robustness lines travel WITH the artifact. A reader who
     # downloads a ranked table and never opens the metadata sidecar should still
     # learn (a) whether these are real reports and (b) what the project's own
-    # re-segmentation check said about the segment sitting at rank 1.
+    # robustness checks said about the segment sitting at rank 1 — both of them:
+    # whether it survives re-drawing the units (MAUP) and whether it survives a
+    # different denominator (exposure sensitivity).
     if config.dataset_note:
         out += [f"> **{config.dataset_note}**", ""]
     if bundle.result.rank_stability is not None:
         out += [_stability_note(bundle.result.rank_stability), ""]
+    if bundle.result.exposure_sensitivity is not None:
+        out += [_exposure_note(bundle.result.exposure_sensitivity), ""]
     out.append(f"| Rank | Segment | Rate /{per} | 95% CI | n | Hotspot |")
     out.append("| ---: | --- | ---: | --- | ---: | --- |")
     for i, s in enumerate(ranked[:top_n], start=1):

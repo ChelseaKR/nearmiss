@@ -200,11 +200,46 @@ enormous, meaningless rate. Two guards:
   force-rated (that would fabricate a giant rate). They are published as **"exposure unknown"** /
   below-floor and shown in the table with their raw report volume and an explicit no-rate flag —
   the README's "degradability / failure transparency" behavior.
+<!-- claim:exposure-sensitivity-declared-only -->
 - **Uncertainty propagation.** Where exposure is itself an estimate with error (a model or a
   proxy), that error is acknowledged. The primary interval (Section 5) treats `E_s` as fixed and
-  captures only sampling error in the count; an **exposure-sensitivity** pass re-runs the ranking
-  under plausible alternative denominators and reports how much the conclusion moves. A ranking
-  that survives only one choice of exposure source is reported as fragile.
+  captures only sampling error in the count; an **exposure-sensitivity** pass
+  (`stats/exposure_sensitivity.py`, RR-03) re-runs the ranking under alternative denominators and
+  reports how much the conclusion moves. A ranking that survives only one choice of exposure source
+  is reported as **fragile**; one that holds under every alternative is reported as **stable**.
+
+  The alternative denominators are **declared, never invented**. The only ones used are the
+  corroborating readings a segment's own exposure record already carries (`Exposure.sources`,
+  Section 3.1) — there is no perturbation model, no tier-derived multiplier, and no assumed error
+  bar, because any of those would be a number this project made up about a denominator it did not
+  measure. Two scenarios bracket what the declared readings support: `declared_low` gives every
+  segment the smallest usable reading it declares (the highest rate) and `declared_high` the largest
+  (the lowest rate). Rates are re-derived as `theta_alt = theta * (E_base / E_alt)`, which leaves the
+  numerator and every filter that produced it untouched, and Getis-Ord Gi\* is re-run on the scenario
+  rates at the same FDR level with the same singleton-neighborhood suppression (ADR-0015), so
+  "significant" means the same thing in a scenario as in the published dataset.
+
+  **The direct consequence is that this pass often cannot run, and it says so.** Where no rated
+  segment declares a second reading there is nothing to substitute, and the published artifact
+  reports `verdict: "not_evaluated"` with `top_segment_survives: null` and a stated reason — never
+  `"stable"`. The `alternative_coverage` field reports what share of rated segments had an
+  alternative at all, so a `"stable"` verdict is always read against how much of the network the
+  pass could actually vary. Of the two committed demo cities, `davis` declares no alternative
+  denominator anywhere and publishes `not_evaluated`. `riverside` declares one, on
+  `1 of 6 rated segments`, and publishes `stable` at `alternative_coverage: 0.1667` —
+  a real answer, and a visibly thin one. Those three figures are checked against the committed
+  artifacts by `tests/test_exposure_sensitivity.py`, so this paragraph cannot drift away from what
+  the pipeline publishes. The result is published per dataset in the metadata sidecar's
+  `exposure_sensitivity` block (`schema/dataset.schema.md` §10.2), summarized in the standalone
+  ranked table, and stated in the brief's robustness section.
+
+  This is a sensitivity analysis, not an interval: it does **not** widen the published CI, which
+  still covers the count only (Section 5.2, [LIMITATIONS](LIMITATIONS.md)). Propagating exposure
+  uncertainty into the interval itself remains open work, and stays listed as such. The choice to
+  use only declared denominators, and to publish a refusal rather than a reassurance when there are
+  none, is recorded in
+  [ADR 0016](adr/0016-exposure-sensitivity-uses-declared-denominators-and-may-refuse-to-run.md).
+<!-- /claim:exposure-sensitivity-declared-only -->
 
 ---
 

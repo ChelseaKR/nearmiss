@@ -59,7 +59,7 @@ msgstr ""
 msgid "## Reproduction record"
 msgstr ""
 
-msgid "## Robustness checks (overdispersion & re-segmentation)"
+msgid "## Robustness checks (overdispersion, re-segmentation & denominator)"
 msgstr ""
 
 msgid "## Statistically significant hotspots (Getis-Ord Gi\\*)"
@@ -201,6 +201,42 @@ msgid ""
 "- **95% CI (confidence interval)** — the plausible range for the true "
 "rate. A wide range means few reports and real uncertainty; treat those "
 "rankings gently."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- **Exposure sensitivity (the denominator).** **{name}** stays first "
+"under every alternative denominator, but under the {scenario} "
+"denominators it is no longer a significant cluster — read it as "
+"denominator-sensitive, a lead to confirm rather than a settled result. "
+"({covered} of {rated} rated segments had an alternative denominator to "
+"test.)"
+msgstr ""
+
+msgid ""
+"- **Exposure sensitivity (the denominator).** Not evaluated: no rated "
+"segment declares a second exposure reading, so the ranking was never re-"
+"run under a different denominator. That is an unanswered question, not a "
+"passed check — the intervals above cover the count, never the "
+"denominator."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- **Exposure sensitivity (the denominator).** Re-ranking under the "
+"alternative denominators the exposure records themselves declare leaves "
+"**{name}** first in every scenario. Only {covered} of {rated} rated "
+"segments had an alternative denominator to test, so this holds exactly as"
+" far as that reaches."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- **Exposure sensitivity (the denominator).** The ranking does not "
+"survive it: under the {scenario} denominators **{name}** falls to rank "
+"{rank}. A conclusion that holds for only one choice of exposure source is"
+" fragile, and this one is. ({covered} of {rated} rated segments had an "
+"alternative denominator to test.)"
 msgstr ""
 
 msgid ""
