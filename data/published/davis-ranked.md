@@ -4,6 +4,8 @@
 
 **Re-segmentation (MAUP) check:** 180 block units re-segmented into 90. The top-rate segment stays rank 1 *and* stays a significant Gi\* cluster at the coarser scale (top-5 rank overlap 0.80).
 
+**Exposure-sensitivity check:** not evaluated — no rated segment declares an alternative exposure reading, so the ranking was never re-run under a different denominator. An unanswered question, not a passed check.
+
 | Rank | Segment | Rate /1000 | 95% CI | n | Hotspot |
 | ---: | --- | ---: | --- | ---: | --- |
 | 1 | 5th St (C–D) | 20.00 | 7.30–43.53 | 6 | ★ Gi* z=3.25 |

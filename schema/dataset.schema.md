@@ -1,7 +1,7 @@
 # Published dataset schema (open GeoJSON)
 
 **Schema name:** `nearmiss.published.dataset`
-**Schema version:** 1.2.0 (semantic; see [Versioning and deprecation](#versioning-and-deprecation-policy))
+**Schema version:** 1.3.0 (semantic; see [Versioning and deprecation](#versioning-and-deprecation-policy))
 **Artifact:** `data/published/<city-slug>.geojson` (e.g. `davis.geojson`), with a sidecar
 `data/published/<city-slug>.metadata.json` (e.g. `davis.metadata.json`) and the data card at
 [`docs/DATA-CARD.md`](../docs/DATA-CARD.md)
@@ -98,7 +98,7 @@ parameters that govern interpretation.
 {
   "type": "FeatureCollection",
   "metadata": {
-    "schema_version": "1.2.0",
+    "schema_version": "1.3.0",
     "dataset_version": "0.1.1",
     "city": "Davis",
     "license": "Apache-2.0",
@@ -141,18 +141,30 @@ Anything that affects how a rate should be read is mirrored, in full, in the dat
 > `methods` and `summary`. The sidecar is the integrity manifest: a reproduction from raw whose canonical
 > GeoJSON does not hash to the recorded `geojson_sha256` is evidence of tampering or drift (**HR5**). The
 > sidecar's top-level fields are `city`, `version`, `schema_version`, `dataset_note`, `license`, `schema`,
-> `schema_json`, `data_card`, `methods` (the rate denominator, confidence level, small-n and min-publish-n thresholds,
-> the FDR level, the Getis-Ord band and KDE bandwidth, the significance statement, and a `rate_definition`
-labeling the top-level `rate` as the pooled union across all hazard types with per-type rates in
-`rates_by_type`), `summary`
+> `schema_json`, `data_card`, `window` (the analysis window bounding every rate in the file),
+> `methods` (the rate denominator, confidence level, small-n and min-publish-n thresholds,
+> the FDR level, the Getis-Ord band, neighbour definition and node-snap tolerance, the KDE bandwidth,
+> the exposure floor and staleness threshold, the significance statement, the quasi-Poisson
+> `dispersion` block, and a `rate_definition`
+> labeling the top-level `rate` as the pooled union across all hazard types with per-type rates in
+> `rates_by_type`), `summary`
 > (segment and report counts, `exposure_coverage`, and `excluded_low_confidence_fraction` — the share of
 > snapped reports excluded from the primary rate for low confidence), `report_intensity_peak_segment` (the KDE peak as a
 > **segment id only**, never a coordinate), `temporal` (the city-wide report-volume-by-time-of-day
-> breakdown; see `docs/LIMITATIONS.md`), `segment_time_bands_dp` (the EXP-05 epsilon-DP segment x
+> breakdown; see `docs/LIMITATIONS.md`), `maup_rank_stability` (the RR-05 re-segmentation check;
+> see [§ 10](#10-robustness-artifacts-in-the-sidecar)), `exposure_sensitivity` (the RR-03
+> alternative-denominator check; same section), `bias` (the reporting-bias audit over publishable
+> segment ids), `corridors_published`, `corridor_dataset` and `corridor_maup_note` (the EXP-03
+> companion artifact; see [§ 9](#9-corridor-level-aggregation-exp-03)), `segment_time_bands_dp` (the
+> EXP-05 epsilon-DP segment x
 > part-of-day prototype — `{"enabled": false}` unless a privacy-SME sign-off has been recorded; see
 > `docs/privacy/exp-05-dp-segment-time-bands.md`), `geojson_sha256`, and a `privacy` note. The sidecar is
 > held to the same privacy invariant as the GeoJSON: `assert_metadata_clean()` raises if any forbidden key
 > or raw coordinate appears in it.
+> [Correction history: through schema `1.2.0` this list omitted `window`, `maup_rank_stability`,
+> `bias`, and the three corridor fields, all of which the sidecar had been carrying — a doc that
+> under-described its own artifact. Corrected in `1.3.0`, the release that adds
+> `exposure_sensitivity`.]
 
 ---
 
@@ -501,7 +513,7 @@ What each bump means for this published artifact:
    (**HR5**).
 4. `$schema`/machine-validation: the published GeoJSON is validated in CI against the JSON Schema
    [`schema/dataset.schema.json`](dataset.schema.json), which mirrors this document; that validator is
-   versioned in lockstep (`const` `schema_version` `1.2.0`) and is the authoritative, machine-checkable
+   versioned in lockstep (`const` `schema_version` `1.3.0`) and is the authoritative, machine-checkable
    form of this contract. `publish.py` runs the same validation before writing any file, so a build that
    would violate the contract fails instead of shipping.
 
@@ -566,6 +578,72 @@ report count that was withheld at the block level, and can never fall in `(0, mi
 Areal Unit Problem. The top-level `maup_note` string (and the identical `metadata.maup_note`) states this
 plainly in the artifact itself; the brief's corridor section (`brief._render_corridors`) carries the same
 note. The block-level file remains the primary published unit; this file is always secondary to it.
+
+---
+
+## 10. Robustness artifacts in the sidecar (RR-05, RR-03)
+
+Two of the sidecar's blocks are not descriptions of the dataset but **results of attacking it**. Both
+answer a question a skeptical reader is entitled to ask about any ranking, and both are published
+whatever the answer is — a robustness check whose result is only published when it passes is not a
+robustness check.
+
+### 10.1 `maup_rank_stability` — does the ranking survive re-drawing the units?
+
+The unit of analysis is a block, and blocks are arbitrary (the Modifiable Areal Unit Problem).
+`stats/maup.py` re-segments the network to a coarser partition, recomputes the exposure-normalized
+ranking and the Gi\* significance on the coarser units, and reports whether the top hotspot survives.
+
+| Field | Type | Description |
+|---|---|---|
+| `basis` | string | One-line statement of the re-segmentation used. |
+| `fine_units` / `coarse_units` | integer | Unit counts before and after re-segmentation. |
+| `k` | integer | The top-k depth the overlap is measured at. |
+| `top_hotspot_segment` | string \| null | The segment ranked first in the published dataset. |
+| `top_hotspot_coarse_rank` | integer \| null | Where its coarse unit lands in the coarse ranking. |
+| `top_hotspot_still_significant` | boolean | Whether that coarse unit is still an FDR-significant Gi\* cluster. |
+| `top_hotspot_survives` | boolean | Coarse rank 1 **and** still significant. |
+| `topk_overlap` | number | Jaccard overlap of the fine top-k against the coarse top-k. |
+
+### 10.2 `exposure_sensitivity` — does the ranking survive a different denominator?
+
+The published interval covers the count, not the denominator (`docs/METHODOLOGY.md` §5.2). Instead of
+propagating exposure uncertainty into the interval, this project re-runs the ranking under the
+**alternative denominators the exposure records themselves declare** (`Exposure.sources`, the
+corroborating readings of §3.1 of the methodology) and reports how much the conclusion moves.
+`stats/exposure_sensitivity.py` builds two scenarios — `declared_low` (each segment takes the smallest
+usable reading it declares) and `declared_high` (the largest) — re-ranks, and re-runs Gi\* with the same
+FDR level and the same singleton-neighbourhood suppression as the published dataset.
+
+No alternative denominator is ever invented: no perturbation model, no tier-derived multiplier, no
+assumed error bar. **The direct consequence is that this check often cannot run, and it says so.**
+
+| Field | Type | Description |
+|---|---|---|
+| `basis` | string | One-line statement of what the alternatives are. |
+| `evaluated` | boolean | `false` when no rated segment declared an alternative reading. |
+| `verdict` | string | `not_evaluated`, `stable`, or `fragile`. |
+| `reason` | string | Present **only** when `evaluated` is `false`: why the pass could not run. |
+| `rated_segments` | integer | Segments carrying a rate (the Gi\* population). |
+| `segments_with_alternatives` | integer | Of those, how many declare a usable alternative reading. |
+| `alternative_coverage` | number | `segments_with_alternatives / rated_segments`. A `stable` verdict is only as strong as this number. |
+| `k` | integer | The top-k depth the overlap is measured at. |
+| `top_segment` | string \| null | The segment ranked first in the published dataset. |
+| `top_segment_significant` | boolean | Whether it is an FDR-significant Gi\* cluster in the published dataset. |
+| `top_segment_survives` | boolean \| null | Still rank 1 in **every** scenario, and — if it was significant — still significant. **`null` when `evaluated` is `false`**; never `true` by default. |
+| `scenarios` | array | One entry per alternative denominator (empty when the pass did not run). |
+
+Each `scenarios` entry carries `name`, `basis`, `substituted_segments` (how many denominators actually
+changed), `top_segment` (the highest-rate segment under that denominator), `top_segment_rank` (where the
+*published* top segment landed), `top_segment_significant`, `significance_flips` (how many segments'
+significance flags differ from the published dataset's), and `topk_overlap`.
+
+A consumer must treat `evaluated: false` as an **unanswered question**, not a passed check. Reading a
+missing result as stability is the exact misreading this block is shaped to prevent, which is why
+`top_segment_survives` is `null` rather than `false` in that case: neither "it held" nor "it broke" is
+true when nothing was tested. The decision, including why no alternative denominator is
+synthesised when none is declared, is
+[ADR 0016](../docs/adr/0016-exposure-sensitivity-uses-declared-denominators-and-may-refuse-to-run.md).
 
 ---
 

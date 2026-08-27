@@ -40,6 +40,7 @@ only removes blind spots.
 | `dataset-schema-prose` | `CHANGELOG.md` — § Scope and conventions | `schema/dataset.schema.md` |
 | `rate-union-primary-plus-per-type-layers` | `docs/METHODOLOGY.md` — § 1. Notation and the unit of analysis | `tests/test_publish_privacy.py::test_rates_by_type_publishes_type_specific_rate_matching_breakdown` |
 | `low-confidence-excluded-from-primary` | `docs/METHODOLOGY.md` — § 2. From raw reports to counts | `tests/test_stats_numerics.py::test_quality_tier_split_primary_rate_excludes_low_confidence` |
+| `exposure-sensitivity-declared-only` | `docs/METHODOLOGY.md` — § 3.3 The exposure floor and "exposure unknown" | `tests/test_exposure_sensitivity.py::test_no_declared_alternative_is_not_evaluated_never_stable` |
 | `byar-poisson-ci` | `docs/METHODOLOGY.md` — § 5.2 Interval for a single segment's rate | `tests/test_rates.py::test_poisson_ci_contains_point_and_widens_relatively_for_small_n` |
 | `wilson-proportions` | `docs/METHODOLOGY.md` — § 5.3 Proportions, when the question is a share | `tests/test_rates.py::test_wilson_ci_bounds` |
 | `bh-fdr` | `docs/METHODOLOGY.md` — § 5.5 Multiplicity | `tests/test_fdr.py::test_significant_field_is_fdr_corrected_in_analysis` |

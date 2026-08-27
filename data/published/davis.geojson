@@ -7174,7 +7174,7 @@
     "privacy": "Aggregated to public street segments; low-count segments withheld (k-anonymity); no per-report coordinate, time, reporter, mode, or severity is published.",
     "schema_doc": "schema/dataset.schema.md",
     "schema_json": "schema/dataset.schema.json",
-    "schema_version": "1.2.0",
+    "schema_version": "1.3.0",
     "segments_published": 177,
     "segments_withheld_low_count": 3,
     "significance": "Getis-Ord Gi* on the exposure-normalized rate, Benjamini-Hochberg FDR",

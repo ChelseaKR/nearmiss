@@ -22,6 +22,7 @@ from .aggregate import _LOW_CONFIDENCE_RAW, SegmentAgg, aggregate
 from .bias import BiasReport, characterize_bias
 from .corridors import CorridorStats, build_corridors
 from .dp_temporal import DPSegmentTimeRelease, dp_segment_time_release
+from .exposure_sensitivity import ExposureSensitivity, exposure_sensitivity
 from .getis_ord import (
     benjamini_hochberg,
     getis_ord_star,
@@ -59,6 +60,10 @@ class AnalysisResult:
     overdispersion_adjusted: bool = False
     # MAUP rank-stability under re-segmentation (RR-05).
     rank_stability: RankStability | None = None
+    # Exposure-sensitivity: the same ranking re-run under each segment's declared
+    # alternative denominators (RR-03 / METHODOLOGY §3.3). ``verdict`` is
+    # "not_evaluated" when no rated segment declared an alternative to test.
+    exposure_sensitivity: ExposureSensitivity | None = None
     # Fraction of snapped records excluded from the primary rate because they carry a
     # low-confidence flag (low_accuracy / far_snap): low_confidence_snapped / snapped.
     excluded_low_confidence_fraction: float = 0.0
@@ -317,6 +322,16 @@ def analyze(
     # RR-05: re-segment the network and report whether the top hotspots survive.
     stability = rank_stability(stats, segments, exposure_map, config)
 
+    # RR-03: re-run the same ranking under the alternative denominators the
+    # exposure records themselves declare. The published interval covers the
+    # count, not the denominator (METHODOLOGY §5.2), so this is where the
+    # denominator's own uncertainty is answered. It reports "not_evaluated"
+    # rather than "stable" when no segment declared an alternative to test.
+    # Reuses the Gi* neighbor map already built above.
+    exposure_sens = exposure_sensitivity(
+        stats, segments, exposure_map, config, neighbor_map=neighbor_map
+    )
+
     # Overall excluded fraction: low-confidence snapped records / all snapped records.
     snapped_total = sum(a.count for a in agg.values())
     snapped_primary = sum(a.count_primary for a in agg.values())
@@ -336,5 +351,6 @@ def analyze(
         dispersion=round(dispersion, 4),
         overdispersion_adjusted=config.overdispersion_adjust,
         rank_stability=stability,
+        exposure_sensitivity=exposure_sens,
         excluded_low_confidence_fraction=excluded_fraction,
     )

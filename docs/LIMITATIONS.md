@@ -34,12 +34,27 @@ The five [hard rules](../README.md) are referenced as HR1–HR5.
    illustrative, not measured.
 
 4. **The confidence interval covers the count, not the denominator.** The 95% CI
-   is a Poisson/Wald interval on the *reports* given a fixed exposure value; it
-   does **not** yet propagate uncertainty in the exposure estimate itself. So the
+   is Byar's Poisson interval on the *reports* given a fixed exposure value (never
+   a Wald interval, which is prohibited here — see METHODOLOGY §5.1); it does
+   **not** propagate uncertainty in the exposure estimate itself. So the
    true uncertainty on a rate is *wider* than the interval shown, especially where
    exposure is sparse or modeled. We state this rather than imply false precision
-   (HR2). Propagating exposure uncertainty into the interval is tracked as
-   roadmap item R28.
+   (HR2). Propagating exposure uncertainty into the interval is still open work,
+   tracked as roadmap item R28 / RR-03.
+
+   **What is now measured instead is whether the denominator changes the answer.**
+   Every published dataset carries an `exposure_sensitivity` block
+   (`stats/exposure_sensitivity.py`): the ranking is re-run under the alternative
+   denominators each segment's own exposure record declares, and the artifact says
+   whether the top-ranked segment stays on top and stays significant. It reports
+   `stable` or `fragile` — and, when no segment declared an alternative to test,
+   `not_evaluated` with `top_segment_survives: null` and a stated reason, because a
+   check that had nothing to test has not passed. `alternative_coverage` says how
+   much of the network the pass could vary, so `stable` is never readable as more
+   than it is: of the two committed demos, `davis` publishes `not_evaluated` and
+   `riverside` publishes `stable` off a single alternative reading on one of six
+   rated segments. This is a sensitivity analysis, not an interval; it does not make
+   the published CI cover the denominator.
 
 5. **The unit of analysis is a block, and blocks are arbitrary (MAUP).** Results
    can shift if you draw the segments differently — the modifiable areal unit
