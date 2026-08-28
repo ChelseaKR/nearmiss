@@ -153,7 +153,8 @@ Anything that affects how a rate should be read is mirrored, in full, in the dat
 > **segment id only**, never a coordinate), `temporal` (the city-wide report-volume-by-time-of-day
 > breakdown; see `docs/LIMITATIONS.md`), `maup_rank_stability` (the RR-05 re-segmentation check;
 > see [§ 10](#10-robustness-artifacts-in-the-sidecar)), `exposure_sensitivity` (the RR-03
-> alternative-denominator check; same section), `bias` (the reporting-bias audit over publishable
+> alternative-denominator check; same section), `gi_permutation` (the RR-09 permutation-reference
+> check; same section), `bias` (the reporting-bias audit over publishable
 > segment ids), `corridors_published`, `corridor_dataset` and `corridor_maup_note` (the EXP-03
 > companion artifact; see [§ 9](#9-corridor-level-aggregation-exp-03)), `segment_time_bands_dp` (the
 > EXP-05 epsilon-DP segment x
@@ -588,12 +589,12 @@ note. The block-level file remains the primary published unit; this file is alwa
 
 ---
 
-## 10. Robustness artifacts in the sidecar (RR-05, RR-03)
+## 10. Robustness artifacts in the sidecar (RR-05, RR-03, RR-09)
 
-Two of the sidecar's blocks are not descriptions of the dataset but **results of attacking it**. Both
-answer a question a skeptical reader is entitled to ask about any ranking, and both are published
-whatever the answer is — a robustness check whose result is only published when it passes is not a
-robustness check.
+Three of the sidecar's blocks are not descriptions of the dataset but **results of attacking it**.
+Each answers a question a skeptical reader is entitled to ask about any ranking, and each is
+published whatever the answer is: a robustness check whose result is only published when it passes
+is not a robustness check.
 
 ### 10.1 `maup_rank_stability` — does the ranking survive re-drawing the units?
 
@@ -665,6 +666,45 @@ missing result as stability is the exact misreading this block is shaped to prev
 true when nothing was tested. The decision, including why no alternative denominator is
 synthesised when none is declared, is
 [ADR 0016](../docs/adr/0016-exposure-sensitivity-uses-declared-denominators-and-may-refuse-to-run.md).
+
+### 10.3 `gi_permutation`: does the significance survive a different reference distribution?
+
+Published significance is the analytic normal-approximation Gi\* z-score with a Benjamini-Hochberg
+correction (§4.4). `stats/gi_permutation.py` re-tests the segments the dataset makes a claim about
+against a **conditional-permutation** reference instead: each segment's own rate is held fixed, the
+other rates are redistributed at random across the other segments, Gi\* is recomputed, and the
+observed statistic is read against that empirical distribution (Anselin 1995).
+
+**This block never changes `getis_ord_significant`.** No published rate, interval or significance
+flag depends on `permutations` or `seed`; changing the published decision would be a methodology
+change, not a robustness pass.
+
+| Field | Type | Description |
+|---|---|---|
+| `basis` | string | One-line statement of the reference distribution used. |
+| `evaluated` | boolean | `false` when nothing was testable, or when `permutations` was too small to resolve `alpha`. |
+| `verdict` | string | `not_evaluated`, `corroborated`, or `not_corroborated`. |
+| `reason` | string | Present **only** when `evaluated` is `false`: why the pass could not run. |
+| `permutations` | integer | Reference draws per segment (`gi_permutations`, default 999). |
+| `seed` | integer | Fixed seed (`gi_permutation_seed`), so the block is byte-reproducible. |
+| `alpha` | number | The **single-test** level the two references are compared at (`fdr_alpha`). |
+| `scope` | string | Which segments were tested, and the statement that an unflagged segment cannot be promoted here. |
+| `multiplicity` | string | Why the FDR correction is not re-run under permutation. |
+| `tested_segments` | integer | How many segments were re-tested. |
+| `published_significant_tested` | integer | Of those, how many the dataset flags as significant clusters. |
+| `unsupported_segments` | integer | Published significant clusters whose pseudo p-value exceeds `alpha`. |
+| `segments` | array | One entry per tested segment (empty when the pass did not run). |
+
+Each `segments` entry carries `segment_id`, `published_significant`, `analytic_p` (the two-sided p
+of the published z), `permutation_p` (the two-sided pseudo p), and `agrees` (whether the two
+references put the segment on the same side of `alpha`).
+
+A pseudo p-value cannot fall below `1 / (permutations + 1)`, which is why `alpha` here is the
+single-test level and not a Benjamini-Hochberg critical value: at hundreds of simultaneous tests the
+BH critical values lie below that floor, so a permutation-based FDR would reject nothing at any
+feasible permutation count and the result would describe the permutation count rather than the city.
+A consumer must read `evaluated: false` as an **unanswered question**, exactly as in §10.2, and must
+not read an untested segment as a tested one that passed.
 
 ---
 

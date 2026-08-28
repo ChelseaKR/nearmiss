@@ -72,6 +72,21 @@
     "verdict": "stable"
   },
   "geojson_sha256": "75a8c3ba8f6d161ee70086a13aa979369a0a35013556299c0bd127b8621f143f",
+  "gi_permutation": {
+    "alpha": 0.05,
+    "basis": "conditional-permutation reference distribution for Gi*, published beside the analytic normal-approximation decision and never replacing it",
+    "evaluated": false,
+    "multiplicity": "not re-run: a pseudo p-value cannot go below 1/(permutations+1), which is above the Benjamini-Hochberg critical values at this many tests, so each segment is compared at the single-test level alpha",
+    "permutations": 999,
+    "published_significant_tested": 0,
+    "reason": "no segment carried a testable Gi* neighbourhood, so no published significance claim was re-tested against an empirical reference; this is an unanswered question, not a passed check",
+    "scope": "the segments the dataset makes a claim about: FDR-significant clusters plus the top-ranked segments by rate; a segment the analytic test did not flag cannot be promoted here",
+    "seed": 1,
+    "segments": [],
+    "tested_segments": 0,
+    "unsupported_segments": 0,
+    "verdict": "not_evaluated"
+  },
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",

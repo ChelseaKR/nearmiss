@@ -36,6 +36,8 @@ Reference: Getis & Ord (1992); Ord & Getis (1995); Benjamini & Hochberg (1995).
 from __future__ import annotations
 
 import math
+import random
+from collections.abc import Iterable
 
 from .geometry import haversine_m, project, projection_margin_m
 from .spatial_index import SpatialIndex
@@ -213,3 +215,83 @@ def getis_ord_star(
         denom = s * math.sqrt(max(0.0, (n * w2_sum - w_sum * w_sum) / (n - 1)))
         z[i] = numerator / denom if denom != 0.0 else 0.0
     return z
+
+
+def conditional_permutation_p(
+    values: dict[str, float],
+    neighbor_ids: dict[str, set[str]],
+    unit_ids: Iterable[str],
+    permutations: int,
+    seed: int,
+) -> dict[str, float]:
+    """Pseudo p-values for Gi\\* from a conditional-permutation reference.
+
+    :func:`getis_ord_star` reads its z-score against the asymptotic normal
+    reference, which is an approximation. Sparse, skewed values over small
+    neighborhoods are exactly where that approximation is least comfortable, so
+    this asks the same question empirically instead: hold unit ``i``'s own value
+    fixed, redistribute the other values at random across the other units,
+    recompute Gi\\*, and see how extreme the observed statistic is in that
+    reference distribution. This is the conditional-permutation scheme standard
+    for local spatial statistics (Anselin 1995).
+
+    With binary weights only the neighborhood *sum* varies, and the value
+    multiset (so the global mean and standard deviation Gi\\* divides by) is
+    unchanged by permuting labels. One replicate therefore costs a draw of
+    ``k - 1`` values without replacement from the other ``n - 1`` units, where
+    ``k`` is the size of unit ``i``'s effective neighborhood.
+
+    The returned value is the **two-sided pseudo p-value**
+    ``(1 + #{|G*_perm| >= |G*_obs|}) / (permutations + 1)``. The ``+1`` in both
+    places counts the observed arrangement as one of its own reference
+    draws, which keeps the statistic valid rather than allowing an impossible
+    ``p = 0`` (North, Curtis & Sham 2002).
+
+    ``unit_ids`` selects which units to test: a caller testing only the units it
+    publishes a claim about pays only for those. Units whose effective
+    neighborhood is a singleton are **omitted from the result** entirely, because
+    Gi\\* there is a global z-score and not a cluster statistic (see
+    :func:`singleton_neighborhoods`); so are units absent from ``values``. A
+    caller must therefore read a missing id as "not tested", never as "passed".
+
+    Deterministic: the reference draws for unit ``i`` come from a generator
+    seeded with ``seed`` and the unit id, so the result does not depend on
+    iteration order and does not change between runs.
+    """
+    if permutations < 1:
+        raise ValueError("permutations must be at least 1")
+    ids = list(values.keys())
+    ids_set = set(ids)
+    n = len(ids)
+    if n < 3:
+        return {}
+    xs = [values[s] for s in ids]
+    mean = sum(xs) / n
+    variance = sum((x - mean) ** 2 for x in xs) / n
+    s = math.sqrt(variance) if variance > 0 else 0.0
+    if s == 0.0:
+        return {}
+
+    out: dict[str, float] = {}
+    for unit_id in unit_ids:
+        if unit_id not in ids_set:
+            continue
+        neighbors = _effective_neighbors(unit_id, neighbor_ids, ids_set)
+        k = len(neighbors)
+        if k <= 1:
+            continue
+        w_sum = float(k)
+        denom = s * math.sqrt(max(0.0, (n * w_sum - w_sum * w_sum) / (n - 1)))
+        if denom == 0.0:
+            continue
+        observed = abs((sum(values[j] for j in neighbors) - mean * w_sum) / denom)
+        pool = [values[j] for j in ids if j != unit_id]
+        focal = values[unit_id]
+        rng = random.Random(f"{seed}:{unit_id}")
+        at_least_as_extreme = 0
+        for _ in range(permutations):
+            drawn = focal + sum(rng.sample(pool, k - 1))
+            if abs((drawn - mean * w_sum) / denom) >= observed:
+                at_least_as_extreme += 1
+        out[unit_id] = (1 + at_least_as_extreme) / (permutations + 1)
+    return out

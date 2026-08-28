@@ -69,6 +69,8 @@ _THRESHOLD_KEYS = frozenset(
         "exposure_floor",
         "exposure_stale_days",
         "overdispersion_adjust",
+        "gi_permutations",
+        "gi_permutation_seed",
     }
 )
 
@@ -110,6 +112,14 @@ class Config:
     # nearest segment) — this is about recognizing that two segment endpoints
     # are the same real-world junction.
     gi_node_snap_m: float = 5.0
+    # RR-09: the conditional-permutation reference distribution Gi* significance is
+    # re-tested against (stats/gi_permutation.py). It never changes the published
+    # decision, so these tune a robustness artifact, not a published flag. 999 is the
+    # convention for a pseudo p-value; the pass refuses to run if the count is too
+    # small for 1/(permutations+1) to reach fdr_alpha. The seed is fixed so the
+    # artifact is byte-reproducible under `make reproduce`.
+    gi_permutations: int = 999
+    gi_permutation_seed: int = 1
     kde_bandwidth_m: float = 150.0
     kde_grid: int = 24
     # METHODOLOGY §3.3: exposure at/below this is treated as "exposure unknown"
@@ -307,6 +317,8 @@ def _config_from_data(cfg_path: Path, data: dict[str, object]) -> Config:
     kde_grid = int(thr("kde_grid", 24))
     retention_days = int(thr("retention_days", 0))
     gi_node_snap_m = thr("gi_node_snap_m", 5.0)
+    gi_permutations = int(thr("gi_permutations", 999))
+    gi_permutation_seed = int(thr("gi_permutation_seed", 1))
     exposure_floor = thr("exposure_floor", 0.0)
     exposure_stale_days = thr("exposure_stale_days", 365.0)
 
@@ -323,6 +335,9 @@ def _config_from_data(cfg_path: Path, data: dict[str, object]) -> Config:
     )
     _check_range(
         cfg_path, gi_node_snap_m >= 0, "gi_node_snap_m", gi_node_snap_m, "gi_node_snap_m >= 0"
+    )
+    _check_range(
+        cfg_path, gi_permutations >= 1, "gi_permutations", gi_permutations, "gi_permutations >= 1"
     )
     _check_range(
         cfg_path,
@@ -379,6 +394,8 @@ def _config_from_data(cfg_path: Path, data: dict[str, object]) -> Config:
         retention_days=retention_days,
         overdispersion_adjust=flag("overdispersion_adjust", False),
         gi_node_snap_m=gi_node_snap_m,
+        gi_permutations=gi_permutations,
+        gi_permutation_seed=gi_permutation_seed,
         exposure_floor=exposure_floor,
         exposure_stale_days=exposure_stale_days,
         dataset_note=(str(data["dataset_note"]) if "dataset_note" in data else None),

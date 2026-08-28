@@ -488,17 +488,20 @@ def _render_robustness(
     translation: gettext.NullTranslations,
     name_of: Callable[[str], str],
 ) -> None:
-    """Append the RR-02 overdispersion, RR-05 MAUP, and RR-03 exposure-sensitivity checks.
+    """Append the RR-02, RR-05, RR-03 and RR-09 robustness checks.
 
     These are the skeptic-facing robustness answers: whether the Poisson intervals
     understate uncertainty (clustered reporting), whether the top hotspot is an
-    artifact of where the block lines were drawn, and whether it survives a
-    different choice of denominator.
+    artifact of where the block lines were drawn, whether it survives a different
+    choice of denominator, and whether its significance survives an empirical
+    reference distribution instead of the analytic normal one.
     """
     _ = translation.gettext
     phi = bundle.result.dispersion
     stability = bundle.result.rank_stability
-    out.append(_("## Robustness checks (overdispersion, re-segmentation & denominator)"))
+    out.append(
+        _("## Robustness checks (overdispersion, re-segmentation, denominator & significance)")
+    )
     out.append("")
 
     if phi >= _OVERDISPERSION_MATERIAL:
@@ -529,7 +532,61 @@ def _render_robustness(
         _render_maup(out, stability, translation, name_of)
 
     _render_exposure_sensitivity(out, bundle, translation, name_of)
+    _render_permutation(out, bundle, translation)
     out.append("")
+
+
+def _render_permutation(
+    out: list[str],
+    bundle: AnalysisBundle,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the RR-09 line: does the significance survive an empirical reference?
+
+    Three outcomes, and "not evaluated" is not a pass. The published Gi* flags
+    are unchanged by this check, and the wording says so, so a reader never reads
+    a disagreement as a retraction of the table above it.
+    """
+    _ = translation.gettext
+    perm = bundle.result.gi_permutation
+    if perm is None:
+        return
+    alpha = f"{perm.alpha:g}"
+    if not perm.evaluated:
+        out.append(
+            _(
+                "- **Significance under a permutation reference.** Not evaluated: no published "
+                "significance claim had a testable neighbourhood, so none was re-tested against "
+                "an empirical reference distribution. That is an unanswered question, not a "
+                "passed check."
+            )
+        )
+        return
+    if perm.unsupported_segments == 0:
+        out.append(
+            _(
+                "- **Significance under a permutation reference.** All {sig} of the significant "
+                "clusters above also clear the {alpha} level against a reference distribution "
+                "built by re-shuffling the rates {perms} times. Their significance is not resting "
+                "on the normal approximation alone."
+            ).format(sig=perm.published_significant_tested, alpha=alpha, perms=perm.permutations)
+        )
+        return
+    out.append(
+        _(
+            "- **Significance under a permutation reference.** {unsupported} of the {sig} "
+            "significant clusters above do not clear the {alpha} level against a reference "
+            "distribution built by re-shuffling the rates {perms} times. Read those as resting "
+            "on the normal approximation the analytic test assumes, and treat them as leads "
+            "rather than settled clusters. The published flags are unchanged: this check reports "
+            "a disagreement, it does not overrule the test above."
+        ).format(
+            unsupported=perm.unsupported_segments,
+            sig=perm.published_significant_tested,
+            alpha=alpha,
+            perms=perm.permutations,
+        )
+    )
 
 
 def _render_exposure_sensitivity(

@@ -59,7 +59,9 @@ msgstr ""
 msgid "## Reproduction record"
 msgstr ""
 
-msgid "## Robustness checks (overdispersion, re-segmentation & denominator)"
+msgid ""
+"## Robustness checks (overdispersion, re-segmentation, denominator & "
+"significance)"
 msgstr ""
 
 msgid "## Statistically significant hotspots (Getis-Ord Gi\\*)"
@@ -309,6 +311,32 @@ msgid ""
 "statistical significance at the coarser scale — read it as scale-"
 "sensitive, a lead to confirm rather than a settled cluster. Top-{k} rank "
 "overlap: {overlap}."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- **Significance under a permutation reference.** All {sig} of the "
+"significant clusters above also clear the {alpha} level against a "
+"reference distribution built by re-shuffling the rates {perms} times. "
+"Their significance is not resting on the normal approximation alone."
+msgstr ""
+
+msgid ""
+"- **Significance under a permutation reference.** Not evaluated: no "
+"published significance claim had a testable neighbourhood, so none was "
+"re-tested against an empirical reference distribution. That is an "
+"unanswered question, not a passed check."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"- **Significance under a permutation reference.** {unsupported} of the "
+"{sig} significant clusters above do not clear the {alpha} level against a"
+" reference distribution built by re-shuffling the rates {perms} times. "
+"Read those as resting on the normal approximation the analytic test "
+"assumes, and treat them as leads rather than settled clusters. The "
+"published flags are unchanged: this check reports a disagreement, it does"
+" not overrule the test above."
 msgstr ""
 
 #, python-brace-format

@@ -57,6 +57,56 @@
     "verdict": "not_evaluated"
   },
   "geojson_sha256": "f59dc599446bddb74958f9b04f622005ef622a497a3795aff6905d3f136e86ed",
+  "gi_permutation": {
+    "alpha": 0.05,
+    "basis": "conditional-permutation reference distribution for Gi*, published beside the analytic normal-approximation decision and never replacing it",
+    "evaluated": true,
+    "multiplicity": "not re-run: a pseudo p-value cannot go below 1/(permutations+1), which is above the Benjamini-Hochberg critical values at this many tests, so each segment is compared at the single-test level alpha",
+    "permutations": 999,
+    "published_significant_tested": 5,
+    "scope": "the segments the dataset makes a claim about: FDR-significant clusters plus the top-ranked segments by rate; a segment the analytic test did not flag cannot be promoted here",
+    "seed": 1,
+    "segments": [
+      {
+        "agrees": false,
+        "analytic_p": 0.016766,
+        "permutation_p": 0.062,
+        "published_significant": true,
+        "segment_id": "seg-02"
+      },
+      {
+        "agrees": false,
+        "analytic_p": 0.016766,
+        "permutation_p": 0.051,
+        "published_significant": true,
+        "segment_id": "seg-05"
+      },
+      {
+        "agrees": true,
+        "analytic_p": 0.001136,
+        "permutation_p": 0.002,
+        "published_significant": true,
+        "segment_id": "seg-06"
+      },
+      {
+        "agrees": true,
+        "analytic_p": 0.016766,
+        "permutation_p": 0.043,
+        "published_significant": true,
+        "segment_id": "seg-07"
+      },
+      {
+        "agrees": false,
+        "analytic_p": 0.016766,
+        "permutation_p": 0.057,
+        "published_significant": true,
+        "segment_id": "seg-10"
+      }
+    ],
+    "tested_segments": 5,
+    "unsupported_segments": 3,
+    "verdict": "not_corroborated"
+  },
   "license": "Apache-2.0",
   "maup_rank_stability": {
     "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",

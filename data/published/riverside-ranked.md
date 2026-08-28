@@ -6,6 +6,8 @@
 
 **Exposure-sensitivity check:** the top-rate segment stays rank 1 under every alternative denominator its sources declare (1 of 6 rated segments had an alternative denominator to test).
 
+**Permutation reference check:** not evaluated. No published significance claim had a testable neighbourhood, so none was re-tested against an empirical reference distribution. Not a passed check.
+
 | Rank | Segment | Rate /1000 | 95% CI | n | Hotspot |
 | ---: | --- | ---: | --- | ---: | --- |
 | 1 | University Ave (Market–Lemon) | 32.00 | 13.78–63.06 | 8 | no Gi\* neighbors — global z=2.20 |

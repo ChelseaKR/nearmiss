@@ -581,9 +581,44 @@ Decisions that make Gi\* honest here, rather than a fancier heat map:
   normal-approximation Gi\* z-score** (`stats/getis_ord.py`) — the standard closed-form Gi\*
   statistic and its asymptotic normal reference — and across the many per-segment tests we apply
   the false-discovery-rate (Benjamini-Hochberg) control from Section 5.5 to decide which segments
-  are significant. We report both raw and FDR-adjusted significance. A **conditional permutation
-  reference distribution**, which would relax the normal-approximation assumption, is possible
-  future work; it is **not** what is computed today.
+  are significant. We report both raw and FDR-adjusted significance.
+
+<!-- claim:gi-permutation-beside-not-instead -->
+- **And the normal approximation is checked, not assumed.** A **conditional-permutation reference
+  distribution** (`stats/gi_permutation.py`, on `honest_rates.hotspot.conditional_permutation_p`)
+  re-tests the segments the dataset makes a significance claim about: each segment's own rate is
+  held fixed, the other rates are redistributed at random across the other segments, Gi\* is
+  recomputed, and the observed statistic is read against that empirical reference (Anselin 1995).
+  The result is published in every metadata sidecar under `gi_permutation` and surfaced in the
+  brief and the standalone ranked table, whatever it says: on the committed `davis` demo three of
+  the five FDR-significant clusters do **not** clear `fdr_alpha` against their own permutation
+  reference, and that is published rather than withheld.
+
+  **It is published beside the analytic decision and never replaces it.** `getis_ord_significant`
+  remains the analytic normal-approximation z-score with the Benjamini-Hochberg correction above;
+  no published rate, interval or significance flag depends on the permutation count or its seed.
+  Changing what "significant" means in a published dataset is a methodology change requiring the
+  statistician sign-off `ROADMAP.md` lists as a REVIEW gate, not something a robustness pass does
+  on its own authority.
+
+  **Multiplicity is deliberately not re-run under permutation, and the reason is arithmetic.** A
+  pseudo p-value from `m` permutations cannot fall below `1 / (m + 1)`, while Benjamini-Hochberg
+  over `t` simultaneous tests compares the smallest p-value against `alpha / t`. For a city with
+  hundreds of rated segments that critical value is far below the achievable floor, so a
+  permutation-based FDR would reject nothing at any feasible `m` and "no segment is significant
+  under permutation" would be a fact about `m`, not about the city. Each tested segment is
+  therefore compared at the single-test level `fdr_alpha`, and the artifact says so in its own
+  `multiplicity` field. When `1 / (m + 1) > fdr_alpha` the pass refuses to run at all and publishes
+  `verdict: "not_evaluated"` with a stated reason, because a test that could not have detected
+  significance has not failed to find any.
+
+  **Scope, stated so silence is not read as a pass.** The tested set is the FDR-significant
+  clusters plus the top-ranked segments by rate, which are the segments a reader acts on; a segment
+  the analytic test did not flag cannot be promoted here. Segments whose Gi\* neighbourhood is a
+  singleton are excluded, since Gi\* there is a global z-score and not a cluster statistic
+  (ADR-0015); on the committed `riverside` demo every segment is such a singleton, so that dataset
+  publishes `not_evaluated` rather than a verdict it did not earn.
+<!-- /claim:gi-permutation-beside-not-instead -->
 - **Honest about sparse and uncertain inputs.** Gi\* run on rates that are themselves wildly
   uncertain (sparse segments) inherits that uncertainty. Below-floor / "exposure unknown" segments
   (Section 3.3) are handled explicitly — excluded or shown as untested — never fed in as if they
