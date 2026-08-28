@@ -11,6 +11,26 @@ of a stub, a disabled config key, or a placeholder. Where a phase is blocked on 
 person, a credential, an external dataset, or a decision that is the maintainer's
 to make, that is written down rather than worked around.
 
+## Status at a glance
+
+Last updated 2026-08-27. A row is **built** only when the code, the methodology
+paragraph, the schema entry, the witness test and the first-class "did not run"
+outcome all exist; anything short of that is blocked, with the block named.
+
+| Phase / item | Status | Where it stands |
+| --- | --- | --- |
+| 1. Published-statistic parity | **Built** | Four published statistics corrected; the parity gate ships with them. |
+| 2. Gi\* permutation reference (RR-09) | **Built** | Published beside the analytic decision; disagrees on 3 of 5 Davis clusters. |
+| 3. Dependence-robust multiplicity (RR-08) | **Built** | Benjamini-Yekutieli published beside Benjamini-Hochberg; 1 of 5 Davis clusters survives. Caldas de Castro & Singer remains unimplemented and the artifact says so. |
+| 4. Shrinkage stability (RE-02) | **Built** | Empirical-Bayes re-ranking check; both demos `stable`, published rate unchanged. |
+| RR-03 interval half | **Blocked** | Needs an exposure source that publishes its own uncertainty, or an owner decision to adopt a named error model. ADR 0016 forbids inventing one. |
+| RR-14 screen-reader pass | **Blocked** | Needs a person running NVDA and VoiceOver. No code change can close it. |
+| RR-11 minted DOI | **Blocked** | Needs an archive account and a tagged release. |
+| RE-01, RE-03, RE-07, RE-08 | **Blocked** | Need external datasets this repository does not and should not vendor (issue #186). |
+| RE-04 equity overlay | **Blocked** | Needs consent and co-design with affected communities, by the research roadmap's own instruction. |
+| RE-10 abuse toolkit | **Not a phase** | A hard gate on opening public intake, which nothing here approaches. |
+| Product Expansion Plan phases | **Blocked** | Need real interviews and real design partners. Synthesising them is the failure the plan warns against. |
+
 ## What this program is not
 
 It is **not** a product plan and it does not overrule one.
