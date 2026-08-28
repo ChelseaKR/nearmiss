@@ -60,8 +60,11 @@ def test_characterize_bias_over_and_under_representation() -> None:
     counts = {"x": 90, "y": 10}
     exposure = {"x": 10.0, "y": 90.0}
     report = characterize_bias(counts, exposure)
-    assert report.over_represented[0].unit_id == "x"
-    assert report.under_represented[0].unit_id == "y"
+    assert report.over_represented()[0].unit_id == "x"
+    assert report.under_represented()[0].unit_id == "y"
+    # The eligibility filter runs before the top-N cut, so an ineligible unit
+    # cannot spend a slot and shorten the answer.
+    assert report.over_represented(eligible={"y"}) == ()
 
 
 def test_analyze_with_plain_units_ranks_rate_over_raw_count() -> None:

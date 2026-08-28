@@ -32,6 +32,12 @@ from .models import Segment, SegmentStats
 from .publish import _slug
 from .stats.bias import BiasFinding
 from .stats.corridors import CorridorStats
+from .stats.maup import (
+    RANK_HELD_SIGNIFICANCE_LOST,
+    SURVIVES,
+    RankStability,
+    stability_outcome,
+)
 
 
 def _names(segments: list[Segment]) -> dict[str, str]:
@@ -395,6 +401,87 @@ def _render_corridors(
 _OVERDISPERSION_MATERIAL = 1.1
 
 
+def _render_maup(
+    out: list[str],
+    stability: RankStability,
+    translation: gettext.NullTranslations,
+    name_of: Callable[[str], str],
+) -> None:
+    """Append the RR-05 re-segmentation result, saying which outcome it actually was.
+
+    ``top_hotspot_survives`` is one boolean over two different failures: a hotspot
+    that held rank 1 and lost Gi* significance at the coarser scale, and one whose
+    rank fell. Reporting the second as the first tells a reader the hotspot "stays
+    the highest-rate unit" when it did not, which is an overstatement in the
+    direction that flatters the finding. The branch is chosen by
+    ``maup.stability_outcome``, the same classifier ``figures._stability_note``
+    uses, so the brief and the standalone ranked table cannot drift apart again.
+    """
+    _ = translation.gettext
+    name = name_of(stability.top_hotspot_id or "")
+    overlap = f"{stability.topk_overlap:.2f}"
+    common = {
+        "coarse": stability.coarse_units,
+        "fine": stability.fine_units,
+        "name": name,
+        "k": stability.k,
+        "overlap": overlap,
+    }
+    outcome = stability_outcome(stability)
+    if outcome == SURVIVES:
+        out.append(
+            _(
+                "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
+                "units (from {fine}) leaves **{name}** the highest-rate, still-significant "
+                "cluster — the hotspot is not an artifact of where the block lines were "
+                "drawn. Top-{k} rank overlap: {overlap}."
+            ).format(**common)
+        )
+        return
+    if outcome == RANK_HELD_SIGNIFICANCE_LOST:
+        out.append(
+            _(
+                "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
+                "units (from {fine}), **{name}** stays the highest-rate unit but loses "
+                "statistical significance at the coarser scale — read it as scale-sensitive, "
+                "a lead to confirm rather than a settled cluster. Top-{k} rank overlap: "
+                "{overlap}."
+            ).format(**common)
+        )
+        return
+    rank = stability.top_hotspot_coarse_rank
+    if rank is None:
+        out.append(
+            _(
+                "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
+                "units (from {fine}), **{name}** leaves the rated coarse ranking entirely: "
+                "at that scale its unit has no usable denominator. Read the block-level "
+                "result as scale-dependent. Top-{k} rank overlap: {overlap}."
+            ).format(**common)
+        )
+        return
+    if stability.top_hotspot_still_significant:
+        out.append(
+            _(
+                "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
+                "units (from {fine}), **{name}** falls to rank {rank} but is still a "
+                "significant cluster there. Its rank depends on where the block lines were "
+                "drawn, so read the ordering, not the cluster, as the fragile part. "
+                "Top-{k} rank overlap: {overlap}."
+            ).format(rank=rank, **common)
+        )
+        return
+    out.append(
+        _(
+            "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
+            "units (from {fine}), **{name}** falls to rank {rank} and is not a significant "
+            "cluster there. The block-level ranking did not survive re-drawing the units; "
+            "treat it as a lead to confirm, not a settled hotspot. Top-{k} rank overlap: "
+            "{overlap}."
+        ).format(rank=rank, **common)
+    )
+
+
 def _render_robustness(
     out: list[str],
     bundle: AnalysisBundle,
@@ -439,39 +526,7 @@ def _render_robustness(
         )
 
     if stability is not None and stability.top_hotspot_id is not None:
-        name = name_of(stability.top_hotspot_id)
-        overlap = f"{stability.topk_overlap:.2f}"
-        if stability.top_hotspot_survives:
-            out.append(
-                _(
-                    "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
-                    "units (from {fine}) leaves **{name}** the highest-rate, still-significant "
-                    "cluster — the hotspot is not an artifact of where the block lines were "
-                    "drawn. Top-{k} rank overlap: {overlap}."
-                ).format(
-                    coarse=stability.coarse_units,
-                    fine=stability.fine_units,
-                    name=name,
-                    k=stability.k,
-                    overlap=overlap,
-                )
-            )
-        else:
-            out.append(
-                _(
-                    "- **Re-segmentation (MAUP).** Redrawing the network into {coarse} coarser "
-                    "units (from {fine}), **{name}** stays the highest-rate unit but loses "
-                    "statistical significance at the coarser scale — read it as scale-sensitive, "
-                    "a lead to confirm rather than a settled cluster. Top-{k} rank overlap: "
-                    "{overlap}."
-                ).format(
-                    coarse=stability.coarse_units,
-                    fine=stability.fine_units,
-                    name=name,
-                    k=stability.k,
-                    overlap=overlap,
-                )
-            )
+        _render_maup(out, stability, translation, name_of)
 
     _render_exposure_sensitivity(out, bundle, translation, name_of)
     out.append("")
@@ -589,8 +644,10 @@ def _render_bias_section(
         )
     )
     out.append("")
-    over = [f for f in bias.over_represented if f.segment_id in publishable]
-    under = [f for f in bias.under_represented if f.segment_id in publishable]
+    # The k-anonymity filter is an argument, not a post-filter: cutting to the top
+    # three first would let a withheld segment spend a slot (issue #200).
+    over = list(bias.over_represented(eligible=publishable))
+    under = list(bias.under_represented(eligible=publishable))
     if over:
         out.append(
             _("**Over-represented vs exposure** (more reports than traffic alone predicts):")

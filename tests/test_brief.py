@@ -86,3 +86,59 @@ def test_brief_links_calibration_artifact_when_present(
     text = render_brief(bundle, cfg, "en")
     assert "Null calibration" in text
     assert cal_path.name in text
+
+
+def _with_stability(
+    bundle: AnalysisBundle,
+    *,
+    survives: bool,
+    coarse_rank: int | None,
+    still_significant: bool,
+) -> AnalysisBundle:
+    """The bundle with its MAUP result replaced, to render one branch of the note."""
+    stability = bundle.result.rank_stability
+    assert stability is not None
+    replaced = dataclasses.replace(
+        stability,
+        top_hotspot_survives=survives,
+        top_hotspot_coarse_rank=coarse_rank,
+        top_hotspot_still_significant=still_significant,
+    )
+    return dataclasses.replace(
+        bundle,
+        result=dataclasses.replace(bundle.result, rank_stability=replaced),
+    )
+
+
+def test_maup_note_says_the_rank_fell_when_the_rank_fell(
+    bundle: AnalysisBundle, config: Config
+) -> None:
+    """`top_hotspot_survives` is false for two different reasons, and the brief
+    must not report the wrong one.
+
+    `rank_stability` sets it only when the top-rate unit is *both* still rank 1
+    and still a significant Gi\\* cluster, so "did not survive" covers a hotspot
+    that held rank 1 and lost significance and one whose rank fell. Telling a
+    reader the hotspot "stays the highest-rate unit" when it dropped to rank 4 is
+    an overstatement in the direction that flatters the finding.
+    `figures._stability_note` already distinguishes the two; the brief did not.
+    """
+    fell = _with_stability(bundle, survives=False, coarse_rank=4, still_significant=False)
+    text = render_brief(fell, config, "en")
+    assert "stays the highest-rate unit" not in text
+    assert "falls to rank 4" in text
+
+    # The other branch keeps its own wording: rank held, significance did not.
+    held = _with_stability(bundle, survives=False, coarse_rank=1, still_significant=False)
+    held_text = render_brief(held, config, "en")
+    assert "stays the highest-rate unit" in held_text
+    assert "falls to rank" not in held_text
+
+
+def test_maup_rank_fell_branch_is_localized(bundle: AnalysisBundle, config: Config) -> None:
+    """Every branch of the robustness note is translated, not just the happy ones."""
+    fell = _with_stability(bundle, survives=False, coarse_rank=4, still_significant=False)
+    spanish = render_brief(fell, config, "es")
+    assert "cae al puesto 4" in spanish
+    assert "sigue siendo la unidad de mayor tasa" not in spanish
+    assert "falls to rank" not in spanish  # no English leaks through the new branch

@@ -10,7 +10,7 @@ ranking.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Container, Mapping
 from dataclasses import dataclass
 
 
@@ -25,18 +25,51 @@ class BiasFinding:
         return self.report_share - self.exposure_share
 
 
+#: How many findings each direction of the audit names by default.
+TOP_N = 3
+
+
 @dataclass(frozen=True)
 class BiasReport:
     findings: tuple[BiasFinding, ...]
     note: str
 
-    @property
-    def over_represented(self) -> tuple[BiasFinding, ...]:
-        return tuple(f for f in self.findings if f.over_representation > 0)[:3]
+    def over_represented(
+        self, limit: int = TOP_N, eligible: Container[str] | None = None
+    ) -> tuple[BiasFinding, ...]:
+        """The most over-represented units, chosen *after* the eligibility filter.
 
-    @property
-    def under_represented(self) -> tuple[BiasFinding, ...]:
-        return tuple(reversed([f for f in self.findings if f.over_representation < 0]))[:3]
+        ``eligible`` is the set of unit ids a consumer is allowed to name (in
+        nearmiss, the segments that clear the k-anonymity floor). Filtering has to
+        happen before the cut, not after it: a unit that cannot be named but ranks
+        in the top ``limit`` would otherwise spend a slot and leave the audit
+        publishing fewer findings than it says it publishes, with nothing
+        backfilled from the next eligible unit. Units withheld for having very few
+        events are also the units most likely to show an extreme share ratio, so
+        the two conditions coincide rather than being independent.
+        """
+        return self._take(lambda f: f.over_representation > 0, limit, eligible)
+
+    def under_represented(
+        self, limit: int = TOP_N, eligible: Container[str] | None = None
+    ) -> tuple[BiasFinding, ...]:
+        """The most under-represented units, chosen after the same filter."""
+        return tuple(
+            reversed(self._take(lambda f: f.over_representation < 0, limit, eligible, tail=True))
+        )
+
+    def _take(
+        self,
+        keep: Callable[[BiasFinding], bool],
+        limit: int,
+        eligible: Container[str] | None,
+        tail: bool = False,
+    ) -> tuple[BiasFinding, ...]:
+        """``findings`` is sorted most- to least-over-represented; take one end."""
+        ranked = [
+            f for f in self.findings if keep(f) and (eligible is None or f.unit_id in eligible)
+        ]
+        return tuple(ranked[-limit:] if tail else ranked[:limit])
 
 
 _NOTE = (
