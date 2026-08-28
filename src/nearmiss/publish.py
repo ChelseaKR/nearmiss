@@ -35,6 +35,7 @@ from .stats.dp_temporal import to_metadata as dp_segment_time_to_metadata
 from .stats.exposure_sensitivity import to_metadata as exposure_sensitivity_to_metadata
 from .stats.gi_permutation import to_metadata as gi_permutation_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
+from .stats.multiplicity import to_metadata as multiplicity_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
 from .versions import DATASET_SCHEMA_VERSION, DATASET_VERSION
 
@@ -449,6 +450,15 @@ def publish(config: Config) -> PublishResult:
         "gi_permutation": (
             gi_permutation_to_metadata(bundle.result.gi_permutation)
             if bundle.result.gi_permutation is not None
+            else None
+        ),
+        # RR-08: how much of the published significance survives a false-discovery
+        # correction valid under arbitrary dependence? Read beside
+        # `getis_ord_significant`, which this never changes. `evaluated: false`
+        # when the dataset publishes no significant cluster, never a pass.
+        "dependence_robustness": (
+            multiplicity_to_metadata(bundle.result.dependence_robustness)
+            if bundle.result.dependence_robustness is not None
             else None
         ),
         # EXP-05 prototype: segment x part-of-day counts under epsilon-DP noise, instead of

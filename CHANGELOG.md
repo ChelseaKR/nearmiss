@@ -58,6 +58,33 @@ every entry.
 
 ### Added
 
+- **How much of the published significance rests on the independence assumption is now measured,
+  and on the Davis demo it is most of it (RR-08; sidecar gains `dependence_robustness`, schema
+  `1.3.0`, additive).** Benjamini-Hochberg, the published correction, controls the false discovery
+  rate when the tests are independent or positively regression dependent. The local Gi\* tests are
+  neither by construction: two neighbouring segments share the values inside their overlapping
+  neighbourhoods. `stats/multiplicity.py`, on the new
+  `honest_rates.hotspot.benjamini_yekutieli`, re-decides significance at `fdr_alpha / c(m)` with
+  `c(m)` the m-th harmonic number, which controls the FDR under **arbitrary** dependence
+  (Benjamini & Yekutieli 2001), and publishes how many published clusters survive.
+
+  **One of the five FDR-significant clusters on `davis` survives**, at a level of 0.0161 instead of
+  0.05 across 12 simultaneous tests. `riverside` publishes no significant cluster at all, so the
+  comparison reports `verdict: "not_evaluated"` with a stated reason rather than `robust`.
+
+  **This is not the spatially-aware FDR of Caldas de Castro & Singer (2006)** that RR-08 cites, and
+  the published artifact says so in its own `not_implemented` field rather than leaving a consumer
+  to assume. This project does not hold that paper's text, and a published number derived from a
+  specification nobody here can check would be worse than none. RR-08 therefore stays open as the
+  cited method, answered as the underlying concern.
+
+  **No published number moved.** `getis_ord_significant` is still the Benjamini-Hochberg decision,
+  and the Benjamini-Yekutieli rejection set is always a subset of it, so this pass can only ever
+  report that fewer claims survive, never more. The decision is
+  [ADR 0019](docs/adr/0019-dependence-robust-fdr-is-benjamini-yekutieli-and-says-what-it-is-not.md);
+  `schema/dataset.schema.md` §10.4 documents every published field, including the harmonic penalty,
+  so a reader can recompute the level from the artifact alone.
+
 - **Gi\* significance is now re-tested against an empirical reference distribution, and on the
   committed Davis demo it disagrees (RR-09; sidecar gains `gi_permutation`, schema `1.3.0`,
   additive).** `docs/METHODOLOGY.md` §8.2 named a conditional-permutation reference as future work

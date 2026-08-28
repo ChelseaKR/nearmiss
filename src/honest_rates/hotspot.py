@@ -65,6 +65,44 @@ def benjamini_hochberg(pvalues: dict[str, float], alpha: float) -> set[str]:
     return {ordered[i][0] for i in range(threshold_rank)}
 
 
+def harmonic(m: int) -> float:
+    """The m-th harmonic number, ``sum(1/i for i in 1..m)``.
+
+    This is the dependence penalty in :func:`benjamini_yekutieli`. It is exposed
+    because a reader checking a published multiplicity decision needs to be able
+    to recompute the threshold, and ``c(m)`` is the only part of it that is not
+    already in the artifact.
+    """
+    if m < 1:
+        return 0.0
+    return sum(1.0 / i for i in range(1, m + 1))
+
+
+def benjamini_yekutieli(pvalues: dict[str, float], alpha: float) -> set[str]:
+    """Benjamini-Yekutieli FDR control: the ids rejected under *arbitrary* dependence.
+
+    :func:`benjamini_hochberg` controls the false discovery rate when the tests
+    are independent or positively regression dependent (PRDS). Local spatial
+    statistics are neither by construction: two neighbouring units share the
+    values inside their overlapping neighborhoods, and the sign of that
+    dependence is not guaranteed.
+
+    Benjamini & Yekutieli (2001) show the same step-up procedure controls the FDR
+    under **any** dependence structure if the level is divided by the harmonic
+    number ``c(m) = sum(1/i for i in 1..m)``. This runs exactly that: BH at
+    ``alpha / c(m)``. It is strictly more conservative than BH and its rejection
+    set is always a subset of BH's, which is the property that makes it usable as
+    a robustness comparison rather than a competing answer.
+
+    Reference: Benjamini & Yekutieli, *The control of the false discovery rate in
+    multiple testing under dependency*, Annals of Statistics 29(4), 2001.
+    """
+    m = len(pvalues)
+    if m == 0:
+        return set()
+    return benjamini_hochberg(pvalues, alpha / harmonic(m))
+
+
 def band_neighbors(
     centroids: dict[str, tuple[float, float]],
     band_m: float,

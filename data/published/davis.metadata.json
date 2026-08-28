@@ -42,6 +42,21 @@
   "corridors_published": 1,
   "data_card": "docs/DATA-CARD.md",
   "dataset_note": "Synthetic demonstration data — not real reports. The hotspots are planted in the fixture, so the method finds what was put there.",
+  "dependence_robustness": {
+    "alpha": 0.05,
+    "basis": "Benjamini-Yekutieli false-discovery-rate control under arbitrary dependence, published beside the Benjamini-Hochberg decision and never replacing it",
+    "dependence_robust_alpha": 0.016112,
+    "dependence_robust_segments": [
+      "seg-06"
+    ],
+    "dependence_robust_significant": 1,
+    "evaluated": true,
+    "harmonic_penalty": 3.1032,
+    "not_implemented": "this is not the spatially-aware FDR of Caldas de Castro & Singer (2006), whose text this project does not hold; it is the arbitrary-dependence correction of Benjamini & Yekutieli (2001), whose definition is reproducible from its citation",
+    "published_significant": 5,
+    "tests": 12,
+    "verdict": "not_robust"
+  },
   "exposure_sensitivity": {
     "alternative_coverage": 0.0,
     "basis": "re-ranking under the alternative denominators each segment's sources declare",

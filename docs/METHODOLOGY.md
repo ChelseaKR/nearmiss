@@ -389,6 +389,34 @@ published `getis_ord_significant` flag is the FDR-corrected decision, not a raw 
 An unadjusted "this segment is significant at p < 0.05" out of a thousand segments is not a finding,
 and we do not present it as one.
 
+<!-- claim:dependence-robust-fdr-published-beside-bh -->
+**And the assumption Benjamini-Hochberg needs is checked, not assumed (RR-08).** BH controls the
+false discovery rate when the tests are independent or positively regression dependent. The local
+Gi\* tests are neither by construction: two neighbouring segments share the values inside their
+overlapping neighborhoods, so their statistics are dependent and the sign of that dependence is not
+guaranteed. `stats/multiplicity.py` therefore re-decides significance under **Benjamini-Yekutieli**
+(`honest_rates.hotspot.benjamini_yekutieli`), the same step-up procedure at `fdr_alpha / c(m)` where
+`c(m)` is the m-th harmonic number, which controls the FDR under *arbitrary* dependence, and
+publishes how much of the published significance survives. The result ships in every metadata
+sidecar under `dependence_robustness` and in the brief and the standalone ranked table, whatever it
+says: on the committed `davis` demo **one of the five** FDR-significant clusters survives, at a level
+of 0.0161 instead of 0.05 across 12 simultaneous tests.
+
+**This is not Caldas de Castro & Singer (2006).** RR-08 cites their spatially-aware FDR, and that
+method is **not** implemented here; this project does not hold its text, and implementing a
+specification it cannot check would be worse than implementing none. Benjamini-Yekutieli addresses
+the same concern with a definition reproducible from its own citation, and the published artifact
+says which of the two it is in a `not_implemented` field rather than leaving a reader to assume.
+
+**It is published beside the decision, never instead of it.** `getis_ord_significant` remains the
+Benjamini-Hochberg decision; no published rate, interval, rank or flag changes. The
+Benjamini-Yekutieli rejection set is always a subset of the Benjamini-Hochberg one, so this can only
+ever report that fewer claims survive, never more. When the dataset publishes no significant cluster
+at all there is nothing whose assumption could be dropped, and the artifact reports
+`verdict: "not_evaluated"` with a stated reason rather than `robust`, as the committed `riverside`
+demo does.
+<!-- /claim:dependence-robust-fdr-published-beside-bh -->
+
 ### 5.6 Threshold sensitivity and statistical power
 
 Two questions a reader is entitled to ask about any published ranking — *does it survive the

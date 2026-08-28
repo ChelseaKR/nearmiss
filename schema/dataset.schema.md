@@ -154,7 +154,8 @@ Anything that affects how a rate should be read is mirrored, in full, in the dat
 > breakdown; see `docs/LIMITATIONS.md`), `maup_rank_stability` (the RR-05 re-segmentation check;
 > see [§ 10](#10-robustness-artifacts-in-the-sidecar)), `exposure_sensitivity` (the RR-03
 > alternative-denominator check; same section), `gi_permutation` (the RR-09 permutation-reference
-> check; same section), `bias` (the reporting-bias audit over publishable
+> check; same section), `dependence_robustness` (the RR-08 arbitrary-dependence FDR comparison; same
+> section), `bias` (the reporting-bias audit over publishable
 > segment ids), `corridors_published`, `corridor_dataset` and `corridor_maup_note` (the EXP-03
 > companion artifact; see [§ 9](#9-corridor-level-aggregation-exp-03)), `segment_time_bands_dp` (the
 > EXP-05 epsilon-DP segment x
@@ -589,9 +590,9 @@ note. The block-level file remains the primary published unit; this file is alwa
 
 ---
 
-## 10. Robustness artifacts in the sidecar (RR-05, RR-03, RR-09)
+## 10. Robustness artifacts in the sidecar (RR-05, RR-03, RR-09, RR-08)
 
-Three of the sidecar's blocks are not descriptions of the dataset but **results of attacking it**.
+Four of the sidecar's blocks are not descriptions of the dataset but **results of attacking it**.
 Each answers a question a skeptical reader is entitled to ask about any ranking, and each is
 published whatever the answer is: a robustness check whose result is only published when it passes
 is not a robustness check.
@@ -705,6 +706,39 @@ BH critical values lie below that floor, so a permutation-based FDR would reject
 feasible permutation count and the result would describe the permutation count rather than the city.
 A consumer must read `evaluated: false` as an **unanswered question**, exactly as in §10.2, and must
 not read an untested segment as a tested one that passed.
+
+### 10.4 `dependence_robustness`: how much significance survives dropping independence?
+
+`getis_ord_significant` is decided with a Benjamini-Hochberg correction (§4.4), which controls the
+false discovery rate when the tests are independent or positively regression dependent. Local Gi\*
+tests on overlapping neighbourhoods are neither. `stats/multiplicity.py` re-decides significance
+under **Benjamini-Yekutieli**, the same step-up procedure at `alpha / c(m)` with `c(m)` the m-th
+harmonic number, which controls the FDR under arbitrary dependence, and reports how many published
+clusters survive.
+
+**This block never changes `getis_ord_significant`,** and it can only ever report that fewer claims
+survive: the Benjamini-Yekutieli rejection set is a subset of the Benjamini-Hochberg one.
+
+| Field | Type | Description |
+|---|---|---|
+| `basis` | string | One-line statement of the correction used. |
+| `not_implemented` | string | States that this is **not** the Caldas de Castro & Singer (2006) spatially-aware FDR, and which method it is. |
+| `evaluated` | boolean | `false` when the dataset publishes no significant cluster to re-test. |
+| `verdict` | string | `not_evaluated`, `robust`, or `not_robust`. |
+| `reason` | string | Present **only** when `evaluated` is `false`: why the comparison could not run. |
+| `tests` | integer | Simultaneous tests the correction is applied across. |
+| `harmonic_penalty` | number | `c(m)`, so a reader can recompute the level. |
+| `alpha` | number | The published Benjamini-Hochberg level (`fdr_alpha`). |
+| `dependence_robust_alpha` | number | `alpha / c(m)`, the Benjamini-Yekutieli level. |
+| `published_significant` | integer | Clusters the dataset flags as significant. |
+| `dependence_robust_significant` | integer | Of those, how many survive the arbitrary-dependence correction. |
+| `dependence_robust_segments` | array of string | The surviving segment ids, sorted. |
+
+A consumer must read `evaluated: false` as an **unanswered question**, exactly as in §10.2 and
+§10.3. A large gap between `published_significant` and `dependence_robust_significant` does not mean
+the published flags are wrong; it means they rest on a dependence assumption that the spatial
+structure does not guarantee, and it is published so that a reader can weigh that rather than
+assume it away.
 
 ---
 

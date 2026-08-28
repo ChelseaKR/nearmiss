@@ -110,7 +110,7 @@ cannot resolve `alpha` at all.
 
 ## Phase 3: multiplicity control that survives spatial dependence
 
-**Status: planned, 2027 Q1.**
+**Status: built, 2026-08-27.** Planned window 2027 Q1.
 
 RR-08. Benjamini-Hochberg controls the false discovery rate under independence or
 positive regression dependence; the local Gi\* tests are neither independent nor
@@ -122,10 +122,18 @@ FDR. **That method is not implemented here, and this phase will not claim it is.
 What is planned is Benjamini-Yekutieli (2001), whose control of the FDR under
 *arbitrary* dependence is exactly the property the concern is about and whose
 definition is fully specified: reject at the BH threshold scaled by
-`1 / sum(1/i for i in 1..m)`. It is to be published as a second, strictly
-more conservative decision beside the BH one, with the difference between them
-reported, so a reader can see how much of the significance rests on the dependence
-assumption. BH remains the published decision, and the artifact says so.
+`1 / sum(1/i for i in 1..m)`. It is published as a second, strictly more
+conservative decision beside the BH one, with the difference between them
+reported, so a reader can see how much of the significance rests on the
+dependence assumption. BH remains the published decision, and the artifact says
+so, including in a `not_implemented` field naming the method it is not.
+
+The difference is large. On the committed `davis` demo **one of the five**
+BH-significant clusters survives, at a level of 0.0161 instead of 0.05 across 12
+simultaneous tests; on `riverside` there is no significant cluster at all, so the
+comparison publishes `not_evaluated` rather than `robust`. The
+Benjamini-Yekutieli rejection set is always a subset of the Benjamini-Hochberg
+one, so this pass can only ever report that fewer claims survive, never more.
 
 ## Phase 4: small-area rate stability under shrinkage
 
