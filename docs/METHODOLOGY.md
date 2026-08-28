@@ -256,6 +256,7 @@ realization of a count process with mean `theta_s * E_s`. The working assumption
 (`y_s ~ Poisson(theta_s * E_s)`), which is the right default for counts of rare events over an
 exposure base and which gives us principled small-count intervals (Section 5).
 
+<!-- claim:overdispersion-widens-every-published-interval -->
 **Overdispersion is expected — and the check is implemented (config-gated).** Real report
 counts are usually *more* variable than Poisson because reporting clusters — one viral post, one
 active local group, one bad week drives a burst of correlated reports. The behavior is: the pooled
@@ -265,6 +266,13 @@ published metadata sidecar under `methods.dispersion.phi` and in the advocacy br
 section. When `phi` is materially above 1 (overdispersion, variance > mean), the per-segment Poisson
 intervals understate uncertainty by roughly `sqrt(phi)`; enabling the `overdispersion_adjust` config
 key widens every published interval by `sqrt(phi)` (a quasi-Poisson treatment, `stats/rates.py::quasi_poisson_ci`).
+**Every published interval means every one**, including each per-hazard-type interval in
+`rates_by_type` (Section 1): a type layer is a published interval sitting on the same feature as the
+pooled interval it decomposes, and leaving it at pure Poisson while the pooled interval beside it is
+widened would put false confidence on exactly the number a reader quotes for one hazard. Through
+0.4.0 the type layers were not widened, which is corrected here and locked by
+`tests/test_overdispersion.py::test_per_hazard_type_intervals_are_widened_too`.
+<!-- /claim:overdispersion-widens-every-published-interval -->
 Widening is **off by default** so that turning it on is a deliberate, versioned methodology change
 rather than a silent rewrite of every published interval; when it is off, `phi` is still published so
 a reader can see the clustering and read the intervals as a lower bound on the true uncertainty. The
@@ -445,6 +453,12 @@ characterizes it explicitly and the briefs state it in plain language.
   coverage, stated honestly; it is *not* silently used to "correct" rates.
 - **Coverage maps.** A reports-vs-exposure comparison highlights well-covered and under-covered
   areas, so a reader sees where the dataset is thin before trusting a local rate.
+- **Which segments get named.** The published audit names the three most over- and the three most
+  under-represented segments *from the publishable set*: the k-anonymity filter (hard rule #4) is
+  applied **before** the top-three cut, not after it, so a withheld segment cannot spend a slot and
+  leave the audit shorter than it says it is (`stats/bias.py`, `BiasReport.over_represented`). This
+  matters more than it looks: a handful of reports is what both withholds a segment and produces an
+  extreme share ratio, so the two conditions coincide.
 - **Plain-language bias statement.** Every brief and the data card carry a sentence in plain
   language naming who is likely over- and under-represented and *what that does to the conclusion*
   — e.g. "this dataset under-represents trips by children and by riders without the reporting app;
@@ -584,6 +598,7 @@ it strictly as labeled report-intensity context. Significance is conveyed in **t
 color alone** (the accessibility requirement), and the same ranked, flagged set is available in the
 non-visual list/table equivalent.
 
+<!-- claim:maup-varies-only-the-units -->
 **Re-segmentation sensitivity (MAUP) — implemented.** Street segments are an arbitrary areal unit, so
 a hotspot drawn at one granularity can dissolve at another (the modifiable areal unit problem; see
 [LIMITATIONS §5](LIMITATIONS.md)). Rather than only caveating this, we answer it with a reproducible
@@ -595,6 +610,23 @@ significant cluster) together with a top-k rank-overlap scalar. This ships in ev
 sidecar under `maup_rank_stability` and is surfaced in the advocacy brief's robustness section, so a
 reader can see whether a headline hotspot is a real cluster or an artifact of where the block lines
 were drawn.
+
+**The check varies the units and nothing else.** A coarse unit's rate is built from the same
+numerator and the same denominator rule the published rate uses: the **primary**,
+low-confidence-excluded count (Section 2), summed over the member segments whose exposure clears the
+configured `exposure_floor` (Section 3.3), over the sum of those same exposures. `rank_stability`
+takes those primary counts as a required argument rather than reading `report_count`, because a check
+that ranks fine units on one numerator and coarse units on another reports a numerator change as a
+MAUP finding. Through 0.4.0 the coarse rates were built from the all-records `report_count` and read
+the exposure floor as 0; both are corrected here and locked by `tests/test_maup.py`.
+
+**"Did not survive" is two findings, and the artifacts say which one.** `top_hotspot_survives` is
+true only when the top-rate unit is *both* still rank 1 and still a significant Gi\* cluster, so a
+bare false covers a hotspot that held rank 1 and lost significance and one whose rank fell.
+`stats/maup.py::stability_outcome` classifies the four cases once, and every renderer switches on it,
+so the brief and the standalone ranked table cannot describe the same result differently. Through
+0.4.0 the brief reported a fallen rank as "stays the highest-rate unit"; that is corrected here.
+<!-- /claim:maup-varies-only-the-units -->
 
 ---
 

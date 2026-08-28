@@ -25,6 +25,7 @@ safety* (J. Traffic & Transportation Engineering, 2016).
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from ..config import Config
@@ -52,6 +53,36 @@ class RankStability:
     top_hotspot_coarse_rank: int | None
     top_hotspot_still_significant: bool
     topk_overlap: float
+
+
+#: The four distinguishable outcomes of the re-segmentation check.
+#: ``top_hotspot_survives`` is a single boolean over two different failures, and a
+#: reader is owed the one that actually happened.
+NO_RATED_UNIT = "no_rated_unit"
+SURVIVES = "survives"
+RANK_HELD_SIGNIFICANCE_LOST = "rank_held_significance_lost"
+RANK_FELL = "rank_fell"
+
+
+def stability_outcome(stability: RankStability) -> str:
+    """Which of the four re-segmentation outcomes a :class:`RankStability` is.
+
+    ``top_hotspot_survives`` is set only when the top-rate unit is *both* still
+    rank 1 and still a significant Gi* cluster on the coarser partition, so a bare
+    "did not survive" covers two findings that read very differently: a hotspot
+    that held rank 1 and lost significance, and one whose rank fell. Every
+    renderer switches on this function rather than on the boolean, so two
+    artifacts describing the same result cannot describe it differently. That is
+    exactly what happened while the brief read the boolean directly and reported
+    a fallen rank as "stays the highest-rate unit".
+    """
+    if stability.top_hotspot_id is None:
+        return NO_RATED_UNIT
+    if stability.top_hotspot_survives:
+        return SURVIVES
+    if stability.top_hotspot_coarse_rank == 1:
+        return RANK_HELD_SIGNIFICANCE_LOST
+    return RANK_FELL
 
 
 def _pair_segments(segments: list[Segment]) -> dict[str, int]:
@@ -91,6 +122,8 @@ def rank_stability(
     exposure_map: dict[str, Exposure],
     config: Config,
     k: int = 5,
+    *,
+    primary_counts: Mapping[str, int],
 ) -> RankStability:
     """Re-segment the network and report whether the top hotspots survive.
 
@@ -98,6 +131,15 @@ def rank_stability(
     coarse unit that contains the finest-grained top-rate hotspot is itself the
     top-ranked coarse unit by rate *and* remains a significant Gi* cluster after
     the same Benjamini-Hochberg FDR control used in the primary analysis.
+
+    ``primary_counts`` is the per-segment numerator the *published* rate is built
+    from: the primary, low-confidence-excluded count (METHODOLOGY §2). It is
+    required rather than defaulted, because the only available default
+    (``SegmentStats.report_count``, the all-records total) is a different
+    quantity, and a check that ranks fine units on one numerator and coarse units
+    on another is not measuring re-segmentation. A missing id counts as zero, the
+    same reading :func:`nearmiss.stats.aggregate.aggregate` gives a segment no
+    report snapped to.
     """
     coarse_of = _pair_segments(segments)
 
@@ -114,17 +156,20 @@ def rank_stability(
     attached = attach_exposure([s.id for s in segments], exposure_map)
     counts: dict[int, int] = {}
     exposures: dict[int, float] = {}
-    count_by_id = {s.segment_id: s.report_count for s in stats}
     for sid, unit in coarse_of.items():
         exp = attached.get(sid)
-        if is_usable(exp):
+        # The same floor the primary analysis applies (METHODOLOGY §3.3): an
+        # estimate at or below `exposure_floor` is "exposure unknown" there, so it
+        # is not a denominator here either. Reading the floor as 0 would let a
+        # segment published as unrated push a coarse unit up the coarse ranking.
+        if is_usable(exp, config.exposure_floor):
             assert exp is not None
             # "Every rate has a denominator": a segment's count may enter a coarse
             # unit's numerator only when its exposure enters the denominator —
             # mirroring the primary analysis, which never rates a count that has no
             # usable exposure. Mixing an exposure-less count into a rated unit
             # would silently inflate the coarse rate.
-            counts[unit] = counts.get(unit, 0) + count_by_id.get(sid, 0)
+            counts[unit] = counts.get(unit, 0) + primary_counts.get(sid, 0)
             exposures[unit] = exposures.get(unit, 0.0) + exp.estimate
 
     coarse_rate: dict[str, float] = {

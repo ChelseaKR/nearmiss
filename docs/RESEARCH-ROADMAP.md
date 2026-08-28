@@ -286,3 +286,17 @@ any code behind it. Nothing is invented: where no segment declares a second read
 an unanswered question rather than a pass. **The other half of RR-03 is still open** — the published
 confidence interval still covers the count and not the denominator, so RR-03 stays on this backlog
 rather than being marked shipped, and `LIMITATIONS.md` §4 still says so in the reader's own words.
+
+## Implementation status, 2026-08-27 (phase 1 of the statistical integrity program)
+**Four published statistics did not match their published descriptions, and now do.** An audit of
+every published number against the sentence describing it found the same defect class
+[ADR 0016](adr/0016-exposure-sensitivity-uses-declared-denominators-and-may-refuse-to-run.md) was
+accepted over, four more times: `rates_by_type` never inherited the **RR-02** overdispersion
+widening (#201); the **RR-05** MAUP check rated its coarse units on the all-records count while the
+published rate uses the primary count, and read the exposure floor as 0; the brief reported a fallen
+hotspot rank as a held one; and the reporting-bias audit chose its top three before the k-anonymity
+filter (#200). RR-02 and RR-05 stay on this backlog as shipped-and-now-correct rather than being
+re-opened. The gate is `tests/test_statistic_parity.py` plus two new claim tags, and the decision is
+[ADR 0017](adr/0017-a-published-statistic-is-checked-against-its-published-description.md).
+The multiyear sequence, including which items are blocked and on what, is
+[`STATISTICAL-INTEGRITY-PROGRAM.md`](STATISTICAL-INTEGRITY-PROGRAM.md).

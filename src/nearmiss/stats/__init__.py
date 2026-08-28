@@ -118,6 +118,7 @@ def _rates_by_type(
     hazard_breakdown: dict[str, int],
     exposure_estimate: float | None,
     config: Config,
+    ci_dispersion: float,
 ) -> dict[str, dict[str, float]]:
     """Per-hazard-type rate layers: for a usable, aggregated segment, each
     hazard type whose own count clears the small-sample threshold gets its
@@ -125,6 +126,13 @@ def _rates_by_type(
     Types below the threshold are suppressed entirely (no entry). The
     top-level ``rate`` remains the pooled rate across all types (an
     explicit union). Aggregate-only: only counts and rates are stored.
+
+    ``ci_dispersion`` is the same quasi-Poisson dispersion the pooled interval
+    on this segment is computed with. These are published intervals, and
+    METHODOLOGY §4 says the RR-02 adjustment "widens every published interval";
+    leaving a per-type interval at pure Poisson beside a widened pooled interval
+    on the same feature would put a false-confidence number on exactly the
+    quantity a reader quotes for one hazard (issue #201).
     """
     rates_by_type: dict[str, dict[str, float]] = {}
     if not (usable and count >= config.small_n):
@@ -134,7 +142,7 @@ def _rates_by_type(
         if type_count < config.small_n:
             continue
         t_rate, t_lo, t_hi = rate_with_ci(
-            type_count, exposure_estimate, config.rate_per, config.confidence_z
+            type_count, exposure_estimate, config.rate_per, config.confidence_z, ci_dispersion
         )
         r4, lo4, hi4 = (
             round_stable(t_rate, 4),
@@ -232,6 +240,7 @@ def analyze(
             a.hazard_breakdown if a else {},
             exp.estimate if exp else None,
             config,
+            ci_dispersion,
         )
         raw_flags = set(a.quality_flags) if a else set()
         stale = (
@@ -320,7 +329,16 @@ def analyze(
     )
 
     # RR-05: re-segment the network and report whether the top hotspots survive.
-    stability = rank_stability(stats, segments, exposure_map, config)
+    # The coarse units are rated on the SAME numerator the published rate uses:
+    # the primary, low-confidence-excluded count, so the only thing the check
+    # varies is where the unit boundaries fall.
+    stability = rank_stability(
+        stats,
+        segments,
+        exposure_map,
+        config,
+        primary_counts={sid: a.count_primary for sid, a in agg.items()},
+    )
 
     # RR-03: re-run the same ranking under the alternative denominators the
     # exposure records themselves declare. The published interval covers the

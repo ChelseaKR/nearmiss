@@ -56,6 +56,56 @@ every entry.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Four published statistics did not match what the documents said they computed
+  (published dataset schema `1.3.0`, correcting values published under `1.2.0` and earlier).**
+  Each one is a sentence in `docs/METHODOLOGY.md` or `schema/dataset.schema.md` that a reader
+  would act on, and a number that did not support it. None was catchable by lint, types,
+  coverage, conformance or reproducibility, because all of those check the code against itself.
+
+  1. **`rates_by_type` never inherited the RR-02 overdispersion widening** (issue #201).
+     METHODOLOGY §4 says enabling `overdispersion_adjust` "widens every published interval by
+     `sqrt(phi)`" and the schema says each type layer is computed "by the same method as the
+     top-level `rate`". `_rates_by_type` called `rate_with_ci` without the dispersion argument,
+     so with the adjustment on a per-hazard-type interval stayed pure Poisson beside a widened
+     pooled interval on the same feature. On the Davis fixture the correct type interval is
+     about 3.3x wider than the one that was published. The one real-city run this project has
+     published, Potsdam, was made with `overdispersion_adjust = true`.
+  2. **The MAUP check rated its coarse units on a numerator the published rate does not use.**
+     The published rate is the primary, low-confidence-excluded count; `rank_stability` summed
+     `report_count`, the all-records total, and read the exposure floor as 0 rather than the
+     configured `exposure_floor`. A check whose fine ranking uses one numerator and whose coarse
+     ranking uses another can report a numerator change as a MAUP finding. `primary_counts` is
+     now a required argument, so the question cannot be answered by accident.
+  3. **The advocacy brief reported a fallen hotspot rank as a held one.**
+     `top_hotspot_survives` is false for two different reasons, and the brief said "stays the
+     highest-rate unit but loses statistical significance" for both, which is an overstatement
+     in the direction that flatters the finding. `figures._stability_note` already got this
+     right. Both now switch on `stats/maup.py::stability_outcome`, one classifier for four
+     outcomes, so two renderings of one result cannot describe it differently. Three new brief
+     strings are translated in EN and ES.
+  4. **The reporting-bias audit chose its top three before the k-anonymity filter** (issue #200).
+     The schema calls the block "the reporting-bias audit over publishable segment ids"; the
+     code cut to three and then dropped the withheld ones, backfilling nothing, so the published
+     audit could name two segments while claiming three. `BiasReport.over_represented` /
+     `under_represented` are now methods taking `limit` and `eligible`, applying the filter
+     before the cut. **This is a breaking change to `honest_rates.bias`**: two properties became
+     methods.
+
+  **`make reproduce` stays byte-for-byte.** Neither committed demo publishes with
+  `overdispersion_adjust` on, a non-zero exposure floor, or a withheld segment in its bias top
+  three, so no published value moved. That is a fact about the fixtures, not a mitigation: every
+  defect was reachable in the configuration a real city uses, which is how the Potsdam run
+  reached one of them.
+
+  The decision is recorded in
+  [ADR 0017](docs/adr/0017-a-published-statistic-is-checked-against-its-published-description.md),
+  and `docs/STATISTICAL-INTEGRITY-PROGRAM.md` sequences the multiyear arc this is phase 1 of.
+  `tests/test_statistic_parity.py` is the new gate: it rebuilds the MAUP coarse ranking out of
+  the published GeoJSON's own rates, rebuilds the bias block from the analysis and compares it
+  to the committed sidecar, and walks all four re-segmentation outcomes across both renderers.
+
 ### Added
 
 - **The exposure-sensitivity pass exists now, and it is allowed to say it did not run

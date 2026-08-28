@@ -16,7 +16,13 @@ from .config import Config
 from .engine import AnalysisBundle, build_analysis
 from .models import SegmentStats
 from .stats.exposure_sensitivity import ExposureSensitivity
-from .stats.maup import RankStability
+from .stats.maup import (
+    NO_RATED_UNIT,
+    RANK_HELD_SIGNIFICANCE_LOST,
+    SURVIVES,
+    RankStability,
+    stability_outcome,
+)
 
 _W = 680
 _ROW_H = 26
@@ -45,9 +51,12 @@ def _published_ranked(
 def _stability_note(stability: RankStability) -> str:
     """One sentence saying what the MAUP re-segmentation check actually returned.
 
-    ``maup.rank_stability`` sets ``top_hotspot_survives`` only when the top-rate unit is
-    *both* still rank 1 and still a significant Gi* cluster on the coarser partition, so a
-    bare "did not survive" hides which half failed. On the one real-city run this project
+    The four cases come from ``maup.stability_outcome``, shared with the brief so the two
+    artifacts cannot describe the same result differently. ``top_hotspot_survives`` is set
+    only when the top-rate unit is *both* still rank 1 and still a significant Gi* cluster
+    on the coarser partition, so a bare "did not survive" hides which half failed.
+
+    On the one real-city run this project
     has done (``docs/findings/2026-08-15-potsdam-real-run.md``) rank held and significance
     did not, and reporting that as "the hotspot dissolved" would have been an overstatement
     in the direction that flatters the check. The wording below distinguishes the two cases
@@ -55,14 +64,15 @@ def _stability_note(stability: RankStability) -> str:
     """
     scale = f"{stability.fine_units} block units re-segmented into {stability.coarse_units}"
     overlap = f"top-{stability.k} rank overlap {stability.topk_overlap:.2f}"
-    if stability.top_hotspot_id is None:
+    outcome = stability_outcome(stability)
+    if outcome == NO_RATED_UNIT:
         return f"**Re-segmentation (MAUP) check:** {scale}; no rated segment to test ({overlap})."
-    if stability.top_hotspot_survives:
+    if outcome == SURVIVES:
         return (
             f"**Re-segmentation (MAUP) check:** {scale}. The top-rate segment stays rank 1 "
             f"*and* stays a significant Gi\\* cluster at the coarser scale ({overlap})."
         )
-    if stability.top_hotspot_coarse_rank == 1:
+    if outcome == RANK_HELD_SIGNIFICANCE_LOST:
         return (
             f"**Re-segmentation (MAUP) check:** {scale}. The top-rate segment stays rank 1 at "
             f"the coarser scale but is **no longer a significant Gi\\* cluster** — scale-"

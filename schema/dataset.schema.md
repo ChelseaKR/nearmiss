@@ -277,6 +277,13 @@ flag (**HR3**).
 | `hazard_breakdown` | object | no | Counts of reports at this feature by hazard type, keyed by the closed vocabulary from the intake schema: `close_pass`, `dooring`, `surface_hazard`, `sightline`, `signal`, `debris`, `other`. Values are integers ≥ 0 and sum to `report_count`. Keys with a zero count may be present or omitted; a consumer should treat an absent key as `0`. This describes the *mix of conflict* at a place (a corridor of close passes reads differently from one of surface defects), supporting targeted advocacy without exposing any individual report. |
 | `rates_by_type` | object | no | Per-hazard-type **rate layers**: keyed by the same closed hazard vocabulary as `hazard_breakdown`, each value is an object `{ "count", "rate", "rate_ci_low", "rate_ci_high" }` giving that hazard type's own exposure-normalized rate and 95% confidence interval, computed against the **same** `exposure_estimate` denominator by the same method as the top-level [`rate`](#43-rate-and-uncertainty-hr2). The top-level `rate` is the **pooled union** across all types; these are its per-type decomposition, so a consumer can ask "what is the *close-pass* rate here?" without re-deriving it. `count` is the (integer-valued) number of reports of that type and matches the corresponding `hazard_breakdown` entry. Only hazard types whose own `count` is **at or above** the small-sample threshold (`small_n`) appear; a type below the threshold is **suppressed entirely** (no key), for the same small-n uncertainty and re-identification reasons breakdowns are suppressed. Absent for a feature whose total count is below `small_n` (published as `{}`) or whose `exposure_estimate` is `null`. |
 
+When `overdispersion_adjust` is enabled for a run, the `rates_by_type` intervals carry the same
+`sqrt(phi)` quasi-Poisson widening as the top-level `rate` interval, because they are computed by the
+same method against the same denominator (`docs/METHODOLOGY.md` §4). Through schema `1.2.0` they were
+not, so a consumer reading a `1.2.0`-or-earlier artifact produced with the adjustment on should treat
+its per-type intervals as pure-Poisson and therefore too narrow; the pooled interval on the same
+feature was correct. Corrected in `1.3.0`.
+
 Only **aggregated counts** appear here and in `rates_by_type`. Per-report fields — the free-text note,
 exact time, severity, mode at the individual level, heading, reporter token — are **not** present in the
 published dataset. Where a feature's count is below the small-sample threshold (`small_n`), the
@@ -604,6 +611,20 @@ ranking and the Gi\* significance on the coarser units, and reports whether the 
 | `top_hotspot_still_significant` | boolean | Whether that coarse unit is still an FDR-significant Gi\* cluster. |
 | `top_hotspot_survives` | boolean | Coarse rank 1 **and** still significant. |
 | `topk_overlap` | number | Jaccard overlap of the fine top-k against the coarse top-k. |
+
+A coarse unit's rate is the sum of its member segments' **primary** counts (low-confidence records
+excluded, exactly as the published `rate` is built) over the sum of those members' exposures, counting
+only members whose exposure clears the configured `exposure_floor`. The check varies the unit
+boundaries and nothing else; a coarse rate built from a different numerator would report a numerator
+change as a MAUP result. Through schema `1.2.0` the coarse numerator was the all-records
+`report_count` and the floor was read as 0; corrected in `1.3.0`, so a `maup_rank_stability` block
+from a `1.2.0`-or-earlier artifact is not directly comparable to a `1.3.0` one where the dataset has
+low-confidence records or a non-zero exposure floor.
+
+`top_hotspot_survives` is false for two distinguishable reasons, and the pair
+(`top_hotspot_coarse_rank`, `top_hotspot_still_significant`) says which: rank 1 with significance lost
+is a scale-sensitive cluster, and a rank above 1 is a ranking that did not hold. A consumer should
+read the pair, not the boolean alone.
 
 ### 10.2 `exposure_sensitivity` — does the ranking survive a different denominator?
 

@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import dataclasses
 
+import pytest
+
 from nearmiss.config import Config
 from nearmiss.engine import AnalysisBundle, build_analysis
 from nearmiss.stats.aggregate import aggregate
@@ -59,3 +61,43 @@ def test_adjustment_widens_every_interval_when_enabled(config: Config) -> None:
             assert s.rate_ci_low is not None and s.rate_ci_low >= 0.0
             widened += 1
     assert widened > 0
+
+
+def test_per_hazard_type_intervals_are_widened_too(config: Config) -> None:
+    """The per-type layers are published intervals, so the widening reaches them.
+
+    METHODOLOGY §4 states the adjustment "widens **every published interval** by
+    `sqrt(phi)`", and `schema/dataset.schema.md` §4.5 says each `rates_by_type`
+    entry is computed "by the same method as the top-level `rate`". A per-type
+    interval left at pure Poisson while the pooled interval beside it on the same
+    feature is widened is a false-confidence claim on exactly the number a reader
+    quotes for one hazard, such as the dooring rate on one block (issue #201).
+
+    The check is the ratio of half-widths rather than a recomputed interval,
+    because that is the property the documentation states: the same `sqrt(phi)`
+    factor reaches the type layer that reaches the pooled rate it decomposes.
+    """
+    off = build_analysis(config)
+    on = build_analysis(dataclasses.replace(config, overdispersion_adjust=True))
+    assert on.result.dispersion > 1.0  # the fixture must be overdispersed
+    off_by_id = {s.segment_id: s for s in off.result.segments}
+
+    checked = 0
+    for s in on.result.segments:
+        base = off_by_id[s.segment_id]
+        if not s.rates_by_type or s.rate is None or s.rate_ci_high is None:
+            continue
+        assert base.rate_ci_high is not None and base.rate is not None
+        pooled_factor = (s.rate_ci_high - s.rate) / (base.rate_ci_high - base.rate)
+        assert pooled_factor > 1.0  # the pooled interval is widened, as documented
+        for hazard_type, layer in s.rates_by_type.items():
+            was = base.rates_by_type[hazard_type]
+            assert layer["rate"] == was["rate"]  # the point estimate never moves
+            type_factor = (layer["rate_ci_high"] - layer["rate"]) / (
+                was["rate_ci_high"] - was["rate"]
+            )
+            assert type_factor == pytest.approx(pooled_factor, rel=1e-4), (
+                f"{s.segment_id}/{hazard_type} is not widened by the pooled factor"
+            )
+            checked += 1
+    assert checked > 0  # the fixture must actually publish per-type layers
