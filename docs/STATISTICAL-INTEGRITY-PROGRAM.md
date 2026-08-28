@@ -137,7 +137,7 @@ one, so this pass can only ever report that fewer claims survive, never more.
 
 ## Phase 4: small-area rate stability under shrinkage
 
-**Status: planned, 2027 Q2.**
+**Status: built, 2026-08-27.** Planned window 2027 Q2.
 
 RE-02. Sparse segments produce unstable rates: one report moves a low-exposure
 block a long way, which is the mechanism behind most spurious "worst street"
@@ -145,11 +145,24 @@ findings. Empirical-Bayes shrinkage (Marshall 1991; Clayton & Kaldor 1987) borro
 strength across units by pulling each rate toward the global rate in proportion to
 how little information it carries.
 
-To ship as a **robustness pass, not a published rate**, for the reason METHODOLOGY
-§6.3 gives for not bias-correcting rates by default: a smoothed number that looks
-authoritative can launder a modelling assumption into a fact. The pass re-runs the
-ranking on shrunk rates and reports whether the top segment survives, alongside the
-MAUP and exposure-sensitivity verdicts. The published rate stays the raw one.
+Shipped as a **robustness pass, not a published rate**, for the reason
+METHODOLOGY §6.3 gives for not bias-correcting rates by default: a smoothed
+number that looks authoritative can launder a modelling assumption into a fact.
+Shrinkage assumes the segments are exchangeable draws from one distribution,
+which is a strong assumption on a street network, and it deliberately pulls the
+extremes in, which is the wrong default for a tool whose job is to find extremes.
+The pass re-runs the ranking and the Gi\* significance on shrunk rates and
+reports whether the top segment survives, alongside the MAUP,
+exposure-sensitivity, permutation and dependence verdicts. The published rate and
+the published order stay the raw ones.
+
+Both committed demos publish `stable`: on `davis` the top segment keeps 0.6353 of
+its own rate at a mean weight of 0.7891 across 9 rated segments, so its lead is
+not an artifact of a small denominator. The pass refuses when the
+method-of-moments between-segment variance comes out at or below zero, which
+means the counts do not distinguish the segments beyond Poisson noise: that
+publishes `not_evaluated` with the reason, rather than a `stable` earned by every
+rate collapsing onto the same value.
 
 ---
 

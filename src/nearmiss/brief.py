@@ -485,6 +485,7 @@ def _render_maup(
 def _render_robustness(
     out: list[str],
     bundle: AnalysisBundle,
+    config: Config,
     translation: gettext.NullTranslations,
     name_of: Callable[[str], str],
 ) -> None:
@@ -534,6 +535,7 @@ def _render_robustness(
     _render_exposure_sensitivity(out, bundle, translation, name_of)
     _render_permutation(out, bundle, translation)
     _render_dependence(out, bundle, translation)
+    _render_shrinkage(out, bundle, config, translation, name_of)
     out.append("")
 
 
@@ -586,6 +588,66 @@ def _render_permutation(
             sig=perm.published_significant_tested,
             alpha=alpha,
             perms=perm.permutations,
+        )
+    )
+
+
+def _render_shrinkage(
+    out: list[str],
+    bundle: AnalysisBundle,
+    config: Config,
+    translation: gettext.NullTranslations,
+    name_of: Callable[[str], str],
+) -> None:
+    """Append the RE-02 line: does the ranking survive borrowing strength?
+
+    A sparse segment's rate is mostly Poisson noise, so the table's order can
+    rest on which quiet block caught a lucky report. Shrinkage pulls each rate
+    toward the city-wide rate in proportion to how little its own count carries,
+    and this line says whether the same segment is still first afterwards. The
+    published ranking does not change.
+    """
+    _ = translation.gettext
+    shrink = bundle.result.shrinkage_stability
+    if shrink is None:
+        return
+    if not shrink.evaluated or shrink.baseline_top_segment is None:
+        out.append(
+            _(
+                "- **Ranking under shrinkage.** Not evaluated: there was no shrunk ranking to "
+                "compare, either because too few segments are rated or because the counts do not "
+                "distinguish them beyond Poisson noise. That is an unanswered question, not a "
+                "passed check."
+            )
+        )
+        return
+    common = {
+        "name": name_of(shrink.baseline_top_segment),
+        "global_rate": f"{shrink.global_rate:.2f}",
+        "per": f"{config.rate_per:g}",
+        "unit": config.exposure_unit,
+    }
+    if shrink.top_segment_survives:
+        out.append(
+            _(
+                "- **Ranking under shrinkage.** Pulling every rate toward the city-wide "
+                "{global_rate} per {per} {unit}, in proportion to how little each segment's own "
+                "count carries, leaves **{name}** first. It keeps {weight} of its own rate under "
+                "that adjustment, so its lead is not an artifact of a small denominator."
+            ).format(weight=f"{shrink.baseline_top_weight or 0.0:.2f}", **common)
+        )
+        return
+    out.append(
+        _(
+            "- **Ranking under shrinkage.** Pulling every rate toward the city-wide "
+            "{global_rate} per {per} {unit} moves **{name}** to rank {rank}, and **{winner}** "
+            "takes the top place. An order that depends on how much weight a sparse segment keeps "
+            "is a lead to confirm rather than a settled ranking. The published ranking is "
+            "unchanged: this check reports the movement, it does not re-order the table."
+        ).format(
+            rank=shrink.shrunk_top_rank,
+            winner=name_of(shrink.shrunk_top_segment or ""),
+            **common,
         )
     )
 
@@ -847,7 +909,7 @@ def render_brief(bundle: AnalysisBundle, config: Config, lang: str = "en") -> st
     _render_corridors(out, bundle.result.corridors, config, translation)
 
     # Robustness checks: overdispersion (RR-02) and MAUP re-segmentation (RR-05).
-    _render_robustness(out, bundle, translation, name_of)
+    _render_robustness(out, bundle, config, translation, name_of)
     _render_bias_section(out, bundle, publishable, name_of, translation)
     _render_temporal(out, bundle, translation)
     _render_calibration(out, config, translation)

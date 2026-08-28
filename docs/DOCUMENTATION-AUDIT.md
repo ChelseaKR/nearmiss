@@ -66,7 +66,7 @@ These are real predicates, so they can pass or fail.
 | Root process docs | pass | `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md` |
 | Root legal, citation, and conduct docs | pass | `LICENSE`, `NOTICE`, `CITATION.cff`, `CODE_OF_CONDUCT.md` |
 | Root-adjacent GitHub templates | pass | `.github/PULL_REQUEST_TEMPLATE.md`, `.github/CODEOWNERS` |
-| Local doc links resolve | pass | 487 relative links checked in 98 Markdown files; 0 unresolved |
+| Local doc links resolve | pass | 494 relative links checked in 99 Markdown files; 0 unresolved |
 
 ## Inventory
 
@@ -74,8 +74,8 @@ Counts, not verdicts. A count cannot pass or fail; it can only be current, which
 
 | Surface | Count | Evidence |
 | --- | ---: | --- |
-| Hand-authored docs | 102 | Markdown at the repository root and under `docs/`, `data/`, `infra/`, `notebooks/`, `schema/`, `src/`, `tests/`, `web/`, plus the root legal and template files |
-| Test files | 116 | `tests/test_*.py` |
+| Hand-authored docs | 103 | Markdown at the repository root and under `docs/`, `data/`, `infra/`, `notebooks/`, `schema/`, `src/`, `tests/`, `web/`, plus the root legal and template files |
+| Test files | 117 | `tests/test_*.py` |
 | Workflow files | 6 | `.github/workflows/*.yml` |
 | Grouped/vendored doc content | 16 | `docs/standards/` (16) |
 
@@ -85,7 +85,7 @@ Up to 5 representative files per category; the complete list follows below.
 
 | Category | Count | Representative files |
 | --- | ---: | --- |
-| architecture and interfaces | 20 | `docs/adr/0000-record-architecture-decisions.md`, `docs/adr/0002-exposure-normalization-and-confidence-intervals.md`, `docs/adr/0003-pure-python-statistics-and-planar-geometry.md`, `docs/adr/0004-standards-applicability.md`, `docs/adr/0005-build-pages-artifact-before-deployment.md`, plus 15 more |
+| architecture and interfaces | 21 | `docs/adr/0000-record-architecture-decisions.md`, `docs/adr/0002-exposure-normalization-and-confidence-intervals.md`, `docs/adr/0003-pure-python-statistics-and-planar-geometry.md`, `docs/adr/0004-standards-applicability.md`, `docs/adr/0005-build-pages-artifact-before-deployment.md`, plus 16 more |
 | entry points and repo process | 11 | `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`, `CHANGELOG.md`, `CITATION.cff`, `CODE_OF_CONDUCT.md`, plus 6 more |
 | examples and guides | 4 | `docs/teaching/FACILITATOR-GUIDE.es.md`, `docs/teaching/FACILITATOR-GUIDE.md`, `notebooks/README.md`, `notebooks/teaching/README.md` |
 | other docs | 46 | `benchmarks/README.md`, `benchmarks/SCORECARD.md`, `data/README.md`, `data/published/davis-ranked.md`, `data/published/davis-sensitivity.md`, plus 41 more |
@@ -185,6 +185,7 @@ Up to 5 representative files per category; the complete list follows below.
 - `docs/adr/0017-a-published-statistic-is-checked-against-its-published-description.md`
 - `docs/adr/0018-the-permutation-reference-is-published-beside-the-analytic-decision.md`
 - `docs/adr/0019-dependence-robust-fdr-is-benjamini-yekutieli-and-says-what-it-is-not.md`
+- `docs/adr/0020-empirical-bayes-shrinkage-is-a-ranking-check-not-the-published-rate.md`
 - `docs/audits/2026-06-16-verification.md`
 - `docs/audits/2026-07-16-national-evidence-studio-a11y.md`
 - `docs/audits/README.md`

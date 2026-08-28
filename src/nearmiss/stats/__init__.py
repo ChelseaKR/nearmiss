@@ -34,6 +34,7 @@ from .kde import KdeResult, kde
 from .maup import RankStability, rank_stability
 from .multiplicity import DependenceRobustness, dependence_robustness
 from .rates import pearson_dispersion, rate_with_ci
+from .shrinkage import ShrinkageStability, shrinkage_stability
 from .temporal import TemporalBreakdown, WeatherDay, temporal_breakdown
 
 __all__ = ["AnalysisResult", "analyze"]
@@ -74,6 +75,10 @@ class AnalysisResult:
     # correction (RR-08 / METHODOLOGY §5.5). Published beside the Benjamini-Hochberg
     # decision; it never changes `significant` either.
     dependence_robustness: DependenceRobustness | None = None
+    # Whether the ranking survives empirical-Bayes shrinkage of every rate toward
+    # the overall rate (RE-02 / METHODOLOGY §5.4). The published rate stays the raw
+    # one; this is a re-ranking check, not a smoothed rate.
+    shrinkage_stability: ShrinkageStability | None = None
     # Fraction of snapped records excluded from the primary rate because they carry a
     # low-confidence flag (low_accuracy / far_snap): low_confidence_snapped / snapped.
     excluded_low_confidence_fraction: float = 0.0
@@ -372,6 +377,17 @@ def analyze(
     # the two answers differ only in the correction.
     dependence = dependence_robustness(stats, pvals, config)
 
+    # RE-02: re-estimate every rate by borrowing strength across segments and ask
+    # whether the same segment is still on top. Same numerator as the published
+    # rate and the same Gi* neighbor map, so the only thing that varies is the
+    # estimator.
+    shrinkage = shrinkage_stability(
+        stats,
+        {sid: a.count_primary for sid, a in agg.items()},
+        config,
+        neighbor_map,
+    )
+
     # Overall excluded fraction: low-confidence snapped records / all snapped records.
     snapped_total = sum(a.count for a in agg.values())
     snapped_primary = sum(a.count_primary for a in agg.values())
@@ -394,5 +410,6 @@ def analyze(
         exposure_sensitivity=exposure_sens,
         gi_permutation=permutation,
         dependence_robustness=dependence,
+        shrinkage_stability=shrinkage,
         excluded_low_confidence_fraction=excluded_fraction,
     )

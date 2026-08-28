@@ -45,6 +45,7 @@ only removes blind spots.
 | `maup-varies-only-the-units` | `docs/METHODOLOGY.md` — § 8.3 What we publish from the spatial layer | `tests/test_maup.py::test_coarse_rates_use_the_primary_count_the_published_rate_uses` |
 | `byar-poisson-ci` | `docs/METHODOLOGY.md` — § 5.2 Interval for a single segment's rate | `tests/test_rates.py::test_poisson_ci_contains_point_and_widens_relatively_for_small_n` |
 | `wilson-proportions` | `docs/METHODOLOGY.md` — § 5.3 Proportions, when the question is a share | `tests/test_rates.py::test_wilson_ci_bounds` |
+| `shrinkage-is-a-check-not-the-published-rate` | `docs/METHODOLOGY.md` — § 5.4 What the interval does to ranking | `tests/test_shrinkage_stability.py::test_methodology_describes_what_the_shrinkage_pass_actually_computes` |
 | `bh-fdr` | `docs/METHODOLOGY.md` — § 5.5 Multiplicity | `tests/test_fdr.py::test_significant_field_is_fdr_corrected_in_analysis` |
 | `dependence-robust-fdr-published-beside-bh` | `docs/METHODOLOGY.md` — § 5.5 Multiplicity | `tests/test_dependence_robustness.py::test_methodology_describes_what_the_correction_actually_computes` |
 | `gi-on-rate-not-count` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_hotspot.py::test_getis_ord_flags_the_planted_corridor_cluster` |

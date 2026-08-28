@@ -141,6 +141,24 @@
   "segment_time_bands_dp": {
     "enabled": false
   },
+  "shrinkage_stability": {
+    "basis": "Marshall global empirical-Bayes shrinkage of every rate toward the overall rate, published as a re-ranking check and never as the published rate",
+    "between_segment_variance": 4.28823e-05,
+    "evaluated": true,
+    "global_rate": 3.917526,
+    "k": 5,
+    "mean_weight": 0.8825,
+    "rated_segments": 5,
+    "shrunk_top_rank": 1,
+    "shrunk_top_segment": "rs-3",
+    "shrunk_top_significant": false,
+    "top_segment": "rs-3",
+    "top_segment_significant": false,
+    "top_segment_survives": true,
+    "top_segment_weight": 0.7324,
+    "topk_overlap": 1.0,
+    "verdict": "stable"
+  },
   "summary": {
     "duplicates_removed": 0,
     "excluded_low_confidence_fraction": 0.0,

@@ -115,6 +115,67 @@ def rate_with_ci(
     return count * scale, lam_low * scale, lam_high * scale
 
 
+def empirical_bayes_rates(
+    counts: list[int], exposures: list[float]
+) -> tuple[list[float], float, float, list[float]]:
+    """Marshall's global empirical-Bayes shrinkage of a set of rates.
+
+    Returns ``(shrunk_rates, global_rate, between_unit_variance, weights)``, all
+    on the raw ``count / exposure`` scale.
+
+    A sparse unit's raw rate is dominated by Poisson noise: one extra event on a
+    low-exposure unit moves it a long way, which is the mechanism behind most
+    spurious "worst place" findings. Empirical Bayes borrows strength across
+    units, pulling each rate toward the overall rate in proportion to how little
+    information it carries::
+
+        m     = sum(y) / sum(E)                                # overall rate
+        A     = sum(E_i * (r_i - m)^2) / sum(E)  -  m / mean(E) # between-unit variance
+        w_i   = A / (A + m / E_i)                               # weight on the raw rate
+        theta = m + w_i * (r_i - m)
+
+    ``A`` is a method-of-moments estimate of the variance *between* units, net of
+    the Poisson variance within them. It can come out negative, which means the
+    spread across units is no larger than Poisson noise alone would produce; by
+    Marshall's convention it is then clamped to 0, every weight is 0, and every
+    unit shrinks all the way to the overall rate. A caller must treat that as
+    "these counts do not distinguish these units", not as a ranking.
+
+    The scale matters: the weights are **not** invariant to multiplying rates by
+    a constant, so this works on the raw ``y / E`` scale and any per-1000-style
+    factor is applied to the result afterwards.
+
+    Reference: Marshall, *Mapping disease and mortality rates using empirical
+    Bayes estimators*, Applied Statistics 40(2), 1991; Clayton & Kaldor,
+    *Empirical Bayes estimates of age-standardized relative risks*, Biometrics
+    43(3), 1987.
+    """
+    if len(counts) != len(exposures):
+        raise ValueError("counts and exposures must have the same length")
+    n = len(counts)
+    if n == 0:
+        return [], 0.0, 0.0, []
+    if any(e <= 0 for e in exposures):
+        raise ValueError("every exposure must be positive to shrink a rate")
+    total_exposure = sum(exposures)
+    global_rate = sum(counts) / total_exposure
+    mean_exposure = total_exposure / n
+    raw = [c / e for c, e in zip(counts, exposures, strict=True)]
+    weighted_spread = (
+        sum(e * (r - global_rate) ** 2 for r, e in zip(raw, exposures, strict=True))
+        / total_exposure
+    )
+    variance = weighted_spread - global_rate / mean_exposure
+    if variance < 0.0:
+        variance = 0.0
+    weights = [
+        variance / (variance + global_rate / e) if (variance + global_rate / e) > 0 else 0.0
+        for e in exposures
+    ]
+    shrunk = [global_rate + w * (r - global_rate) for r, w in zip(raw, weights, strict=True)]
+    return shrunk, global_rate, variance, weights
+
+
 def wilson_ci(successes: int, trials: int, z: float = Z95) -> tuple[float, float]:
     """Wilson score interval for a binomial proportion."""
     if trials <= 0:
