@@ -33,6 +33,7 @@ from .stats.bias import to_metadata as bias_to_metadata
 from .stats.corridors import CorridorStats
 from .stats.dp_temporal import to_metadata as dp_segment_time_to_metadata
 from .stats.exposure_sensitivity import to_metadata as exposure_sensitivity_to_metadata
+from .stats.gi_permutation import to_metadata as gi_permutation_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
 from .versions import DATASET_SCHEMA_VERSION, DATASET_VERSION
@@ -439,6 +440,15 @@ def publish(config: Config) -> PublishResult:
         "exposure_sensitivity": (
             exposure_sensitivity_to_metadata(bundle.result.exposure_sensitivity)
             if bundle.result.exposure_sensitivity is not None
+            else None
+        ),
+        # RR-09: do the published Gi* significance claims survive an empirical
+        # conditional-permutation reference instead of the analytic normal one?
+        # Read beside `getis_ord_significant`, which this never changes.
+        # `evaluated: false` when nothing was testable, never a pass.
+        "gi_permutation": (
+            gi_permutation_to_metadata(bundle.result.gi_permutation)
+            if bundle.result.gi_permutation is not None
             else None
         ),
         # EXP-05 prototype: segment x part-of-day counts under epsilon-DP noise, instead of

@@ -16,6 +16,7 @@ from .config import Config
 from .engine import AnalysisBundle, build_analysis
 from .models import SegmentStats
 from .stats.exposure_sensitivity import ExposureSensitivity
+from .stats.gi_permutation import PermutationInference
 from .stats.maup import (
     NO_RATED_UNIT,
     RANK_HELD_SIGNIFICANCE_LOST,
@@ -84,6 +85,45 @@ def _stability_note(stability: RankStability) -> str:
     return (
         f"**Re-segmentation (MAUP) check:** {scale}. The top-rate segment falls to {where} at "
         f"the coarser scale and is {sig} there ({overlap})."
+    )
+
+
+def _permutation_note(inference: PermutationInference) -> str:
+    """One sentence saying what the Gi\\* permutation reference actually returned.
+
+    The MAUP note answers "does rank 1 survive re-drawing the units?" and the
+    exposure note "does it survive a different denominator?"; this one answers
+    "does the significance survive a different reference distribution?" The
+    not-evaluated case gets its own sentence for the same reason theirs do: a
+    reader who sees two robustness lines and no third would assume the third
+    passed.
+    """
+    alpha = f"{inference.alpha:g}"
+    if not inference.evaluated:
+        return (
+            "**Permutation reference check:** not evaluated. No published significance claim "
+            "had a testable neighbourhood, so none was re-tested against an empirical reference "
+            "distribution. Not a passed check."
+        )
+    if inference.published_significant_tested == 0:
+        return (
+            f"**Permutation reference check:** {inference.tested_segments} top-ranked segment(s) "
+            f"tested against a reference distribution of {inference.permutations} re-shuffles; "
+            "none of them is a published significant cluster, so there was no significance claim "
+            "to corroborate."
+        )
+    if inference.unsupported_segments == 0:
+        return (
+            f"**Permutation reference check:** all {inference.published_significant_tested} "
+            f"significant cluster(s) also clear the {alpha} level against a reference "
+            f"distribution of {inference.permutations} re-shuffles of the rates."
+        )
+    return (
+        f"**Permutation reference check:** {inference.unsupported_segments} of "
+        f"{inference.published_significant_tested} significant cluster(s) do not clear the "
+        f"{alpha} level against a reference distribution of {inference.permutations} re-shuffles. "
+        "Their significance rests on the analytic normal approximation; the published flags are "
+        "unchanged."
     )
 
 
@@ -200,6 +240,8 @@ def render_ranked_md(config: Config, top_n: int = 10) -> str:
         out += [_stability_note(bundle.result.rank_stability), ""]
     if bundle.result.exposure_sensitivity is not None:
         out += [_exposure_note(bundle.result.exposure_sensitivity), ""]
+    if bundle.result.gi_permutation is not None:
+        out += [_permutation_note(bundle.result.gi_permutation), ""]
     out.append(f"| Rank | Segment | Rate /{per} | 95% CI | n | Hotspot |")
     out.append("| ---: | --- | ---: | --- | ---: | --- |")
     for i, s in enumerate(ranked[:top_n], start=1):

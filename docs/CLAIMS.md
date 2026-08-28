@@ -48,5 +48,6 @@ only removes blind spots.
 | `bh-fdr` | `docs/METHODOLOGY.md` — § 5.5 Multiplicity | `tests/test_fdr.py::test_significant_field_is_fdr_corrected_in_analysis` |
 | `gi-on-rate-not-count` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_hotspot.py::test_getis_ord_flags_the_planted_corridor_cluster` |
 | `gi-weights-network` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_network.py` |
+| `gi-permutation-beside-not-instead` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_gi_permutation.py::test_methodology_describes_what_the_permutation_pass_actually_computes` |
 | `coverage-sims-implemented` | `docs/METHODOLOGY.md` — § 9.2 Interval-coverage checks | `tests/test_coverage_simulation.py::test_byar_poisson_interval_coverage` |
 | `dossier-claim-boundary` | `docs/DECISION-DOSSIER-TEMPLATE.md` — § 2. Claim boundary | `tests/test_dossier.py::test_dossier_is_corridor_specific_and_claim_limited` |

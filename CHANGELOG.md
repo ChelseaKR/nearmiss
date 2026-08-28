@@ -56,6 +56,41 @@ every entry.
 
 ## [Unreleased]
 
+### Added
+
+- **Gi\* significance is now re-tested against an empirical reference distribution, and on the
+  committed Davis demo it disagrees (RR-09; sidecar gains `gi_permutation`, schema `1.3.0`,
+  additive).** `docs/METHODOLOGY.md` §8.2 named a conditional-permutation reference as future work
+  and said plainly that it "is **not** what is computed today". It is now.
+  `stats/gi_permutation.py`, on `honest_rates.hotspot.conditional_permutation_p`, holds each
+  segment's own rate fixed, redistributes the other rates at random across the other segments,
+  recomputes Gi\*, and reads the observed statistic against that empirical distribution
+  (Anselin 1995), with the `(1 + r) / (m + 1)` pseudo p-value so a p of exactly zero is
+  unreportable (North, Curtis & Sham 2002).
+
+  **Three of the five FDR-significant clusters on `davis` do not clear `fdr_alpha` against their
+  own permutation reference**, and that is published rather than withheld: their significance
+  rests on the normal approximation the analytic test assumes. On `riverside` every segment is a
+  Gi\* singleton, so the pass publishes `verdict: "not_evaluated"` with a stated reason instead
+  of a verdict it did not earn.
+
+  **No published number moved.** `getis_ord_significant` is still the analytic
+  normal-approximation z-score with Benjamini-Hochberg; no rate, interval, rank or flag depends on
+  `gi_permutations` or `gi_permutation_seed`, and a test asserts it. Multiplicity is deliberately
+  not re-run under permutation: a pseudo p-value cannot fall below `1 / (m + 1)`, while the
+  Benjamini-Hochberg critical values at hundreds of simultaneous tests lie below that floor, so a
+  permutation-based FDR would reject nothing at any feasible count and describe the permutation
+  count rather than the city. The artifact carries that limit in its own `multiplicity` field, and
+  the pass refuses to run when the count cannot resolve `alpha` at all. The decision is
+  [ADR 0018](docs/adr/0018-the-permutation-reference-is-published-beside-the-analytic-decision.md).
+
+  Two live config keys: `gi_permutations` (default 999) and `gi_permutation_seed` (default 1). The
+  seed is fixed, so `make reproduce` stays byte-for-byte. Scope is the segments the dataset makes
+  a claim about, which keeps the cost in milliseconds rather than the ~2s an all-segment pass
+  would add to the `PERFORMANCE.md` statistics baseline; `schema/dataset.schema.md` §10.3
+  documents every published field, including the scope statement, so an untested segment is never
+  readable as a tested one that passed.
+
 ### Fixed
 
 - **Four published statistics did not match what the documents said they computed

@@ -80,7 +80,7 @@ adding more. Phase 1 also builds the gate the later phases are checked by.
 
 ## Phase 2: Gi\* inference robustness, a conditional-permutation reference
 
-**Status: planned, 2026 Q4.**
+**Status: built, 2026-08-27.** Planned window 2026 Q4.
 
 RR-09. METHODOLOGY §8.2 named the conditional-permutation reference distribution
 as future work and was explicit that it "is **not** what is computed today", so
@@ -93,11 +93,20 @@ permutation reference asks the same question empirically: hold the unit's own
 value fixed, permute the remaining values across the other units, recompute Gi\*,
 and read the observed statistic against that distribution.
 
-The published significance decision **will not change**. The permutation result is
-to be published beside it as a robustness artifact that can disagree, in the same
-shape as the MAUP and exposure-sensitivity passes, because changing what
-"significant" means in a published dataset is a methodology change and not a bug
-fix.
+The published significance decision **does not change**. The permutation result is
+published beside it as a robustness artifact that can disagree, in the same shape
+as the MAUP and exposure-sensitivity passes, because changing what "significant"
+means in a published dataset is a methodology change and not a bug fix.
+
+It does disagree. On the committed `davis` demo, three of the five
+FDR-significant clusters do not clear `fdr_alpha` against their own permutation
+reference; on `riverside` every segment is a Gi\* singleton, so the pass
+publishes `not_evaluated` rather than a verdict it did not earn. Multiplicity is
+deliberately not re-run under permutation, because a pseudo p-value cannot fall
+below `1 / (m + 1)` while the Benjamini-Hochberg critical values at hundreds of
+tests lie below that floor; the artifact states that limit in its own
+`multiplicity` field, and the pass refuses to run when the permutation count
+cannot resolve `alpha` at all.
 
 ## Phase 3: multiplicity control that survives spatial dependence
 

@@ -29,6 +29,7 @@ from .getis_ord import (
     singleton_neighborhoods,
     two_sided_p,
 )
+from .gi_permutation import PermutationInference, permutation_inference
 from .kde import KdeResult, kde
 from .maup import RankStability, rank_stability
 from .rates import pearson_dispersion, rate_with_ci
@@ -64,6 +65,10 @@ class AnalysisResult:
     # alternative denominators (RR-03 / METHODOLOGY §3.3). ``verdict`` is
     # "not_evaluated" when no rated segment declared an alternative to test.
     exposure_sensitivity: ExposureSensitivity | None = None
+    # Gi* significance re-tested against a conditional-permutation reference
+    # distribution (RR-09 / METHODOLOGY §8.2). Published beside the analytic
+    # decision; it never changes `significant`.
+    gi_permutation: PermutationInference | None = None
     # Fraction of snapped records excluded from the primary rate because they carry a
     # low-confidence flag (low_accuracy / far_snap): low_confidence_snapped / snapped.
     excluded_low_confidence_fraction: float = 0.0
@@ -350,6 +355,12 @@ def analyze(
         stats, segments, exposure_map, config, neighbor_map=neighbor_map
     )
 
+    # RR-09: re-test the published significance claims against an empirical
+    # conditional-permutation reference instead of the analytic normal one. Reads
+    # `significant`; never writes it. Reuses the same rates and the same neighbor
+    # map the published Gi* ran on, so the two answers are about one statistic.
+    permutation = permutation_inference(stats, rate_values, neighbor_map, config)
+
     # Overall excluded fraction: low-confidence snapped records / all snapped records.
     snapped_total = sum(a.count for a in agg.values())
     snapped_primary = sum(a.count_primary for a in agg.values())
@@ -370,5 +381,6 @@ def analyze(
         overdispersion_adjusted=config.overdispersion_adjust,
         rank_stability=stability,
         exposure_sensitivity=exposure_sens,
+        gi_permutation=permutation,
         excluded_low_confidence_fraction=excluded_fraction,
     )
