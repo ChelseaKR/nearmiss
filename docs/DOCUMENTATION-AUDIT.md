@@ -66,7 +66,7 @@ These are real predicates, so they can pass or fail.
 | Root process docs | pass | `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md` |
 | Root legal, citation, and conduct docs | pass | `LICENSE`, `NOTICE`, `CITATION.cff`, `CODE_OF_CONDUCT.md` |
 | Root-adjacent GitHub templates | pass | `.github/PULL_REQUEST_TEMPLATE.md`, `.github/CODEOWNERS` |
-| Local doc links resolve | pass | 483 relative links checked in 96 Markdown files; 0 unresolved |
+| Local doc links resolve | pass | 483 relative links checked in 97 Markdown files; 0 unresolved |
 
 ## Inventory
 
@@ -74,7 +74,7 @@ Counts, not verdicts. A count cannot pass or fail; it can only be current, which
 
 | Surface | Count | Evidence |
 | --- | ---: | --- |
-| Hand-authored docs | 100 | Markdown at the repository root and under `docs/`, `data/`, `infra/`, `notebooks/`, `schema/`, `src/`, `tests/`, `web/`, plus the root legal and template files |
+| Hand-authored docs | 101 | Markdown at the repository root and under `docs/`, `data/`, `infra/`, `notebooks/`, `schema/`, `src/`, `tests/`, `web/`, plus the root legal and template files |
 | Test files | 115 | `tests/test_*.py` |
 | Workflow files | 6 | `.github/workflows/*.yml` |
 | Grouped/vendored doc content | 16 | `docs/standards/` (16) |
@@ -88,7 +88,7 @@ Up to 5 representative files per category; the complete list follows below.
 | architecture and interfaces | 19 | `docs/adr/0000-record-architecture-decisions.md`, `docs/adr/0002-exposure-normalization-and-confidence-intervals.md`, `docs/adr/0003-pure-python-statistics-and-planar-geometry.md`, `docs/adr/0004-standards-applicability.md`, `docs/adr/0005-build-pages-artifact-before-deployment.md`, plus 14 more |
 | entry points and repo process | 11 | `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`, `CHANGELOG.md`, `CITATION.cff`, `CODE_OF_CONDUCT.md`, plus 6 more |
 | examples and guides | 4 | `docs/teaching/FACILITATOR-GUIDE.es.md`, `docs/teaching/FACILITATOR-GUIDE.md`, `notebooks/README.md`, `notebooks/teaching/README.md` |
-| other docs | 45 | `benchmarks/README.md`, `benchmarks/SCORECARD.md`, `data/README.md`, `data/published/davis-ranked.md`, `data/published/davis-sensitivity.md`, plus 40 more |
+| other docs | 46 | `benchmarks/README.md`, `benchmarks/SCORECARD.md`, `data/README.md`, `data/published/davis-ranked.md`, `data/published/davis-sensitivity.md`, plus 41 more |
 | planning and research | 9 | `docs/RESEARCH-ROADMAP.md`, `docs/ROADMAP.md`, `docs/ideation/01-deep-dive.md`, `docs/ideation/02-large-scale-fixes.md`, `docs/ideation/03-expansions.md`, plus 4 more |
 | safety, privacy, accessibility, and audits | 12 | `docs/ACCESSIBILITY.md`, `docs/DOCUMENTATION-AUDIT.md`, `docs/DPIA.md`, `docs/INTAKE-AND-ABUSE.md`, `docs/RE-IDENTIFICATION.md`, plus 7 more |
 
@@ -146,6 +146,7 @@ Up to 5 representative files per category; the complete list follows below.
 - `docs/METHODOLOGY.md`
 - `docs/MUTATION-TESTING.md`
 - `docs/PERFORMANCE.md`
+- `docs/PR-TRIAGE.md`
 - `docs/PREREGISTRATION.md`
 - `docs/PRIVATE-COUNTY-CROSSWALK-REVIEW.md`
 - `docs/PRODUCT-EXPANSION-PLAN.md`
