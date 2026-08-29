@@ -29,6 +29,25 @@ Two things the generator deliberately does *not* do:
   meaningless; git already dates the file. The dated narrative of the original sweep is kept below,
   outside the generated block, where it reads as history rather than as a current verdict.
 
+## The prose above and below the markers is pinned separately
+
+A generated file with hand-authored regions is its own hazard: the generator legitimises
+whatever it finds. This tool was ported to `davis-bike-hazard-map`, and there a bad conflict
+resolution deleted two paragraphs from the prose *outside* the markers. The only thing that
+noticed was a generated count — relative links fell 96 to 95 — and the documented repair for a
+failing count is to regenerate, which rewrote the count to agree with the deletion. Green gate,
+real content loss.
+
+The same shape existed here. Deleting the paragraph above that carries this file's two relative
+links moves "494 relative links checked" to 492, and `make docs-audit` makes the file
+self-consistent again; deleting a paragraph with no link in it was not visible at all, because
+the drift check copies the prose through untouched and compares only what it generated.
+
+So the hand-authored region is pinned in `DOCUMENTATION-AUDIT.narrative.json`, which
+`make docs-audit` never writes. When the prose changes, the drift check fails and regeneration
+*refuses*, reporting whether the region grew or shrank; accepting the new prose is a separate,
+deliberate step (`make docs-audit-accept-narrative`) whose diff a reviewer sees.
+
 ## Scope notes
 
 - Generated sites, deployed app routes, raw third-party HTML captures, and golden fixture websites
@@ -75,7 +94,7 @@ Counts, not verdicts. A count cannot pass or fail; it can only be current, which
 | Surface | Count | Evidence |
 | --- | ---: | --- |
 | Hand-authored docs | 103 | Markdown at the repository root and under `docs/`, `data/`, `infra/`, `notebooks/`, `schema/`, `src/`, `tests/`, `web/`, plus the root legal and template files |
-| Test files | 118 | `tests/test_*.py` |
+| Test files | 120 | `tests/test_*.py` |
 | Workflow files | 6 | `.github/workflows/*.yml` |
 | Grouped/vendored doc content | 16 | `docs/standards/` (16) |
 
