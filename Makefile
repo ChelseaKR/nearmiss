@@ -78,7 +78,27 @@ lock-check: ## CQ-09: fail if uv.lock has drifted from pyproject.toml
 	# This must run before anything that can rewrite the lock — a bare `uv run`
 	# silently relocks first, so a gate invoked that way repairs the very thing it
 	# checks. In CI it is the first step of the lint job, before any install.
-	uv lock --check
+	#
+	# The failure is wrapped because of who hits it most: every Dependabot Python
+	# PR. Dependabot's `pip` ecosystem edits pyproject.toml's specifiers and
+	# regenerates the pip-tools hashes; it does not touch uv.lock. So a bump that is
+	# otherwise correct arrives with a drifted uv.lock and stops here, and the raw
+	# `uv lock --check` output does not say what to do about it. Five open
+	# Dependabot PRs (#202-#206) failed on exactly this step. See
+	# `.github/dependabot.yml` for the standing decision behind it.
+	@rc=0; \
+	uv lock --check || rc=$$?; \
+	if [ "$$rc" -ne 0 ]; then \
+		echo "" >&2; \
+		echo "lock-check: uv.lock has drifted from pyproject.toml (CQ-09)." >&2; \
+		echo "  Fix:  uv lock            # re-resolve and rewrite uv.lock" >&2; \
+		echo "        make lock-dev      # and the hashed dev toolchain CI installs from" >&2; \
+		echo "  then commit both. On a Dependabot Python PR this is expected: its pip" >&2; \
+		echo "  ecosystem updates pyproject.toml and the pip-tools hashes but never" >&2; \
+		echo "  uv.lock, so the bump needs one follow-up commit on its branch." >&2; \
+		exit "$$rc"; \
+	fi
+	@echo "lock-check: uv.lock still satisfies pyproject.toml."
 
 lock: ## Generate the hashed reproducible RUNTIME lockfile (requirements.lock)
 	$(PYTHON) -m piptools compile --generate-hashes -o requirements.lock pyproject.toml

@@ -30,6 +30,32 @@ version: 2
 updates:
   # Python — pip ecosystem (requirements.lock, pyproject.toml).
   # Versions stay pinned; Dependabot regenerates the hashes with each bump.
+  #
+  # KNOWN, DELIBERATE CONSEQUENCE — every Python version-update PR here needs one
+  # follow-up commit before it can go green, and this is where that is written down
+  # rather than rediscovered per PR.
+  #
+  # `uv.lock` is committed and gated by `uv lock --check` (CQ-09, the first step of
+  # the lint job). The `pip` ecosystem edits `pyproject.toml`'s specifiers and
+  # regenerates the pip-tools hashes; it does not know about `uv.lock`. So a bump
+  # that is otherwise correct arrives with a drifted `uv.lock` and stops at CQ-09.
+  # Measured 2026-08-24: #202 (hatchling), #203 (ruff), #204 (mypy), #205
+  # (packaging) and #206 (pre-commit) all failed on exactly that step.
+  #
+  # The remediation is one commit on the Dependabot branch:
+  #
+  #     uv lock && make lock-dev     # then commit uv.lock + requirements-dev.lock
+  #
+  # `make lock-check` prints those two lines on failure, so the PR says what it needs.
+  #
+  # The alternative is `package-ecosystem: "uv"`, which maintains `pyproject.toml`
+  # and `uv.lock` together and would remove the follow-up commit. It is NOT taken
+  # here yet because it also stops maintaining `requirements-dev.lock` — the hashed
+  # lock CI installs from with `--require-hashes` (FIX-11) — so the follow-up commit
+  # would move rather than disappear, and because the switch cannot be verified from
+  # a local checkout: it is only observable on the next scheduled Dependabot run.
+  # Consolidating the whole toolchain onto uv is the same open decision recorded at
+  # the top of this file, and this row should be revisited with it.
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
