@@ -78,7 +78,27 @@ lock-check: ## CQ-09: fail if uv.lock has drifted from pyproject.toml
 	# This must run before anything that can rewrite the lock — a bare `uv run`
 	# silently relocks first, so a gate invoked that way repairs the very thing it
 	# checks. In CI it is the first step of the lint job, before any install.
-	uv lock --check
+	#
+	# The failure is wrapped because of who hits it most: every Dependabot Python
+	# PR. Dependabot's `pip` ecosystem edits pyproject.toml's specifiers and
+	# regenerates the pip-tools hashes; it does not touch uv.lock. So a bump that is
+	# otherwise correct arrives with a drifted uv.lock and stops here, and the raw
+	# `uv lock --check` output does not say what to do about it. Five open
+	# Dependabot PRs (#202-#206) failed on exactly this step. See
+	# `.github/dependabot.yml` for the standing decision behind it.
+	@rc=0; \
+	uv lock --check || rc=$$?; \
+	if [ "$$rc" -ne 0 ]; then \
+		echo "" >&2; \
+		echo "lock-check: uv.lock has drifted from pyproject.toml (CQ-09)." >&2; \
+		echo "  Fix:  uv lock            # re-resolve and rewrite uv.lock" >&2; \
+		echo "        make lock-dev      # and the hashed dev toolchain CI installs from" >&2; \
+		echo "  then commit both. On a Dependabot Python PR this is expected: its pip" >&2; \
+		echo "  ecosystem updates pyproject.toml and the pip-tools hashes but never" >&2; \
+		echo "  uv.lock, so the bump needs one follow-up commit on its branch." >&2; \
+		exit "$$rc"; \
+	fi
+	@echo "lock-check: uv.lock still satisfies pyproject.toml."
 
 lock: ## Generate the hashed reproducible RUNTIME lockfile (requirements.lock)
 	$(PYTHON) -m piptools compile --generate-hashes -o requirements.lock pyproject.toml
@@ -137,12 +157,44 @@ security: ## Scan deps (pip-audit), history for secrets (gitleaks), and workflow
 	# release (pip-audit would error on it, and --strict treats a skip as an
 	# error), so audit from the hashed dev lock instead of the live environment.
 	$(PYTHON) -m pip_audit --strict --require-hashes --disable-pip -r requirements-dev.lock
-	@command -v gitleaks >/dev/null 2>&1 \
-		&& gitleaks detect --no-banner --redact --source . \
-		|| echo "security: gitleaks not found (it is a Go binary, not a pip dep); install it to enable the secret scan. CI runs it."
-	@command -v zizmor >/dev/null 2>&1 \
-		&& zizmor --min-severity=high .github/workflows/ \
-		|| echo "security: zizmor not found (pip install zizmor, or see https://woodruffw.github.io/zizmor/); install it to check workflow YAML locally. CI's zizmor job runs it as a merge-blocking gate."
+	# A `command -v tool && tool ... || echo "not found"` chain cannot tell
+	# "the tool is absent" from "the tool ran and reported a finding": a real
+	# finding took the `||` branch, printed "not found", and the recipe exited 0.
+	# `make security` was therefore green over a reported secret, while saying
+	# the scanner was missing. Absence and failure are now separate outcomes and
+	# only absence is survivable. Set SECURITY_REQUIRE_SCANNERS=1 to make absence
+	# fail too — what a release or an audited run should do.
+	# Regression guards: tests/test_gate_recipes.py (runs these very
+	# lines against a stub scanner) and tests/test_makefile_gates.py (rejects the
+	# swallow shape anywhere in this file).
+	@rc=0; \
+	if command -v gitleaks >/dev/null 2>&1; then \
+		gitleaks detect --no-banner --redact --source . || rc=$$?; \
+		if [ "$$rc" -ne 0 ]; then \
+			echo "security: gitleaks FAILED (exit $$rc) — that is a finding, not a missing tool." >&2; \
+			exit "$$rc"; \
+		fi; \
+		echo "security: gitleaks ran over the committed history and reported nothing."; \
+	elif [ "$${SECURITY_REQUIRE_SCANNERS:-0}" = "1" ]; then \
+		echo "security: gitleaks is NOT INSTALLED and SECURITY_REQUIRE_SCANNERS=1 — refusing to report a secret scan that did not run." >&2; \
+		exit 1; \
+	else \
+		echo "security: gitleaks SKIPPED — not installed (it is a Go binary, not a pip dep). No secret scan ran here; CI runs it as a merge-blocking job."; \
+	fi
+	@rc=0; \
+	if command -v zizmor >/dev/null 2>&1; then \
+		zizmor --min-severity=high .github/workflows/ || rc=$$?; \
+		if [ "$$rc" -ne 0 ]; then \
+			echo "security: zizmor FAILED (exit $$rc) — that is a high-severity workflow finding, not a missing tool." >&2; \
+			exit "$$rc"; \
+		fi; \
+		echo "security: zizmor ran over .github/workflows/ and reported nothing at high severity."; \
+	elif [ "$${SECURITY_REQUIRE_SCANNERS:-0}" = "1" ]; then \
+		echo "security: zizmor is NOT INSTALLED and SECURITY_REQUIRE_SCANNERS=1 — refusing to report a workflow scan that did not run." >&2; \
+		exit 1; \
+	else \
+		echo "security: zizmor SKIPPED — not installed (pip install zizmor, or see https://woodruffw.github.io/zizmor/). No workflow scan ran here; CI's zizmor job runs it as a merge-blocking gate."; \
+	fi
 
 axe: ## Deeper accessibility check: run axe-core against the built web page (needs node)
 	cd web && npm ci && npm run axe
@@ -151,6 +203,14 @@ rtl: ## G10 RTL smoke: load the web pages under dir="rtl" and reject direction-u
 	cd web && npm ci && npm run rtl
 
 web-check: ## One-install web gate: consumer contracts + axe + RTL-authored CSS scan
+	# GATED IS NOT PUBLISHED. `npm run contract` boots web/davis-demo.html, web/app.js
+	# and web/embed.html against data/published/davis.geojson, and the axe run covers
+	# web/submit.html too. None of those files is in build_site.py's PUBLIC_WEB_FILES
+	# allowlist, and the live sentinel asserts they 404 in production
+	# (RETIRED_PUBLIC_PATH_PROBES). They are retained deliberately as local synthetic
+	# test surfaces: the consumer contract and the accessibility floor are what a fork
+	# standing up its own city inherits. See docs/LIVE-INTEGRITY.md, "Gated is not the
+	# same as published" (issue #156).
 	cd web && npm ci && npm run contract && npm run axe && npm run rtl
 
 i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + BCP-47
@@ -195,10 +255,16 @@ i18n-compile: ## Compile the committed PO catalogs to MO (run after editing a .p
 	$(PYTHON) tools/po2json.py
 	@echo "i18n-compile: refreshed messages.mo (en, es) and web/locales/*.json."
 
-conformance: ## EXP-10: audit every published dataset against the five hard rules (HR1-HR5)
-	$(PYTHON) tools/verify_dataset.py data/published/davis.geojson >/dev/null
-	$(PYTHON) tools/verify_dataset.py data/published/riverside.geojson >/dev/null
-	@echo "conformance: all published datasets pass HR1-HR5 (see tools/verify_dataset.py; forks run it too)."
+conformance: ## EXP-10: audit every published artifact against the five hard rules (HR1-HR5)
+	# This used to run tools/verify_dataset.py over two hard-coded paths — both from
+	# the retired Davis/Riverside demo — and then echo that ALL published datasets
+	# passed. Ten artifacts ship under data/published/; two were audited. The sweep
+	# enumerates the directory instead of naming files, and FAILS on any published
+	# file it cannot classify, so a new artifact is audited or it stops the build.
+	# It also refuses an empty family and an empty sweep: nothing may pass by being
+	# absent. The per-artifact verifier (tools/verify_dataset.py) is unchanged as the
+	# fork-facing entry point and now carries three families. Issue #156.
+	$(PYTHON) tools/conformance_sweep.py
 
 claims: ## Claims-parity gate: docs/CLAIMS.md manifest <-> doc claim tags <-> witnesses
 	# Every load-bearing accuracy claim in the prose docs is a matched

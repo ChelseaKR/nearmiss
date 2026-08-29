@@ -53,6 +53,34 @@ const UNSAFE = [
   /(?:^|[;\s])(?:text-align|clear)\s*:\s*(?:left|right)/i,
 ];
 
+// A detector that stops matching passes forever and says nothing. No page in this
+// repository carries a `style="..."` attribute today, so the inline scan below inspects
+// zero elements on every run and could not tell a broken pattern from a clean page.
+// These witnesses fail loudly if a pattern stops recognising what it exists to reject,
+// or starts rejecting the logical properties it exists to encourage. They are the only
+// evidence that a green run here means anything.
+function assertDetector(name, patterns, mustMatch, mustNotMatch) {
+  for (const sample of mustMatch) {
+    if (!patterns.some((re) => re.test(sample))) {
+      console.error(`rtl: the ${name} detector no longer matches "${sample.trim()}"; it would pass over a real violation.`);
+      process.exit(1);
+    }
+  }
+  for (const sample of mustNotMatch) {
+    if (patterns.some((re) => re.test(sample))) {
+      console.error(`rtl: the ${name} detector rejects "${sample.trim()}", which is direction-safe; it would fail correct CSS.`);
+      process.exit(1);
+    }
+  }
+}
+
+assertDetector(
+  "inline-style",
+  UNSAFE,
+  ["margin-left: 1rem", "left: 0", "float: right", "text-align: left", "padding-right:2px"],
+  ["margin-inline-start: 1rem", "inset-inline-end: 0", "text-align: start", "color: left-over"]
+);
+
 const violations = [];
 for (const el of document.querySelectorAll("[style]")) {
   const style = el.getAttribute("style") || "";
@@ -72,6 +100,13 @@ const CSS_UNSAFE = [
   /(?:^|[;{\s])float\s*:\s*(?:left|right)\b/i,
   /(?:^|[;{\s])(?:text-align|clear)\s*:\s*(?:left|right)\b/i,
 ];
+
+assertDetector(
+  "linked-CSS",
+  CSS_UNSAFE,
+  ["  padding-right: 4px;", ".x { left: 0; }", "  float: left;", "  clear: right;"],
+  ["  padding-inline-end: 4px;", "  inset-inline-start: 0;", "  text-align: end;"]
+);
 
 for (const link of document.querySelectorAll('link[rel~="stylesheet"][href]')) {
   const href = link.getAttribute("href") || "";

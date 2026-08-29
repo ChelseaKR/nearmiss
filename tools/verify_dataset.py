@@ -389,13 +389,12 @@ def verify_artifact(
         "HR5": check_hr5(geojson_path, geojson_bytes, sidecar, sidecar_path),
     }
 
-    rules: dict[str, Any] = {
-        rule: {"pass": len(fails) == 0, "failures": fails} for rule, fails in rule_failures.items()
-    }
+    rules: dict[str, Any] = {rule: _rule(fails) for rule, fails in rule_failures.items()}
     verdict = "pass" if all(r["pass"] for r in rules.values()) else "fail"
 
     return {
         "artifact": str(geojson_path),
+        "family": "city_segment_dataset",
         "sidecar": str(sidecar_path) if sidecar_path is not None else None,
         "k_floor": resolved_floor,
         "small_n": small_n,
@@ -405,12 +404,461 @@ def verify_artifact(
     }
 
 
+# ---------------------------------------------------------------------------
+# Family 2: the published FARS state-mode context artifacts.
+#
+# `Makefile`'s conformance target promised to "audit every published dataset
+# against the five hard rules" and then ran this tool over exactly two files,
+# both from the retired Davis/Riverside demo, before echoing that *all* published
+# datasets passed. The only real data this project ships — six NHTSA FARS
+# state-by-mode artifacts and their release index — had never received an HR
+# verdict. Issue #156.
+#
+# The FARS family is not a GeoJSON of segments, so the rules are re-derived for
+# it from the artifact's own *published* contract
+# (`schema/public-fars-state-context.schema.json`, which pins the caveat, the
+# accounting bounds and the per-year provenance) and from the release index
+# (`fars-state-mode-index*.json`, which pins each artifact's byte length and
+# SHA-256). Nothing here is invented: every predicate reads a value the
+# repository already publishes.
+#
+# HR2 is the interesting one. These artifacts publish enumerated crash counts,
+# not estimates, so "no estimate without an interval" has nothing to bind to.
+# That is reported as `not_applicable` with its reason — never as a `pass` — and
+# the not-applicability is *derived*: the artifact is scanned for any
+# estimate-shaped field, and finding one makes HR2 applicable and failing. A rule
+# that cannot be evaluated must not report as satisfied (ADR 0016's discipline,
+# applied to this verifier).
+# ---------------------------------------------------------------------------
+
+#: Rule statuses. `not_applicable` always carries a reason and is never a pass.
+STATUS_PASS = "pass"
+STATUS_FAIL = "fail"
+STATUS_NOT_APPLICABLE = "not_applicable"
+
+#: HR1 for a count-only artifact: no property may present a rate or a risk score.
+_FARS_RATE_TOKENS = frozenset({"rate", "risk", "danger", "score", "threat", "normalized"})
+
+#: HR2: fields that would mean an *estimate* was published and would need an interval.
+_ESTIMATE_TOKENS = frozenset(
+    {
+        "estimate",
+        "estimated",
+        "ci",
+        "interval",
+        "confidence",
+        "lower",
+        "upper",
+        "mean",
+        "median",
+        "projected",
+        "modeled",
+        "modelled",
+        "predicted",
+    }
+)
+
+#: The two published release indexes, newest first. An artifact must be bound by one.
+FARS_INDEX_FILENAMES = (
+    "fars-state-mode-index-v2.json",
+    "fars-state-mode-index.json",
+)
+
+FARS_SCHEMA_FILENAME = "public-fars-state-context.schema.json"
+
+#: The artifact_type every published FARS state-mode file declares.
+FARS_ARTIFACT_TYPE = "nearmiss.public.fars_state_context"
+
+FARS_VERDICT_NOTE = (
+    "This verdict covers the artifact (this FARS state-mode JSON, its release-index "
+    "binding, and its published schema constants) only — not NHTSA's collection, the "
+    "private ingestion that produced it, or any claim about risk. HR2 is reported "
+    "not_applicable with its reason: the artifact publishes enumerated counts, not "
+    "estimates, and it is checked to contain no estimate-shaped field."
+)
+
+
+def _fars_index_release(artifact_path: Path, index_paths: list[Path]) -> tuple[Any, Path | None]:
+    """Return the release record binding ``artifact_path``, and the index it came from."""
+    for index_path in index_paths:
+        if not index_path.exists():
+            continue
+        index = json.loads(index_path.read_text(encoding="utf-8"))
+        releases = index.get("releases") if isinstance(index, dict) else None
+        for release in releases if isinstance(releases, list) else []:
+            if isinstance(release, dict) and release.get("artifact_path") == artifact_path.name:
+                return release, index_path
+    return None, None
+
+
+def _fars_cells(artifact: Any) -> list[tuple[str, dict[str, Any]]]:
+    """Every ``(state_label, cell)`` pair in the artifact, in document order."""
+    states = artifact.get("states") if isinstance(artifact, dict) else None
+    pairs: list[tuple[str, dict[str, Any]]] = []
+    for index, state in enumerate(states if isinstance(states, list) else []):
+        if not isinstance(state, dict):
+            continue
+        label = str(state.get("state_abbreviation") or state.get("state_name") or f"state[{index}]")
+        for cell in state.get("cells", []) if isinstance(state.get("cells"), list) else []:
+            if isinstance(cell, dict):
+                pairs.append((label, cell))
+    return pairs
+
+
+def check_fars_hr1(artifact: Any) -> list[str]:
+    """HR1 — a count-only artifact must publish no rate and must say counts are not risk."""
+    failures: list[str] = []
+    # Deduplicated: the same offending key appears once per cell (306 of them), and 306
+    # identical lines would bury the four other rules' output.
+    for key in sorted(set(_walk_keys(artifact))):
+        hit = _tokens(key) & _FARS_RATE_TOKENS
+        if hit:
+            failures.append(
+                f"property '{key}' names a rate or risk score ({', '.join(sorted(hit))}); "
+                "this artifact publishes counts and must not present them as risk"
+            )
+    caveat = artifact.get("caveat") if isinstance(artifact, dict) else None
+    if not isinstance(caveat, str) or not caveat.strip():
+        failures.append("caveat is missing or empty (counts must be labelled as not risk)")
+    elif "not exposure-normalized risk" not in caveat:
+        failures.append(
+            "caveat does not say the counts are 'not exposure-normalized risk'; HR1 "
+            "requires a raw count to be labelled as volume, never as danger"
+        )
+    return failures
+
+
+def check_fars_hr2(artifact: Any) -> tuple[str, list[str], str]:
+    """HR2 — returns ``(status, failures, reason)``; not applicable to a count-only artifact."""
+    estimate_keys = sorted({key for key in _walk_keys(artifact) if _tokens(key) & _ESTIMATE_TOKENS})
+    if estimate_keys:
+        return (
+            STATUS_FAIL,
+            [
+                f"property '{key}' is estimate-shaped, so HR2 applies and every such value "
+                "must carry a confidence interval and an n"
+                for key in estimate_keys
+            ],
+            "an estimate-shaped field is published",
+        )
+    return (
+        STATUS_NOT_APPLICABLE,
+        [],
+        "the artifact publishes enumerated FARS crash counts, not estimates; no field in "
+        "it is estimate-shaped, so there is no estimate for an interval to attach to",
+    )
+
+
+def check_fars_hr3(artifact: Any, schema: Any) -> list[str]:
+    """HR3 — the limits statement is present and is one the published schema pins."""
+    failures: list[str] = []
+    caveat = artifact.get("caveat") if isinstance(artifact, dict) else None
+    allowed = []
+    if isinstance(schema, dict):
+        caveat_schema = schema.get("properties", {}).get("caveat", {})
+        allowed = caveat_schema.get("enum", []) if isinstance(caveat_schema, dict) else []
+    if not allowed:
+        failures.append(
+            f"the published schema ({FARS_SCHEMA_FILENAME}) pins no caveat text, so the "
+            "limits statement cannot be checked against the contract"
+        )
+    elif caveat not in allowed:
+        failures.append(
+            "caveat is not one of the texts the published schema pins; the bias and "
+            "suppression account may not be silently reworded"
+        )
+    metric = artifact.get("metric") if isinstance(artifact, dict) else None
+    if not isinstance(metric, dict):
+        failures.append("metric block is missing (the counting rule must be named)")
+        return failures
+    if metric.get("modes_non_additive") is not True:
+        failures.append("metric.modes_non_additive is not true; overlapping modes must be declared")
+    if not _is_int(metric.get("effective_k")) or metric["effective_k"] <= 0:
+        failures.append("metric.effective_k is missing or not a positive integer")
+    if not isinstance(metric.get("contribution_unit"), str) or not metric["contribution_unit"]:
+        failures.append("metric.contribution_unit is missing (what one count means must be stated)")
+    return failures
+
+
+def check_fars_hr4(artifact: Any) -> list[str]:
+    """HR4 — every published cell clears the declared k, and a suppressed cell carries no count."""
+    failures: list[str] = []
+    metric = artifact.get("metric") if isinstance(artifact, dict) else {}
+    k = metric.get("effective_k") if isinstance(metric, dict) else None
+    if not _is_int(k) or k <= 0:
+        return ["metric.effective_k is missing, so the k-anonymity floor cannot be applied"]
+    for label, cell in _fars_cells(artifact):
+        mode = cell.get("involved_mode")
+        status = cell.get("status")
+        count = cell.get("crash_count")
+        if status == "published":
+            if not _is_int(count) or count < k:
+                failures.append(
+                    f"{label}/{mode}: published cell has crash_count={count!r}, which does not "
+                    f"clear the declared floor k={k}"
+                )
+        elif status == "suppressed_or_zero":
+            if "crash_count" in cell:
+                failures.append(
+                    f"{label}/{mode}: a suppressed_or_zero cell carries a crash_count, which "
+                    "would defeat the suppression"
+                )
+        else:
+            failures.append(f"{label}/{mode}: unknown cell status {status!r}")
+    return failures
+
+
+def _fars_recomputed_accounting(artifact: Any) -> dict[str, int]:
+    """Recompute the accounting block straight from ``states[].cells[]``."""
+    pairs = _fars_cells(artifact)
+    published = [cell for _, cell in pairs if cell.get("status") == "published"]
+    suppressed = [cell for _, cell in pairs if cell.get("status") == "suppressed_or_zero"]
+    states = artifact.get("states") if isinstance(artifact, dict) else []
+    return {
+        "state_count": len(states) if isinstance(states, list) else 0,
+        "state_mode_cell_count": len(pairs),
+        "published_cell_count": len(published),
+        "suppressed_or_zero_cell_count": len(suppressed),
+        "published_crash_contribution_total": sum(
+            int(cell["crash_count"]) for cell in published if _is_int(cell.get("crash_count"))
+        ),
+    }
+
+
+def check_fars_hr5(
+    artifact_path: Path, artifact_bytes: bytes, artifact: Any, release: Any, index_path: Path | None
+) -> list[str]:
+    """HR5 — the release index binds these exact bytes, and the accounting recomputes."""
+    failures: list[str] = []
+    if not isinstance(release, dict):
+        failures.append(
+            "no published release index binds this artifact (looked for "
+            f"{', '.join(FARS_INDEX_FILENAMES)} beside it); an artifact nothing pins is "
+            "not reproducible"
+        )
+    else:
+        actual_sha = hashlib.sha256(artifact_bytes).hexdigest()
+        recorded_sha = release.get("artifact_sha256")
+        if recorded_sha != actual_sha:
+            failures.append(
+                f"{index_path.name if index_path else 'index'} records artifact_sha256 "
+                f"{recorded_sha!r} but the file hashes to {actual_sha}"
+            )
+        if release.get("artifact_bytes") != len(artifact_bytes):
+            failures.append(
+                f"index records artifact_bytes {release.get('artifact_bytes')!r} but the file "
+                f"is {len(artifact_bytes)} bytes"
+            )
+        if release.get("dataset_year") != artifact.get("dataset_year"):
+            failures.append(
+                f"index binds dataset_year {release.get('dataset_year')!r} to an artifact whose "
+                f"dataset_year is {artifact.get('dataset_year')!r}"
+            )
+
+    accounting = artifact.get("accounting") if isinstance(artifact, dict) else None
+    if not isinstance(accounting, dict):
+        failures.append("accounting block is missing, so the published totals cannot be rechecked")
+        return failures
+    for field, recomputed in _fars_recomputed_accounting(artifact).items():
+        if accounting.get(field) != recomputed:
+            failures.append(
+                f"accounting.{field} is {accounting.get(field)!r} but recomputing it from "
+                f"states[].cells[] gives {recomputed}"
+            )
+    published_total = accounting.get("published_crash_contribution_total")
+    suppressed_total = accounting.get("suppressed_crash_contribution_total")
+    total = accounting.get("crash_contribution_total")
+    if (
+        _is_int(published_total)
+        and _is_int(suppressed_total)
+        and _is_int(total)
+        and published_total + suppressed_total != total
+    ):
+        failures.append(
+            f"accounting: published ({published_total}) + suppressed ({suppressed_total}) "
+            f"!= crash_contribution_total ({total})"
+        )
+    return failures
+
+
+def verify_fars_state_context(
+    artifact_path: Path,
+    index_paths: list[Path] | None = None,
+    schema_path: Path | None = None,
+) -> dict[str, Any]:
+    """Audit one published FARS state-mode artifact against the five hard rules."""
+    artifact_bytes = artifact_path.read_bytes()
+    artifact: Any = json.loads(artifact_bytes)
+
+    if index_paths is None:
+        index_paths = [artifact_path.with_name(name) for name in FARS_INDEX_FILENAMES]
+    if schema_path is None:
+        schema_path = Path(__file__).resolve().parent.parent / "schema" / FARS_SCHEMA_FILENAME
+    schema: Any = None
+    if schema_path.exists():
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+    release, index_path = _fars_index_release(artifact_path, index_paths)
+    hr2_status, hr2_failures, hr2_reason = check_fars_hr2(artifact)
+
+    rules: dict[str, Any] = {
+        "HR1": _rule(check_fars_hr1(artifact)),
+        "HR2": {"status": hr2_status, "failures": hr2_failures, "reason": hr2_reason},
+        "HR3": _rule(check_fars_hr3(artifact, schema)),
+        "HR4": _rule(check_fars_hr4(artifact)),
+        "HR5": _rule(check_fars_hr5(artifact_path, artifact_bytes, artifact, release, index_path)),
+    }
+    rules["HR2"]["pass"] = hr2_status == STATUS_PASS
+    verdict = "pass" if all(rule["status"] != STATUS_FAIL for rule in rules.values()) else "fail"
+    return {
+        "artifact": str(artifact_path),
+        "family": "fars_state_context",
+        "index": str(index_path) if index_path is not None else None,
+        "schema": str(schema_path),
+        "verdict": verdict,
+        "rules": rules,
+        "rules_not_applicable": {
+            name: rule["reason"]
+            for name, rule in rules.items()
+            if rule["status"] == STATUS_NOT_APPLICABLE
+        },
+        "note": FARS_VERDICT_NOTE,
+    }
+
+
+def _rule(failures: list[str]) -> dict[str, Any]:
+    """A rule entry carrying both the boolean and the explicit status."""
+    return {
+        "pass": not failures,
+        "status": STATUS_PASS if not failures else STATUS_FAIL,
+        "failures": failures,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Family 3: the corridor companion artifact (`<slug>.corridors.geojson`).
+#
+# `schema/dataset.schema.md` §9 publishes this file as a *secondary* view that
+# ships "in addition to `<city-slug>.geojson`, never instead of it", and the
+# primary sidecar names it back through `corridor_dataset`. It carries `rate`,
+# `rate_ci_low/high`, `n` and the exposure provenance — everything HR1, HR2 and
+# HR4 govern — and the conformance gate had never looked at it while claiming
+# every published dataset passed.
+#
+# HR3 and HR5 are satisfied *through the primary*, which is the contract the
+# schema states; so this verifier requires the two-way binding to exist and the
+# primary itself to pass, rather than demanding a bias statement and a sidecar
+# hash the published contract never asked this file to carry.
+# ---------------------------------------------------------------------------
+
+CORRIDOR_VERDICT_NOTE = (
+    "This verdict covers the corridor companion artifact. Per schema/dataset.schema.md "
+    "§9 it is secondary to the block-level dataset, so HR3 (bias statements, data card) "
+    "and HR5 (reproducibility manifest) are carried by that primary file: they are "
+    "checked here as a required two-way binding to a primary that itself passes, not "
+    "waived."
+)
+
+
+def check_corridor_binding(
+    corridor_path: Path, corridor_geojson: Any, primary_path: Path
+) -> list[str]:
+    """The corridor file must name its primary, and the primary's sidecar must name it back."""
+    failures: list[str] = []
+    metadata = corridor_geojson.get("metadata") if isinstance(corridor_geojson, dict) else None
+    if not isinstance(metadata, dict):
+        return ["top-level 'metadata' foreign member is missing (it must name the primary)"]
+    named = metadata.get("block_level_dataset")
+    if named != primary_path.name:
+        failures.append(
+            f"metadata.block_level_dataset is {named!r}; it must name the block-level dataset "
+            f"({primary_path.name}) this corridor view is secondary to"
+        )
+    if not primary_path.exists():
+        failures.append(f"the named block-level dataset {primary_path.name} does not exist")
+        return failures
+    sidecar_path = primary_path.with_name(f"{primary_path.stem}.metadata.json")
+    if not sidecar_path.exists():
+        failures.append(f"the primary's sidecar {sidecar_path.name} does not exist")
+        return failures
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    if not isinstance(sidecar, dict) or sidecar.get("corridor_dataset") != corridor_path.name:
+        failures.append(
+            f"{sidecar_path.name} does not name {corridor_path.name} in corridor_dataset, so the "
+            "binding this file's HR3/HR5 rely on is one-way"
+        )
+    if not isinstance(metadata.get("maup_note"), str) or not metadata["maup_note"].strip():
+        failures.append(
+            "metadata.maup_note is missing; a coarser aggregation must state the "
+            "Modifiable Areal Unit Problem it introduces"
+        )
+    return failures
+
+
+def verify_corridor_artifact(
+    corridor_path: Path, primary_path: Path | None = None, k_floor: int | None = None
+) -> dict[str, Any]:
+    """Audit one `<slug>.corridors.geojson` against the five hard rules."""
+    corridor_bytes = corridor_path.read_bytes()
+    corridor_geojson: Any = json.loads(corridor_bytes)
+    slug = corridor_path.name.split(".corridors.geojson")[0]
+    if primary_path is None:
+        primary_path = corridor_path.with_name(f"{slug}.geojson")
+
+    primary_verdict: dict[str, Any] | None = None
+    if primary_path.exists():
+        primary_verdict = verify_artifact(primary_path, None, k_floor)
+
+    resolved_floor = k_floor if k_floor is not None else DEFAULT_K_FLOOR
+    if k_floor is None and primary_verdict is not None:
+        resolved_floor = int(primary_verdict["k_floor"])
+    small_n = int(primary_verdict["small_n"]) if primary_verdict is not None else DEFAULT_SMALL_N
+
+    features = _features(corridor_geojson)
+    binding = check_corridor_binding(corridor_path, corridor_geojson, primary_path)
+    if primary_verdict is not None and primary_verdict["verdict"] != "pass":
+        binding.append(
+            f"the block-level dataset {primary_path.name} does not pass HR1-HR5, so this "
+            "secondary view cannot inherit its bias statements or its manifest"
+        )
+
+    rules: dict[str, Any] = {
+        "HR1": _rule(check_hr1(features)),
+        "HR2": _rule(check_hr2(features, small_n)),
+        "HR3": _rule(binding),
+        "HR4": _rule(check_hr4(features, resolved_floor)),
+        "HR5": _rule(binding),
+    }
+    verdict = "pass" if all(rule["status"] != STATUS_FAIL for rule in rules.values()) else "fail"
+    return {
+        "artifact": str(corridor_path),
+        "family": "city_corridor_view",
+        "primary": str(primary_path),
+        "primary_verdict": primary_verdict["verdict"] if primary_verdict else None,
+        "k_floor": resolved_floor,
+        "small_n": small_n,
+        "verdict": verdict,
+        "rules": rules,
+        "note": CORRIDOR_VERDICT_NOTE,
+    }
+
+
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="verify_dataset.py",
         description="Audit a nearmiss-style GeoJSON against the five hard rules (HR1-HR5).",
     )
-    parser.add_argument("geojson", type=Path, help="Path to the <slug>.geojson to verify.")
+    parser.add_argument("geojson", type=Path, help="Path to the artifact to verify.")
+    parser.add_argument(
+        "--family",
+        choices=("auto", "city", "corridor", "fars"),
+        default="auto",
+        help=(
+            "Artifact family. 'auto' (default) reads the file: a <slug>.corridors.geojson is "
+            "the corridor companion view, a nearmiss.public.fars_state_context object is the "
+            "FARS state-mode family, anything else is a city segment dataset."
+        ),
+    )
     parser.add_argument(
         "--metadata",
         "--sidecar",
@@ -432,12 +880,31 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def detect_family(path: Path) -> str:
+    """Classify an artifact by what it is, not by where it sits."""
+    if path.name.endswith(".corridors.geojson"):
+        return "corridor"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return "city"
+    if isinstance(payload, dict) and payload.get("artifact_type") == FARS_ARTIFACT_TYPE:
+        return "fars"
+    return "city"
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
     if not args.geojson.exists():
         print(f"error: artifact not found: {args.geojson}", file=sys.stderr)
         return 2
-    verdict = verify_artifact(args.geojson, args.metadata, args.k_floor)
+    family = args.family if args.family != "auto" else detect_family(args.geojson)
+    if family == "fars":
+        verdict = verify_fars_state_context(args.geojson)
+    elif family == "corridor":
+        verdict = verify_corridor_artifact(args.geojson, None, args.k_floor)
+    else:
+        verdict = verify_artifact(args.geojson, args.metadata, args.k_floor)
     json.dump(verdict, sys.stdout, indent=2, sort_keys=True)
     sys.stdout.write("\n")
     return 0 if verdict["verdict"] == "pass" else 1

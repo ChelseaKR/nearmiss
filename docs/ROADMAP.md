@@ -100,9 +100,15 @@ failure mode this paragraph exists to prevent, arriving from the other side.
 - Approve the preregistered scoring rule with a real statistician after the
   evaluation window; fixture success is not predictive-validity evidence.
 - Mint a DOI (Zenodo or equivalent) against a shipped tag and fill in
-  `CITATION.cff`'s `doi:` field — the marker now carries this issue's
-  reference (`TODO(#184)`, satisfying CQ-34's no-bare-marker gate) but the DOI
-  itself is not yet minted. PyPI Trusted Publishing and the signed tag
+  `CITATION.cff`'s `doi:` field. **The DOI is not currently tracked by an open
+  issue**: `CITATION.cff:68` carries `TODO(#184)`, which satisfies CQ-34's
+  no-bare-marker gate, but #184 was closed on 2026-08-23 and was about the README
+  and ROADMAP's stale tag claims, not about minting a DOI. Opening a live issue for
+  the DOI and repointing the marker at it is an owner action. This is also the one
+  thing CQ-34 cannot see: `tools/check_debt_markers.py` is offline by design, so it
+  checks that a marker *carries* an issue reference, never that the issue exists, is
+  open, or is about the marker — a limit now stated in that tool's docstring rather
+  than left implicit. The DOI itself is not yet minted. PyPI Trusted Publishing and the signed tag
   workflow are done: `nearmiss-safety` 0.3.0, 0.3.1, and 0.4.0 are published,
   and v0.2.0, v0.3.0, v0.3.1, and v0.4.0 each cut a signed GitHub Release with
   an SBOM and a SLSA attestation (2026-08-08 and 2026-08-16).
@@ -112,3 +118,37 @@ failure mode this paragraph exists to prevent, arriving from the other side.
 These are review/account/data gates, not missing deterministic implementation.
 They stay visible here and in their owning artifacts until the named evidence
 exists.
+
+## Dormant, and declared so
+
+Built, tested, contracted, and reachable from nothing. Recorded here rather than left in
+the third state a reader cannot classify — not a stub, not shipped, not declared. Issue
+#182.
+
+<!-- claim:county-drilldown-dormant -->
+The **county drill-down** — seven modules under `src/nearmiss/`
+(`fars_county_public_index`, `fars_county_publication`, `fars_county_feasibility`,
+`fars_county_projection`, `fars_county_boundary_publication`, `fars_county_crosswalk`,
+`fars_county_crosswalk_review`), three build tools
+(`tools/build_fars_county_crosswalk.py`, `tools/build_fars_county_public_index.py`,
+`tools/build_us_county_boundaries.py`), eight test modules, three published contract
+documents and ADR 0014 — is **planned and not yet in service**. No `make` target, no CI
+job, and no entry in `tools/build_site.py`'s published-file allowlist reaches any of it,
+and `data/published/` holds no county artifact. The published FARS layer is 51
+state-level jurisdictions across 2020-2024; counties: zero.
+
+The blocker is a human step, not missing code:
+[`docs/PRIVATE-COUNTY-CROSSWALK-REVIEW.md`](PRIVATE-COUNTY-CROSSWALK-REVIEW.md) requires
+a reviewer to clear every `pending-review` row by hand, and an unresolved row blocks
+county projection.
+[`docs/COUNTY-DRILLDOWN-IMPLEMENTATION-PLAN.md`](COUNTY-DRILLDOWN-IMPLEMENTATION-PLAN.md)
+names Virginia as the first pilot and says it "must pass before any public claim of
+nationwide geographic coverage". No pilot has produced an artifact, so no such claim is
+made anywhere.
+
+Nothing is deleted and nothing is promised. `make verify` still lints, type-checks and
+tests all of it, which is the maintenance cost this declaration makes visible rather than
+removes. Every module and tool above carries a `DORMANT:` paragraph in its own docstring,
+and `tests/test_county_drilldown_dormant.py` fails if any of them becomes reachable from
+a pipeline entry point — so this claim cannot quietly outlive the state it describes.
+<!-- /claim:county-drilldown-dormant -->

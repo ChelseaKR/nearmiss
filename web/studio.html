@@ -28,6 +28,23 @@
     <link rel="stylesheet" href="/web/brand.css" />
     <link rel="stylesheet" href="/web/workflow.css" />
     <link rel="stylesheet" href="/web/interface.css" />
+    <noscript>
+      <!--
+        Issue #157. Both tools on this page run entirely in the browser, so with
+        scripting off the form renders and does nothing. Silently inert controls
+        invite a reader to conclude the site is broken, or worse, that they ran a
+        check they did not run. The two forms are hidden and the <noscript> block at
+        the top of <main> says why. This stylesheet is parsed only when scripting is
+        disabled, so it costs a scripted reader nothing.
+      -->
+      <style>
+        .readiness-form,
+        .claim-form,
+        .claim-result {
+          display: none !important;
+        }
+      </style>
+    </noscript>
     <title>NearMiss Studio — check the evidence before the claim</title>
   </head>
   <body class="workflow-page">
@@ -71,6 +88,44 @@
     </header>
 
     <main id="main" class="workflow-main">
+      <noscript>
+        <section class="noscript-fallback" aria-labelledby="studio-noscript-heading">
+          <h2 id="studio-noscript-heading">The readiness check and claim compiler need JavaScript</h2>
+          <p>
+            Both tools run entirely inside your browser: the file you point at is read locally, and
+            it is never uploaded, stored, or sent anywhere. That is also why they cannot work with
+            JavaScript turned off or blocked. The two forms are hidden here rather than left on the
+            page inert, so that nothing suggests a check has run when none has.
+          </p>
+          <p lang="es">
+            La verificación de preparación y el compilador de afirmaciones necesitan JavaScript.
+            Ambos funcionan solo en su navegador y nunca envían su archivo a ningún servidor.
+          </p>
+          <p>
+            The readiness screen is a preflight heuristic, not the analysis, and the sentence it
+            produces is bounded draft language rather than a computed result. What it would have
+            told you is written out in full here:
+          </p>
+          <ul>
+            <li>
+              <a href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/DECISION-DOSSIER.md"
+                >Decision dossier contract</a
+              >
+              — the evidence tiers, what each one supports, and what it explicitly cannot.
+            </li>
+            <li>
+              <a href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/METHODOLOGY.md"
+                >Methodology</a
+              >
+              — the denominator, interval, and sensitivity checks a rate claim has to pass.
+            </li>
+            <li>
+              <a href="https://github.com/ChelseaKR/nearmiss/blob/main/docs/ADAPTING.md">Adapting</a>
+              — running the real analysis over your own city from the command line.
+            </li>
+          </ul>
+        </section>
+      </noscript>
       <ol class="evidence-chain" aria-label="Evidence-to-action chain">
         <li><span class="chain-step">Source</span><strong>Inspect what you have</strong></li>
         <li><span class="chain-step">Boundary</span><strong>Name what is missing</strong></li>
@@ -205,6 +260,7 @@
         <section id="claim-result" class="claim-result" aria-labelledby="claim-result-heading" hidden>
           <h3 id="claim-result-heading" tabindex="-1">Permitted claim</h3>
           <p id="claim-output" class="claim-output"></p>
+          <p id="claim-basis" class="claim-basis"></p>
           <div class="claim-boundary">
             <article>
               <h4>What this supports</h4>

@@ -15,6 +15,20 @@ id = "bikemaps"
 name = "BikeMaps.org"
 url = "https://bikemaps.org"
 license = "BikeMaps.org public data; see https://bikemaps.org/terms for reuse terms."
+# Issue #186. docs/DATA-CARD.md asserted "CC BY 4.0 / permitted with attribution" for
+# this source while this manifest -- the machine-readable record it is supposed to
+# render -- said only "see bikemaps.org/terms". Nothing in this repository establishes
+# redistribution rights for BikeMaps records, so the honest status is `undetermined`,
+# not `publishable`. Reading bikemaps.org/terms and reducing it to a citable statement
+# (with the retrieval date, the way the SimRa row was corrected on 2026-08-07) is what
+# moves this. Until then no BikeMaps-derived data may be published from here.
+#
+# Separately, and independent of the licence: the live BikeMaps extract measured on
+# 2026-08-04 (docs/REAL-DATA.md) held 6,222 reports worldwide, of which 0 fell inside
+# the `davis` bbox and 1 inside `sacramento`. Coverage, not adapter count, is the
+# binding constraint on a real-data path here.
+publication_status = "undetermined"
+publication_note = "Nothing in this repository establishes redistribution rights for BikeMaps records: the source's own terms page is cited but has not been read into a citable statement here, and no SPDX identifier is claimed for it. Treat as not publishable until it is."
 bias_label = "self-selected app-user cyclists, skewed toward confident/regular riders"
 
 # --- bias profile ------------------------------------------------------------

@@ -23,6 +23,15 @@ url = "https://github.com/simra-project/dataset"
 # the repository's separate terms of use. Re-check before any commercial deployment
 # or before merging SimRa into a dataset published under different terms.
 license = "SimRa dataset (TU Berlin); CC BY-NC 4.0 <https://creativecommons.org/licenses/by-nc/4.0/>, plus an explicit additional grant for journalistic use; subject to the terms of use in the simra-project/dataset repository."
+# Issue #186. The NonCommercial clause was recorded here and the conclusion drawn in
+# docs/DATA-CARD.md ("No SimRa-derived data is currently published from this
+# repository"), but nothing at the adapter level said so -- the framework shipped a
+# source it had already decided it cannot publish from, and only a reader of all three
+# of DATA-CARD.md, REAL-DATA.md and this file could see it. The same NonCommercial
+# reasoning is what docs/REAL-DATA.md uses to refuse a SeeClickFix adapter, so applying
+# it to a registered source is consistency, not a new position.
+publication_status = "research_only"
+publication_note = "CC BY-NC 4.0. The NonCommercial clause survives aggregation, so a dataset merging SimRa reports is not distributable under Apache-2.0 alone. Local and research analysis is fine; publishing derived data from this repository is not, unless and until the project takes a written position on whether aggregate statistics over CC BY-NC records constitute redistribution."
 bias_label = "app-recruited cyclists in a handful of instrumented regions, near-miss-only"
 
 # --- bias profile ------------------------------------------------------------

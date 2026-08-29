@@ -30,6 +30,35 @@
     <link rel="stylesheet" href="/web/us-coverage-studio.css" />
     <link rel="stylesheet" href="/web/brand.css" />
     <link rel="stylesheet" href="/web/interface.css" />
+    <noscript>
+      <!--
+        Issue #157. Seven regions of this page were pinned to "Loading the reviewed
+        artifact…" / "Loading state evidence…" in the static shell and only ever
+        replaced by script. With scripting off they said "Loading" forever, so a
+        reader could not tell "still fetching" from "the fetch failed" from "your
+        browser will never run this" — the same failure this project names
+        everywhere else: rendering an unknown as something else.
+
+        Everything hidden here is a control or a surface that only script can fill.
+        The static shell's headings, intros, limits, and the provenance links stay,
+        and the <noscript> block at the top of <main> states the situation and links
+        the published artifacts directly. This stylesheet is parsed only when
+        scripting is disabled, so it costs a scripted reader nothing.
+      -->
+      <style>
+        .coverage-filters,
+        .filter-scope,
+        .view-navigation,
+        .studio-layout,
+        .brief-builder,
+        .ledger-controls,
+        .coverage-table-wrap,
+        #coverage-status,
+        #state-profile {
+          display: none !important;
+        }
+      </style>
+    </noscript>
   </head>
   <body class="coverage-page">
     <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
@@ -75,6 +104,61 @@
     </header>
 
     <main id="main">
+      <noscript>
+        <section class="noscript-fallback" aria-labelledby="noscript-heading">
+          <h2 id="noscript-heading">This page needs JavaScript to draw the atlas</h2>
+          <p>
+            The map, matrix, rank, comparison, state profile and evidence ledger on this page are
+            rendered in your browser from published JSON files. With JavaScript turned off or
+            blocked they cannot be drawn, so they are hidden rather than left saying
+            &ldquo;Loading&rdquo;. Nothing is wrong with the data and nothing is still being
+            fetched. The files themselves are public, stable, and linked below.
+          </p>
+          <p lang="es">
+            Esta página necesita JavaScript para dibujar el atlas. Los datos son públicos y
+            estables: los archivos publicados están enlazados abajo.
+          </p>
+          <p>
+            <strong>Read them with this rule.</strong> A cell marked
+            <code>suppressed_or_zero</code> is <em>not</em> a zero. It combines a true zero with a
+            positive count below the publication floor of k=10, and it must never be read, summed,
+            or charted as zero. Counts are fatal-crash burden, not exposure-normalized risk: they
+            do not account for population, trips, miles, or exposure.
+          </p>
+          <ul>
+            <li>
+              <a href="/data/published/fars-state-mode-index-v2.json"
+                >Release index (start here: it lists every year, with each artifact&rsquo;s byte
+                length and SHA-256)</a
+              >
+            </li>
+            <li><a href="/data/published/fars-2020-state-mode.json">2020 state × mode counts</a></li>
+            <li><a href="/data/published/fars-2021-state-mode.json">2021 state × mode counts</a></li>
+            <li><a href="/data/published/fars-2022-state-mode.json">2022 state × mode counts</a></li>
+            <li><a href="/data/published/fars-2023-state-mode.json">2023 state × mode counts</a></li>
+            <li>
+              <a href="/data/published/fars-2024-state-mode-r2.json"
+                >2024 state × mode counts (revision 2, the current 2024 artifact)</a
+              >
+            </li>
+            <li>
+              <a href="/data/published/fars-release-corrections.json"
+                >Release correction ledger (what changed between the 2024 revisions, and why)</a
+              >
+            </li>
+            <li>
+              <a href="/data/published/us-state-boundaries-2024.json"
+                >US state boundaries (geometry only; it carries no counts)</a
+              >
+            </li>
+          </ul>
+          <p>
+            Each artifact carries its own <code>caveat</code> field stating these limits in full,
+            plus the NHTSA source, its SHA-256, and the accounting totals, so the file can be
+            checked without this page.
+          </p>
+        </section>
+      </noscript>
       <section id="studio" class="studio-section" aria-labelledby="studio-heading">
         <div class="section-heading-row">
           <div>

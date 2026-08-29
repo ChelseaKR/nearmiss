@@ -671,14 +671,33 @@ denominators retain their own licenses and terms; consult `exposure_source` /
 interchangeable. Apache-2.0 covers this project's code, schema, and methods. It cannot
 relicense somebody else's data, and an adapter does not launder a source's terms.
 
-| Source | License | Redistribution of derived data |
+The rows below are **quoted from the machine-readable crosswalk manifests**
+(`src/nearmiss/adapters/crosswalks/<id>.toml`), not restated from memory, and
+`tests/test_source_publication_status.py` fails if this table and those manifests
+disagree. That parity gate exists because the two had already drifted: this table
+asserted "CC BY 4.0 / permitted with attribution" for BikeMaps.org while
+`bikemaps.toml` claimed only "see https://bikemaps.org/terms for reuse terms" — the same
+unbacked-licence defect the SimRa row was corrected for on 2026-08-07 (issue #186).
+
+| Source | `publication_status` | License, verbatim from the crosswalk |
 |---|---|---|
-| BikeMaps.org | CC BY 4.0 | Permitted with attribution |
-| SimRa | CC BY-**NC** 4.0 | NonCommercial condition survives aggregation |
+| BikeMaps.org | `undetermined` | BikeMaps.org public data; see https://bikemaps.org/terms for reuse terms. |
+| SimRa (TU Berlin) | `research_only` | SimRa dataset (TU Berlin); CC BY-NC 4.0 <https://creativecommons.org/licenses/by-nc/4.0/>, plus an explicit additional grant for journalistic use; subject to the terms of use in the simra-project/dataset repository. |
+
+`publication_status` is a required, closed-vocabulary field on every registered source
+(`publishable` / `research_only` / `undetermined`; see
+`nearmiss.adapters.base.PUBLICATION_STATUSES`) and must carry a note saying on what basis
+it was reached. **Neither registered source is `publishable` today**, which is the real
+state of the adapter framework: two sources, zero paths from a real source to a published
+artifact. Every committed city dataset (`davis`, `riverside`) is synthetic.
 
 The NonCommercial condition on SimRa is load-bearing: a published dataset containing SimRa
 reports is not distributable under Apache-2.0 alone, and aggregation does not dissolve the
-clause. No SimRa-derived data is currently published from this repository. Before publishing
+clause. No SimRa-derived data is currently published from this repository. BikeMaps.org is
+`undetermined` rather than `publishable` because nothing here has read its terms into a
+citable statement; separately, its measured coverage in the target cities is 0 reports in
+the `davis` bbox and 1 in `sacramento` (2026-08-04, see `docs/REAL-DATA.md`), so even a
+resolved licence would not yet yield a publishable real-data path. Before publishing
 any dataset that merges incident sources, check each source's license individually and record
 the most restrictive terms that apply to the merged result; see the licensing checklist in
 CONTRIBUTING.md.

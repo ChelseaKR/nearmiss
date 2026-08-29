@@ -26,6 +26,17 @@ A marker is satisfied by an issue reference on the same line: `(#142)` or a full
 That is the standard's own wording, and it is the whole point — the marker is allowed to
 exist as long as the work behind it is tracked somewhere a reader can open.
 
+**What this gate cannot confirm, stated rather than left implicit.** It is offline by
+design, so it checks that a marker *carries* an issue reference — never that the issue
+exists, is open, or is about the marker. The repository's one live marker is the current
+example: `CITATION.cff:68` reads `TODO(#184)` and passes, but #184 was closed on
+2026-08-23 and was about the README and ROADMAP's stale tag claims, not about minting a
+DOI. So the DOI is presently tracked by no open issue while the gate is green. That is a
+real blind spot, and closing it would mean a network call from a gate whose whole value
+is that it is fast, local, and identical in CI — a trade this tool declines. The
+disposition is recorded in `docs/ROADMAP.md` under "Open review and owner actions" so the
+gap is visible where a reader will meet it, rather than inferred from a green tick.
+
 CQ-35 (no `type: ignore` / `# noqa` without a code *and* an issue reference) is the same
 grep shape and is **not** implemented here. This repository has roughly two dozen such
 suppressions, all of which already carry a rule code and most a written justification, so

@@ -330,8 +330,17 @@ Accessibility is enforced the same way lint, types, tests, and security are enfo
 that blocks the merge.
 
 - The **axe** automated pass is a required status check. A new color-only legend, an unlabeled
-  field, a contrast regression, or a table that loses its header semantics **fails the build**,
-  and the pull request cannot merge until it is fixed.
+  field, or a table that loses its header semantics **fails the build**, and the pull request
+  cannot merge until it is fixed.
+- **A contrast regression does not.** This list said it did until 2026-08-28, and it could not:
+  `color-contrast` is disabled in every axe run this repository performs (`web/axe_check.mjs`
+  and `web/us_coverage_check.mjs`, both `rules: { "color-contrast": { enabled: false } }`),
+  because jsdom has no layout or canvas to compute rendered contrast against, and no other
+  test computes it. § 6.1 already said so plainly; this section contradicted it. Contrast is
+  reasoned about from the documented CSS tokens (`docs/BRAND.md`) and is a **manual** item, not
+  a gate. `tests/test_accessibility_claims.py::test_no_document_claims_contrast_is_gated_while_the_rule_is_off`
+  now fails if this claim comes back while the rule stays off — and equally, if the rule is ever
+  enabled, that is the moment to say so here.
 - The gate sits alongside the other CI gates already committed to in the README — ruff, mypy
   `--strict`, pytest, security (pip-audit, gitleaks, CodeQL), pinned and hashed deps — so an
   accessibility regression is exactly as much of a blocker as a failing test or a leaked secret.

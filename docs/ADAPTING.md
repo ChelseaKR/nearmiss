@@ -24,12 +24,53 @@ layer is not optional.
 
 ## Table of contents
 
+0. [Before you start: the binding constraint is sourcing, not adapters](#0-before-you-start-the-binding-constraint-is-sourcing-not-adapters)
 1. [The three inputs you supply](#1-the-three-inputs-you-supply)
 2. [Writing a city config](#2-writing-a-city-config)
 3. [Address-only reports: the offline gazetteer geocoder](#3-address-only-reports-the-offline-gazetteer-geocoder)
 4. [Running it](#4-running-it)
 5. [What you still have to do yourself (honestly)](#5-what-you-still-have-to-do-yourself-honestly)
 6. [A minimal checklist](#6-a-minimal-checklist)
+
+---
+
+## 0. Before you start: the binding constraint is sourcing, not adapters
+
+Read this first if you arrived from
+[#161 (add a source adapter)](https://github.com/ChelseaKR/nearmiss/issues/161) or
+[#162 (adapt nearmiss to a second city)](https://github.com/ChelseaKR/nearmiss/issues/162).
+Neither issue says what actually blocks a real-data path here, and it is not the number of
+adapters. A new incident source only helps if it clears **both** of these, and the registry's
+two existing sources clear neither today:
+
+1. **Redistribution rights you can cite**, not merely access. Every registered source
+   declares `publication_status` in its crosswalk
+   (`src/nearmiss/adapters/crosswalks/<id>.toml`; the closed vocabulary is in
+   `nearmiss.adapters.base.PUBLICATION_STATUSES`). **SimRa** is `research_only`: its
+   CC BY-NC 4.0 NonCommercial clause survives aggregation, so nothing derived from it can
+   be published from this repository. **BikeMaps.org** is `undetermined`: its crosswalk
+   cites the source's terms page and nothing here has read that page into a citable
+   statement, so no licence is claimed for it. `docs/REAL-DATA.md` already refuses a
+   SeeClickFix adapter on exactly the NonCommercial reasoning that binds SimRa; the same
+   reasoning applies to a source that is already registered.
+
+2. **Coverage in a city you can also get exposure for.** Measured 2026-08-04
+   (`docs/REAL-DATA.md`): the live BikeMaps extract held 6,222 reports worldwide, of which
+   **0** fell inside the `davis` bbox and **1** inside `sacramento`. The densest US box was
+   Phoenix-Tempe at 126. An adapter over a source with no records in your city produces a
+   dataset with nothing in it.
+
+The result is that the framework currently has **two adapters and zero paths from a real
+source to a published artifact**; every committed city dataset (`davis`, `riverside`) is
+synthetic. `docs/REAL-DATA.md` names the open path plainly: "the exposure half of this
+recipe is the half that works in California... Pairing a California exposure layer with a
+non-BikeMaps incident source is the open path." That pairing, not another adapter, is the
+contribution that unblocks a real city.
+
+None of this makes the rest of this guide moot. A city whose reports you collect yourself
+(the intake form, an advocacy group's own records) has no third-party licence problem at
+all, and that is the shortest real path through this document. Issue #186 tracks the
+sourcing decision itself.
 
 ---
 

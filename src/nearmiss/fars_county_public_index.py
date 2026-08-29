@@ -6,6 +6,16 @@ both their exact bytes and the exact public geometry bytes they require.  This
 module intentionally knows nothing about the site build or browser: it validates
 a reviewable static release set and refuses private paths, unpinned JSON, and
 silent revision replacement.
+
+DORMANT: this module is not wired to any pipeline. No `make` target, no CI job, and no
+entry in `tools/build_site.py`'s published-file allowlist reaches it, and no county
+artifact exists under `data/published/`. It is fully implemented, contract-documented
+and tested, and it produces nothing, because the pilot it was built for is blocked on a
+human step: `docs/PRIVATE-COUNTY-CROSSWALK-REVIEW.md` requires a reviewer to clear every
+`pending-review` row by hand, and an unresolved row blocks county projection. The state
+is declared rather than left ambiguous -- see the `county-drilldown-dormant` claim in
+`docs/CLAIMS.md` and issue #182. `tests/test_county_drilldown_dormant.py` fails if this
+module becomes reachable, so the declaration cannot go stale in either direction.
 """
 
 from __future__ import annotations
