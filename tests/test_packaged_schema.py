@@ -31,6 +31,8 @@ from __future__ import annotations
 
 import importlib.metadata
 import importlib.util
+import os
+import re
 import subprocess
 import sys
 import tomllib
@@ -60,6 +62,58 @@ def build_backend_available() -> bool:
     return importlib.util.find_spec("build.__main__") is not None
 
 
+# PyPI's `build` lives in the `release` extra, so `build_backend_available()` is false
+# on every machine that has not opted in. That made the wheel test skip in CI (which
+# never installs the extra) and skip in .github/workflows/release.yml too, because
+# that job runs `make verify` at line 103 and installs `build` at line 109: the suite
+# is over before the front-end arrives. A test that runs in no environment at all is
+# the failure this module's own docstring describes, one level up. Setting
+# NEARMISS_REQUIRE_BUILD=1 turns the skip into a hard failure, and release.yml sets it
+# on a step placed after the install, so the one job that can run this test must.
+REQUIRE_BUILD = os.environ.get("NEARMISS_REQUIRE_BUILD") == "1"
+
+
+def _skip_unless_build_backend() -> None:
+    if build_backend_available():
+        return
+    reason = "PyPI's `build` distribution is not installed (a `build/` directory is not it)"
+    if REQUIRE_BUILD:
+        pytest.fail(f"NEARMISS_REQUIRE_BUILD=1 but {reason}", pytrace=False)
+    pytest.skip(reason)
+
+
+def test_release_workflow_runs_the_wheel_test_after_installing_the_backend() -> None:
+    """The claim in the comment above is checked here rather than believed.
+
+    A require-flag protects nothing if no workflow sets it, and an ordering fix
+    silently comes undone when someone moves a step. So: release.yml must set the
+    flag as a real env key, must run this module under it, and both must come after
+    the step installing the build front-end.
+
+    The env key is matched line-anchored rather than as a substring on purpose. The
+    first version of this test asked ``"NEARMISS_REQUIRE_BUILD" in workflow``, and
+    renaming the key to ``NEARMISS_REQUIRE_BUILD_DISABLED`` left it green: the name
+    also appears in the comment block above, so the check could never have gone red.
+    """
+    workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    env_key = re.search(r'^\s+NEARMISS_REQUIRE_BUILD:\s*"1"\s*$', workflow, re.M)
+    assert env_key is not None, (
+        'release.yml no longer sets NEARMISS_REQUIRE_BUILD: "1" as a step env key, so '
+        "the wheel test is back to skipping in every environment that exists"
+    )
+    install_at = workflow.find('python -m pip install "build')
+    assert install_at != -1, "release.yml no longer installs the build front-end"
+    assert install_at < env_key.start(), (
+        "release.yml sets NEARMISS_REQUIRE_BUILD before it installs `build`, so the "
+        "step it guards would fail for want of the front-end rather than run"
+    )
+    run_at = workflow.find("pytest tests/test_packaged_schema.py", env_key.end())
+    assert run_at != -1, (
+        "release.yml sets NEARMISS_REQUIRE_BUILD but does not run "
+        "tests/test_packaged_schema.py under it, so nothing reads the flag"
+    )
+
+
 def test_force_include_ships_the_schema_directory() -> None:
     """pyproject must copy the root schema/ tree into the package."""
     cfg = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
@@ -84,8 +138,7 @@ def test_the_skip_guard_is_not_satisfied_by_the_output_directory() -> None:
 @pytest.mark.slow
 def test_built_wheel_contains_report_schema(tmp_path: Path) -> None:
     """Build a real wheel and assert the runtime contract is inside it."""
-    if not build_backend_available():
-        pytest.skip("PyPI's `build` distribution is not installed (a `build/` directory is not it)")
+    _skip_unless_build_backend()
     subprocess.run(
         [sys.executable, "-m", "build", "--wheel", "--outdir", str(tmp_path)],
         cwd=ROOT,
