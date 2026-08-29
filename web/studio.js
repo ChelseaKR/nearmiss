@@ -33,17 +33,36 @@
       next: "Conduct a documented field audit or collect aligned exposure data.",
     },
     2: {
-      claim: "The observed report rate at {place} is elevated in the stated observation window.",
+      // Issue #155. This read "The observed report rate at {place} is elevated in the
+      // stated observation window." — a flat empirical assertion, issued from three
+      // unverified checkboxes and a row count, with no rate, denominator, interval or
+      // comparison computed anywhere on this page. The readiness summary for the same
+      // run was already careful ("can support ... after contract and sensitivity checks
+      // pass"); the copyable sentence was the assertive one. The claim now speaks in the
+      // summary's voice and carries the condition it depends on.
+      claim: "If the declared exposure denominator is temporally and spatially aligned with these reports, they can support a statement that the observed report rate at {place} is elevated in the stated observation window — after the interval and sensitivity checks in docs/METHODOLOGY.md are run and pass.",
       supports: "Scoping a treatment conversation or deeper study when the denominator, interval, and sensitivity checks travel with the claim.",
-      cannot: "Causation, individual fault, a guaranteed safety benefit, or an unqualified comparison outside the analysis window.",
-      next: "Seek an independent evidence track and preregister how any follow-up change will be evaluated.",
+      cannot: "That the rate IS elevated (nothing here computed one), causation, individual fault, a guaranteed safety benefit, or an unqualified comparison outside the analysis window.",
+      next: "Compute the rate and its interval against the declared denominator, seek an independent evidence track, and preregister how any follow-up change will be evaluated.",
     },
     3: {
-      claim: "Independent evidence supports prioritizing {place} for further action.",
+      claim: "If the declared independent outcome source agrees on the same place and window, these reports can support prioritizing {place} for the stated next action.",
       supports: "Advancing a named decision while preserving each source, uncertainty statement, and evaluation commitment.",
-      cannot: "That one intervention is proven to be best, that observational agreement establishes cause, or that future harm will certainly decline.",
-      next: "Name the decision owner, requested action, baseline, follow-up window, and comparison strategy.",
+      cannot: "That the agreement has been verified here (it has not), that one intervention is proven to be best, that observational agreement establishes cause, or that future harm will certainly decline.",
+      next: "Verify the independent source against the same place and window, then name the decision owner, requested action, baseline, follow-up window, and comparison strategy.",
     },
+  };
+
+  // What produced a tier, written out so it travels with the sentence. Tiers 2 and 3
+  // rest on operator declarations that this page cannot check and on a row count; no
+  // rate, denominator, interval or comparison is computed here. Saying so in the copied
+  // text is the difference between draft language and a claim that collapses the first
+  // time an agency asks "elevated relative to what?".
+  var TIER_BASIS = {
+    0: "Basis: the uploaded file's own location and date columns. Nothing was computed.",
+    1: "Basis: {rows} rows with a usable location, read in this browser. No rate, denominator, interval, or comparison was computed.",
+    2: "Basis: {rows} rows with a usable location and date, plus two unverified declarations on this page (an aligned exposure denominator, and a completed human data-quality review). No rate, denominator, interval, or comparison was computed here.",
+    3: "Basis: {rows} rows with a usable location and date, plus three unverified declarations on this page (an aligned exposure denominator, a completed human data-quality review, and an independent official outcome source). No rate, denominator, interval, comparison, or source agreement was computed here.",
   };
   var HANDOFF_PREFIX = "nearmiss:studio-handoff:";
 
@@ -246,10 +265,11 @@
     };
   }
 
-  function compileClaim(tier, place, use) {
+  function compileClaim(tier, place, use, result) {
     var numericTier = Number(tier);
     var template = CLAIMS[numericTier] || CLAIMS[0];
     var safePlace = String(place || "the named corridor").trim() || "the named corridor";
+    var rowCount = result && Number.isFinite(result.rowCount) ? String(result.rowCount) : "the";
     var useActions = {
       field_audit: "Frame the request as an investigation step, with the evidence gap stated.",
       staff_memo: "Carry the source, observation window, and strongest caveat into the memo.",
@@ -259,6 +279,7 @@
     return {
       tier: numericTier,
       claim: template.claim.replace("{place}", safePlace),
+      basis: (TIER_BASIS[numericTier] || TIER_BASIS[0]).replace("{rows}", rowCount),
       supports: template.supports,
       cannot: template.cannot,
       next: template.next + " " + (useActions[use] || useActions.field_audit),
@@ -281,6 +302,7 @@
       lines.push((finding.ready ? "READY" : "GAP") + " — " + finding.label + ": " + finding.detail);
     });
     lines.push("", "Recommended next step: " + result.next);
+    lines.push((TIER_BASIS[result.tier] || TIER_BASIS[0]).replace("{rows}", String(result.rowCount)));
     return lines.join("\n");
   }
 
@@ -469,9 +491,11 @@
       currentClaim = compileClaim(
         currentResult.tier,
         claimPlace.value,
-        document.getElementById("claim-use").value
+        document.getElementById("claim-use").value,
+        currentResult
       );
       document.getElementById("claim-output").textContent = currentClaim.claim;
+      document.getElementById("claim-basis").textContent = currentClaim.basis;
       document.getElementById("claim-supports").textContent = currentClaim.supports;
       document.getElementById("claim-cannot").textContent = currentClaim.cannot;
       document.getElementById("claim-next").textContent = currentClaim.next;
@@ -499,7 +523,8 @@
       if (!currentClaim) return;
       copyText(
         [
-          "Permitted claim: " + currentClaim.claim,
+          "Permitted claim (draft language, tier " + currentClaim.tier + "): " + currentClaim.claim,
+          currentClaim.basis,
           "Supports: " + currentClaim.supports,
           "Does not support: " + currentClaim.cannot,
           "Next action: " + currentClaim.next,

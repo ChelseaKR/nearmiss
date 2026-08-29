@@ -68,7 +68,7 @@
         claim: bounded.claim,
         action: bounded.next,
         cannot: bounded.cannot,
-        sourceLabel: "Browser-local Studio handoff · tier set by readiness screen · no report data included",
+        sourceLabel: "Browser-local Studio handoff · tier set by unverified declarations on the readiness screen · no rate, denominator, or interval computed · no report data included",
       };
     } catch (_error) {
       return null;

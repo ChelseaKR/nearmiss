@@ -75,6 +75,47 @@ if (
   die("claim compiler lost its permitted language, boundary, or next action");
 }
 
+// Issue #155. Tiers 2 and 3 are set by unverified checkboxes and a row count; nothing on
+// this page computes a rate, a denominator, an interval, or a comparison. The sentence
+// they hand an advocate must therefore be conditional and must carry what produced it.
+// The old tier-2 template asserted "The observed report rate at {place} IS elevated" for
+// ten rows and three ticks, and "Copy claim and boundary" put that on the clipboard.
+for (const [tier, condition] of [
+  [2, "denominator"],
+  [3, "independent"],
+]) {
+  const bounded = studioApi.compileClaim(tier, "Mercer Avenue", "field_audit", { rowCount: 10 });
+  if (!bounded.claim.startsWith("If ")) {
+    die(`tier ${tier} claim asserts a result this page never computed: ${bounded.claim}`);
+  }
+  if (!bounded.claim.includes(condition)) {
+    die(`tier ${tier} claim dropped the condition it depends on`);
+  }
+  if (tier === 2 && !bounded.claim.includes("is elevated in the stated observation window")) {
+    die("tier 2 claim lost the statement it is conditioning");
+  }
+  if (tier === 2 && !bounded.claim.includes("METHODOLOGY")) {
+    die("tier 2 claim no longer points at the checks it defers to");
+  }
+  if (!bounded.basis || !bounded.basis.includes("No rate, denominator, interval")) {
+    die(`tier ${tier} claim travels without the basis that produced it`);
+  }
+  if (!bounded.basis.includes("unverified declarations")) {
+    die(`tier ${tier} basis does not say the declarations behind it are unchecked`);
+  }
+  if (!bounded.basis.includes("10 rows")) {
+    die(`tier ${tier} basis does not report the row count it rests on`);
+  }
+}
+
+const flatAssertion = studioApi.compileClaim(2, "Mercer Avenue", "field_audit");
+if (flatAssertion.claim === "The observed report rate at Mercer Avenue is elevated in the stated observation window.") {
+  die("the tier-2 flat empirical assertion is back in circulation");
+}
+if (!studio.window.document.querySelector("#claim-basis")) {
+  die("Studio has nowhere to render the basis beneath the permitted claim");
+}
+
 if (
   studio.window.document.querySelector('input[type="file"]')?.getAttribute("accept") !==
     ".csv,.json,text/csv,application/json" ||
@@ -138,7 +179,9 @@ const studioDraft = dossierApi.dossierFromQuery(
 if (
   studioDraft.tier !== 2 ||
   studioDraft.place !== "Mercer Avenue" ||
-  studioDraft.claim !== "The observed report rate at Mercer Avenue is elevated in the stated observation window."
+  studioDraft.claim !== studioApi.compileClaim(2, "Mercer Avenue", "field_audit").claim ||
+  !studioDraft.claim.startsWith("If ") ||
+  !studioDraft.sourceLabel.includes("no rate, denominator, or interval computed")
 ) {
   die("Studio handoff did not regenerate the canonical tier-bounded dossier draft");
 }
