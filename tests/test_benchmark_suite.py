@@ -7,6 +7,7 @@ recovers sane, documented numbers.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -22,6 +23,57 @@ from benchmarks import generator, scorer  # noqa: E402
 
 CONFIG_NAMES = sorted(p.stem for p in (BENCH / "configs").glob("*.json"))
 FROZEN_FILES = ("streets.geojson", "exposure.json", "reports.json", "ground_truth.json")
+
+# The published manifest. Every test below is parametrized over CONFIG_NAMES, and
+# pytest's default for an empty parameter set is to SKIP: a configs/ directory that
+# lost its files would take the whole frozen-city comparison with it and still exit
+# 0. A shrunk directory is worse, because it is invisible even in the skip report.
+# Measured on this tree: deleting five of the six configs took the module from 20
+# passed to 10 passed, exit 0 both times. So the set is pinned to the regime table
+# in benchmarks/README.md, which is what the suite publishes to anyone scoring a
+# tool against it.
+README = BENCH / "README.md"
+_REGIME_ROW = re.compile(r"^\|([^|]*)\|", re.M)
+
+
+def _documented_regimes() -> set[str]:
+    """Regime names from the first column of benchmarks/README.md's Regimes table.
+
+    One row names two cities (``maup_fine`` / ``maup_coarse``), so every backticked
+    name in the cell counts, not just the first.
+    """
+    section = README.read_text(encoding="utf-8").split("## Regimes", 1)[1].split("\n## ", 1)[0]
+    names: set[str] = set()
+    for cell in _REGIME_ROW.findall(section):
+        names.update(re.findall(r"`([a-z_]+)`", cell))
+    return names
+
+
+def test_the_benchmark_suite_is_the_one_the_readme_publishes() -> None:
+    """Configs, frozen cities and the README's regime table name one same set.
+
+    Guards three ways the golden comparison goes quiet without failing: the glob
+    matching nothing, the glob matching fewer files than it used to, and a city
+    shipping without a config (or the reverse) so one of the two halves of the
+    comparison is missing.
+    """
+    documented = _documented_regimes()
+    assert documented, (
+        f"no regime names parsed from {README}; the table this suite is pinned to "
+        "moved or changed shape, so the pin is not checking anything"
+    )
+    configs = set(CONFIG_NAMES)
+    cities = {path.name for path in (BENCH / "cities").iterdir() if path.is_dir()}
+    assert configs == documented, (
+        f"benchmarks/configs/*.json is {sorted(configs)}; benchmarks/README.md "
+        f"publishes {sorted(documented)}. A config added or removed without the "
+        "table is a benchmark nobody scoring a tool against this suite can see."
+    )
+    assert cities == documented, (
+        f"benchmarks/cities/ holds {sorted(cities)}; benchmarks/README.md "
+        f"publishes {sorted(documented)}. A frozen city and its config must both "
+        "exist or the byte-for-byte comparison below has nothing to compare."
+    )
 
 
 @pytest.mark.parametrize("name", CONFIG_NAMES)
