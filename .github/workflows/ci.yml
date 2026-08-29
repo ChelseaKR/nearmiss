@@ -113,7 +113,7 @@ jobs:
       # two disagree, which is how this repository's committed lock reached `main`
       # describing `nearmiss 0.2.0` while pyproject.toml declared `nearmiss-safety 0.3.1`.
       - name: Set up uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
         with:
           enable-cache: false
 
@@ -458,13 +458,13 @@ jobs:
       # action auto-scopes each language's SARIF to its own code-scanning category, so no manual
       # `category:` override is needed (and would be wrong once >1 language is configured).
       - name: Initialize CodeQL (python, javascript, actions)
-        uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3  # v4.37.6
+        uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28  # v4.37.8
         with:
           languages: python, javascript, actions
           queries: security-extended
 
       - name: Analyze with CodeQL
-        uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3  # v4.37.6
+        uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28  # v4.37.8
         with:
           # Keep the normal code-scanning upload and also retain local SARIF so
           # this required job makes its own merge-blocking pass/fail decision.
