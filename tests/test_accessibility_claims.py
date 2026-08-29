@@ -346,3 +346,70 @@ def test_the_acr_report_date_is_published_where_the_cadence_is_claimed() -> None
             f"{path.relative_to(ROOT)} claims a release cadence for the ACR without stating "
             f"the ACR's actual report date ({report_date})"
         )
+
+
+# --- 5. Contrast is not gated, so no document may say a contrast regression fails ---
+#
+# `docs/ACCESSIBILITY.md` § 6.1 said, correctly, that colour contrast is switched off in
+# the axe run and that "a measured pass against the rendered page has not been performed".
+# § 7 of the same file listed "a contrast regression" among the things that **fail the
+# build**. Both cannot be true, and the second one could not be: `color-contrast` is
+# disabled in every axe invocation this repository makes, and nothing else computes it.
+# A required check that is structurally incapable of firing is the failure this whole file
+# exists to prevent, and it had reached the document a Section 508 reviewer reads first.
+#
+# This is written so it works in both directions. While the rule is off, no document may
+# claim contrast is gated. Enable the rule and the premise disappears, at which point the
+# claim becomes legal again — and saying so here is what makes the test a statement about
+# the tree rather than a hard-coded prohibition.
+
+AXE_RUNNERS = (ROOT / "web" / "axe_check.mjs", ROOT / "web" / "us_coverage_check.mjs")
+
+_CONTRAST_DISABLED = re.compile(r'"color-contrast"\s*:\s*\{\s*enabled:\s*false\s*\}')
+
+_GATED = re.compile(
+    r"(?i)\b(fails the build|merge[- ]blocking|required status check|blocks the merge"
+    r"|cannot merge|gate)\b"
+)
+
+
+def _contrast_rule_is_disabled_everywhere() -> bool:
+    runners = [path for path in AXE_RUNNERS if path.exists()]
+    assert runners, "no axe runner found; the premise of this check cannot be evaluated"
+    return all(_CONTRAST_DISABLED.search(_read(path)) for path in runners)
+
+
+def test_the_contrast_rule_is_still_disabled_in_every_axe_run() -> None:
+    """Guard the guard: this is the premise the next test reasons from."""
+    for path in AXE_RUNNERS:
+        assert _CONTRAST_DISABLED.search(_read(path)), (
+            f"{path.name} no longer disables color-contrast. If contrast is now genuinely "
+            "evaluated, update docs/ACCESSIBILITY.md § 6.1 and § 7 to say so."
+        )
+
+
+@pytest.mark.parametrize("path", CLAIM_BEARING_DOCS, ids=lambda p: p.name)
+def test_no_document_claims_contrast_is_gated_while_the_rule_is_off(path: Path) -> None:
+    if not _contrast_rule_is_disabled_everywhere():
+        pytest.skip("the contrast rule is enabled somewhere; the prohibition no longer applies")
+    offenders = [
+        sentence
+        for sentence in _sentences(_read(path))
+        if "contrast" in sentence.lower()
+        and _GATED.search(sentence)
+        and not _NEGATED.search(sentence)
+    ]
+    assert offenders == [], (
+        f"{path.name} says a contrast failure is gated, but `color-contrast` is disabled in "
+        "every axe run and nothing else computes it, so no contrast regression can fail any "
+        "build:\n  - " + "\n  - ".join(offenders)
+    )
+
+
+def test_the_axe_runner_does_not_claim_contrast_is_checked_elsewhere() -> None:
+    """The success line used to say "color-contrast checked separately". Nothing checks it."""
+    source = _read(ROOT / "web" / "axe_check.mjs")
+    assert "color-contrast checked separately" not in source, (
+        "web/axe_check.mjs tells the reader contrast is checked somewhere else; no check "
+        "in this repository computes contrast"
+    )
