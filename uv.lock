@@ -1415,7 +1415,7 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "msgpack", marker = "extra == 'dev'", specifier = ">=1.2.1" },
     { name = "mutmut", marker = "extra == 'mutation'", specifier = ">=3.7.0" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=2.3.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=2.3.1" },
     { name = "nbclient", marker = "extra == 'teaching'", specifier = ">=0.11.0" },
     { name = "nbconvert", marker = "extra == 'teaching'", specifier = ">=7.17.1" },
     { name = "packaging", marker = "extra == 'dev'", specifier = ">=26.3" },
