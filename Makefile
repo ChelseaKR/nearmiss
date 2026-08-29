@@ -137,12 +137,44 @@ security: ## Scan deps (pip-audit), history for secrets (gitleaks), and workflow
 	# release (pip-audit would error on it, and --strict treats a skip as an
 	# error), so audit from the hashed dev lock instead of the live environment.
 	$(PYTHON) -m pip_audit --strict --require-hashes --disable-pip -r requirements-dev.lock
-	@command -v gitleaks >/dev/null 2>&1 \
-		&& gitleaks detect --no-banner --redact --source . \
-		|| echo "security: gitleaks not found (it is a Go binary, not a pip dep); install it to enable the secret scan. CI runs it."
-	@command -v zizmor >/dev/null 2>&1 \
-		&& zizmor --min-severity=high .github/workflows/ \
-		|| echo "security: zizmor not found (pip install zizmor, or see https://woodruffw.github.io/zizmor/); install it to check workflow YAML locally. CI's zizmor job runs it as a merge-blocking gate."
+	# A `command -v tool && tool ... || echo "not found"` chain cannot tell
+	# "the tool is absent" from "the tool ran and reported a finding": a real
+	# finding took the `||` branch, printed "not found", and the recipe exited 0.
+	# `make security` was therefore green over a reported secret, while saying
+	# the scanner was missing. Absence and failure are now separate outcomes and
+	# only absence is survivable. Set SECURITY_REQUIRE_SCANNERS=1 to make absence
+	# fail too — what a release or an audited run should do.
+	# Regression guards: tests/test_security_gate_recipe.py (runs these very
+	# lines against a stub scanner) and tests/test_makefile_gates.py (rejects the
+	# swallow shape anywhere in this file).
+	@rc=0; \
+	if command -v gitleaks >/dev/null 2>&1; then \
+		gitleaks detect --no-banner --redact --source . || rc=$$?; \
+		if [ "$$rc" -ne 0 ]; then \
+			echo "security: gitleaks FAILED (exit $$rc) — that is a finding, not a missing tool." >&2; \
+			exit "$$rc"; \
+		fi; \
+		echo "security: gitleaks ran over the committed history and reported nothing."; \
+	elif [ "$${SECURITY_REQUIRE_SCANNERS:-0}" = "1" ]; then \
+		echo "security: gitleaks is NOT INSTALLED and SECURITY_REQUIRE_SCANNERS=1 — refusing to report a secret scan that did not run." >&2; \
+		exit 1; \
+	else \
+		echo "security: gitleaks SKIPPED — not installed (it is a Go binary, not a pip dep). No secret scan ran here; CI runs it as a merge-blocking job."; \
+	fi
+	@rc=0; \
+	if command -v zizmor >/dev/null 2>&1; then \
+		zizmor --min-severity=high .github/workflows/ || rc=$$?; \
+		if [ "$$rc" -ne 0 ]; then \
+			echo "security: zizmor FAILED (exit $$rc) — that is a high-severity workflow finding, not a missing tool." >&2; \
+			exit "$$rc"; \
+		fi; \
+		echo "security: zizmor ran over .github/workflows/ and reported nothing at high severity."; \
+	elif [ "$${SECURITY_REQUIRE_SCANNERS:-0}" = "1" ]; then \
+		echo "security: zizmor is NOT INSTALLED and SECURITY_REQUIRE_SCANNERS=1 — refusing to report a workflow scan that did not run." >&2; \
+		exit 1; \
+	else \
+		echo "security: zizmor SKIPPED — not installed (pip install zizmor, or see https://woodruffw.github.io/zizmor/). No workflow scan ran here; CI's zizmor job runs it as a merge-blocking gate."; \
+	fi
 
 axe: ## Deeper accessibility check: run axe-core against the built web page (needs node)
 	cd web && npm ci && npm run axe
