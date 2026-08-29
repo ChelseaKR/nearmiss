@@ -31,18 +31,28 @@ updates:
   # Python — pip ecosystem (requirements.lock, pyproject.toml).
   # Versions stay pinned; Dependabot regenerates the hashes with each bump.
   #
-  # KNOWN, DELIBERATE CONSEQUENCE — every Python version-update PR here needs one
-  # follow-up commit before it can go green, and this is where that is written down
-  # rather than rediscovered per PR.
+  # KNOWN, DELIBERATE CONSEQUENCE — a Python version-update PR that moves a LOCKED
+  # dependency needs one follow-up commit before it can go green, and this is where
+  # that is written down rather than rediscovered per PR.
   #
   # `uv.lock` is committed and gated by `uv lock --check` (CQ-09, the first step of
   # the lint job). The `pip` ecosystem edits `pyproject.toml`'s specifiers and
   # regenerates the pip-tools hashes; it does not know about `uv.lock`. So a bump
   # that is otherwise correct arrives with a drifted `uv.lock` and stops at CQ-09.
-  # Measured 2026-08-24: #202 (hatchling), #203 (ruff), #204 (mypy), #205
-  # (packaging) and #206 (pre-commit) all failed on exactly that step.
+  # Measured 2026-08-24: #203 (ruff), #204 (mypy), #205 (packaging) and #206
+  # (pre-commit) each stopped there, on `make lock-check`. #205 failed twice over:
+  # `requirements-dev.lock` still pinned packaging 26.2 against the new `>=26.3`
+  # specifier, which `tests/test_lock_drift.py` caught in the test job as well.
   #
-  # The remediation is one commit on the Dependabot branch:
+  # #202 (hatchling) is the boundary case, and it is NOT one of them: it is green on
+  # every check, open and unmerged rather than blocked. It moves `[build-system]
+  # requires`, and hatchling appears in neither `uv.lock` nor `requirements-dev.lock`
+  # — build-system requirements are not resolved into either — so there was no drift
+  # for CQ-09 to find. A bump that touches only the build backend needs no follow-up
+  # commit; do not read the rule above as covering every PR this ecosystem opens.
+  #
+  # The remediation, for the four that do need it, is one commit on the Dependabot
+  # branch:
   #
   #     uv lock && make lock-dev     # then commit uv.lock + requirements-dev.lock
   #
