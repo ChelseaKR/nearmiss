@@ -72,7 +72,7 @@ dev = [
   # tools/check_lock_drift.py (CQ-09-equivalent gate for requirements-dev.lock,
   # issue #189) parses version specifiers with this rather than hand-rolling
   # PEP 440 comparison.
-  "packaging>=24.0",
+  "packaging>=26.3",
 ]
 # Advisory mutation testing (backlog #15). Kept in its OWN optional group, NOT in
 # `dev`, so the `make verify` merge gate — and in particular the blocking
