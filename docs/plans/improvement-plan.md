@@ -49,8 +49,9 @@ a missing tool.` and `EXIT=2`. With the real scanners installed: `EXIT=0`. With 
 on `PATH`: `EXIT=0` and two explicit `SKIPPED — not installed ... No secret scan ran
 here` lines; with `SECURITY_REQUIRE_SCANNERS=1`, `EXIT` non-zero.
 
-Guards added: `tests/test_security_gate_recipe.py` executes the real recipe lines from
-the Makefile against stub scanners (8 tests; 6 fail against the pre-fix Makefile), and
+Guards added: `tests/test_gate_recipes.py` executes the real recipe lines from
+the Makefile against stub scanners (8 tests when added; 6 fail against the pre-fix
+Makefile), and
 `tests/test_makefile_gates.py` gains a swallow detector plus its own witnesses.
 
 ### Phase 2 — `make conformance` audited 2 of 10 published artifacts (done, #156)

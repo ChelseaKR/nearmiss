@@ -164,7 +164,7 @@ security: ## Scan deps (pip-audit), history for secrets (gitleaks), and workflow
 	# the scanner was missing. Absence and failure are now separate outcomes and
 	# only absence is survivable. Set SECURITY_REQUIRE_SCANNERS=1 to make absence
 	# fail too — what a release or an audited run should do.
-	# Regression guards: tests/test_security_gate_recipe.py (runs these very
+	# Regression guards: tests/test_gate_recipes.py (runs these very
 	# lines against a stub scanner) and tests/test_makefile_gates.py (rejects the
 	# swallow shape anywhere in this file).
 	@rc=0; \
