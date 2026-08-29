@@ -18,6 +18,32 @@ from pathlib import Path
 from typing import TypedDict
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# The canonical production origin. Every indexable page declares it with
+# <link rel="canonical">, tests/test_build_site.py pins those exact strings,
+# and src/nearmiss/live_site_verifier.py checks the deployed bytes against it.
+# The legacy GitHub Pages origin (CNAME, nearmiss.report) serves the same
+# artifact, so publishing this origin here points a crawler that arrives on the
+# legacy host at the canonical one.
+CANONICAL_ORIGIN = "https://nearmiss.chelseakr.com"
+
+# Routes a search engine is invited to index, as site-root-relative paths.
+#
+# Deliberately excluded, and why:
+#   /web/index.html        legacy redirect shell; carries "noindex, nofollow"
+#   /web/us-coverage.html  byte-identical duplicate of /fars/national/, which
+#                          it declares as its canonical. It cannot carry its
+#                          own robots directive because the builder publishes
+#                          one file at both paths, so a "noindex" here would
+#                          also de-index the canonical route.
+#   /404.html              not-found document; carries "noindex"
+INDEXABLE_ROUTES = (
+    "/",
+    "/dossier/",
+    "/fars/national/",
+    "/studio/",
+)
+
 PUBLIC_WEB_FILES = (
     "index.html",  # Public evidence-to-action gateway; not the former Davis application.
     "us-coverage.html",
@@ -149,6 +175,46 @@ def _verify_fars_releases(source_root: Path) -> None:
     verify_fars_public_release_directory(source_root)
 
 
+def _render_robots() -> str:
+    """Render robots.txt.
+
+    Nothing is disallowed. The two non-indexable HTML surfaces state that in
+    their own markup with a robots meta directive, and a Disallow rule would be
+    counterproductive: a crawler forbidden to fetch the page never reads the
+    directive telling it not to index the page.
+    """
+    return (
+        "# NearMiss publishes a small, reviewed public artifact.\n"
+        f"# Canonical origin: {CANONICAL_ORIGIN}/\n"
+        "# Non-indexable pages carry their own robots meta directive rather\n"
+        "# than a Disallow rule here, so crawlers can still read it.\n"
+        "User-agent: *\n"
+        "Allow: /\n"
+        "\n"
+        f"Sitemap: {CANONICAL_ORIGIN}/sitemap.xml\n"
+    )
+
+
+def _render_sitemap() -> str:
+    """Render sitemap.xml over the indexable routes.
+
+    No <lastmod> is emitted. The element is optional, and the builder has no
+    honest per-route modification date to put in it: the artifact is rebuilt
+    from a single source commit and `make reproduce` requires the output to be
+    byte-stable for that commit, so a build-time date would either churn the
+    hashes on every run or state a date the content did not actually change.
+    An absent lastmod is better than a wrong one.
+    """
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>']
+    lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+    for route in INDEXABLE_ROUTES:
+        lines.append("  <url>")
+        lines.append(f"    <loc>{CANONICAL_ORIGIN}{route}</loc>")
+        lines.append("  </url>")
+    lines.append("</urlset>")
+    return "\n".join(lines) + "\n"
+
+
 def build_site(out: Path, source_sha: str) -> SiteManifest:
     """Build an allowlisted static artifact and return its manifest."""
     if out.exists():
@@ -159,6 +225,8 @@ def build_site(out: Path, source_sha: str) -> SiteManifest:
     _copy_file(ROOT / "404.html", out / "404.html", allowed_root=ROOT)
     _copy_file(ROOT / "CNAME", out / "CNAME", allowed_root=ROOT)
     (out / ".nojekyll").write_text("", encoding="utf-8")
+    (out / "robots.txt").write_text(_render_robots(), encoding="utf-8")
+    (out / "sitemap.xml").write_text(_render_sitemap(), encoding="utf-8")
 
     _copy_allowlist(ROOT / "web", out / "web", PUBLIC_WEB_FILES)
     _write_national_locales(ROOT / "web" / "locales", out / "web" / "locales")
