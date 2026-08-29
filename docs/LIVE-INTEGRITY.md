@@ -30,6 +30,33 @@ CloudFront deployment explicitly excludes and deletes both host-control objects 
 origin, while the live sentinel requires their canonical public URLs to return the reviewed 404
 document.
 
+## Gated is not the same as published
+
+Several merge-blocking gates exercise surfaces this origin does not serve, and that is
+deliberate rather than drift — recorded here because issue #156 showed a reader can only
+find it by reading the deploy allowlist. `web/contract_check.mjs` (run by `npm run
+contract` on every PR) boots `web/davis-demo.html`, `web/app.js`, `web/embed.html` and
+`data/published/davis.geojson`; `tools/a11y_check.py` and `npm run axe` cover
+`web/davis-demo.html`, `web/submit.html` and `web/embed.html`; `make serve` opens the
+Davis methods UI. None of those files appears in `PUBLIC_WEB_FILES`
+(`tools/build_site.py`), so none is deployed, and this sentinel asserts the opposite:
+`RETIRED_PUBLIC_PATH_PROBES` (`src/nearmiss/live_site_verifier.py`) requires
+`/web/davis-demo.html`, `/web/app.js`, `/web/submit.html`,
+`/data/published/davis.geojson` and `/data/published/riverside.geojson` to return the
+reviewed 404.
+
+They are kept as **local, synthetic test surfaces**: the consumer contract, the
+schema-fidelity checks and the accessibility floor are what a fork standing up its own
+city inherits, and retiring the gates with the deployment would retire that guarantee
+too. The rule for reading this repository is therefore: a gate covering a file is
+evidence the file still has a contract, never evidence the origin serves it. What the
+origin serves is exactly `site-manifest.json`, and this sentinel is what proves it.
+
+The deployed locale catalogs are narrowed the same way: `_write_national_locales` in
+`tools/build_site.py` publishes only the `web.coverage.*` subset, so the 112 `web.app.*`
+keys that describe the retired demo UI are gated for parity and completeness but never
+shipped to a browser.
+
 ## Run it on demand
 
 Open **Actions → live integrity sentinel → Run workflow** on `main`. A successful run prints one JSON

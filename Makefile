@@ -183,6 +183,14 @@ rtl: ## G10 RTL smoke: load the web pages under dir="rtl" and reject direction-u
 	cd web && npm ci && npm run rtl
 
 web-check: ## One-install web gate: consumer contracts + axe + RTL-authored CSS scan
+	# GATED IS NOT PUBLISHED. `npm run contract` boots web/davis-demo.html, web/app.js
+	# and web/embed.html against data/published/davis.geojson, and the axe run covers
+	# web/submit.html too. None of those files is in build_site.py's PUBLIC_WEB_FILES
+	# allowlist, and the live sentinel asserts they 404 in production
+	# (RETIRED_PUBLIC_PATH_PROBES). They are retained deliberately as local synthetic
+	# test surfaces: the consumer contract and the accessibility floor are what a fork
+	# standing up its own city inherits. See docs/LIVE-INTEGRITY.md, "Gated is not the
+	# same as published" (issue #156).
 	cd web && npm ci && npm run contract && npm run axe && npm run rtl
 
 i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + BCP-47
@@ -227,10 +235,16 @@ i18n-compile: ## Compile the committed PO catalogs to MO (run after editing a .p
 	$(PYTHON) tools/po2json.py
 	@echo "i18n-compile: refreshed messages.mo (en, es) and web/locales/*.json."
 
-conformance: ## EXP-10: audit every published dataset against the five hard rules (HR1-HR5)
-	$(PYTHON) tools/verify_dataset.py data/published/davis.geojson >/dev/null
-	$(PYTHON) tools/verify_dataset.py data/published/riverside.geojson >/dev/null
-	@echo "conformance: all published datasets pass HR1-HR5 (see tools/verify_dataset.py; forks run it too)."
+conformance: ## EXP-10: audit every published artifact against the five hard rules (HR1-HR5)
+	# This used to run tools/verify_dataset.py over two hard-coded paths — both from
+	# the retired Davis/Riverside demo — and then echo that ALL published datasets
+	# passed. Ten artifacts ship under data/published/; two were audited. The sweep
+	# enumerates the directory instead of naming files, and FAILS on any published
+	# file it cannot classify, so a new artifact is audited or it stops the build.
+	# It also refuses an empty family and an empty sweep: nothing may pass by being
+	# absent. The per-artifact verifier (tools/verify_dataset.py) is unchanged as the
+	# fork-facing entry point and now carries three families. Issue #156.
+	$(PYTHON) tools/conformance_sweep.py
 
 claims: ## Claims-parity gate: docs/CLAIMS.md manifest <-> doc claim tags <-> witnesses
 	# Every load-bearing accuracy claim in the prose docs is a matched
