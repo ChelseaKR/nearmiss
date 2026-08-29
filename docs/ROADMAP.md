@@ -112,3 +112,37 @@ failure mode this paragraph exists to prevent, arriving from the other side.
 These are review/account/data gates, not missing deterministic implementation.
 They stay visible here and in their owning artifacts until the named evidence
 exists.
+
+## Dormant, and declared so
+
+Built, tested, contracted, and reachable from nothing. Recorded here rather than left in
+the third state a reader cannot classify — not a stub, not shipped, not declared. Issue
+#182.
+
+<!-- claim:county-drilldown-dormant -->
+The **county drill-down** — seven modules under `src/nearmiss/`
+(`fars_county_public_index`, `fars_county_publication`, `fars_county_feasibility`,
+`fars_county_projection`, `fars_county_boundary_publication`, `fars_county_crosswalk`,
+`fars_county_crosswalk_review`), three build tools
+(`tools/build_fars_county_crosswalk.py`, `tools/build_fars_county_public_index.py`,
+`tools/build_us_county_boundaries.py`), eight test modules, three published contract
+documents and ADR 0014 — is **planned and not yet in service**. No `make` target, no CI
+job, and no entry in `tools/build_site.py`'s published-file allowlist reaches any of it,
+and `data/published/` holds no county artifact. The published FARS layer is 51
+state-level jurisdictions across 2020-2024; counties: zero.
+
+The blocker is a human step, not missing code:
+[`docs/PRIVATE-COUNTY-CROSSWALK-REVIEW.md`](PRIVATE-COUNTY-CROSSWALK-REVIEW.md) requires
+a reviewer to clear every `pending-review` row by hand, and an unresolved row blocks
+county projection.
+[`docs/COUNTY-DRILLDOWN-IMPLEMENTATION-PLAN.md`](COUNTY-DRILLDOWN-IMPLEMENTATION-PLAN.md)
+names Virginia as the first pilot and says it "must pass before any public claim of
+nationwide geographic coverage". No pilot has produced an artifact, so no such claim is
+made anywhere.
+
+Nothing is deleted and nothing is promised. `make verify` still lints, type-checks and
+tests all of it, which is the maintenance cost this declaration makes visible rather than
+removes. Every module and tool above carries a `DORMANT:` paragraph in its own docstring,
+and `tests/test_county_drilldown_dormant.py` fails if any of them becomes reachable from
+a pipeline entry point — so this claim cannot quietly outlive the state it describes.
+<!-- /claim:county-drilldown-dormant -->

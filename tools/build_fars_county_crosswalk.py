@@ -6,6 +6,12 @@ feasibility artifact without carrying any counts.  Build mode accepts only that
 fully reviewed packet, validates every selected Census identity against the
 pinned private boundary shards, and writes a canonical *private* crosswalk.
 Neither mode can write into the public artifact tree.
+
+DORMANT: no `make` target and no CI job invokes this tool, and it has produced no
+committed artifact. It is kept, tested, and unwired on purpose while the county pilot
+waits on the manual crosswalk review in `docs/PRIVATE-COUNTY-CROSSWALK-REVIEW.md`. See
+the `county-drilldown-dormant` claim in `docs/CLAIMS.md` and issue #182;
+`tests/test_county_drilldown_dormant.py` fails if this becomes reachable.
 """
 
 from __future__ import annotations

@@ -4,6 +4,12 @@
 This tool has no discovery mode. Operators name every candidate state value and
 boundary path relative to a reviewed release root, so an unreviewed file cannot
 be silently added to the browser allowlist.
+
+DORMANT: no `make` target and no CI job invokes this tool, and it has produced no
+committed artifact. It is kept, tested, and unwired on purpose while the county pilot
+waits on the manual crosswalk review in `docs/PRIVATE-COUNTY-CROSSWALK-REVIEW.md`. See
+the `county-drilldown-dormant` claim in `docs/CLAIMS.md` and issue #182;
+`tests/test_county_drilldown_dormant.py` fails if this becomes reachable.
 """
 
 from __future__ import annotations

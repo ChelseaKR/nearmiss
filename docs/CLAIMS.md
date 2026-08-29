@@ -51,3 +51,4 @@ only removes blind spots.
 | `gi-permutation-beside-not-instead` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_gi_permutation.py::test_methodology_describes_what_the_permutation_pass_actually_computes` |
 | `coverage-sims-implemented` | `docs/METHODOLOGY.md` — § 9.2 Interval-coverage checks | `tests/test_coverage_simulation.py::test_byar_poisson_interval_coverage` |
 | `dossier-claim-boundary` | `docs/DECISION-DOSSIER-TEMPLATE.md` — § 2. Claim boundary | `tests/test_dossier.py::test_dossier_is_corridor_specific_and_claim_limited` |
+| `county-drilldown-dormant` | `docs/ROADMAP.md` — § Dormant, and declared so | `tests/test_county_drilldown_dormant.py::test_no_county_module_is_reachable_from_a_pipeline_entry_point` |
