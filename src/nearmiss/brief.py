@@ -533,6 +533,7 @@ def _render_robustness(
 
     _render_exposure_sensitivity(out, bundle, translation, name_of)
     _render_permutation(out, bundle, translation)
+    _render_dependence(out, bundle, translation)
     out.append("")
 
 
@@ -585,6 +586,66 @@ def _render_permutation(
             sig=perm.published_significant_tested,
             alpha=alpha,
             perms=perm.permutations,
+        )
+    )
+
+
+def _render_dependence(
+    out: list[str],
+    bundle: AnalysisBundle,
+    translation: gettext.NullTranslations,
+) -> None:
+    """Append the RR-08 line: how much significance survives dropping independence?
+
+    The published correction is Benjamini-Hochberg, which assumes independence or
+    positive regression dependence. Neighbouring segments share the values inside
+    their overlapping Gi* neighbourhoods, so that assumption is doing work, and
+    this line says how much.
+    """
+    _ = translation.gettext
+    dep = bundle.result.dependence_robustness
+    if dep is None:
+        return
+    alpha = f"{dep.alpha:g}"
+    robust_alpha = f"{dep.dependence_robust_alpha:.4f}"
+    if not dep.evaluated:
+        out.append(
+            _(
+                "- **Significance under dependence.** Not evaluated: this dataset publishes no "
+                "significant cluster, so there was no significance claim whose independence "
+                "assumption could be dropped. That is an unanswered question, not a passed check."
+            )
+        )
+        return
+    if dep.dependence_robust_significant == dep.published_significant:
+        out.append(
+            _(
+                "- **Significance under dependence.** All {sig} of the significant clusters above "
+                "survive a false-discovery correction valid under arbitrary dependence (level "
+                "{robust_alpha} instead of {alpha}, across {tests} simultaneous tests). Their "
+                "significance does not rest on those tests being independent."
+            ).format(
+                sig=dep.published_significant,
+                robust_alpha=robust_alpha,
+                alpha=alpha,
+                tests=dep.tests,
+            )
+        )
+        return
+    out.append(
+        _(
+            "- **Significance under dependence.** Only {robust} of the {sig} significant clusters "
+            "above survive a false-discovery correction valid under arbitrary dependence (level "
+            "{robust_alpha} instead of {alpha}, across {tests} simultaneous tests). Neighbouring "
+            "segments share the values inside their overlapping neighbourhoods, so those tests are "
+            "not independent; read the rest as resting on that assumption. The published flags are "
+            "unchanged."
+        ).format(
+            robust=dep.dependence_robust_significant,
+            sig=dep.published_significant,
+            robust_alpha=robust_alpha,
+            alpha=alpha,
+            tests=dep.tests,
         )
     )
 

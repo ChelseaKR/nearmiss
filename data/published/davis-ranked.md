@@ -8,6 +8,8 @@
 
 **Permutation reference check:** 3 of 5 significant cluster(s) do not clear the 0.05 level against a reference distribution of 999 re-shuffles. Their significance rests on the analytic normal approximation; the published flags are unchanged.
 
+**Dependence robustness check:** 1 of 5 significant cluster(s) survive a false-discovery correction valid under arbitrary dependence (level 0.0161 instead of 0.05, across 12 simultaneous tests). The published flags are unchanged.
+
 | Rank | Segment | Rate /1000 | 95% CI | n | Hotspot |
 | ---: | --- | ---: | --- | ---: | --- |
 | 1 | 5th St (C–D) | 20.00 | 7.30–43.53 | 6 | ★ Gi* z=3.25 |

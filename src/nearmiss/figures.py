@@ -24,6 +24,7 @@ from .stats.maup import (
     RankStability,
     stability_outcome,
 )
+from .stats.multiplicity import DependenceRobustness
 
 _W = 680
 _ROW_H = 26
@@ -124,6 +125,30 @@ def _permutation_note(inference: PermutationInference) -> str:
         f"{alpha} level against a reference distribution of {inference.permutations} re-shuffles. "
         "Their significance rests on the analytic normal approximation; the published flags are "
         "unchanged."
+    )
+
+
+def _dependence_note(robustness: DependenceRobustness) -> str:
+    """One sentence saying how much significance survives dropping independence.
+
+    The published Benjamini-Hochberg correction assumes independence or positive
+    regression dependence; local spatial tests on overlapping neighbourhoods are
+    neither by construction, so how much of the ★ column depends on that
+    assumption belongs beside the ★ column.
+    """
+    if not robustness.evaluated:
+        return (
+            "**Dependence robustness check:** not evaluated. This dataset publishes no "
+            "significant cluster, so no significance claim could have its independence "
+            "assumption dropped. Not a passed check."
+        )
+    alpha = f"{robustness.alpha:g}"
+    robust_alpha = f"{robustness.dependence_robust_alpha:.4f}"
+    return (
+        f"**Dependence robustness check:** {robustness.dependence_robust_significant} of "
+        f"{robustness.published_significant} significant cluster(s) survive a false-discovery "
+        f"correction valid under arbitrary dependence (level {robust_alpha} instead of {alpha}, "
+        f"across {robustness.tests} simultaneous tests). The published flags are unchanged."
     )
 
 
@@ -242,6 +267,8 @@ def render_ranked_md(config: Config, top_n: int = 10) -> str:
         out += [_exposure_note(bundle.result.exposure_sensitivity), ""]
     if bundle.result.gi_permutation is not None:
         out += [_permutation_note(bundle.result.gi_permutation), ""]
+    if bundle.result.dependence_robustness is not None:
+        out += [_dependence_note(bundle.result.dependence_robustness), ""]
     out.append(f"| Rank | Segment | Rate /{per} | 95% CI | n | Hotspot |")
     out.append("| ---: | --- | ---: | --- | ---: | --- |")
     for i, s in enumerate(ranked[:top_n], start=1):
