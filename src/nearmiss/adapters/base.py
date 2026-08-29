@@ -167,6 +167,8 @@ class Crosswalk:
         name = "BikeMaps.org"
         url = "https://bikemaps.org"
         license = "..."
+        publication_status = "publishable" | "research_only" | "undetermined"
+        publication_note = "..."   # on what basis, naming the clause or document
         bias_label = "..."
 
         [source.bias_profile]   # every axis in BIAS_AXES, no exceptions
@@ -203,12 +205,19 @@ class Crosswalk:
 
     ``[source.bias_profile]`` must answer every axis in :data:`BIAS_AXES`;
     :func:`load_crosswalk` rejects a missing, blank, or placeholder answer.
+
+    ``publication_status`` must be one of :data:`PUBLICATION_STATUSES` and carry a
+    substantive ``publication_note``, so what this repository may do with a source's
+    records is answered by the source's own manifest instead of being inferred later
+    from a licence string in a document (issue #186).
     """
 
     source_id: str
     source_name: str
     source_url: str
     license: str
+    publication_status: str
+    publication_note: str
     bias_label: str
     bias_profile: dict[str, str]
     hazard_default: str
@@ -241,6 +250,51 @@ class Crosswalk:
             bias_profile=dict(self.bias_profile),
             counts_by_kind=dict(counts_by_kind or {}),
         )
+
+
+#: What this repository may do with a source's records, answered by the source's own
+#: crosswalk rather than inferred later from a licence string in a doc.
+#:
+#: Issue #186: the registry shipped two adapters and zero publishable real-data paths.
+#: SimRa has abundant data under CC BY-NC 4.0, whose NonCommercial clause survives
+#: aggregation, so `docs/DATA-CARD.md` had already concluded "No SimRa-derived data is
+#: currently published from this repository" — a decision recorded only in a doc, three
+#: files away from the adapter that ships the source. BikeMaps.org's row asserted
+#: "CC BY 4.0" while its own crosswalk claimed only "see https://bikemaps.org/terms for
+#: reuse terms", the exact unbacked-licence defect the SimRa row was corrected for on
+#: 2026-08-07. So the disposition now lives with the source.
+#:
+#: * ``publishable``   — redistribution of derived data is established, and the
+#:                       crosswalk's note says on what basis.
+#: * ``research_only`` — usable for local analysis; derived data must not be published
+#:                       from this repository, and the note says which clause binds.
+#: * ``undetermined``  — nothing in this repository establishes redistribution rights.
+#:                       Not a synonym for "probably fine": it is the honest answer when
+#:                       the terms have not been read and reduced to a citable statement.
+PUBLICATION_STATUSES: tuple[str, ...] = ("publishable", "research_only", "undetermined")
+
+#: A note this short cannot say which clause binds or on what basis.
+_MIN_PUBLICATION_NOTE_CHARS = 40
+
+
+def _load_publication_status(name: str, source: dict[str, Any]) -> tuple[str, str]:
+    """Validate ``publication_status``/``publication_note``; return them as a pair."""
+    status = source.get("publication_status")
+    if status not in PUBLICATION_STATUSES:
+        raise ValueError(
+            f"crosswalk {name!r}: [source] publication_status must be one of "
+            f"{list(PUBLICATION_STATUSES)}, got {status!r}. A source whose redistribution "
+            f"terms have not been established here is 'undetermined', not omitted."
+        )
+    note = source.get("publication_note")
+    if not isinstance(note, str) or len(note.strip()) < _MIN_PUBLICATION_NOTE_CHARS:
+        raise ValueError(
+            f"crosswalk {name!r}: [source] publication_note must say on what basis "
+            f"publication_status={status!r} was reached (at least "
+            f"{_MIN_PUBLICATION_NOTE_CHARS} characters), naming the clause or the "
+            f"document that binds."
+        )
+    return status, note.strip()
 
 
 def _load_bias_profile(name: str, source: dict[str, Any]) -> dict[str, str]:
@@ -321,6 +375,7 @@ def load_crosswalk(name: str) -> Crosswalk:
         if required not in source:
             raise ValueError(f"crosswalk {name!r}: [source] missing required key {required!r}")
     bias_profile = _load_bias_profile(name, source)
+    publication_status, publication_note = _load_publication_status(name, source)
 
     hazard = data.get("hazard_type", {})
     severity = data.get("severity", {})
@@ -361,6 +416,8 @@ def load_crosswalk(name: str) -> Crosswalk:
         source_name=source["name"],
         source_url=source["url"],
         license=source["license"],
+        publication_status=publication_status,
+        publication_note=publication_note,
         bias_label=source["bias_label"],
         bias_profile=bias_profile,
         hazard_default=hazard_default,
