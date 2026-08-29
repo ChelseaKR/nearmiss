@@ -38,7 +38,7 @@ reproduced, not inherited.
 
 | PR | Base | Real merge state | CI reality | Recommendation |
 | --- | --- | --- | --- | --- |
-| #214 | `main` | Merges clean, current with `main` | Only `dco` red, and `dco` is not required | `needs work` |
+| #214 | `main` | Merges clean, current with `main` | Only `dco` red, and `dco` is not required, but a new gate cannot fire | `needs work` |
 | #213 | `main` | Conflicting, but a rebase clears it | Never ran, starved by the conflict | `merge after rebase` |
 | #212 | `main` | Conflicting, but a rebase clears it | Never ran, starved by the conflict | `merge after rebase` |
 | #207 | `main` | Clean | All required checks green | `merge` |
@@ -154,9 +154,49 @@ become testable the moment they are rebased.
   zero artifacts fails. That is the right shape, and it anticipates the exact
   defect class the pull request is named for.
 
-  One defect, described below, is in a comment this pull request adds.
+  Ten of the twelve commits were checked by reverting the fixed file to its
+  pre-fix content and re-running the paired test, so the gates were shown to go
+  red as well as green. All ten hold up. Two do not fully, and both are described
+  below.
 
-**The defect: a measured claim that is not true.** The pull request adds a block
+  Two smaller notes that do not change the recommendation:
+  `Makefile` line 167 cites a regression guard at
+  `tests/test_security_gate_recipe.py`, which does not exist; the real file is
+  `tests/test_gate_recipes.py`. And `51f9a66`'s `publication_status` is a
+  declaration gate, not an enforcement one: nothing in the publish path reads the
+  field yet. The commit does not claim otherwise, but it is worth knowing.
+
+**Defect 1, and the most serious thing in this queue: the new dormancy witness
+cannot fail on the path that matters.** Commit `e6f88e0` adds
+`tests/test_county_drilldown_dormant.py`, whose
+`test_no_county_module_is_reachable_from_a_pipeline_entry_point` is the gate that
+holds up the new `county-drilldown-dormant` claim. Its candidate set is:
+
+```python
+ENTRY_POINTS = (
+    ROOT / "Makefile",
+    *sorted((ROOT / ".github" / "workflows").glob("*.yml")),
+    ROOT / "tools" / "build_site.py",
+)
+```
+
+That omits `src/nearmiss/__main__.py`, which is **the** pipeline entry point:
+`pyproject.toml` declares `nearmiss = "nearmiss.__main__:main"` under
+`[project.scripts]`, and the file is 1516 lines carrying `publish`, `analyze`,
+`run`, `pipeline`, `brief`, `figures` and the rest. A county module wired
+directly into the real command-line interface would leave the witness green.
+
+This was confirmed empirically, not inferred: wiring
+`publish_fars_county_context` into `src/nearmiss/__main__.py` and re-running the
+file leaves **all 15 tests passing**, including the one whose entire job is to
+fail when exactly that happens.
+
+That is the "candidate set that makes failure unreachable" shape, reproduced
+inside the pull request whose title is about gates that could not fire. The claim
+in `docs/ROADMAP.md` is currently true, so nothing is being misreported today;
+the problem is that the witness would not notice when it stopped being true.
+
+**Defect 2: a measured claim that is not true.** The pull request adds a block
 to `.github/dependabot.yml` stating:
 
 > Measured 2026-08-24: #202 (hatchling), #203 (ruff), #204 (mypy), #205
@@ -175,12 +215,17 @@ change to today's `main` and running the gate directly gives
 request that gate cannot reach, which is precisely the failure mode this pull
 request's own title is about.
 
-**Recommendation: `needs work`.** Two things, both small:
+**Recommendation: `needs work`.** Three things:
 
-1. Correct the `.github/dependabot.yml` comment to say #203, #204, #205 and #206,
+1. Add `src/nearmiss/__main__.py` to `ENTRY_POINTS` in
+   `tests/test_county_drilldown_dormant.py`, or better, derive the set from
+   `[project.scripts]` plus the Makefile and workflows so it cannot silently miss
+   the next entry point either. Then re-run the witness and confirm it still
+   passes on the real tree.
+2. Correct the `.github/dependabot.yml` comment to say #203, #204, #205 and #206,
    and to record that #202 is unaffected because a `[build-system].requires` bump
    is outside both lock gates. Do not ship the sentence as written.
-2. Re-sign the twelve commits, for example `git rebase --signoff origin/main`,
+3. Re-sign the twelve commits, for example `git rebase --signoff origin/main`,
    then force-push. `dco` is advisory here, but CONTRIBUTING.md requires a
    sign-off on every commit, and merging twelve unsigned ones would make the
    policy untrue rather than merely unenforced.
@@ -394,7 +439,8 @@ action needed there.
    `make docs-audit` and commit the regenerated
    `docs/DOCUMENTATION-AUDIT.md`**, because #212's merge changed the tree counts
    this branch also edits.
-7. **#214** (`needs work` first). Fix the `.github/dependabot.yml` sentence, then
+7. **#214** (`needs work` first). Widen `ENTRY_POINTS` so the dormancy witness
+   can fail, fix the `.github/dependabot.yml` sentence, then
    `git rebase --signoff origin/main` and force-push. After #212 and #213 have
    landed, **run `make docs-audit` and commit the result** before merging, for
    the same reason.
@@ -442,6 +488,14 @@ keep their relative order.
 - That all six Dependabot branches sit three commits behind `main`, merge-base
   `7bd6d8c` (#191).
 - The full test suite on #214: **2013 passed, 1 skipped**.
+- That #214's `ENTRY_POINTS` omits `src/nearmiss/__main__.py`, and that
+  `pyproject.toml` declares that module as the `nearmiss` console script. The gap
+  was then demonstrated by wiring a dormant county module into that file and
+  watching all 15 tests in `tests/test_county_drilldown_dormant.py` stay green.
+- That ten of #214's twelve fixes go red against their pre-fix file and green
+  after, including the conformance sweep, which flags `AL/other_road_user` under
+  `k=10` where the old two-path recipe exited 0.
+- That `Makefile` line 167 names a test file that does not exist.
 - The required-checks list and `strict_required_status_checks_policy: false`,
   read from the `protect-main` ruleset.
 - The exact failing annotations, read from the job logs rather than inferred from
