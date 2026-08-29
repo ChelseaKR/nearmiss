@@ -58,6 +58,32 @@ every entry.
 
 ### Added
 
+- **Whether the ranking survives borrowing strength across segments is now measured (RE-02; sidecar
+  gains `shrinkage_stability`, schema `1.3.0`, additive).** A rate on a sparse, low-exposure block
+  is mostly Poisson noise, so the published order can rest on which quiet block caught a lucky
+  report. `stats/shrinkage.py`, on the new `honest_rates.rates.empirical_bayes_rates`, re-estimates
+  every rate by Marshall's global empirical-Bayes shrinkage (Marshall 1991; Clayton & Kaldor 1987),
+  pulling each toward the overall rate in proportion to how little its own count carries, then
+  re-runs the ranking and the Gi\* + Benjamini-Hochberg significance on the shrunk rates.
+
+  Both committed demos publish `stable`: on `davis` the top segment keeps `0.6353` of its own rate
+  at a mean weight of `0.7891` across 9 rated segments, so its lead is not an artifact of a small
+  denominator. `top_segment_weight` is published beside the verdict precisely so a `stable` earned
+  at a low weight reads as what it is.
+
+  **The published rate and the published order stay raw, deliberately.** METHODOLOGY §6.3 already
+  sets this repository's rule for a model-based adjustment, and shrinkage is one: it assumes the
+  segments are exchangeable draws from one distribution, which is a strong assumption on a street
+  network, and it pulls the extremes in, which is the wrong default for a tool whose job is to find
+  extremes. The decision is
+  [ADR 0020](docs/adr/0020-empirical-bayes-shrinkage-is-a-ranking-check-not-the-published-rate.md).
+
+  The pass refuses rather than passing when there is nothing to compare: a method-of-moments
+  between-segment variance at or below zero means the counts do not distinguish the segments beyond
+  Poisson noise, every rate collapses onto the overall rate, and the artifact publishes
+  `verdict: "not_evaluated"` with that reason. `schema/dataset.schema.md` §10.5 documents every
+  published field. No new configuration keys.
+
 - **How much of the published significance rests on the independence assumption is now measured,
   and on the Davis demo it is most of it (RR-08; sidecar gains `dependence_robustness`, schema
   `1.3.0`, additive).** Benjamini-Hochberg, the published correction, controls the false discovery

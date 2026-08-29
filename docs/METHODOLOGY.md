@@ -375,6 +375,38 @@ segments are flagged so the order is read with its uncertainty, not as bare cert
   single lucky report rocket a quiet segment to the top — is a candidate for future work, not the
   current behavior. The choice of ranking statistic is stated in the brief.
 
+<!-- claim:shrinkage-is-a-check-not-the-published-rate -->
+**What *is* measured is whether the order survives an estimator that does penalize sparsity (RE-02).**
+`stats/shrinkage.py` re-estimates every rate by Marshall's global empirical-Bayes shrinkage
+(`honest_rates.rates.empirical_bayes_rates`; Marshall 1991, Clayton & Kaldor 1987): each segment's
+rate is pulled toward the overall rate in proportion to how little its own count carries, so a rate
+resting on two reports moves a long way and a rate resting on two hundred barely moves. The ranking
+and the Gi\* + Benjamini-Hochberg significance are recomputed on the shrunk rates over the same
+street-network neighborhoods, and the artifact reports whether the published top segment is still
+first, together with the weight it kept on its own rate. It ships in every metadata sidecar under
+`shrinkage_stability` and in the brief and the standalone ranked table. On the committed demos both
+rankings hold: `davis` publishes `stable` with the top segment keeping `0.6353` of its own rate at a
+mean weight of `0.7891` across 9 rated segments, and `riverside` publishes `stable` at a mean weight
+of `0.8825`.
+
+**The published rate and the published ranking stay the raw ones, deliberately.** §6.3 already
+states this repository's rule for a model-based adjustment: a smoothed number looks authoritative
+and can launder a modelling assumption into a fact, so an adjustment that cannot be defended in the
+published number is offered as a labelled sensitivity analysis instead. Shrinkage is exactly such an
+adjustment. It assumes the segments are exchangeable draws from one distribution, which is a strong
+assumption on a street network where a corridor is not a random sample of the city, and it
+deliberately pulls the extremes in, which is the wrong default for a tool whose job is to find
+extremes. No published rate, interval, rank or significance flag changes.
+
+**It can refuse.** The between-segment variance is a method-of-moments estimate and can come out at
+or below zero, meaning the spread across segments is no larger than Poisson noise alone would
+produce. Every segment then shrinks all the way to the overall rate, every shrunk rate is identical,
+and there is no ranking left to compare: the pass publishes `verdict: "not_evaluated"` with that
+stated reason, which is itself a finding about how little the counts distinguish the segments,
+rather than a `stable` it did not earn. The same refusal covers fewer than three rated, publishable
+segments.
+<!-- /claim:shrinkage-is-a-check-not-the-published-rate -->
+
 ### 5.5 Multiplicity
 
 Scanning every segment in a city for "significant" hotspots runs hundreds or thousands of tests;

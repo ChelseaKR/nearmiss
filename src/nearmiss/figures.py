@@ -25,6 +25,7 @@ from .stats.maup import (
     stability_outcome,
 )
 from .stats.multiplicity import DependenceRobustness
+from .stats.shrinkage import ShrinkageStability
 
 _W = 680
 _ROW_H = 26
@@ -124,6 +125,35 @@ def _permutation_note(inference: PermutationInference) -> str:
         f"{inference.published_significant_tested} significant cluster(s) do not clear the "
         f"{alpha} level against a reference distribution of {inference.permutations} re-shuffles. "
         "Their significance rests on the analytic normal approximation; the published flags are "
+        "unchanged."
+    )
+
+
+def _shrinkage_note(stability: ShrinkageStability) -> str:
+    """One sentence saying whether the ranking survives empirical-Bayes shrinkage.
+
+    Sparse segments carry noisy rates, so the top of the table can rest on which
+    quiet block caught a lucky report. This says what happens when every rate is
+    pulled toward the overall rate in proportion to how little it carries.
+    """
+    if not stability.evaluated or stability.baseline_top_segment is None:
+        return (
+            "**Shrinkage stability check:** not evaluated. There was no shrunk ranking to "
+            "compare, either because too few segments are rated or because the counts do not "
+            "distinguish them beyond Poisson noise. Not a passed check."
+        )
+    weight = f"{stability.baseline_top_weight or 0.0:.2f}"
+    if stability.top_segment_survives:
+        return (
+            f"**Shrinkage stability check:** the top-rate segment stays rank 1 after every rate "
+            f"is shrunk toward the overall {stability.global_rate:.2f}; it keeps {weight} of its "
+            f"own rate (top-{stability.k} overlap {stability.topk_overlap:.2f})."
+        )
+    return (
+        f"**Shrinkage stability check:** the top-rate segment falls to rank "
+        f"{stability.shrunk_top_rank} after every rate is shrunk toward the overall "
+        f"{stability.global_rate:.2f}; it keeps only {weight} of its own rate "
+        f"(top-{stability.k} overlap {stability.topk_overlap:.2f}). The published ranking is "
         "unchanged."
     )
 
@@ -249,26 +279,40 @@ def render_bar_svg(config: Config, top_n: int = 10) -> str:
     return "\n".join(parts) + "\n"
 
 
+def _robustness_notes(bundle: AnalysisBundle) -> list[str]:
+    """Every robustness result this dataset carries, one sentence each.
+
+    A reader who downloads the ranked table and never opens the metadata sidecar
+    should still learn what the project's own checks said about the segment at
+    rank 1: whether it survives re-drawing the units, a different denominator, a
+    different reference distribution, dropping the independence assumption, and
+    borrowing strength across segments. Each note is emitted whatever it says,
+    including when the check could not run.
+    """
+    result = bundle.result
+    out: list[str] = []
+    if result.rank_stability is not None:
+        out += [_stability_note(result.rank_stability), ""]
+    if result.exposure_sensitivity is not None:
+        out += [_exposure_note(result.exposure_sensitivity), ""]
+    if result.gi_permutation is not None:
+        out += [_permutation_note(result.gi_permutation), ""]
+    if result.dependence_robustness is not None:
+        out += [_dependence_note(result.dependence_robustness), ""]
+    if result.shrinkage_stability is not None:
+        out += [_shrinkage_note(result.shrinkage_stability), ""]
+    return out
+
+
 def render_ranked_md(config: Config, top_n: int = 10) -> str:
     ranked, names, bundle = _published_ranked(config)
     per = int(config.rate_per)
     out = [f"# Ranked segments — {config.city}", ""]
-    # The provenance and robustness lines travel WITH the artifact. A reader who
-    # downloads a ranked table and never opens the metadata sidecar should still
-    # learn (a) whether these are real reports and (b) what the project's own
-    # robustness checks said about the segment sitting at rank 1 — both of them:
-    # whether it survives re-drawing the units (MAUP) and whether it survives a
-    # different denominator (exposure sensitivity).
+    # The provenance and robustness lines travel WITH the artifact: see
+    # _robustness_notes for what a reader of the standalone table is told.
     if config.dataset_note:
         out += [f"> **{config.dataset_note}**", ""]
-    if bundle.result.rank_stability is not None:
-        out += [_stability_note(bundle.result.rank_stability), ""]
-    if bundle.result.exposure_sensitivity is not None:
-        out += [_exposure_note(bundle.result.exposure_sensitivity), ""]
-    if bundle.result.gi_permutation is not None:
-        out += [_permutation_note(bundle.result.gi_permutation), ""]
-    if bundle.result.dependence_robustness is not None:
-        out += [_dependence_note(bundle.result.dependence_robustness), ""]
+    out += _robustness_notes(bundle)
     out.append(f"| Rank | Segment | Rate /{per} | 95% CI | n | Hotspot |")
     out.append("| ---: | --- | ---: | --- | ---: | --- |")
     for i, s in enumerate(ranked[:top_n], start=1):

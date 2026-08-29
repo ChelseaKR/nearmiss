@@ -36,6 +36,7 @@ from .stats.exposure_sensitivity import to_metadata as exposure_sensitivity_to_m
 from .stats.gi_permutation import to_metadata as gi_permutation_to_metadata
 from .stats.maup import to_metadata as maup_to_metadata
 from .stats.multiplicity import to_metadata as multiplicity_to_metadata
+from .stats.shrinkage import to_metadata as shrinkage_to_metadata
 from .stats.temporal import to_metadata as temporal_to_metadata
 from .versions import DATASET_SCHEMA_VERSION, DATASET_VERSION
 
@@ -459,6 +460,16 @@ def publish(config: Config) -> PublishResult:
         "dependence_robustness": (
             multiplicity_to_metadata(bundle.result.dependence_robustness)
             if bundle.result.dependence_robustness is not None
+            else None
+        ),
+        # RE-02: does the ranking survive borrowing strength across segments? The
+        # published rate stays the raw one (METHODOLOGY §6.3 on model-based
+        # adjustments); this reports whether shrinking every rate toward the overall
+        # rate keeps the same segment on top. `evaluated: false` when the
+        # between-segment variance is zero, never a pass.
+        "shrinkage_stability": (
+            shrinkage_to_metadata(bundle.result.shrinkage_stability)
+            if bundle.result.shrinkage_stability is not None
             else None
         ),
         # EXP-05 prototype: segment x part-of-day counts under epsilon-DP noise, instead of
