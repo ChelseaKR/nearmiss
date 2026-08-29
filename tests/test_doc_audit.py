@@ -21,6 +21,7 @@ success about records it no longer inspects. These gates close it from both dire
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import subprocess
@@ -202,3 +203,112 @@ def test_no_gitignored_markdown_reaches_the_inventory() -> None:
         "the audit counted gitignored paths as authored documentation, so its numbers "
         f"describe this checkout rather than the repository: {ignored}"
     )
+
+
+# ---------------------------------------------------------------------------
+# The half of the file the generator does not write.
+#
+# `_splice` copies everything outside the markers through untouched, so the drift
+# check has never had an opinion about the prose. That is the hazard a generated
+# file with hand-authored regions always carries, and it fired in this tool's other
+# port: in `davis-bike-hazard-map` a bad conflict resolution deleted two paragraphs
+# from outside the markers, the only witness was a generated link count falling 96
+# to 95, and the documented repair for a failing count — regenerate — rewrote the
+# count to agree with the deletion. Green gate, real content loss.
+#
+# Reproduced here before it was fixed: deleting the preamble paragraph that carries
+# this file's two relative links moved "494 relative links checked" to 492 and
+# `make docs-audit` made the file self-consistent again; deleting a paragraph with
+# no link in it did not even fail the check.
+# ---------------------------------------------------------------------------
+
+
+def _prose_and_pin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path]:
+    """A working copy of the audit and its pin, so nothing here touches the real files."""
+    audit = tmp_path / "DOCUMENTATION-AUDIT.md"
+    pin = tmp_path / "DOCUMENTATION-AUDIT.narrative.json"
+    shutil.copy2(AUDIT, audit)
+    shutil.copy2(doc_audit.NARRATIVE_PIN, pin)
+    monkeypatch.setattr(doc_audit, "AUDIT", audit)
+    monkeypatch.setattr(doc_audit, "NARRATIVE_PIN", pin)
+    return audit, pin
+
+
+def _delete_a_paragraph(audit: Path, marker: str) -> None:
+    text = audit.read_text(encoding="utf-8")
+    start = text.index(marker)
+    end = text.index("\n\n", start) + 2
+    assert start < text.index(doc_audit.BEGIN), "that paragraph is inside the generated block"
+    audit.write_text(text[:start] + text[end:], encoding="utf-8")
+
+
+def test_the_committed_prose_matches_its_pin() -> None:
+    """`make docs-audit-check`, on the half of the file the generator never writes."""
+    assert doc_audit._narrative_problem(AUDIT.read_text(encoding="utf-8")) is None
+
+
+def test_deleting_prose_with_no_link_in_it_is_caught(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The invisible case. Before the pin this passed, unchanged, with the prose gone."""
+    audit, _ = _prose_and_pin(tmp_path, monkeypatch)
+    _delete_a_paragraph(audit, "## Scope notes")
+    assert doc_audit.main(["--check"]) == 1
+
+
+def test_the_failure_says_the_region_shrank(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A reader has to be told which way it moved: 'smaller' is the case worth re-reading."""
+    audit, _ = _prose_and_pin(tmp_path, monkeypatch)
+    _delete_a_paragraph(audit, "## Scope notes")
+    doc_audit.main(["--check"])
+    error = capsys.readouterr().err
+    assert "got SMALLER" in error
+    assert "Prose was deleted" in error
+
+
+def test_regeneration_refuses_to_launder_a_deletion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The davis failure, exactly: the repair for a failing count must not accept the damage.
+
+    Deleting the paragraph that carries this file's two relative links makes the generated
+    link count wrong, so the drift check fails and tells the reader to regenerate. If
+    regeneration then wrote a smaller count, the deletion would be committed as correct.
+    """
+    audit, _ = _prose_and_pin(tmp_path, monkeypatch)
+    before = audit.read_text(encoding="utf-8")
+    _delete_a_paragraph(audit, "**Everything below the marker is generated")
+    damaged = audit.read_text(encoding="utf-8")
+
+    assert doc_audit.main([]) == 1, "regeneration accepted an unreviewed prose deletion"
+    assert audit.read_text(encoding="utf-8") == damaged, "it rewrote the file anyway"
+    assert "REFUSED to regenerate" in capsys.readouterr().err
+    assert before != damaged
+
+
+def test_accepting_the_prose_is_a_separate_deliberate_step(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An intended edit is not blocked forever; it is recorded where a reviewer sees it."""
+    audit, pin = _prose_and_pin(tmp_path, monkeypatch)
+    _delete_a_paragraph(audit, "## Scope notes")
+    assert doc_audit.main(["--check"]) == 1
+
+    recorded_before = json.loads(pin.read_text(encoding="utf-8"))
+    assert doc_audit.main(["--accept-narrative"]) == 0
+    recorded_after = json.loads(pin.read_text(encoding="utf-8"))
+
+    assert recorded_after["sha256"] != recorded_before["sha256"], "the pin was not updated"
+    assert recorded_after["bytes"] < recorded_before["bytes"], "the deletion is not recorded"
+    assert doc_audit.main(["--check"]) == 0
+
+
+def test_a_missing_pin_is_a_failure_not_a_pass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Deleting the pin must not be a way to make the prose check disappear."""
+    _, pin = _prose_and_pin(tmp_path, monkeypatch)
+    pin.unlink()
+    assert doc_audit.main(["--check"]) == 1

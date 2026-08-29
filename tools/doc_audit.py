@@ -85,6 +85,7 @@ What had to change per repository, i.e. everything a port must review:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -92,12 +93,17 @@ import sys
 import tomllib
 from collections.abc import Iterable
 from pathlib import Path
+from typing import cast
 
 ROOT = Path(__file__).resolve().parent.parent
 AUDIT = ROOT / "docs" / "DOCUMENTATION-AUDIT.md"
 
 BEGIN = "<!-- BEGIN GENERATED: doc-audit (tools/doc_audit.py) -->"
 END = "<!-- END GENERATED: doc-audit -->"
+
+#: Facts about the HAND-AUTHORED half of the audit -- everything outside the markers --
+#: recorded where regeneration cannot reach them. See `_narrative_facts` for why.
+NARRATIVE_PIN = ROOT / "docs" / "DOCUMENTATION-AUDIT.narrative.json"
 
 # Directories that hold generated, vendored, or third-party Markdown. They are
 # counted as a content group so they stay visible without swamping the inventory.
@@ -207,7 +213,13 @@ _CODE_FENCE = re.compile(r"(?ms)^```.*?^```\s*?$")
 
 
 def _relative(path: Path) -> str:
-    return path.relative_to(ROOT).as_posix()
+    # Falls back to the absolute path rather than raising: the tests point AUDIT and
+    # NARRATIVE_PIN at copies under tmp_path, and a failure message that raises while
+    # being formatted is a gate that cannot report.
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def _excluded(rel: str) -> bool:
@@ -440,6 +452,94 @@ def _render() -> str:
     return "\n".join(lines) + "\n"
 
 
+def _narrative(document: str) -> str:
+    """Everything outside the generated markers: the prose a person wrote."""
+    start = document.find(BEGIN)
+    end = document.find(END)
+    if start == -1 or end == -1:
+        raise SystemExit(
+            f"docs/DOCUMENTATION-AUDIT.md is missing the generated-block markers ({BEGIN} … {END})"
+        )
+    return document[:start] + document[end + len(END) + 1 :]
+
+
+def _narrative_facts(text: str) -> dict[str, object]:
+    """Size, shape and digest of the hand-authored region.
+
+    A generated file with hand-authored regions is a distinct hazard, and this repository
+    ported this tool to a project where the hazard fired. In `davis-bike-hazard-map` a bad
+    conflict resolution deleted two paragraphs from the prose *outside* the markers; the
+    only thing that noticed was the generated link count, which fell 96 to 95; and the
+    documented repair for a failing count is `make docs-audit`, which rewrote the count to
+    agree with the damage. Green gate, real content loss.
+
+    The same thing happens here. The preamble of `docs/DOCUMENTATION-AUDIT.md` carries two
+    relative links, so deleting the paragraph that holds them moves "494 relative links
+    checked" to 492 and `make docs-audit` makes the file self-consistent again. Deleting a
+    paragraph with no link in it is not even that visible: the drift check passes
+    unchanged, because `_splice` copies the prose through untouched and compares only what
+    it generated.
+
+    So the prose is pinned separately, in a file the regeneration path never writes. The
+    digest is what fails; the counts beside it are there to say, in the failure message,
+    whether the region grew or shrank, because "shrank" is the case worth reading twice.
+    """
+    return {
+        "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "bytes": len(text.encode("utf-8")),
+        "lines": len(text.splitlines()),
+        "words": len(text.split()),
+        "relative_links": len(list(_link_targets(text))),
+    }
+
+
+def _load_pin() -> dict[str, object] | None:
+    if not NARRATIVE_PIN.is_file():
+        return None
+    loaded: dict[str, object] = json.loads(NARRATIVE_PIN.read_text(encoding="utf-8"))
+    return loaded
+
+
+def _pin_deltas(pinned: dict[str, object], current: dict[str, object]) -> list[str]:
+    """One line per counted fact that moved, saying which way it moved."""
+    lines = []
+    for key in ("bytes", "lines", "words", "relative_links"):
+        before = int(cast(int, pinned.get(key, 0)))
+        after = int(cast(int, current[key]))
+        if before != after:
+            direction = "removed" if after < before else "added"
+            lines.append(f"    {key}: {before} -> {after} ({direction} {abs(after - before)})")
+    return lines
+
+
+def _narrative_problem(document: str) -> list[str] | None:
+    """The failure message when the prose no longer matches its pin, or None."""
+    current = _narrative_facts(_narrative(document))
+    pinned = _load_pin()
+    if pinned is None:
+        return [
+            f"{_relative(NARRATIVE_PIN)} is missing, so nothing records what the "
+            "hand-authored half of the audit is supposed to contain.",
+            "  Review the prose, then run `make docs-audit-accept-narrative`.",
+        ]
+    if pinned.get("sha256") == current["sha256"]:
+        return None
+    deltas = _pin_deltas(pinned, current)
+    shrank = int(cast(int, current["bytes"])) < int(cast(int, pinned.get("bytes", 0)))
+    return [
+        "the hand-authored prose in docs/DOCUMENTATION-AUDIT.md is not what "
+        f"{_relative(NARRATIVE_PIN)} records.",
+        *deltas,
+        (
+            "  The region got SMALLER. Prose was deleted. Read the diff before accepting it: "
+            "regenerating the block would move the counts to agree with the deletion, which "
+            "is how this exact failure shipped once already."
+            if shrank
+            else "  If the edit is intended, run `make docs-audit-accept-narrative`."
+        ),
+    ]
+
+
 def _splice(document: str, generated: str) -> str:
     start = document.find(BEGIN)
     end = document.find(END)
@@ -457,21 +557,60 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="fail if the committed generated block differs from the tree",
     )
+    parser.add_argument(
+        "--accept-narrative",
+        action="store_true",
+        help="record the hand-authored prose as it now stands (a deliberate, reviewed act)",
+    )
     args = parser.parse_args(argv)
 
     document = AUDIT.read_text(encoding="utf-8")
     updated = _splice(document, _render())
+    narrative_problem = _narrative_problem(document)
+
+    if args.accept_narrative:
+        current = _narrative_facts(_narrative(document))
+        pinned = _load_pin()
+        if pinned is not None:
+            for line in _pin_deltas(pinned, current):
+                print(line.strip())
+        NARRATIVE_PIN.write_text(
+            json.dumps(current, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        print(f"doc audit: recorded the hand-authored prose in {_relative(NARRATIVE_PIN)}.")
+        return 0
 
     if args.check:
+        problems: list[str] = []
         if updated != document:
-            print(
-                "doc audit FAILED: docs/DOCUMENTATION-AUDIT.md no longer describes this tree.\n"
-                "  Run `make docs-audit` and commit the result.",
-                file=sys.stderr,
+            problems.append(
+                "docs/DOCUMENTATION-AUDIT.md no longer describes this tree.\n"
+                "  Run `make docs-audit` and commit the result."
             )
+        if narrative_problem is not None:
+            problems.append("\n".join(narrative_problem))
+        if problems:
+            for problem in problems:
+                print(f"doc audit FAILED: {problem}", file=sys.stderr)
             return 1
-        print("doc audit OK: the committed inventory, counts, and link check match the tree.")
+        print(
+            "doc audit OK: the committed inventory, counts, and link check match the tree, "
+            "and the hand-authored prose is what its pin records."
+        )
         return 0
+
+    # Regeneration is the documented repair for a failing drift check, which makes it the
+    # step that would otherwise launder a deletion: rewrite the counts, and the file agrees
+    # with the damage. It refuses while the prose is unaccounted for, so the person has to
+    # look at what changed before anything gets rewritten around it.
+    if narrative_problem is not None:
+        print("doc audit REFUSED to regenerate: " + "\n".join(narrative_problem), file=sys.stderr)
+        print(
+            "  Regenerating now would rewrite the counts to agree with the edited prose. "
+            "Review it first; then `make docs-audit-accept-narrative` and re-run.",
+            file=sys.stderr,
+        )
+        return 1
 
     AUDIT.write_text(updated, encoding="utf-8")
     print(f"doc audit: regenerated the generated block in {_relative(AUDIT)}.")
