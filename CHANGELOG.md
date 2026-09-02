@@ -168,6 +168,36 @@ every entry.
 
 ### Fixed
 
+- **The `mypy --strict` gate covered two of the project's three Python trees while the
+  README advertised it over all of them.** `pyproject.toml` set
+  `files = ["src", "tests"]`, so all 31 scripts under `tools/` — including every gate the
+  project runs on itself (`verify_dataset.py`, `conformance_sweep.py`,
+  `check_debt_markers.py`, `build_site.py`) — sat outside the type checker whose green
+  tick the rest of the tree's guarantee rests on. The scope is now
+  `["src", "tests", "tools"]`.
+
+  **39 of the 97 errors that surfaced were one missing file.** `src/nearmiss/py.typed` was
+  never added (`src/honest_rates/py.typed` has shipped since EXP-08), so mypy treated
+  `import nearmiss...` from outside the package as untyped and handed back `Any` from
+  every call. Without that marker a `tools/` script can be listed in `files` and still not
+  be checked in any meaningful sense — the failure mode this fix is most concerned with,
+  because the configuration reads correctly either way.
+
+  **The remaining 58 included real defects, not only missing annotations.** At twelve
+  places in `tools/verify_dataset.py` and `tools/diff_datasets.py`, a field absent from a
+  JSON artifact arrives as `None` and reaches a `<`, `>` or `+` — raising `TypeError`
+  inside the verifier whose job is to report the artifact's problem, at exactly the moment
+  the artifact is malformed. `_is_number` and `_is_int` are now `TypeGuard`s, so the
+  checker proves every numeric comparison is reached only with a real number, and
+  `diff_datasets._present` refuses an absent record where the hotspot classification has
+  already established one is present, instead of letting `None` through to be read as `{}`.
+
+  `tests/test_type_gate_scope.py` is the witness. It fails if `tools` leaves `files`, if
+  `strict`/`warn_unreachable`/`disallow_any_generics` are relaxed, if an `exclude` carves
+  the scripts back out, or if either `py.typed` marker goes missing. Both directions were
+  demonstrated: removing `"tools"` fails one test, removing `src/nearmiss/py.typed` fails
+  two, restoring both passes all five.
+
 - **Four published statistics did not match what the documents said they computed
   (published dataset schema `1.3.0`, correcting values published under `1.2.0` and earlier).**
   Each one is a sentence in `docs/METHODOLOGY.md` or `schema/dataset.schema.md` that a reader

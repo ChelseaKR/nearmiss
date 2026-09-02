@@ -80,7 +80,8 @@ def overpass_fetch(query: str, base_url: str, timeout: float = 180.0) -> dict[st
         base_url, data=data, headers={"User-Agent": "nearmiss-fetch-osm-streets/1.0"}
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+        payload: dict[str, Any] = json.loads(resp.read().decode("utf-8"))
+    return payload
 
 
 def _way_coords(element: dict[str, Any]) -> list[tuple[float, float]]:

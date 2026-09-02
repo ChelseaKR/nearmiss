@@ -181,8 +181,18 @@ Baseline for comparison: 1901 passed, coverage 90.19%, conformance auditing 2 ar
   `TODO(#184)` points at a closed, unrelated issue; README and ROADMAP now say so.
 * **Putting the #186 sourcing text into the issue bodies of #161 and #162.** Same reason:
   it is a GitHub write. The text is in `docs/ADAPTING.md` § 0, which both issues link to.
-* **`mypy --strict` over `tools/`.** `pyproject.toml` sets `files = ["src", "tests"]`, so
-  all 31 tool scripts — including every gate script — are outside the type gate that the
-  README advertises. Measured cost to close: 93 errors across 20 files
-  (`tools/diff_datasets.py` 33, `tools/verify_dataset.py` 26, and 18 others). Too large to
-  land safely inside this pass; recorded here as the largest remaining gap of this shape.
+* ~~**`mypy --strict` over `tools/`.**~~ **Closed.** `pyproject.toml` now sets
+  `files = ["src", "tests", "tools"]`. Re-measured on the merged tree the cost was 97
+  errors across 21 files, of which 39 were a single missing `src/nearmiss/py.typed`:
+  without it every `tools/` script importing the package got `Any` back from every call,
+  so the scripts could have been listed in `files` and still not really checked.
+  (`src/honest_rates/py.typed` had shipped since EXP-08; `nearmiss`'s never did.) The
+  remaining 58 were real: bare `dict`/`tuple`/`frozenset` generics, `Any` leaking out of
+  `json.load` through a typed return, and — the ones worth the pass on their own —
+  eighteen reported arithmetic/comparison errors at twelve places in
+  `tools/verify_dataset.py` and `tools/diff_datasets.py` where a missing
+  JSON field arrives as `None` and reaches `<`, `>` or `+`. Those raise `TypeError` inside
+  the verifier whose job is to report the defect. `_is_number`/`_is_int` are now
+  `TypeGuard`s, so the checker proves each comparison is reached only with a real number.
+  `tests/test_type_gate_scope.py` is the witness: it fails if `tools` leaves `files`, if
+  the strictness flags are relaxed, or if either `py.typed` marker goes missing.
