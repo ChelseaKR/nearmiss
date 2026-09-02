@@ -28,14 +28,17 @@ exist as long as the work behind it is tracked somewhere a reader can open.
 
 **What this gate cannot confirm, stated rather than left implicit.** It is offline by
 design, so it checks that a marker *carries* an issue reference — never that the issue
-exists, is open, or is about the marker. The repository's one live marker is the current
-example: `CITATION.cff:68` reads `TODO(#184)` and passes, but #184 was closed on
-2026-08-23 and was about the README and ROADMAP's stale tag claims, not about minting a
-DOI. So the DOI is presently tracked by no open issue while the gate is green. That is a
-real blind spot, and closing it would mean a network call from a gate whose whole value
-is that it is fast, local, and identical in CI — a trade this tool declines. The
-disposition is recorded in `docs/ROADMAP.md` under "Open review and owner actions" so the
-gap is visible where a reader will meet it, rather than inferred from a green tick.
+exists, is open, or is about the marker. The repository's one live marker was the
+demonstration: `CITATION.cff:68` read `TODO(#184)` and passed this gate while #184 had
+been closed on 2026-08-23 and was about the README and ROADMAP's stale tag claims, not
+about minting a DOI — green over tracking that did not exist. The marker now reads
+`TODO(#227)`, an open issue that is actually about the DOI, so the instance is fixed.
+
+**The class is not.** Nothing here would notice if #227 were closed tomorrow, or
+repurposed. Closing that would mean a network call from a gate whose whole value is that
+it is fast, local, and identical in CI — a trade this tool declines, so the limit is
+stated here and the disposition is recorded in `docs/ROADMAP.md` under "Open review and
+owner actions", where a reader meets it rather than inferring it from a green tick.
 
 CQ-35 (no `type: ignore` / `# noqa` without a code *and* an issue reference) is the same
 grep shape and is **not** implemented here. This repository has roughly two dozen such

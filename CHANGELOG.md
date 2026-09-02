@@ -198,6 +198,22 @@ every entry.
   demonstrated: removing `"tools"` fails one test, removing `src/nearmiss/py.typed` fails
   two, restoring both passes all five.
 
+- **The repository's one debt marker pointed at a closed, unrelated issue, and CQ-34 was
+  green over it.** `CITATION.cff:68` read `TODO(#184)`, which satisfies the no-bare-marker
+  gate because it carries an issue reference — but #184 was closed on 2026-08-23 and was
+  about the README and ROADMAP's stale tag claims, not about minting a DOI. The DOI was
+  tracked by nothing while the gate reported a clean tree. The marker now reads
+  `TODO(#227)`, an open issue that is about the DOI, and README, `docs/ROADMAP.md` and
+  `tools/check_debt_markers.py`'s docstring say so.
+
+  The *class* is still beyond CQ-34, which is offline by design and cannot ask whether an
+  issue exists or is open. What is now checkable offline is agreement:
+  `tests/test_debt_markers.py::test_the_doi_marker_and_the_documents_name_the_same_issue`
+  fails if the marker's issue number and the number README and ROADMAP name as the DOI's
+  tracker stop being the same one — the drift by which the previous state would be
+  re-entered. Demonstrated: repointing the marker back to `#184` without touching the
+  prose fails it; restoring passes.
+
 - **Four published statistics did not match what the documents said they computed
   (published dataset schema `1.3.0`, correcting values published under `1.2.0` and earlier).**
   Each one is a sentence in `docs/METHODOLOGY.md` or `schema/dataset.schema.md` that a reader
