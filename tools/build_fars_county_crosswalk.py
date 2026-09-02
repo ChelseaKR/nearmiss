@@ -163,10 +163,12 @@ def _validate_reviewed_targets(
             continue
         target = cast(Mapping[str, object], presentation)
         geoid = cast(str, target["geoid"])
-        feature = features.get(geoid)
-        if feature is None:
+        # A distinct name from the `feature` bound by the shard loop above: reusing it
+        # would widen that variable to `Mapping | None` for the whole function.
+        boundary = features.get(geoid)
+        if boundary is None:
             raise ValueError("reviewed FARS county target has no private boundary feature")
-        properties = cast(Mapping[str, object], feature["properties"])
+        properties = cast(Mapping[str, object], boundary["properties"])
         expected = {
             "state_fips": target["state_fips"],
             "county_fips": target["county_fips"],

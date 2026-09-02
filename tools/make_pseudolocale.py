@@ -151,7 +151,7 @@ def pseudo(text: str) -> str:
     return f"{OPEN}{core} {pad}{CLOSE}"
 
 
-def _pseudo_string(msgid: object) -> object:
+def _pseudo_string(msgid: str | tuple[str, ...] | list[str]) -> str | tuple[str, ...]:
     """Pseudo-localize a msgid that may be a plural tuple."""
     if isinstance(msgid, (tuple, list)):
         return tuple(pseudo(form) for form in msgid)

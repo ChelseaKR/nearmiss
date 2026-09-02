@@ -163,7 +163,23 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_generics = true
 no_implicit_reexport = true
-files = ["src", "tests"]
+# `tools/` is in scope, and until this entry it was not. The README advertises "mypy
+# strict in CI"; the gate read `src` and `tests` only, so all 31 scripts under `tools/`
+# — including every gate the project runs on itself (`verify_dataset.py`,
+# `conformance_sweep.py`, `check_debt_markers.py`, `build_site.py`, ...) — sat outside
+# the type checker that gives the rest of the tree its guarantee. That is the same
+# defect shape this repository names everywhere else: an advertised scope wider than
+# the real one, recorded in PR #214 as the largest remaining gap rather than fixed
+# there. Closing it took 97 errors across 21 files and found real defects, not only
+# missing annotations: see the `TypeGuard` predicates in `tools/verify_dataset.py`,
+# where a missing JSON field reached a `<` comparison and would have raised `TypeError`
+# inside the verifier whose job is to report the problem.
+#
+# `src/nearmiss/py.typed` and `src/honest_rates/py.typed` are load-bearing for this.
+# Without them a `tools/` script importing the package gets `Any` back from every call,
+# so the scripts would be nominally "checked" and actually unchecked.
+# `tests/test_type_gate_scope.py` is the witness for both halves.
+files = ["src", "tests", "tools"]
 
 [[tool.mypy.overrides]]
 # jsonschema ships limited inline types; treat its imports as untyped here.

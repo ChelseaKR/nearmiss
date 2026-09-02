@@ -57,6 +57,12 @@ def build(lang: str) -> tuple[dict[str, str], list[str]]:
         if not message.string:
             errors.append(f"{lang}: {mid!r} has an empty translation")
             continue
+        if not isinstance(message.string, str):
+            # Babel types a translation as `str | tuple[str, ...] | list[str]`: the
+            # non-`str` forms are gettext plurals. Every web message is singular, so a
+            # plural here is a catalog defect, not something to silently `str()`.
+            errors.append(f"{lang}: {mid!r} carries plural forms; web messages are singular")
+            continue
         web[mid] = message.string
 
     missing = expected - set(web)

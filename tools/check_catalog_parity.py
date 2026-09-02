@@ -110,6 +110,13 @@ def _check_singular_message(name: str, message: Message, src_fields: set[str]) -
     if not target:
         errors.append(f"G5: {name} has an empty msgstr for {message.id!r}")
         return errors
+    if not isinstance(target, str):
+        # Babel types a translation as `str | tuple[str, ...] | list[str]`; the non-`str`
+        # forms are gettext plurals, which the caller routes to `_check_plural_message`.
+        # Reaching here with them means the catalog disagrees with the source about
+        # whether the message is plural — a G5 finding, not something to flatten.
+        errors.append(f"G5: {name} has plural forms for the singular {message.id!r}")
+        return errors
     if _fields(target) != src_fields:
         errors.append(
             f"G5: {name} placeholder mismatch in {message.id!r}: {_fields(target)} != {src_fields}"

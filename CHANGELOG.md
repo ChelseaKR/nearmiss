@@ -58,6 +58,28 @@ every entry.
 
 ### Added
 
+- **The published site now ships `robots.txt` and `sitemap.xml`, and the build gate fails if it
+  stops.** Both origins previously answered `404` for both files, so the artifact advertised no
+  crawlable inventory at all. `tools/build_site.py` renders them from two new constants,
+  `CANONICAL_ORIGIN` and `INDEXABLE_ROUTES`, so the sitemap cannot drift from the canonical URLs
+  the pages already declare. The sitemap lists exactly the four indexable routes (`/`, `/dossier/`,
+  `/fars/national/`, `/studio/`); `/web/index.html` is excluded because it is a `noindex` redirect
+  shell, and `/web/us-coverage.html` because it is the byte-identical duplicate that names
+  `/fars/national/` as its canonical. `robots.txt` disallows nothing on purpose: the two
+  non-indexable HTML surfaces state that in their own markup, and a `Disallow` would stop a crawler
+  from ever reading the directive.
+
+  No `<lastmod>` is emitted. The element is optional, and the builder has no honest per-route
+  modification date: `make reproduce` requires the artifact to be byte-stable for a given source
+  commit, so a build-time date would either churn every hash or assert a date on which the content
+  did not change. An absent `lastmod` beats a wrong one.
+
+  `tests/test_build_site.py` checks the pair in both directions, in the idiom of the claims gate:
+  every advertised URL resolves to a built page that is canonical for itself and carries no
+  `noindex`, **and** every built page that is indexable and self-canonical appears in the sitemap,
+  so a new public page cannot ship unadvertised. The artifact inventory test now pins both files,
+  and a blanket `Disallow: /` is asserted against explicitly.
+
 - **Whether the ranking survives borrowing strength across segments is now measured (RE-02; sidecar
   gains `shrinkage_stability`, schema `1.3.0`, additive).** A rate on a sparse, low-exposure block
   is mostly Poisson noise, so the published order can rest on which quiet block caught a lucky
@@ -145,6 +167,36 @@ every entry.
   readable as a tested one that passed.
 
 ### Fixed
+
+- **The `mypy --strict` gate covered two of the project's three Python trees while the
+  README advertised it over all of them.** `pyproject.toml` set
+  `files = ["src", "tests"]`, so all 31 scripts under `tools/` — including every gate the
+  project runs on itself (`verify_dataset.py`, `conformance_sweep.py`,
+  `check_debt_markers.py`, `build_site.py`) — sat outside the type checker whose green
+  tick the rest of the tree's guarantee rests on. The scope is now
+  `["src", "tests", "tools"]`.
+
+  **39 of the 97 errors that surfaced were one missing file.** `src/nearmiss/py.typed` was
+  never added (`src/honest_rates/py.typed` has shipped since EXP-08), so mypy treated
+  `import nearmiss...` from outside the package as untyped and handed back `Any` from
+  every call. Without that marker a `tools/` script can be listed in `files` and still not
+  be checked in any meaningful sense — the failure mode this fix is most concerned with,
+  because the configuration reads correctly either way.
+
+  **The remaining 58 included real defects, not only missing annotations.** At twelve
+  places in `tools/verify_dataset.py` and `tools/diff_datasets.py`, a field absent from a
+  JSON artifact arrives as `None` and reaches a `<`, `>` or `+` — raising `TypeError`
+  inside the verifier whose job is to report the artifact's problem, at exactly the moment
+  the artifact is malformed. `_is_number` and `_is_int` are now `TypeGuard`s, so the
+  checker proves every numeric comparison is reached only with a real number, and
+  `diff_datasets._present` refuses an absent record where the hotspot classification has
+  already established one is present, instead of letting `None` through to be read as `{}`.
+
+  `tests/test_type_gate_scope.py` is the witness. It fails if `tools` leaves `files`, if
+  `strict`/`warn_unreachable`/`disallow_any_generics` are relaxed, if an `exclude` carves
+  the scripts back out, or if either `py.typed` marker goes missing. Both directions were
+  demonstrated: removing `"tools"` fails one test, removing `src/nearmiss/py.typed` fails
+  two, restoring both passes all five.
 
 - **The repository's one debt marker pointed at a closed, unrelated issue, and CQ-34 was
   green over it.** `CITATION.cff:68` read `TODO(#184)`, which satisfies the no-bare-marker

@@ -44,6 +44,7 @@ import json
 import sys
 import urllib.error
 from pathlib import Path
+from typing import Any
 
 from nearmiss.adapters.bikemaps import (
     BASE_URL,
@@ -113,7 +114,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
     bbox: tuple[float, float, float, float] | None = None
-    features_by_kind: dict[str, list[dict]] = {}
+    features_by_kind: dict[str, list[dict[str, Any]]] = {}
 
     if args.from_file:
         for path in args.from_file:

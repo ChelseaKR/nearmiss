@@ -9,10 +9,11 @@ import subprocess
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
+from xml.etree import ElementTree
 
 import pytest
 import tools.build_site as build_site_module
-from tools.build_site import build_site
+from tools.build_site import CANONICAL_ORIGIN, INDEXABLE_ROUTES, build_site
 
 SHA = "a" * 40
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,8 @@ NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/"
 APEX_CANONICAL = "https://nearmiss.chelseakr.com/"
 STUDIO_CANONICAL = "https://nearmiss.chelseakr.com/studio/"
 DOSSIER_CANONICAL = "https://nearmiss.chelseakr.com/dossier/"
+TITLE_MAX_CHARS = 60
+DESCRIPTION_MAX_CHARS = 160
 
 
 class _ApexDocument(HTMLParser):
@@ -34,7 +37,9 @@ class _ApexDocument(HTMLParser):
         self.links: list[str] = []
         self.main_landmarks = 0
         self.redirect_scripts: list[str] = []
+        self.titles: list[str] = []
         self._script_parts: list[str] | None = None
+        self._title_parts: list[str] | None = None
 
     def handle_starttag(self, tag: str, attrs_list: list[tuple[str, str | None]]) -> None:
         attrs = {key.casefold(): value or "" for key, value in attrs_list}
@@ -56,15 +61,22 @@ class _ApexDocument(HTMLParser):
             self.main_landmarks += 1
         elif normalized_tag == "script" and "data-apex-redirect" in attrs:
             self._script_parts = []
+        elif normalized_tag == "title":
+            self._title_parts = []
 
     def handle_data(self, data: str) -> None:
         if self._script_parts is not None:
             self._script_parts.append(data)
+        if self._title_parts is not None:
+            self._title_parts.append(data)
 
     def handle_endtag(self, tag: str) -> None:
         if tag.casefold() == "script" and self._script_parts is not None:
             self.redirect_scripts.append("".join(self._script_parts))
             self._script_parts = None
+        if tag.casefold() == "title" and self._title_parts is not None:
+            self.titles.append(" ".join("".join(self._title_parts).split()))
+            self._title_parts = None
 
 
 def _assert_product_apex(html: str) -> None:
@@ -95,6 +107,8 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
         "404.html",
         "CNAME",
         "deployment.json",
+        "robots.txt",
+        "sitemap.xml",
         "dossier/index.html",
         "index.html",
         NATIONAL_MANIFEST_PATH,
@@ -263,6 +277,16 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
             document.meta_properties["og:description"]
         ), relative
         assert document.meta_properties["og:url"] == [canonical], relative
+
+        # Length bounds: a title or description past these is truncated in
+        # result pages, so the reader never sees the end of the sentence.
+        assert document.titles, relative
+        assert len(document.titles[0]) <= TITLE_MAX_CHARS, (
+            relative,
+            len(document.titles[0]),
+        )
+        description = document.meta_names["description"][0]
+        assert len(description) <= DESCRIPTION_MAX_CHARS, (relative, len(description))
 
 
 def test_legacy_web_index_is_a_noindex_national_redirect(tmp_path: Path) -> None:
@@ -586,3 +610,84 @@ def test_build_rejects_unindexed_fars_json_before_published_copy(
     with pytest.raises(ValueError, match="FARS namespace"):
         build_site_module.build_site(out, SHA)
     assert not (out / "data" / "published").exists()
+
+
+def _sitemap_locations(xml: str) -> list[str]:
+    root = ElementTree.fromstring(xml)
+    namespace = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+    return [(element.text or "").strip() for element in root.findall("sm:url/sm:loc", namespace)]
+
+
+def test_robots_txt_invites_crawlers_and_names_the_built_sitemap(tmp_path: Path) -> None:
+    out = tmp_path / "site"
+    build_site(out, SHA)
+
+    robots = (out / "robots.txt").read_text(encoding="utf-8")
+    directives = [
+        line.strip() for line in robots.splitlines() if line.strip() and not line.startswith("#")
+    ]
+
+    assert "User-agent: *" in directives
+    assert "Allow: /" in directives
+
+    # A blanket Disallow shipped to production is the failure this pins.
+    assert not any(line.casefold().replace(" ", "") == "disallow:/" for line in directives), robots
+
+    sitemap_lines = [line for line in directives if line.casefold().startswith("sitemap:")]
+    assert len(sitemap_lines) == 1, robots
+    advertised = sitemap_lines[0].split(":", 1)[1].strip()
+    assert advertised == f"{CANONICAL_ORIGIN}/sitemap.xml"
+
+    # The advertised sitemap has to be a file this build actually produced.
+    assert advertised.startswith(f"{CANONICAL_ORIGIN}/")
+    assert (out / advertised[len(CANONICAL_ORIGIN) + 1 :]).is_file()
+
+
+def test_sitemap_lists_every_indexable_page_and_nothing_else(tmp_path: Path) -> None:
+    out = tmp_path / "site"
+    build_site(out, SHA)
+
+    locations = _sitemap_locations((out / "sitemap.xml").read_text(encoding="utf-8"))
+
+    assert locations == [f"{CANONICAL_ORIGIN}{route}" for route in INDEXABLE_ROUTES]
+    assert len(set(locations)) == len(locations), locations
+
+    # Forward direction: every advertised URL is a real built page that says it
+    # is canonical for itself and does not forbid indexing.
+    for location in locations:
+        assert location.startswith(f"{CANONICAL_ORIGIN}/"), location
+        route = location[len(CANONICAL_ORIGIN) :]
+        relative = "index.html" if route == "/" else f"{route.strip('/')}/index.html"
+        built = out / relative
+        assert built.is_file(), location
+
+        document = _ApexDocument()
+        document.feed(built.read_text(encoding="utf-8"))
+        document.close()
+        assert document.canonicals == [location], location
+        robots_directives = document.meta_names.get("robots", [])
+        assert not any("noindex" in value.casefold() for value in robots_directives), location
+
+    # Reverse direction: no built HTML page that is indexable and canonical for
+    # itself is missing from the sitemap. This is the half that catches a new
+    # public page shipping without ever being advertised.
+    advertised = set(locations)
+    for built in sorted(out.rglob("*.html")):
+        document = _ApexDocument()
+        document.feed(built.read_text(encoding="utf-8"))
+        document.close()
+
+        robots_directives = document.meta_names.get("robots", [])
+        if any("noindex" in value.casefold() for value in robots_directives):
+            continue
+        if len(document.canonicals) != 1:
+            continue
+
+        canonical = document.canonicals[0]
+        relative = built.relative_to(out).as_posix()
+        own_route = "/" if relative == "index.html" else "/" + relative.removesuffix("index.html")
+        if canonical != f"{CANONICAL_ORIGIN}{own_route}":
+            # Canonicalised to another route (the duplicate national document),
+            # so it is correctly absent from the sitemap.
+            continue
+        assert canonical in advertised, relative

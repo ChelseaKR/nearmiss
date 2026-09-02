@@ -40,14 +40,26 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from verify_dataset import (
+ROOT = Path(__file__).resolve().parent.parent
+
+# `from verify_dataset import ...` also works when this file is run as a script, because
+# Python puts `tools/` on `sys.path` for it — but only then. Under `mypy` (which now covers
+# `tools/`, see `[tool.mypy]` in pyproject.toml) and
+# from a test, the module's name is `tools.verify_dataset`, matching how
+# `tools/verify_live_site.py` already imports `tools.build_site`. Importing it by the one
+# name that is true in every context is what lets the type checker follow the call into
+# the verifier instead of treating every verdict it returns as `Any`.
+_ROOT_STRING = str(ROOT)
+if _ROOT_STRING not in sys.path:
+    sys.path.insert(0, _ROOT_STRING)
+
+from tools.verify_dataset import (  # noqa: E402
     detect_family,
     verify_artifact,
     verify_corridor_artifact,
     verify_fars_state_context,
 )
 
-ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DIR = ROOT / "data" / "published"
 
 #: Files that are published but are not datasets in the HR1-HR5 sense. Every entry

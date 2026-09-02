@@ -70,20 +70,23 @@ CAVEAT = (
 
 _VERSION_FALLBACK = "unknown"
 
+#: A single published segment's ``properties`` object, straight from the GeoJSON.
+Props = dict[str, Any]
+
 
 def _load_json(path: Path) -> Any:
     with path.open(encoding="utf-8") as fh:
         return json.load(fh)
 
 
-def load_geojson(path: Path) -> tuple[dict[str, dict], dict[str, Any]]:
+def load_geojson(path: Path) -> tuple[dict[str, Props], dict[str, Any]]:
     """Return ({segment_id: properties}, embedded_metadata) for a snapshot.
 
     Withheld (low-count) segments are absent from a published GeoJSON entirely,
     so a segment missing from this map means "not published in this vintage".
     """
     data = _load_json(path)
-    by_id: dict[str, dict] = {}
+    by_id: dict[str, Props] = {}
     for feature in data.get("features", []):
         props = feature.get("properties") or {}
         sid = props.get("segment_id")
@@ -112,18 +115,18 @@ def _methods(meta: dict[str, Any]) -> dict[str, Any]:
     return dict(m) if isinstance(m, dict) else {}
 
 
-def _is_hotspot(props: dict | None) -> bool:
+def _is_hotspot(props: Props | None) -> bool:
     return bool(props and props.get("getis_ord_significant"))
 
 
-def _report_count(props: dict) -> Any:
+def _report_count(props: Props) -> Any:
     """Published report count; ``report_count`` with ``n`` as a fallback."""
     if props.get("report_count") is not None:
         return props.get("report_count")
     return props.get("n")
 
 
-def _exposure_tuple(props: dict) -> tuple:
+def _exposure_tuple(props: Props) -> tuple[Any, Any, Any]:
     return (
         props.get("exposure_estimate"),
         props.get("exposure_source"),
@@ -132,7 +135,7 @@ def _exposure_tuple(props: dict) -> tuple:
 
 
 def method_diff(
-    old_methods: dict[str, Any], new_methods: dict[str, Any], keys: frozenset
+    old_methods: dict[str, Any], new_methods: dict[str, Any], keys: frozenset[str]
 ) -> dict[str, dict[str, Any]]:
     """Keys (restricted to ``keys``) whose value differs, old vs new."""
     diff: dict[str, dict[str, Any]] = {}
@@ -145,10 +148,10 @@ def method_diff(
     return diff
 
 
-def _evidence(old: dict | None, new: dict | None) -> dict[str, Any]:
+def _evidence(old: Props | None, new: Props | None) -> dict[str, Any]:
     """Compact old/new evidence for a single segment record."""
 
-    def snap(props: dict | None) -> dict[str, Any] | None:
+    def snap(props: Props | None) -> dict[str, Any] | None:
         if props is None:
             return None
         return {
@@ -164,11 +167,11 @@ def _evidence(old: dict | None, new: dict | None) -> dict[str, Any]:
 
 
 def _classify_appeared(
-    old: dict | None,
-    new: dict,
+    old: Props | None,
+    new: Props,
     has_meta: bool,
-    mchange: dict,
-    schange: dict,
+    mchange: dict[str, Any],
+    schange: dict[str, Any],
     min_pub_old: Any,
     min_pub_new: Any,
 ) -> tuple[str, str]:
@@ -179,12 +182,9 @@ def _classify_appeared(
         # Absent before, a published hotspot now. Prefer a lowered publication
         # threshold as the explanation; otherwise it crossed the floor on new
         # reports / became significant (we cannot see its prior internals).
-        if (
-            has_meta
-            and _num(min_pub_new) is not None
-            and _num(min_pub_old) is not None
-            and _num(min_pub_new) < _num(min_pub_old)
-        ):
+        floor_old = _num(min_pub_old)
+        floor_new = _num(min_pub_new)
+        if has_meta and floor_new is not None and floor_old is not None and floor_new < floor_old:
             return (
                 "threshold_change",
                 f"min_publish_n lowered {min_pub_old} -> {min_pub_new}; "
@@ -207,10 +207,10 @@ def _classify_appeared(
 
 
 def _classify_disappeared(
-    old: dict,
-    new: dict,
-    mchange: dict,
-    schange: dict,
+    old: Props,
+    new: Props,
+    mchange: dict[str, Any],
+    schange: dict[str, Any],
 ) -> tuple[str, str]:
     """Return (cause, note) for a still-published segment that lost hotspot
     status."""
@@ -229,22 +229,19 @@ def _classify_disappeared(
 
 
 def _classify_withdrawn(
-    old: dict, has_meta: bool, min_pub_old: Any, min_pub_new: Any
+    old: Props, has_meta: bool, min_pub_old: Any, min_pub_new: Any
 ) -> tuple[str, str]:
     """Return (cause, note) for a hotspot that is now withheld/absent."""
     n = _num(_report_count(old))
-    if (
-        has_meta
-        and _num(min_pub_new) is not None
-        and _num(min_pub_old) is not None
-        and _num(min_pub_new) > _num(min_pub_old)
-    ):
+    floor_old = _num(min_pub_old)
+    floor_new = _num(min_pub_new)
+    if has_meta and floor_new is not None and floor_old is not None and floor_new > floor_old:
         note = f"min_publish_n raised {min_pub_old} -> {min_pub_new}"
         if n is not None:
             note += f"; prior report count {n}"
         return "suppression", note
     note = "segment no longer published (withheld under the k-anonymity floor)"
-    if has_meta and _num(min_pub_new) is not None and n is not None:
+    if has_meta and floor_new is not None and n is not None:
         note += f"; report count {n} vs min_publish_n {min_pub_new}"
     return "suppression", note
 
@@ -256,14 +253,31 @@ def _num(value: Any) -> float | None:
         return None
 
 
-def _keys(diff: dict) -> str:
+def _present(props: Props | None, segment_id: str, side: str) -> Props:
+    """Return a record the hotspot test has already established is present.
+
+    ``_is_hotspot(None)`` is False, so a segment that reaches a classifier as a
+    hotspot always has a record on that side. The type checker cannot follow that
+    through a local flag, and the alternative — passing ``None`` on and letting a
+    classifier read ``{}`` out of it — is the defect this repository names
+    everywhere else: an absent record reported as a real one. So this raises
+    instead of substituting an empty mapping.
+    """
+    if props is None:
+        raise AssertionError(
+            f"segment {segment_id}: the {side} record is absent but was classified as published"
+        )
+    return props
+
+
+def _keys(diff: dict[str, Any]) -> str:
     return ", ".join(sorted(diff))
 
 
 def build_report(
     slug: str,
-    old_by_id: dict[str, dict],
-    new_by_id: dict[str, dict],
+    old_by_id: dict[str, Props],
+    new_by_id: dict[str, Props],
     old_meta: dict[str, Any],
     new_meta: dict[str, Any],
     old_embedded: dict[str, Any],
@@ -302,14 +316,18 @@ def build_report(
 
         if new_hot and not old_hot:
             cause, note = _classify_appeared(
-                old, new, has_meta, mchange, schange, min_pub_old, min_pub_new
+                old, _present(new, sid, "new"), has_meta, mchange, schange, min_pub_old, min_pub_new
             )
             change = "appeared"
         elif old_hot and new is None:
-            cause, note = _classify_withdrawn(old, has_meta, min_pub_old, min_pub_new)
+            cause, note = _classify_withdrawn(
+                _present(old, sid, "old"), has_meta, min_pub_old, min_pub_new
+            )
             change = "withdrawn"
         else:  # old_hot and new present but not significant
-            cause, note = _classify_disappeared(old, new, mchange, schange)
+            cause, note = _classify_disappeared(
+                _present(old, sid, "old"), _present(new, sid, "new"), mchange, schange
+            )
             change = "disappeared"
 
         changes.append(
