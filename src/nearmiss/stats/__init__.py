@@ -32,7 +32,9 @@ from .getis_ord import (
 from .gi_permutation import PermutationInference, permutation_inference
 from .kde import KdeResult, kde
 from .maup import RankStability, rank_stability
+from .multiplicity import DependenceRobustness, dependence_robustness
 from .rates import pearson_dispersion, rate_with_ci
+from .shrinkage import ShrinkageStability, shrinkage_stability
 from .temporal import TemporalBreakdown, WeatherDay, temporal_breakdown
 
 __all__ = ["AnalysisResult", "analyze"]
@@ -69,6 +71,14 @@ class AnalysisResult:
     # distribution (RR-09 / METHODOLOGY §8.2). Published beside the analytic
     # decision; it never changes `significant`.
     gi_permutation: PermutationInference | None = None
+    # How much of the published significance survives an arbitrary-dependence FDR
+    # correction (RR-08 / METHODOLOGY §5.5). Published beside the Benjamini-Hochberg
+    # decision; it never changes `significant` either.
+    dependence_robustness: DependenceRobustness | None = None
+    # Whether the ranking survives empirical-Bayes shrinkage of every rate toward
+    # the overall rate (RE-02 / METHODOLOGY §5.4). The published rate stays the raw
+    # one; this is a re-ranking check, not a smoothed rate.
+    shrinkage_stability: ShrinkageStability | None = None
     # Fraction of snapped records excluded from the primary rate because they carry a
     # low-confidence flag (low_accuracy / far_snap): low_confidence_snapped / snapped.
     excluded_low_confidence_fraction: float = 0.0
@@ -361,6 +371,23 @@ def analyze(
     # map the published Gi* ran on, so the two answers are about one statistic.
     permutation = permutation_inference(stats, rate_values, neighbor_map, config)
 
+    # RR-08: re-decide significance under a correction valid for arbitrary
+    # dependence, and report how much of the published set survives. Runs on the
+    # same p-values the published Benjamini-Hochberg decision was made from, so
+    # the two answers differ only in the correction.
+    dependence = dependence_robustness(stats, pvals, config)
+
+    # RE-02: re-estimate every rate by borrowing strength across segments and ask
+    # whether the same segment is still on top. Same numerator as the published
+    # rate and the same Gi* neighbor map, so the only thing that varies is the
+    # estimator.
+    shrinkage = shrinkage_stability(
+        stats,
+        {sid: a.count_primary for sid, a in agg.items()},
+        config,
+        neighbor_map,
+    )
+
     # Overall excluded fraction: low-confidence snapped records / all snapped records.
     snapped_total = sum(a.count for a in agg.values())
     snapped_primary = sum(a.count_primary for a in agg.values())
@@ -382,5 +409,7 @@ def analyze(
         rank_stability=stability,
         exposure_sensitivity=exposure_sens,
         gi_permutation=permutation,
+        dependence_robustness=dependence,
+        shrinkage_stability=shrinkage,
         excluded_low_confidence_fraction=excluded_fraction,
     )

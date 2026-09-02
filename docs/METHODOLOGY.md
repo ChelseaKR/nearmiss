@@ -375,6 +375,38 @@ segments are flagged so the order is read with its uncertainty, not as bare cert
   single lucky report rocket a quiet segment to the top — is a candidate for future work, not the
   current behavior. The choice of ranking statistic is stated in the brief.
 
+<!-- claim:shrinkage-is-a-check-not-the-published-rate -->
+**What *is* measured is whether the order survives an estimator that does penalize sparsity (RE-02).**
+`stats/shrinkage.py` re-estimates every rate by Marshall's global empirical-Bayes shrinkage
+(`honest_rates.rates.empirical_bayes_rates`; Marshall 1991, Clayton & Kaldor 1987): each segment's
+rate is pulled toward the overall rate in proportion to how little its own count carries, so a rate
+resting on two reports moves a long way and a rate resting on two hundred barely moves. The ranking
+and the Gi\* + Benjamini-Hochberg significance are recomputed on the shrunk rates over the same
+street-network neighborhoods, and the artifact reports whether the published top segment is still
+first, together with the weight it kept on its own rate. It ships in every metadata sidecar under
+`shrinkage_stability` and in the brief and the standalone ranked table. On the committed demos both
+rankings hold: `davis` publishes `stable` with the top segment keeping `0.6353` of its own rate at a
+mean weight of `0.7891` across 9 rated segments, and `riverside` publishes `stable` at a mean weight
+of `0.8825`.
+
+**The published rate and the published ranking stay the raw ones, deliberately.** §6.3 already
+states this repository's rule for a model-based adjustment: a smoothed number looks authoritative
+and can launder a modelling assumption into a fact, so an adjustment that cannot be defended in the
+published number is offered as a labelled sensitivity analysis instead. Shrinkage is exactly such an
+adjustment. It assumes the segments are exchangeable draws from one distribution, which is a strong
+assumption on a street network where a corridor is not a random sample of the city, and it
+deliberately pulls the extremes in, which is the wrong default for a tool whose job is to find
+extremes. No published rate, interval, rank or significance flag changes.
+
+**It can refuse.** The between-segment variance is a method-of-moments estimate and can come out at
+or below zero, meaning the spread across segments is no larger than Poisson noise alone would
+produce. Every segment then shrinks all the way to the overall rate, every shrunk rate is identical,
+and there is no ranking left to compare: the pass publishes `verdict: "not_evaluated"` with that
+stated reason, which is itself a finding about how little the counts distinguish the segments,
+rather than a `stable` it did not earn. The same refusal covers fewer than three rated, publishable
+segments.
+<!-- /claim:shrinkage-is-a-check-not-the-published-rate -->
+
 ### 5.5 Multiplicity
 
 Scanning every segment in a city for "significant" hotspots runs hundreds or thousands of tests;
@@ -388,6 +420,34 @@ published `getis_ord_significant` flag is the FDR-corrected decision, not a raw 
 <!-- /claim:bh-fdr -->
 An unadjusted "this segment is significant at p < 0.05" out of a thousand segments is not a finding,
 and we do not present it as one.
+
+<!-- claim:dependence-robust-fdr-published-beside-bh -->
+**And the assumption Benjamini-Hochberg needs is checked, not assumed (RR-08).** BH controls the
+false discovery rate when the tests are independent or positively regression dependent. The local
+Gi\* tests are neither by construction: two neighbouring segments share the values inside their
+overlapping neighborhoods, so their statistics are dependent and the sign of that dependence is not
+guaranteed. `stats/multiplicity.py` therefore re-decides significance under **Benjamini-Yekutieli**
+(`honest_rates.hotspot.benjamini_yekutieli`), the same step-up procedure at `fdr_alpha / c(m)` where
+`c(m)` is the m-th harmonic number, which controls the FDR under *arbitrary* dependence, and
+publishes how much of the published significance survives. The result ships in every metadata
+sidecar under `dependence_robustness` and in the brief and the standalone ranked table, whatever it
+says: on the committed `davis` demo **one of the five** FDR-significant clusters survives, at a level
+of 0.0161 instead of 0.05 across 12 simultaneous tests.
+
+**This is not Caldas de Castro & Singer (2006).** RR-08 cites their spatially-aware FDR, and that
+method is **not** implemented here; this project does not hold its text, and implementing a
+specification it cannot check would be worse than implementing none. Benjamini-Yekutieli addresses
+the same concern with a definition reproducible from its own citation, and the published artifact
+says which of the two it is in a `not_implemented` field rather than leaving a reader to assume.
+
+**It is published beside the decision, never instead of it.** `getis_ord_significant` remains the
+Benjamini-Hochberg decision; no published rate, interval, rank or flag changes. The
+Benjamini-Yekutieli rejection set is always a subset of the Benjamini-Hochberg one, so this can only
+ever report that fewer claims survive, never more. When the dataset publishes no significant cluster
+at all there is nothing whose assumption could be dropped, and the artifact reports
+`verdict: "not_evaluated"` with a stated reason rather than `robust`, as the committed `riverside`
+demo does.
+<!-- /claim:dependence-robust-fdr-published-beside-bh -->
 
 ### 5.6 Threshold sensitivity and statistical power
 

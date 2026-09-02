@@ -37,6 +37,10 @@ only removes blind spots.
 | --- | --- | --- |
 | `lockfile-committed-hashed` | `README.md` — § Install | `requirements.lock` |
 | `obs-intake-only` | `README.md` — § Observability | `src/nearmiss/obs.py` |
+| `i18n-gate-count` | `README.md` — § Standards conformance | `tests/test_readme_restated_facts.py::test_the_i18n_gate_count_matches_what_make_i18n_runs` |
+| `vuln-management-hashed-locks` | `README.md` — § Privacy, security, accountability | `tests/test_readme_restated_facts.py::test_the_readme_never_calls_the_committed_hashed_lock_planned` |
+| `standards-table-cross-reference` | `README.md` — § Observability | `tests/test_readme_restated_facts.py::test_the_standards_cross_reference_counts_the_standards_table` |
+| `supported-versions-not-restated` | `README.md` — § Security | `tests/test_readme_restated_facts.py::test_the_supported_version_line_is_not_restated_as_a_literal` |
 | `dataset-schema-prose` | `CHANGELOG.md` — § Scope and conventions | `schema/dataset.schema.md` |
 | `rate-union-primary-plus-per-type-layers` | `docs/METHODOLOGY.md` — § 1. Notation and the unit of analysis | `tests/test_publish_privacy.py::test_rates_by_type_publishes_type_specific_rate_matching_breakdown` |
 | `low-confidence-excluded-from-primary` | `docs/METHODOLOGY.md` — § 2. From raw reports to counts | `tests/test_stats_numerics.py::test_quality_tier_split_primary_rate_excludes_low_confidence` |
@@ -45,7 +49,9 @@ only removes blind spots.
 | `maup-varies-only-the-units` | `docs/METHODOLOGY.md` — § 8.3 What we publish from the spatial layer | `tests/test_maup.py::test_coarse_rates_use_the_primary_count_the_published_rate_uses` |
 | `byar-poisson-ci` | `docs/METHODOLOGY.md` — § 5.2 Interval for a single segment's rate | `tests/test_rates.py::test_poisson_ci_contains_point_and_widens_relatively_for_small_n` |
 | `wilson-proportions` | `docs/METHODOLOGY.md` — § 5.3 Proportions, when the question is a share | `tests/test_rates.py::test_wilson_ci_bounds` |
+| `shrinkage-is-a-check-not-the-published-rate` | `docs/METHODOLOGY.md` — § 5.4 What the interval does to ranking | `tests/test_shrinkage_stability.py::test_methodology_describes_what_the_shrinkage_pass_actually_computes` |
 | `bh-fdr` | `docs/METHODOLOGY.md` — § 5.5 Multiplicity | `tests/test_fdr.py::test_significant_field_is_fdr_corrected_in_analysis` |
+| `dependence-robust-fdr-published-beside-bh` | `docs/METHODOLOGY.md` — § 5.5 Multiplicity | `tests/test_dependence_robustness.py::test_methodology_describes_what_the_correction_actually_computes` |
 | `gi-on-rate-not-count` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_hotspot.py::test_getis_ord_flags_the_planted_corridor_cluster` |
 | `gi-weights-network` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_network.py` |
 | `gi-permutation-beside-not-instead` | `docs/METHODOLOGY.md` — § 8.2 Getis-Ord Gi\* | `tests/test_gi_permutation.py::test_methodology_describes_what_the_permutation_pass_actually_computes` |

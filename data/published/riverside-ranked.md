@@ -8,6 +8,10 @@
 
 **Permutation reference check:** not evaluated. No published significance claim had a testable neighbourhood, so none was re-tested against an empirical reference distribution. Not a passed check.
 
+**Dependence robustness check:** not evaluated. This dataset publishes no significant cluster, so no significance claim could have its independence assumption dropped. Not a passed check.
+
+**Shrinkage stability check:** the top-rate segment stays rank 1 after every rate is shrunk toward the overall 3.92; it keeps 0.73 of its own rate (top-5 overlap 1.00).
+
 | Rank | Segment | Rate /1000 | 95% CI | n | Hotspot |
 | ---: | --- | ---: | --- | ---: | --- |
 | 1 | University Ave (Market–Lemon) | 32.00 | 13.78–63.06 | 8 | no Gi\* neighbors — global z=2.20 |

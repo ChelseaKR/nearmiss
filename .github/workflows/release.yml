@@ -109,6 +109,17 @@ jobs:
         # `[project.optional-dependencies].release`). Installed on demand, here only.
         run: python -m pip install "build>=1.2"
 
+      - name: Assert the wheel test actually ran
+        # tests/test_packaged_schema.py's wheel test needs PyPI's `build`, and the step
+        # above is the first thing anywhere to install it: `make verify` ran at the top
+        # of this job without it, and ci.yml never installs it at all, so the test
+        # skipped in every environment that exists. NEARMISS_REQUIRE_BUILD=1 turns that
+        # skip into a failure, making this the one place the wheel contract is checked.
+        # tests/test_release_workflow.py holds this step in place.
+        env:
+          NEARMISS_REQUIRE_BUILD: "1"
+        run: python -m pytest tests/test_packaged_schema.py -q
+
       - name: Build the sdist + wheel (reproducible, deterministic)
         run: make release-build
 

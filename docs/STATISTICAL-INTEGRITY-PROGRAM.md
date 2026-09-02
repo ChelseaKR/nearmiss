@@ -11,6 +11,26 @@ of a stub, a disabled config key, or a placeholder. Where a phase is blocked on 
 person, a credential, an external dataset, or a decision that is the maintainer's
 to make, that is written down rather than worked around.
 
+## Status at a glance
+
+Last updated 2026-08-27. A row is **built** only when the code, the methodology
+paragraph, the schema entry, the witness test and the first-class "did not run"
+outcome all exist; anything short of that is blocked, with the block named.
+
+| Phase / item | Status | Where it stands |
+| --- | --- | --- |
+| 1. Published-statistic parity | **Built** | Four published statistics corrected; the parity gate ships with them. |
+| 2. Gi\* permutation reference (RR-09) | **Built** | Published beside the analytic decision; disagrees on 3 of 5 Davis clusters. |
+| 3. Dependence-robust multiplicity (RR-08) | **Built** | Benjamini-Yekutieli published beside Benjamini-Hochberg; 1 of 5 Davis clusters survives. Caldas de Castro & Singer remains unimplemented and the artifact says so. |
+| 4. Shrinkage stability (RE-02) | **Built** | Empirical-Bayes re-ranking check; both demos `stable`, published rate unchanged. |
+| RR-03 interval half | **Blocked** | Needs an exposure source that publishes its own uncertainty, or an owner decision to adopt a named error model. ADR 0016 forbids inventing one. |
+| RR-14 screen-reader pass | **Blocked** | Needs a person running NVDA and VoiceOver. No code change can close it. |
+| RR-11 minted DOI | **Blocked** | Needs an archive account and a tagged release. |
+| RE-01, RE-03, RE-07, RE-08 | **Blocked** | Need external datasets this repository does not and should not vendor (issue #186). |
+| RE-04 equity overlay | **Blocked** | Needs consent and co-design with affected communities, by the research roadmap's own instruction. |
+| RE-10 abuse toolkit | **Not a phase** | A hard gate on opening public intake, which nothing here approaches. |
+| Product Expansion Plan phases | **Blocked** | Need real interviews and real design partners. Synthesising them is the failure the plan warns against. |
+
 ## What this program is not
 
 It is **not** a product plan and it does not overrule one.
@@ -110,7 +130,7 @@ cannot resolve `alpha` at all.
 
 ## Phase 3: multiplicity control that survives spatial dependence
 
-**Status: planned, 2027 Q1.**
+**Status: built, 2026-08-27.** Planned window 2027 Q1.
 
 RR-08. Benjamini-Hochberg controls the false discovery rate under independence or
 positive regression dependence; the local Gi\* tests are neither independent nor
@@ -122,14 +142,22 @@ FDR. **That method is not implemented here, and this phase will not claim it is.
 What is planned is Benjamini-Yekutieli (2001), whose control of the FDR under
 *arbitrary* dependence is exactly the property the concern is about and whose
 definition is fully specified: reject at the BH threshold scaled by
-`1 / sum(1/i for i in 1..m)`. It is to be published as a second, strictly
-more conservative decision beside the BH one, with the difference between them
-reported, so a reader can see how much of the significance rests on the dependence
-assumption. BH remains the published decision, and the artifact says so.
+`1 / sum(1/i for i in 1..m)`. It is published as a second, strictly more
+conservative decision beside the BH one, with the difference between them
+reported, so a reader can see how much of the significance rests on the
+dependence assumption. BH remains the published decision, and the artifact says
+so, including in a `not_implemented` field naming the method it is not.
+
+The difference is large. On the committed `davis` demo **one of the five**
+BH-significant clusters survives, at a level of 0.0161 instead of 0.05 across 12
+simultaneous tests; on `riverside` there is no significant cluster at all, so the
+comparison publishes `not_evaluated` rather than `robust`. The
+Benjamini-Yekutieli rejection set is always a subset of the Benjamini-Hochberg
+one, so this pass can only ever report that fewer claims survive, never more.
 
 ## Phase 4: small-area rate stability under shrinkage
 
-**Status: planned, 2027 Q2.**
+**Status: built, 2026-08-27.** Planned window 2027 Q2.
 
 RE-02. Sparse segments produce unstable rates: one report moves a low-exposure
 block a long way, which is the mechanism behind most spurious "worst street"
@@ -137,11 +165,24 @@ findings. Empirical-Bayes shrinkage (Marshall 1991; Clayton & Kaldor 1987) borro
 strength across units by pulling each rate toward the global rate in proportion to
 how little information it carries.
 
-To ship as a **robustness pass, not a published rate**, for the reason METHODOLOGY
-§6.3 gives for not bias-correcting rates by default: a smoothed number that looks
-authoritative can launder a modelling assumption into a fact. The pass re-runs the
-ranking on shrunk rates and reports whether the top segment survives, alongside the
-MAUP and exposure-sensitivity verdicts. The published rate stays the raw one.
+Shipped as a **robustness pass, not a published rate**, for the reason
+METHODOLOGY §6.3 gives for not bias-correcting rates by default: a smoothed
+number that looks authoritative can launder a modelling assumption into a fact.
+Shrinkage assumes the segments are exchangeable draws from one distribution,
+which is a strong assumption on a street network, and it deliberately pulls the
+extremes in, which is the wrong default for a tool whose job is to find extremes.
+The pass re-runs the ranking and the Gi\* significance on shrunk rates and
+reports whether the top segment survives, alongside the MAUP,
+exposure-sensitivity, permutation and dependence verdicts. The published rate and
+the published order stay the raw ones.
+
+Both committed demos publish `stable`: on `davis` the top segment keeps 0.6353 of
+its own rate at a mean weight of 0.7891 across 9 rated segments, so its lead is
+not an artifact of a small denominator. The pass refuses when the
+method-of-moments between-segment variance comes out at or below zero, which
+means the counts do not distinguish the segments beyond Poisson noise: that
+publishes `not_evaluated` with the reason, rather than a `stable` earned by every
+rate collapsing onto the same value.
 
 ---
 

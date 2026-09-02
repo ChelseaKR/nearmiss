@@ -107,10 +107,60 @@ function rebindArtifact(year, bytes) {
   return canonical(index);
 }
 
+// The page verifies every artifact it loads against a reviewed SHA-256, and
+// `crypto.subtle.digest` is threadpool work, not a microtask. A state URL boot
+// schedules the release index, five annual artifacts and the boundary file, so
+// seven real digests can be outstanding at once. `settle()` used to spin a
+// fixed seven event-loop turns and then assert, which is a bet that all of that
+// crypto lands within seven turns. On a busy machine it does not, and the
+// harness then sampled the page mid-verification and reported that a
+// fail-closed path had not fired when it had simply not run yet. Measured on
+// origin/main at 4bfb726: 2 failures in 20 consecutive runs on an idle machine
+// and 4 in 6 while it was busy, at ten different assertions across those runs.
+// The gate was load-dependent, which is why it read as an intermittent site
+// regression rather than as a harness defect.
+//
+// So wait for the digests the harness itself handed out to finish, then hold
+// the original seven quiet turns so purely-microtask work drains exactly as it
+// did before. When nothing is in flight this is turn-for-turn the old
+// behaviour; otherwise it only ever waits longer. It never asserts less. If the
+// page never goes quiet the harness fails loudly rather than sampling anyway.
+const SETTLE_QUIET_TURNS = 7;
+const SETTLE_MAX_TURNS = 5000;
+
+let digestsInFlight = 0;
+let digestsObserved = 0;
+
+// Web Crypto for the page under test, instrumented so `settle()` can see the
+// end of the work it starts. Deliberately deferred fetches are NOT tracked:
+// they are never meant to resolve, and several tests assert the mid-flight
+// state they hold open.
+function instrumentedCrypto() {
+  return {
+    subtle: {
+      digest(algorithm, data) {
+        digestsInFlight += 1;
+        digestsObserved += 1;
+        return webcrypto.subtle.digest(algorithm, data).finally(() => {
+          digestsInFlight -= 1;
+        });
+      },
+    },
+    getRandomValues: (values) => webcrypto.getRandomValues(values),
+  };
+}
+
 async function settle() {
-  for (let index = 0; index < 7; index += 1) {
+  let quiet = 0;
+  for (let turn = 0; turn < SETTLE_MAX_TURNS; turn += 1) {
     await new Promise((resolve) => setTimeout(resolve, 0));
+    quiet = digestsInFlight === 0 ? quiet + 1 : 0;
+    if (quiet >= SETTLE_QUIET_TURNS) return;
   }
+  die(
+    `the page never went quiet: ${digestsInFlight} artifact digests still in flight ` +
+      `after ${SETTLE_MAX_TURNS} event-loop turns`
+  );
 }
 
 function sameRawTargetSet(actual, expected) {
@@ -153,7 +203,10 @@ async function boot({
   const artifactResolvers = {};
   const artifactFetchCounts = {};
   const fetchTargets = [];
-  Object.defineProperty(window, "crypto", { value: disableCrypto ? {} : webcrypto, configurable: true });
+  Object.defineProperty(window, "crypto", {
+    value: disableCrypto ? {} : instrumentedCrypto(),
+    configurable: true,
+  });
   window.TextDecoder = TextDecoder;
   window.fetch = (requested) => {
     const target = String(requested);
@@ -1389,6 +1442,21 @@ async function main() {
     "unsupported requested language"
   );
   console.log("us-coverage contract: unknown years, drift, private fields, fetch, locale, and crypto fail closed.");
+
+  // `settle()` only waits correctly while the instrumented digest above is the
+  // one the page actually calls. If a refactor ever hands the page raw
+  // `webcrypto` again, the counter stays at zero, the wait silently degrades to
+  // the old fixed seven turns, and this file goes back to failing at random
+  // assertions. Nothing else in the run would notice, so say so here.
+  if (digestsObserved === 0) {
+    die(
+      "the harness never observed an artifact digest: settle() cannot be waiting on the " +
+        "page's SHA-256 verification, so its waits are unsynchronised again"
+    );
+  }
+  console.log(
+    `us-coverage contract: settled on ${digestsObserved} observed artifact digests, none left in flight.`
+  );
 }
 
 main().catch((error) => die(error && error.stack ? error.stack : String(error)));

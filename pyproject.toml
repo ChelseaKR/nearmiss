@@ -46,7 +46,7 @@ dev = [
   "pytest>=9.1.1",
   "pytest-cov>=7.1.0",
   "ruff>=0.16.3",
-  "mypy>=2.3.0",
+  "mypy>=2.3.1",
   "pip-audit>=2.10.1",
   # Property/metamorphic testing for the spatial-statistics core (FIX-14). A
   # dev-only, audited dependency surface: it lives in `dev`, so the blocking
@@ -178,6 +178,13 @@ minversion = "8.0"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --strict-config --import-mode=importlib"
 xfail_strict = true
+# A parametrized test whose parameter set comes out empty is reported as SKIPPED and
+# the run still exits 0, so a glob that stops matching takes its tests with it and
+# says so only in the skip report nobody reads. `fail_at_collect` turns that into a
+# collection error. It is the general form of the benchmark-manifest pin in
+# tests/test_benchmark_suite.py: that one names the set this suite must have, this
+# one catches every other parametrized test that is fed by a glob.
+empty_parameter_set_mark = "fail_at_collect"
 markers = [
   # Seeded Monte-Carlo interval-coverage simulation (METHODOLOGY §9.2). It runs
   # thousands of Poisson draws, so it is markered `slow` and can be deselected
