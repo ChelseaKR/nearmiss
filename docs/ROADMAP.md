@@ -100,15 +100,16 @@ failure mode this paragraph exists to prevent, arriving from the other side.
 - Approve the preregistered scoring rule with a real statistician after the
   evaluation window; fixture success is not predictive-validity evidence.
 - Mint a DOI (Zenodo or equivalent) against a shipped tag and fill in
-  `CITATION.cff`'s `doi:` field. **The DOI is not currently tracked by an open
-  issue**: `CITATION.cff:68` carries `TODO(#184)`, which satisfies CQ-34's
-  no-bare-marker gate, but #184 was closed on 2026-08-23 and was about the README
-  and ROADMAP's stale tag claims, not about minting a DOI. Opening a live issue for
-  the DOI and repointing the marker at it is an owner action. This is also the one
-  thing CQ-34 cannot see: `tools/check_debt_markers.py` is offline by design, so it
-  checks that a marker *carries* an issue reference, never that the issue exists, is
-  open, or is about the marker — a limit now stated in that tool's docstring rather
-  than left implicit. The DOI itself is not yet minted. PyPI Trusted Publishing and the signed tag
+  `CITATION.cff`'s `doi:` field. The DOI is now tracked by an open issue, #227, and
+  `CITATION.cff:68` points at it. It previously read `TODO(#184)`, which satisfied
+  CQ-34's no-bare-marker gate while #184 had been closed on 2026-08-23 and was about
+  the README and ROADMAP's stale tag claims, not about minting a DOI — a green gate
+  over fictional tracking. That is the one thing CQ-34 still cannot see:
+  `tools/check_debt_markers.py` is offline by design, so it checks that a marker
+  *carries* an issue reference, never that the issue exists, is open, or is about the
+  marker. Repointing the marker fixes the instance, not the class; the limit stays
+  stated in that tool's docstring rather than left implicit. The DOI itself is not yet
+  minted, and minting it needs a Zenodo (or equivalent) account, so it stays here. PyPI Trusted Publishing and the signed tag
   workflow are done: `nearmiss-safety` 0.3.0, 0.3.1, and 0.4.0 are published,
   and v0.2.0, v0.3.0, v0.3.1, and v0.4.0 each cut a signed GitHub Release with
   an SBOM and a SLSA attestation (2026-08-08 and 2026-08-16).

@@ -177,8 +177,11 @@ Baseline for comparison: 1901 passed, coverage 90.19%, conformance auditing 2 ar
 * **Rebasing #212 and #213.** Both are `DIRTY` against `main` after #210 and #211 landed,
   and their descriptions still say they are stacked on branches that merged. Rebasing
   moves HEAD; out of scope for this pass.
-* **Opening a tracking issue for the DOI.** Requires a write to GitHub. The marker
-  `TODO(#184)` points at a closed, unrelated issue; README and ROADMAP now say so.
+* ~~**Opening a tracking issue for the DOI.**~~ **Closed.** #227 is open and about the
+  DOI; `CITATION.cff:68` now reads `TODO(#227)`. README, ROADMAP and
+  `tools/check_debt_markers.py`'s docstring are updated. The *class* of defect — a marker
+  whose referenced issue is closed or unrelated — is still invisible to CQ-34, which is
+  offline by design; that limit stays stated rather than fixed.
 * **Putting the #186 sourcing text into the issue bodies of #161 and #162.** Same reason:
   it is a GitHub write. The text is in `docs/ADAPTING.md` § 0, which both issues link to.
 * **`mypy --strict` over `tools/`.** `pyproject.toml` sets `files = ["src", "tests"]`, so

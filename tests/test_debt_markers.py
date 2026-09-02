@@ -17,6 +17,7 @@ green tick this file exists to prevent:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -53,6 +54,41 @@ def test_the_only_marker_the_repo_ships_is_linked() -> None:
     for line in marker_lines:
         assert check_debt_markers._LINKED.search(line), (
             f"bare marker in CITATION.cff: {line.strip()}"
+        )
+
+
+def test_the_doi_marker_and_the_documents_name_the_same_issue() -> None:
+    """The marker's issue number must be the one README and ROADMAP say tracks the DOI.
+
+    CQ-34 is offline by design: it proves a marker *carries* an issue reference, never
+    that the issue exists, is open, or is about the marker. That blind spot was live —
+    the marker read `TODO(#184)` and passed while #184 was closed and about stale tag
+    claims, so the DOI was tracked by nothing and the gate was green.
+
+    Issue state still cannot be checked here without a network call the gate refuses to
+    make. What *can* be checked offline is agreement: the number in the marker, the
+    number README calls the DOI's tracking issue, and the number ROADMAP calls it must
+    all be the same one. Repointing the marker without moving the prose — or the reverse
+    — is how the previous state would be re-entered, and this fails on it.
+    """
+    citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
+    marker_line = next(line for line in citation.splitlines() if _TODO in line and "doi" in line)
+    match = check_debt_markers._LINKED.search(marker_line)
+    assert match is not None, f"the DOI marker carries no issue reference: {marker_line.strip()}"
+    marker_issue = re.search(r"#(\d+)", match.group(0))
+    assert marker_issue is not None, f"no issue number in {match.group(0)!r}"
+    number = marker_issue.group(1)
+
+    for document in ("README.md", "docs/ROADMAP.md"):
+        text = (ROOT / document).read_text(encoding="utf-8")
+        doi_sentences = [
+            line
+            for line in text.splitlines()
+            if "CITATION.cff" in line and f"#{number}" in line and "DOI" in line
+        ]
+        assert doi_sentences, (
+            f"{document} does not name #{number} as the issue tracking the DOI, but "
+            f"CITATION.cff's marker points there. One of the two moved without the other."
         )
 
 

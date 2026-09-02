@@ -65,4 +65,4 @@ preferred-citation:
   license: Apache-2.0
   url: https://nearmiss.chelseakr.com/fars/national/
   repository: https://github.com/ChelseaKR/nearmiss
-  # TODO(#184): assign a DOI (e.g. via Zenodo) against a shipped tag and set `doi:` here.
+  # TODO(#227): assign a DOI (e.g. via Zenodo) against a shipped tag and set `doi:` here.
