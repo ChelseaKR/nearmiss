@@ -50,7 +50,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeGuard
 
 # Default k-anonymity floor: a published segment with a non-zero report count below
 # this is a re-identification risk and must have been withheld. Overridable with
@@ -122,13 +122,22 @@ def _feature_label(props: dict[str, Any], index: int) -> str:
     return f"feature[{index}]"
 
 
-def _is_number(value: Any) -> bool:
-    """True for a real JSON number (``bool`` is excluded — it is not a rate)."""
+def _is_number(value: Any) -> TypeGuard[float]:
+    """True for a real JSON number (``bool`` is excluded — it is not a rate).
+
+    A ``TypeGuard`` rather than a plain ``bool`` so the type checker learns what the
+    check established. These predicates guard every numeric comparison in this file,
+    and the value on the other side comes from ``json.load`` — so a missing field
+    arrives as ``None`` and, without the narrowing, ``None < k`` is a runtime
+    ``TypeError`` inside the verifier that is supposed to report the problem. The
+    guard makes the checker prove the comparison is reachable only when the value is
+    really a number.
+    """
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def _is_int(value: Any) -> bool:
-    """True for a JSON integer (``bool`` excluded)."""
+def _is_int(value: Any) -> TypeGuard[int]:
+    """True for a JSON integer (``bool`` excluded). ``TypeGuard`` for the reason above."""
     return isinstance(value, int) and not isinstance(value, bool)
 
 
@@ -553,7 +562,7 @@ def check_fars_hr3(artifact: Any, schema: Any) -> list[str]:
     """HR3 — the limits statement is present and is one the published schema pins."""
     failures: list[str] = []
     caveat = artifact.get("caveat") if isinstance(artifact, dict) else None
-    allowed = []
+    allowed: list[Any] = []
     if isinstance(schema, dict):
         caveat_schema = schema.get("properties", {}).get("caveat", {})
         allowed = caveat_schema.get("enum", []) if isinstance(caveat_schema, dict) else []

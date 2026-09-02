@@ -38,6 +38,7 @@ import csv
 import json
 import statistics
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -121,7 +122,12 @@ def assign(
             unsnapped += 1
             continue
         buckets.setdefault(sid, []).append(count)
-    reducer = {"sum": sum, "mean": statistics.mean, "max": max}[aggregate]
+    reducers: dict[str, Callable[[list[float]], float]] = {
+        "sum": sum,
+        "mean": statistics.mean,
+        "max": max,
+    }
+    reducer = reducers[aggregate]
     estimates = {sid: float(reducer(vals)) for sid, vals in buckets.items()}
     return estimates, unsnapped
 

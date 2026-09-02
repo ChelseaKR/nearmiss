@@ -102,7 +102,12 @@ def main() -> None:
     print(f"  statistics (rates+CIs, bias, KDE, Getis-Ord):     {t2 - t1:7.3f} s")
     print(f"  build geojson:                                    {t3 - t2:7.3f} s")
     print(f"  TOTAL:                                            {t3 - t0:7.3f} s")
-    print(f"  throughput: {n / (t3 - t0):,.0f} reports/s; features: {len(geojson['features'])}")
+    features = geojson["features"]
+    if not isinstance(features, list):
+        # `build_geojson` is typed `dict[str, object]`; refuse to print a feature
+        # count guessed from something that is not a feature list.
+        raise TypeError("build_geojson did not return a list of features")
+    print(f"  throughput: {n / (t3 - t0):,.0f} reports/s; features: {len(features)}")
 
 
 if __name__ == "__main__":
