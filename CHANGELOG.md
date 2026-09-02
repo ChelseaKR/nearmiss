@@ -58,6 +58,28 @@ every entry.
 
 ### Added
 
+- **The published site now ships `robots.txt` and `sitemap.xml`, and the build gate fails if it
+  stops.** Both origins previously answered `404` for both files, so the artifact advertised no
+  crawlable inventory at all. `tools/build_site.py` renders them from two new constants,
+  `CANONICAL_ORIGIN` and `INDEXABLE_ROUTES`, so the sitemap cannot drift from the canonical URLs
+  the pages already declare. The sitemap lists exactly the four indexable routes (`/`, `/dossier/`,
+  `/fars/national/`, `/studio/`); `/web/index.html` is excluded because it is a `noindex` redirect
+  shell, and `/web/us-coverage.html` because it is the byte-identical duplicate that names
+  `/fars/national/` as its canonical. `robots.txt` disallows nothing on purpose: the two
+  non-indexable HTML surfaces state that in their own markup, and a `Disallow` would stop a crawler
+  from ever reading the directive.
+
+  No `<lastmod>` is emitted. The element is optional, and the builder has no honest per-route
+  modification date: `make reproduce` requires the artifact to be byte-stable for a given source
+  commit, so a build-time date would either churn every hash or assert a date on which the content
+  did not change. An absent `lastmod` beats a wrong one.
+
+  `tests/test_build_site.py` checks the pair in both directions, in the idiom of the claims gate:
+  every advertised URL resolves to a built page that is canonical for itself and carries no
+  `noindex`, **and** every built page that is indexable and self-canonical appears in the sitemap,
+  so a new public page cannot ship unadvertised. The artifact inventory test now pins both files,
+  and a blanket `Disallow: /` is asserted against explicitly.
+
 - **Whether the ranking survives borrowing strength across segments is now measured (RE-02; sidecar
   gains `shrinkage_stability`, schema `1.3.0`, additive).** A rate on a sparse, low-exposure block
   is mostly Poisson noise, so the published order can rest on which quiet block caught a lucky
