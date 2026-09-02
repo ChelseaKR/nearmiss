@@ -1419,7 +1419,7 @@ requires-dist = [
     { name = "nbclient", marker = "extra == 'teaching'", specifier = ">=0.11.0" },
     { name = "nbconvert", marker = "extra == 'teaching'", specifier = ">=7.17.1" },
     { name = "packaging", marker = "extra == 'dev'", specifier = ">=26.3" },
-    { name = "pip", marker = "extra == 'dev'", specifier = ">=26.2" },
+    { name = "pip", marker = "extra == 'dev'", specifier = ">=26.2.1" },
     { name = "pip-audit", marker = "extra == 'dev'", specifier = ">=2.10.1" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.6.2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.1.1" },
