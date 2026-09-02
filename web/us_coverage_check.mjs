@@ -14,6 +14,9 @@ const LEGACY_HOME = join(here, "index.html");
 const NATIONAL_ROUTE = "/fars/national/";
 const NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/";
 const APEX_CANONICAL = "https://nearmiss.chelseakr.com/";
+// The shared link-preview card. Absolute on purpose: a relative og:image is
+// resolved against the site doing the sharing, not this one.
+const SOCIAL_CARD = "https://nearmiss.chelseakr.com/og.png";
 const APP = join(here, "us-coverage.js");
 const STUDIO_STYLE = join(here, "us-coverage-studio.css");
 const I18N = join(here, "i18n.js");
@@ -386,7 +389,13 @@ async function main() {
       ['meta[property="og:title"]', ["content", null]],
       ['meta[property="og:description"]', ["content", null]],
       ['meta[property="og:url"]', ["content", NATIONAL_CANONICAL]],
-      ['meta[name="twitter:card"]', ["content", "summary"]],
+      ['meta[property="og:image"]', ["content", SOCIAL_CARD]],
+      ['meta[property="og:image:width"]', ["content", "1280"]],
+      ['meta[property="og:image:height"]', ["content", "640"]],
+      ['meta[property="og:image:alt"]', ["content", null]],
+      ['meta[name="twitter:card"]', ["content", "summary_large_image"]],
+      ['meta[name="twitter:image"]', ["content", SOCIAL_CARD]],
+      ['meta[name="twitter:image:alt"]', ["content", null]],
       ['meta[name="twitter:title"]', ["content", null]],
       ['meta[name="twitter:description"]', ["content", null]],
     ]);
@@ -404,6 +413,20 @@ async function main() {
   }
   if (apex.querySelector('meta[property="og:site_name"]')?.getAttribute("content") !== "NearMiss") {
     die("apex does not identify the NearMiss product surface");
+  }
+  // A shared link with no image is a blank grey card, which is what every one of
+  // these pages produced before the card existed.
+  if (apex.querySelector('meta[property="og:image"]')?.getAttribute("content") !== SOCIAL_CARD) {
+    die("apex does not name the absolute link-preview card");
+  }
+  if (apex.querySelector('meta[name="twitter:image"]')?.getAttribute("content") !== SOCIAL_CARD) {
+    die("apex does not name the absolute link-preview card for Twitter");
+  }
+  if (apex.querySelector('meta[name="twitter:card"]')?.getAttribute("content") !== "summary_large_image") {
+    die("apex still requests the small summary card for a 2:1 image");
+  }
+  if (!apex.querySelector('meta[property="og:image:alt"]')?.getAttribute("content")) {
+    die("apex link-preview card has no alt text");
   }
   if (apex.querySelector('meta[http-equiv="refresh"]')) {
     die("apex still redirects before readers can reach the product gateway");

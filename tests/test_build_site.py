@@ -25,6 +25,7 @@ STUDIO_CANONICAL = "https://nearmiss.chelseakr.com/studio/"
 DOSSIER_CANONICAL = "https://nearmiss.chelseakr.com/dossier/"
 TITLE_MAX_CHARS = 60
 DESCRIPTION_MAX_CHARS = 160
+SOCIAL_CARD_URL = "https://nearmiss.chelseakr.com/og.png"
 
 
 class _ApexDocument(HTMLParser):
@@ -107,6 +108,7 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
         "404.html",
         "CNAME",
         "deployment.json",
+        "og.png",
         "robots.txt",
         "sitemap.xml",
         "dossier/index.html",
@@ -261,7 +263,7 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
         assert document.meta_names["description"] and all(document.meta_names["description"]), (
             relative
         )
-        assert document.meta_names["twitter:card"] == ["summary"], relative
+        assert document.meta_names["twitter:card"] == ["summary_large_image"], relative
         assert document.meta_names["twitter:title"] and all(document.meta_names["twitter:title"]), (
             relative
         )
@@ -278,6 +280,24 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
         ), relative
         assert document.meta_properties["og:url"] == [canonical], relative
 
+        # A link preview without an image is a blank grey card, and an image
+        # named by a relative URL resolves against the *sharing* site rather
+        # than this one. Both halves are pinned: the absolute URL, and the
+        # published file it has to resolve to.
+        assert document.meta_properties["og:image"] == [SOCIAL_CARD_URL], relative
+        assert document.meta_names["twitter:image"] == [SOCIAL_CARD_URL], relative
+        assert document.meta_properties["og:image:width"] == ["1280"], relative
+        assert document.meta_properties["og:image:height"] == ["640"], relative
+        # Alt text is not decoration here: a screen reader announcing a shared
+        # link reads it, and a card whose whole content is text is unreadable
+        # without it.
+        assert document.meta_properties["og:image:alt"] and all(
+            document.meta_properties["og:image:alt"]
+        ), relative
+        assert document.meta_names["twitter:image:alt"] and all(
+            document.meta_names["twitter:image:alt"]
+        ), relative
+
         # Length bounds: a title or description past these is truncated in
         # result pages, so the reader never sees the end of the sentence.
         assert document.titles, relative
@@ -287,6 +307,47 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
         )
         description = document.meta_names["description"][0]
         assert len(description) <= DESCRIPTION_MAX_CHARS, (relative, len(description))
+
+
+def test_published_social_card_matches_its_declared_dimensions(tmp_path: Path) -> None:
+    """The card is a real PNG and the meta tags state its real size.
+
+    ``og:image:width``/``og:image:height`` are a promise a crawler acts on
+    before it has the bytes: a wrong pair reserves the wrong box and the
+    preview renders letterboxed or cropped. The numbers are therefore read
+    off the file's IHDR chunk here rather than trusted from the markup, so
+    replacing the artwork with a differently sized file fails this test
+    instead of shipping a mis-declared card.
+    """
+    out = tmp_path / "site"
+    build_site(out, SHA)
+    published = out / build_site_module.SOCIAL_CARD_FILE
+
+    payload = published.read_bytes()
+    assert payload == (build_site_module.ROOT / build_site_module.SOCIAL_CARD_FILE).read_bytes()
+    # PNG signature, then an IHDR chunk whose width/height are big-endian uint32.
+    assert payload[:8] == b"\x89PNG\r\n\x1a\n"
+    assert payload[12:16] == b"IHDR"
+    width = int.from_bytes(payload[16:20], "big")
+    height = int.from_bytes(payload[20:24], "big")
+    assert (width, height) == (1280, 640)
+
+    # Twitter rejects a summary_large_image over 5 MB outright; a card that is
+    # never fetched is the same failure as no card at all.
+    assert len(payload) <= 5 * 1024 * 1024
+
+    routes = (
+        "index.html",
+        "dossier/index.html",
+        "studio/index.html",
+        NATIONAL_MANIFEST_PATH,
+    )
+    for relative in routes:
+        document = _ApexDocument()
+        document.feed((out / relative).read_text(encoding="utf-8"))
+        document.close()
+        assert document.meta_properties["og:image:width"] == [str(width)], relative
+        assert document.meta_properties["og:image:height"] == [str(height)], relative
 
 
 def test_legacy_web_index_is_a_noindex_national_redirect(tmp_path: Path) -> None:
@@ -502,6 +563,9 @@ def _minimal_site_source(root: Path) -> None:
     (root / "index.html").write_text("index", encoding="utf-8")
     (root / "404.html").write_text("not found", encoding="utf-8")
     (root / "CNAME").write_text("example.test\n", encoding="utf-8")
+    (root / build_site_module.SOCIAL_CARD_FILE).write_bytes(
+        (PROJECT_ROOT / build_site_module.SOCIAL_CARD_FILE).read_bytes()
+    )
     for relative in build_site_module.PUBLIC_WEB_FILES:
         destination = root / "web" / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
