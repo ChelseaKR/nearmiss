@@ -44,6 +44,10 @@ INDEXABLE_ROUTES = (
     "/studio/",
 )
 
+# The Open Graph / Twitter card served at the site root. Referenced by absolute
+# URL from every indexable document, so it must be published with them.
+SOCIAL_CARD_FILE = "og.png"
+
 PUBLIC_WEB_FILES = (
     "index.html",  # Public evidence-to-action gateway; not the former Davis application.
     "us-coverage.html",
@@ -224,6 +228,11 @@ def build_site(out: Path, source_sha: str) -> SiteManifest:
     _copy_file(ROOT / "index.html", out / "index.html", allowed_root=ROOT)
     _copy_file(ROOT / "404.html", out / "404.html", allowed_root=ROOT)
     _copy_file(ROOT / "CNAME", out / "CNAME", allowed_root=ROOT)
+    # The link-preview card every indexable page names in og:image/twitter:image.
+    # It lives at the site root because the absolute URL is baked into four
+    # documents and a moved file would silently degrade to a blank preview
+    # rather than a visible 404.
+    _copy_file(ROOT / SOCIAL_CARD_FILE, out / SOCIAL_CARD_FILE, allowed_root=ROOT)
     (out / ".nojekyll").write_text("", encoding="utf-8")
     (out / "robots.txt").write_text(_render_robots(), encoding="utf-8")
     (out / "sitemap.xml").write_text(_render_sitemap(), encoding="utf-8")

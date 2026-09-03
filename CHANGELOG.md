@@ -58,6 +58,33 @@ every entry.
 
 ### Added
 
+- **Every indexable page now has a link-preview card, and the build gate fails if it stops.** The
+  four published documents already declared `og:title`, `og:description` and `og:url`, but none
+  named an image, so a shared NearMiss link rendered as a blank grey box on Slack, LinkedIn, iMessage
+  and every other unfurler — the site's most common first impression was its least informative one.
+  `og.png` (1280x640) now ships at the site root, and `/`, `/dossier/`, `/studio/` and
+  `/fars/national/` each name it through `og:image` and `twitter:image` with `twitter:card` raised
+  from `summary` to `summary_large_image` to match the 2:1 artwork.
+
+  The URL is absolute on purpose: a relative `og:image` is resolved against the site doing the
+  sharing, not this one, which is a failure that looks like success in local review.
+
+  Two gates, because there are two ways this silently regresses. `tools/build_site.py` publishes the
+  card from a named constant and `tests/test_build_site.py` pins it in the artifact inventory, so the
+  file cannot quietly stop shipping while four documents keep pointing at it. A second test reads
+  the width and height off the PNG's own IHDR chunk rather than trusting the markup, so replacing the
+  artwork with a differently sized file fails the build instead of shipping a mis-declared card that
+  unfurls letterboxed. `web/us_coverage_check.mjs` asserts the same contract on the national page and
+  the apex. Alt text is required on both the Open Graph and Twitter tags, not optional: a card whose
+  entire content is text is unreadable to a screen reader announcing a shared link without it.
+
+- **The README's status caveat is no longer the first thing a reader meets.** A twenty-three-line
+  "where this is right now" block sat in the top matter, ahead of the table of contents, so the
+  document opened by qualifying a tool the reader had not yet been told about. The block is
+  unchanged and still comes first among the content sections — now as a linked `Where this is
+  right now` heading immediately after the table of contents — but the one-paragraph description of
+  what the project *is*, the status line, and the quick start now precede it. Nothing was removed.
+
 - **The published site now ships `robots.txt` and `sitemap.xml`, and the build gate fails if it
   stops.** Both origins previously answered `404` for both files, so the artifact advertised no
   crawlable inventory at all. `tools/build_site.py` renders them from two new constants,

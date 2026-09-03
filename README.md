@@ -24,19 +24,6 @@ and selected report files are not uploaded.
 
 </div>
 
-## Quick start
-
-```bash
-git clone https://github.com/ChelseaKR/nearmiss.git
-cd nearmiss
-make install
-make demo
-make verify
-```
-
-The demo uses synthetic planted-hotspot fixtures: no real reports, API key, or
-cloud account. See [Install](#install) for toolchain details.
-
 > Turns the hazard reports cyclists and pedestrians already make — the close pass, the door zone,
 > the blind corner, the pothole that nearly threw someone — into a rigorous, open, reusable dataset
 > and a statistically honest analysis of where the danger actually is. Report intake, a documented
@@ -50,33 +37,24 @@ employer or client; contains no proprietary or client material. Owned by cyclist
 by a city. This is not a 311 queue and not a complaint inbox for a public works department; it is a
 community-owned evidence base.
 
-> **Where this is right now (read first):** the analysis engine is implemented and verified. The
-> intake, the dedupe/geocode/snap/classify/quality pipeline (including offline geocoding of
-> address-only reports), the exposure normalization and statistics (Poisson/Wilson confidence
-> intervals, bias, KDE, Getis-Ord Gi\* with Benjamini-Hochberg FDR), publishing with a
-> self-describing metadata block, the bilingual (English/Spanish) advocacy brief and web data view,
-> address-or-coordinate intake with an offline gazetteer geocoder **and** an opt-in networked
-> (Nominatim) adapter, a reproducible analysis notebook, a second demo city (Riverside) proving
-> config-over-code, a committed hashed lockfile, and a performance benchmark all exist and pass the
-> gates: `make demo`, `make verify`, and `make reproduce` run, the full test suite passes, and
-> ruff + mypy
-> `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
-> accessibility gate. The analysis engine's remaining conformance work is genuinely small: the
-> **manual NVDA/VoiceOver screen-reader pass** that complements the automated axe run, and
-> **deeper localization** beyond English/Spanish. The public Studio/dossier thin slice is newer and
-> remains explicitly unvalidated with real partner decisions
-> (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta. The national
-> gateway is the deployed entry point; the reviewed national studio is its reference-data surface.
-> The Davis/Riverside methods UI, embed, and submission form are retained as local, synthetic test
-> surfaces and are not published at the production origin. The
-> studio is a time-bounded, owner-attested public preview under
-> [ADR 0012](docs/adr/0012-solo-maintainer-provisional-review-attestation.md); that disposition is
-> not a manual screen-reader result or a WCAG/ACR conformance claim.
+## Quick start
+
+```bash
+git clone https://github.com/ChelseaKR/nearmiss.git
+cd nearmiss
+make install
+make demo
+make verify
+```
+
+The demo uses synthetic planted-hotspot fixtures: no real reports, API key, or
+cloud account. See [Install](#install) for toolchain details.
 
 ---
 
 ## Table of contents
 
+- [Where this is right now](#where-this-is-right-now)
 - [Standards conformance](#standards-conformance)
 - [Why this exists](#why-this-exists)
 - [What it does](#what-it-does)
@@ -97,6 +75,33 @@ community-owned evidence base.
 - [Governance and independence](#governance-and-independence)
 - [License and citation](#license-and-citation)
 - [Acknowledgements and related work](#acknowledgements-and-related-work)
+
+---
+
+## Where this is right now
+
+> The analysis engine is implemented and verified. The intake, the
+> dedupe/geocode/snap/classify/quality pipeline (including offline geocoding of
+> address-only reports), the exposure normalization and statistics (Poisson/Wilson confidence
+> intervals, bias, KDE, Getis-Ord Gi\* with Benjamini-Hochberg FDR), publishing with a
+> self-describing metadata block, the bilingual (English/Spanish) advocacy brief and web data view,
+> address-or-coordinate intake with an offline gazetteer geocoder **and** an opt-in networked
+> (Nominatim) adapter, a reproducible analysis notebook, a second demo city (Riverside) proving
+> config-over-code, a committed hashed lockfile, and a performance benchmark all exist and pass the
+> gates: `make demo`, `make verify`, and `make reproduce` run, the full test suite passes, and
+> ruff + mypy
+> `--strict` are clean. An automated `axe-core` run is wired via `make axe` alongside the structural
+> accessibility gate. The analysis engine's remaining conformance work is genuinely small: the
+> **manual NVDA/VoiceOver screen-reader pass** that complements the automated axe run, and
+> **deeper localization** beyond English/Spanish. The public Studio/dossier thin slice is newer and
+> remains explicitly unvalidated with real partner decisions
+> (see [Roadmap](#roadmap)). The repository is public and nearmiss is in pre-1.0 beta. The national
+> gateway is the deployed entry point; the reviewed national studio is its reference-data surface.
+> The Davis/Riverside methods UI, embed, and submission form are retained as local, synthetic test
+> surfaces and are not published at the production origin. The
+> studio is a time-bounded, owner-attested public preview under
+> [ADR 0012](docs/adr/0012-solo-maintainer-provisional-review-attestation.md); that disposition is
+> not a manual screen-reader result or a WCAG/ACR conformance claim.
 
 ---
 
