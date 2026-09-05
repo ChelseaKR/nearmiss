@@ -590,6 +590,16 @@ jobs:
       - name: Rebuild the benchmark suite to a temp dir and byte-compare
         run: make bench-check
 
+      # And the same shape once more, for the performance benchmark: re-measure, then
+      # compare to the committed comparand (perf/baseline.json, PERF-03). It runs in
+      # THIS job on purpose. This job's name is a required status check in the branch
+      # ruleset, so a step added here is merge-blocking on arrival; a new job would not
+      # be required, and a performance gate that cannot block a merge is exactly the
+      # unenforced number issue #236 is about. The numbers compared are work-unit counts
+      # rather than seconds, so a shared runner's variance cannot make this flap.
+      - name: Re-measure the benchmark and hold it to perf/baseline.json
+        run: make perf-budget
+
   build-pages:
     name: build minimal public artifact
     # Exercise the exact Pages assembly and packaging path on PRs as well as
