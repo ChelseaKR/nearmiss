@@ -32,6 +32,7 @@ jobs:
   mutation:
     name: mutation (mutmut on stats core — advisory, non-blocking)
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     # Belt-and-suspenders: even though this workflow never runs on a PR, mark the
     # job non-failing so it is impossible to wire it up as a required check.
     continue-on-error: true

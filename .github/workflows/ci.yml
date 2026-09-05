@@ -63,6 +63,7 @@ jobs:
     # must carry a `Signed-off-by:` trailer (added with `git commit -s`).
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -97,6 +98,7 @@ jobs:
     name: lint (ruff)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -144,6 +146,7 @@ jobs:
     name: type (mypy --strict)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -175,6 +178,7 @@ jobs:
     name: test (pytest, known-answer fixtures)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     strategy:
@@ -211,6 +215,7 @@ jobs:
     name: qgis-plugin (EXP-11 honest-symbology rules, no PyQGIS needed)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -246,6 +251,7 @@ jobs:
     # dependency surface is unchanged.
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -271,6 +277,7 @@ jobs:
     name: i18n (gettext catalog gate)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -303,6 +310,7 @@ jobs:
     name: claims (docs-code claims-parity drift gate)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -336,6 +344,7 @@ jobs:
     name: accessibility (structural WCAG gate + axe-core on web UI)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -401,6 +410,7 @@ jobs:
   security:
     name: security (pip-audit + gitleaks + CodeQL)
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     permissions:
       contents: read
       security-events: write # Upload CodeQL SARIF to this repository's code-scanning API.
@@ -491,6 +501,7 @@ jobs:
     name: zizmor (GitHub Actions workflow SAST)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -519,6 +530,7 @@ jobs:
     name: reproducibility (make reproduce + diff published artifacts)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -584,6 +596,7 @@ jobs:
     # main. Nightly runs are security-only and intentionally skip this job.
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -741,6 +754,7 @@ jobs:
       - reproducibility
       - build-pages
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     permissions:
       contents: read
       pages: write # Publish only the reviewed artifact through GitHub Pages.
