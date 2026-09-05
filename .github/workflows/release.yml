@@ -45,6 +45,7 @@ jobs:
   release:
     name: build, verify, SBOM, sign, attest, GitHub Release
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     permissions:
       contents: write # create the GitHub Release and upload assets
       id-token: write # OIDC — cosign keyless signing (Fulcio/Rekor)
@@ -206,6 +207,7 @@ jobs:
     name: publish to PyPI (Trusted Publishing, OIDC)
     needs: release
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     environment: pypi # required-reviewer / trusted-publisher gate (CI-CD-STANDARD §environments)
     permissions:
       id-token: write # OIDC — the ONLY publish credential; no stored PYPI_API_TOKEN
