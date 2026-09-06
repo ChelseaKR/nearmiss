@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import http.client
 import json
+import re
 import shutil
 import socket
 import ssl
@@ -735,6 +736,49 @@ def test_python_s_site_cli_imports_without_third_party_packages() -> None:
     assert "--expected-sha" in result.stdout
 
 
+def _assert_job_timeout_covers_the_verifier_deadline(workflow: str) -> None:
+    """The sentinel job must stay bounded, and the bound must outlast what it runs.
+
+    Two failures are being kept out here, and they pull in opposite directions.
+
+    Dropping ``timeout-minutes`` lets a hung fetch run to Actions' six-hour default.
+    Setting it below the verifier's own ``--deadline-seconds`` is worse: the runner
+    kills the job before the deadline logic can report, and a job killed by
+    ``timeout-minutes`` is reported as ``cancelled`` -- which is neither a pass nor a
+    failure, so the sentinel goes quiet instead of going red. That is the same
+    absence-as-a-value shape this repository fails scores for.
+
+    The required minimum is therefore DERIVED from the workflow rather than pinned:
+    the verifier's deadline, rounded up to whole minutes, plus two minutes for
+    checkout, Python setup and the ``git ls-remote`` reconciliation around it. The
+    assertion this replaced pinned the literal ``timeout-minutes: 10``. A pin of that
+    shape is how personal-site's e2e cap got stuck: the commit that raised it 20 -> 30
+    also pinned 30 in a gate, so the next measurement-driven raise had to edit the
+    gate first and the failure message read as if 30 were policy. Raising this cap now
+    needs no change here; lowering it under the derived floor, or removing it, still
+    fails. Raising ``--deadline-seconds`` raises the floor with it, which is the
+    coupling that actually matters.
+
+    Measured 2026-09-06 over this workflow's last 20 scheduled runs: 19 succeeded in
+    20-70 seconds. The one non-success (32733932096) was never executed at all --
+    "the job was not acquired by Runner of type hosted" -- so nothing here has ever
+    come close to the cap, and nothing here argues for raising it.
+    """
+    deadline = re.search(r"--deadline-seconds (\d+)", workflow)
+    assert deadline is not None, "the verifier step must pass an explicit --deadline-seconds"
+    floor_minutes = -(-int(deadline.group(1)) // 60) + 2
+
+    declared = re.findall(r"^\s*timeout-minutes:\s*(\d+)\s*$", workflow, re.MULTILINE)
+    assert len(declared) == 1, (
+        f"the sentinel workflow must declare exactly one job timeout, found {len(declared)}"
+    )
+    assert int(declared[0]) >= floor_minutes, (
+        f"timeout-minutes is {declared[0]}, below the {floor_minutes}-minute floor derived from "
+        f"--deadline-seconds {deadline.group(1)}. Under that floor the runner kills the job "
+        "before the verifier can report, and the run is recorded as cancelled rather than red."
+    )
+
+
 def test_workflow_is_read_only_pinned_bounded_and_main_scoped() -> None:
     workflow = (ROOT / ".github" / "workflows" / "live-integrity.yml").read_text(encoding="utf-8")
     assert "schedule:" in workflow and "workflow_dispatch:" in workflow
@@ -742,7 +786,7 @@ def test_workflow_is_read_only_pinned_bounded_and_main_scoped() -> None:
     assert "pages: write" not in workflow
     assert "id-token: write" not in workflow
     assert "secrets." not in workflow
-    assert "timeout-minutes: 10" in workflow
+    _assert_job_timeout_covers_the_verifier_deadline(workflow)
     assert "ref: main" in workflow
     assert "persist-credentials: false" in workflow
     assert "cancel-in-progress: false" in workflow
