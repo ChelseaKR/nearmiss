@@ -35,7 +35,7 @@ PUBLISHED_DIR := data/published
         conformance i18n i18n-compile i18n-pseudo claims markers markers-online qgis-plugin-test \
         docs-audit docs-audit-check docs-audit-accept-narrative \
         reproduce reproduce-check sensitivity demo teach publish serve bench bench-suite bench-suite-verify \
-        bench-check \
+        bench-check perf-budget perf-baseline \
         bikemaps simra osm-streets real clean mutation release-build
 
 # Real-data fetch (BikeMaps.org incidents + OpenStreetMap streets + bike counts).
@@ -340,8 +340,8 @@ markers-online: ## CQ-34 online (#233): does each linked issue exist, is it open
 	# beside the marker so a reader decides. Set GITHUB_TOKEN to lift the rate limit.
 	$(PYTHON) tools/check_debt_markers.py --resolve-issues
 
-verify: lint type test accessibility web-check security i18n claims conformance reproduce-check bench-check markers ## Full merge gate: lint + type + test + web/a11y + security + i18n + claims + conformance + HR5 reproduction + benchmark reproduction + debt markers
-	@echo "verify: all merge gates green (lint, type, test, web/a11y, security, i18n, claims, conformance, reproduce-check, bench-check, markers)."
+verify: lint type test accessibility web-check security i18n claims conformance reproduce-check bench-check perf-budget markers ## Full merge gate: lint + type + test + web/a11y + security + i18n + claims + conformance + HR5 reproduction + benchmark reproduction + performance budget + debt markers
+	@echo "verify: all merge gates green (lint, type, test, web/a11y, security, i18n, claims, conformance, reproduce-check, bench-check, perf-budget, markers)."
 
 mutation: ## ADVISORY (never a merge gate): mutation-test the spatial-stats core with mutmut
 	@echo "mutation: ADVISORY ONLY — this is NOT part of 'make verify' and never gates a PR"
@@ -430,6 +430,28 @@ serve: ## Serve the local synthetic methods UI (read-only) at /web/davis-demo.ht
 
 bench: ## Performance benchmark: time the pipeline + statistics on a city-scale synthetic dataset
 	$(PYTHON) tools/benchmark.py
+
+perf-budget: ## PERF-03 gate in `verify`: hold the benchmark's work units to perf/baseline.json
+	# `bench` above has printed timings since v0.1 and docs/PERFORMANCE.md has published
+	# them, and nothing compared a run to anything -- the README's own Standards
+	# Conformance table said so ("a merge-blocking regression budget remains open", #236).
+	# PERFORMANCE-STANDARD.md §2 fixes the mechanics: a committed perf/baseline.json and
+	# a >10% direction-aware band.
+	#
+	# The budgeted numbers are work units, not seconds, and that is deliberate. A
+	# wall-clock budget on a shared CI runner is either muted (which the standard forbids
+	# outright) or red for reasons unrelated to the diff. The work-unit counts are exact
+	# -- identical run to run and on both interpreters in the test matrix -- so this can
+	# be merge-blocking and mean it. What it cannot see is written down in perf/README.md
+	# instead of being implied away.
+	$(PYTHON) tools/perf_budget.py
+
+perf-baseline: ## Ratchet: re-measure and rewrite perf/baseline.json (review the diff before committing)
+	# PERFORMANCE-STANDARD.md §2's update ritual, as a command rather than a hand edit.
+	# An improvement is ratcheted forward in the PR that improved it; an intentional
+	# regression needs owner sign-off recorded in that same PR. A baseline moved in a
+	# separate "fix CI" PR after the fact is a defect, not an update.
+	$(PYTHON) tools/perf_budget.py --update
 
 bench-suite: ## EXP-09 planted-truth benchmark suite: regenerate cities + score nearmiss on all of them
 	$(PYTHON) benchmarks/generator.py

@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "commit": "634d76aef57c526041afb9bf23e1175b53fb59f9",
+    "date": "2026-09-05",
+    "environment": "macOS 26.4 (arm64), CPython 3.12.14. Every budgeted metric here is a call count rather than a duration, so it does not depend on this machine: the same numbers were measured on CPython 3.11.16, the other interpreter the CI test matrix runs.",
+    "tools": {
+      "python": "3.12.14",
+      "also_verified_on": "3.11.16",
+      "measured_by": "tools/benchmark.py --json",
+      "compared_by": "tools/perf_budget.py (make perf-budget)"
+    },
+    "workload": {
+      "segments": 300,
+      "reports": 6000
+    },
+    "not_applicable": {
+      "p95_ms": "No hosted route. nearmiss is a CLI/library that publishes a static artifact; the only server it ships is the local read-only `nearmiss serve` used for the synthetic methods UI, which is not deployed. PERFORMANCE-STANDARD.md is explicit that a library with a hot path records a benchmark regression check instead, and that is what the work-unit metrics below are.",
+      "llm_first_token_ms": "No LLM or model component anywhere in the codebase. The AI Evaluation standard is declared N/A for the same reason in docs/adr/0004-standards-applicability.md and in the README's Standards Conformance table.",
+      "llm_full_response_ms": "No LLM or model component anywhere in the codebase; see llm_first_token_ms.",
+      "lighthouse_performance": "Not budgeted here on purpose, and not silently dropped: the shipped HTML is gated by `make accessibility` and `make web-check` (structural WCAG plus axe-core in jsdom), and a browser-rendered Lighthouse run is one of the named open items in the README's Accessibility row. Wiring a Lighthouse score into this file before that run exists would put a number here that nothing measures.",
+      "js_kb_gzip": "Same run as lighthouse_performance: the resource budget is a Lighthouse-CI assertion, and no Lighthouse-CI run exists yet. The published pages ship hand-written JS with no bundler and no framework, so there is no build step whose output could drift unobserved in the meantime.",
+      "wall_clock_total_s": "Measured on every run and printed by `make bench`, published in docs/PERFORMANCE.md, and deliberately not merge-blocking: GitHub's shared runners vary by far more than the 10% band, so a seconds budget would be either muted or red for reasons unrelated to the diff. The work-unit metrics below are the exactly reproducible half of the same benchmark. What that leaves uncovered -- a constant-factor slowdown inside an unchanged number of calls -- is stated in perf/README.md rather than implied away."
+    }
+  },
+  "metrics": {
+    "js_kb_gzip": null,
+    "lighthouse_performance": null,
+    "llm_first_token_ms": null,
+    "llm_full_response_ms": null,
+    "p95_ms": null,
+    "pipeline_calls": 654172,
+    "pipeline_geometry_ops": 427580,
+    "publish_calls": 601,
+    "publish_geometry_ops": 0,
+    "statistics_calls": 492552,
+    "statistics_geometry_ops": 235065,
+    "wall_clock_total_s": null
+  },
+  "direction": {
+    "js_kb_gzip": "lower_is_better",
+    "lighthouse_performance": "higher_is_better",
+    "llm_first_token_ms": "lower_is_better",
+    "llm_full_response_ms": "lower_is_better",
+    "p95_ms": "lower_is_better",
+    "pipeline_calls": "lower_is_better",
+    "pipeline_geometry_ops": "lower_is_better",
+    "publish_calls": "lower_is_better",
+    "publish_geometry_ops": "lower_is_better",
+    "statistics_calls": "lower_is_better",
+    "statistics_geometry_ops": "lower_is_better",
+    "wall_clock_total_s": "lower_is_better"
+  }
+}
