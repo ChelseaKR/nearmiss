@@ -105,12 +105,17 @@ failure mode this paragraph exists to prevent, arriving from the other side.
   `CITATION.cff:68` points at it. It previously read `TODO(#184)`, which satisfied
   CQ-34's no-bare-marker gate while #184 had been closed on 2026-08-23 and was about
   the README and ROADMAP's stale tag claims, not about minting a DOI — a green gate
-  over fictional tracking. That is the one thing CQ-34 still cannot see:
-  `tools/check_debt_markers.py` is offline by design, so it checks that a marker
-  *carries* an issue reference, never that the issue exists, is open, or is about the
-  marker. Repointing the marker fixes the instance, not the class; the limit stays
-  stated in that tool's docstring rather than left implicit. The DOI itself is not yet
-  minted, and minting it needs a Zenodo (or equivalent) account, so it stays here. PyPI Trusted Publishing and the signed tag
+  over fictional tracking. Repointing the marker fixed the instance, not the class; the
+  class is now closed, in the half that is decidable. `tools/check_debt_markers.py`'s
+  merge gate is still offline by design — it checks that a marker *carries* an issue
+  reference and nothing more — but `--resolve-issues` asks GitHub whether each linked
+  issue exists, is open, and is an issue rather than a pull request, and
+  `.github/workflows/debt-marker-issues.yml` runs it weekly rather than at merge time so
+  no merge depends on api.github.com (#233, ADR 0021). Whether an open issue is *about*
+  the marker is still a reading, so the run prints each issue's live title beside the
+  marker text and leaves the judgment to a reader rather than inventing a similarity
+  score. The DOI itself is not yet minted, and minting it needs a Zenodo (or equivalent)
+  account, so it stays here. PyPI Trusted Publishing and the signed tag
   workflow are done: `nearmiss-safety` 0.3.0, 0.3.1, and 0.4.0 are published,
   and v0.2.0, v0.3.0, v0.3.1, and v0.4.0 each cut a signed GitHub Release with
   an SBOM and a SLSA attestation (2026-08-08 and 2026-08-16).
