@@ -58,6 +58,44 @@ every entry.
 
 ### Added
 
+- **The performance benchmark now has a merge-blocking regression budget, and it budgets work
+  units rather than seconds.** `make bench` has timed the pipeline since v0.1 and
+  `docs/PERFORMANCE.md` has published the numbers, but nothing ever compared a run to anything:
+  the README's own Standards Conformance table said "a merge-blocking regression budget remains
+  open". A measurement with no comparand is the same shape as a green gate over an unenforced
+  number, which this project treats as a defect everywhere else (#236).
+
+  `perf/baseline.json` is the comparand, in the schema `docs/standards/PERFORMANCE-STANDARD.md`
+  §2 fixes — `meta` provenance, a flat `metrics` map whose inapplicable entries are declared
+  nulls with written reasons rather than silent absences, and a per-metric `direction`.
+  `make perf-budget` re-measures and fails any metric more than 10% off it; it runs inside
+  `make verify` and inside CI's `reproducibility` job, whose name is a required status check —
+  a new job would not have been required, and a performance gate that cannot block a merge is
+  the unenforced number all over again.
+
+  The budgeted metrics are **work units**, not the wall-clock seconds in the tables: how many
+  calls each stage makes into `nearmiss`/`honest_rates` code, and how many of those are the four
+  geometry primitives every distance-based pass funnels through. A seconds budget on a shared CI
+  runner can be merge-blocking or honest and not both — runner variance far exceeds 10%, and the
+  standard forbids muting a gate to cope. The synthetic city is deterministic, so the work-unit
+  counts are exact: identical between runs and measured identical on CPython 3.11.16 and 3.12.14,
+  the two interpreters in the test matrix.
+
+  They are also the numbers the documented scaling story is about. Every acceleration on that
+  page is a spatial index pruning a candidate set, and losing one goes quadratic while the demo
+  city still finishes in seconds and every existing test still passes. `tests/test_perf_budget.py`
+  removes the pruning and asserts the sabotage moved the measurement before checking that the
+  gate fails on it — measured at 60 segments / 1,200 reports, `pipeline_calls` goes 105,718 →
+  2,331,736. A negative control that silently no-ops reads exactly like a pass.
+
+  What this cannot see is written down instead of implied away, in `perf/README.md` and in the
+  README row itself: a constant-factor slowdown inside an unchanged number of calls moves seconds
+  and no work unit, so `docs/ROADMAP.md` now carries two performance rows — the work-unit budget
+  as AUTO, and the wall-clock recheck still REVIEW. The 10% band is enforced on the improvement
+  side too, which §2 leaves to review: for an exact metric, an improvement that never reaches the
+  baseline silently buys the next change a regression of the same size, and `make perf-baseline`
+  is the one-command ratchet.
+
 - **Every indexable page now has a link-preview card, and the build gate fails if it stops.** The
   four published documents already declared `og:title`, `og:description` and `og:url`, but none
   named an image, so a shared NearMiss link rendered as a blank grey box on Slack, LinkedIn, iMessage

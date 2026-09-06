@@ -213,6 +213,7 @@ quickly on one thing.
 | Tests | `make test` | `pytest` over deterministic components, with synthetic fixtures whose answers are **known** (planted hotspots recovered, interval coverage checks). |
 | Accessibility | `make accessibility` | Mandatory automated checks on the map, table, form, legends, and charts. Record the manual NVDA/VoiceOver result in the PR; a solo-maintainer public preview may instead use the bounded provisional REVIEW disposition in [ADR 0012](docs/adr/0012-solo-maintainer-provisional-review-attestation.md), without describing synthetic evidence as a manual pass or conformance. |
 | Security | `make security` | `pip-audit`, `gitleaks`, and CodeQL-equivalent checks. Pinned, hashed deps verified. |
+| Performance | `make perf-budget` | Re-measures the city-scale benchmark and fails on any work-unit metric more than 10% off [`perf/baseline.json`](perf/baseline.json). Improved a hot path? Ratchet the baseline forward with `make perf-baseline` **in the same PR**; see [`perf/README.md`](perf/README.md). |
 | Everything | `make verify` | All of the above. This is the gate. |
 
 Notes that save you a round trip:

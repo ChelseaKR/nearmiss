@@ -14,11 +14,14 @@ Run it yourself:
 make bench                            # 300 segments, 6000 reports (defaults)
 python tools/benchmark.py 800 20000   # larger city
 python tools/benchmark.py 5000 100000 # very large city
+python tools/benchmark.py --json      # the same run, machine-readable
 ```
 
 `tools/benchmark.py` generates a deterministic synthetic city in memory and times
 the pipeline, the statistics (including the O(M²) Getis-Ord step), and the GeoJSON
-build.
+build. It also counts the **work units** each stage performs, which is the half of
+the benchmark a merge gate can hold a budget against — see
+[The regression budget](#the-regression-budget) below.
 
 Representative figures (on a developer laptop; your numbers will differ):
 
@@ -47,6 +50,46 @@ distance passes. Results are identical to pre-indexed code.
 For a real city this is comfortably fast: a rebuild is seconds to tens of seconds
 depending on scale, well within the scheduled-rebuild budget, and the analysis
 runs anywhere with no install beyond `jsonschema`.
+
+## The regression budget
+
+Every table above is a measurement with nothing behind it: they were taken on a
+laptop, on a date, and until now no gate compared a new run to them. That is the
+shape this project treats as a defect elsewhere, and the README's own Standards
+Conformance table said so — "a merge-blocking regression budget remains open".
+
+It is no longer open. `make perf-budget` runs inside `make verify` and inside CI's
+required `reproducibility` job; it re-measures the 300-segment / 6,000-report
+workload and fails when any budgeted metric is more than 10% off the committed
+comparand, [`perf/baseline.json`](../perf/baseline.json), in that metric's declared
+direction. The schema, the 10% rule and the baseline-update ritual are
+[`docs/standards/PERFORMANCE-STANDARD.md`](standards/PERFORMANCE-STANDARD.md) §2.
+
+**The budgeted numbers are work units, not the seconds above.** How many calls each
+stage makes into `nearmiss`/`honest_rates` code, and how many of those are the four
+geometry primitives every distance-based pass runs through. The synthetic city is
+deterministic, so those counts are exact — identical between runs, and measured
+identical on CPython 3.11.16 and 3.12.14 — whereas a wall-clock budget on a shared
+CI runner would have to be either muted or accepted as intermittently red, and a
+gate people re-run is a gate that has stopped gating.
+
+Work units are also what the scaling limits below are about. Every acceleration on
+this page is a spatial index pruning a candidate set; losing one takes the counts
+quadratic while a 300-segment demo still finishes in seconds and every existing
+test still passes. Measured, on a deliberately un-pruned index at 60 segments /
+1,200 reports: `pipeline_calls` 105,718 → 2,331,736.
+
+**What the budget cannot see:** a constant-factor slowdown inside an unchanged
+number of calls moves the seconds in the tables above and leaves every work unit
+where it was. Nothing here will fail on it. That stays a review responsibility —
+the `City-scale performance (wall clock)` REVIEW row in
+[`ROADMAP.md`](ROADMAP.md) — and [`perf/README.md`](../perf/README.md) is where the
+whole design, including this gap, is written down.
+
+```bash
+make perf-budget     # the gate
+make perf-baseline   # ratchet the baseline after an improvement (review the diff)
+```
 
 ## Known scaling limits (honest)
 

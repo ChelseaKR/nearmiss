@@ -40,6 +40,7 @@ only removes blind spots.
 | `i18n-gate-count` | `README.md` — § Standards conformance | `tests/test_readme_restated_facts.py::test_the_i18n_gate_count_matches_what_make_i18n_runs` |
 | `vuln-management-hashed-locks` | `README.md` — § Privacy, security, accountability | `tests/test_readme_restated_facts.py::test_the_readme_never_calls_the_committed_hashed_lock_planned` |
 | `standards-table-cross-reference` | `README.md` — § Observability | `tests/test_readme_restated_facts.py::test_the_standards_cross_reference_counts_the_standards_table` |
+| `perf-regression-budget` | `README.md` — § Standards conformance | `tests/test_perf_budget.py::test_make_verify_runs_the_perf_budget_gate` |
 | `supported-versions-not-restated` | `README.md` — § Security | `tests/test_readme_restated_facts.py::test_the_supported_version_line_is_not_restated_as_a_literal` |
 | `dataset-schema-prose` | `CHANGELOG.md` — § Scope and conventions | `schema/dataset.schema.md` |
 | `rate-union-primary-plus-per-type-layers` | `docs/METHODOLOGY.md` — § 1. Notation and the unit of analysis | `tests/test_publish_privacy.py::test_rates_by_type_publishes_type_specific_rate_matching_breakdown` |
