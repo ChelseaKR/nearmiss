@@ -25,6 +25,7 @@ layer is not optional.
 ## Table of contents
 
 0. [Before you start: the binding constraint is sourcing, not adapters](#0-before-you-start-the-binding-constraint-is-sourcing-not-adapters)
+0b. [Your own spreadsheet, in one command](#0b-your-own-spreadsheet-in-one-command)
 1. [The three inputs you supply](#1-the-three-inputs-you-supply)
 2. [Writing a city config](#2-writing-a-city-config)
 3. [Address-only reports: the offline gazetteer geocoder](#3-address-only-reports-the-offline-gazetteer-geocoder)
@@ -71,6 +72,75 @@ None of this makes the rest of this guide moot. A city whose reports you collect
 (the intake form, an advocacy group's own records) has no third-party licence problem at
 all, and that is the shortest real path through this document. Issue #186 tracks the
 sourcing decision itself.
+
+---
+
+## 0b. Your own spreadsheet, in one command
+
+The paragraph above ends on the one source with no third-party licence problem: your own
+records. Most groups keep them in a shared spreadsheet with column names nobody standardised.
+`nearmiss crosswalk` turns that file into intake reports without asking you to write code.
+
+```console
+$ nearmiss crosswalk init --from reports.csv --out config/our-reports.toml
+```
+
+It reads the header row, proposes which column carries which intake field, then asks for the
+source metadata, the eight bias answers every source in this project must give, and how your
+own words for travel mode, hazard and severity map onto the closed intake vocabulary. Add
+`--answers answers.toml` to supply the same answers from a file instead, which is what CI and
+the tests use; `tests/fixtures/spreadsheet/answers.toml` is a filled-in example.
+
+```console
+$ nearmiss crosswalk import --crosswalk config/our-reports.toml \
+    --from reports.csv --out data/reports.json
+crosswalk import: 3 report(s) from 4 row(s)
+  excluded, unmapped_mode: 1
+  excluded, unparseable_time: 0
+  excluded, naive_time_no_offset: 0
+  excluded, no_location: 0
+  1 row(s) were excluded and are NOT in data/reports.json. Fix the crosswalk or the
+  export; they are not missing at random.
+```
+
+That output file is an ordinary intake file: `nearmiss intake data/reports.json --config …`
+takes it from there, and the rest of this guide applies unchanged.
+
+### What it refuses to do
+
+Nothing here fills a blank in. Four kinds of row are **excluded and counted**, never repaired:
+
+| The row | Why it is not repaired |
+| --- | --- |
+| a travel mode your crosswalk does not map | `mode` has no `unknown` member, so any fallback would record a mode nobody reported. `[mode]` is the one mapping table in this project with **no default**, and a manifest that declares one is refused at load. |
+| a timestamp with no timezone, when the crosswalk declares no `timezone_offset` | An assumed hour is a fabricated hour, and the time-of-day analysis reads those hours. Set `timezone_offset = "-07:00"` (or your own) if your spreadsheet stores local time. |
+| a timestamp that will not parse | There is nothing to recover. |
+| a row with neither coordinates nor an address | `schema/report.schema.json` requires one of them. |
+
+Every counter is printed on every run, **including the ones that are zero**, because a counter
+that appears only when it fires reads as "nothing was dropped" on a run that never looked.
+
+The column proposal is a suggestion, not a decision. If two columns match one required field
+(`Outcome` and `Injury` both look like severity), or none does, `crosswalk init` refuses and
+names them rather than picking; you break the tie in the answers file's `[field_map]`. It also
+refuses if your mode column holds a value your rules do not map, so you learn that at build
+time rather than as a row count that quietly fell.
+
+Rows that carry a street or intersection instead of coordinates are emitted with `address`
+set, and the pipeline's geocode stage resolves them through the offline gazetteer described in
+[section 3](#3-address-only-reports-the-offline-gazetteer-geocoder). The importer does not
+geocode and does not pretend to.
+
+### The generated manifest is a real manifest
+
+It is loaded straight back through the same `load_crosswalk_file` that validates the committed
+`crosswalks/*.toml`, before `crosswalk init` returns. A blank bias answer, an `n/a`, or a
+missing `publication_status` fails there exactly as it would in a hand-written manifest.
+There is no generator-only lane.
+
+Read the file it writes. It is a starting point, and the rationale lines it fills in say only
+"mapped by the author" — replace them with the reason you actually chose each mapping, the way
+`crosswalks/bikemaps.toml` does.
 
 ---
 

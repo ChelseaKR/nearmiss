@@ -58,6 +58,38 @@ every entry.
 
 ### Added
 
+- **A group's own spreadsheet is now a first-class source, and every row it cannot use is
+  counted rather than dropped.** #186 recorded the bind: two report adapters and zero
+  publishable real-data paths, because BikeMaps has no coverage in the demo cities, SimRa's
+  NonCommercial clause survives aggregation, and no open US dataset pairs near-miss reports
+  with the bicycle counts a rate needs. The one source a group always holds rights to is its
+  own log of member reports, which is almost always a shared spreadsheet with column names
+  nobody standardised.
+
+  `nearmiss crosswalk init --from reports.csv --out ours.toml` reads the header row, proposes
+  which column carries which intake field, and collects the source metadata, the eight bias
+  answers every source in this project must give, and how the group's own words for travel
+  mode, hazard and severity map onto the closed intake enums. `--answers answers.toml`
+  supplies the same non-interactively. `nearmiss crosswalk import` then turns the export into
+  an ordinary intake reports file (#246).
+
+  Inference proposes; it never decides. Two columns matching one required field, or none
+  matching it, is a refusal that names them, not a coin toss — and a mode value the rules do
+  not map is named at build time rather than discovered later as a row count that quietly
+  fell. Whatever `init` writes is loaded straight back through the same
+  `load_crosswalk_file` that validates the committed `crosswalks/*.toml`, so a blank bias
+  answer fails there exactly as it would in a hand-written manifest; there is no
+  generator-only lane.
+
+  Four kinds of row are excluded **and counted**: an unmapped travel mode, a timestamp with no
+  timezone where the crosswalk declares no offset, a timestamp that will not parse, and a row
+  naming no place at all. `[mode]` is the one mapping table here with no default, and a
+  manifest that declares one is refused at load: `mode` has no `unknown` member, so any
+  fallback would record a mode nobody reported, and dividing a wheelchair user's near miss by
+  a bicycle denominator is the failure RE-05 exists to prevent. The importer prints all four
+  counters on every run including the zeroes, because a counter that appears only when it
+  fires reads as "nothing was dropped" on a run that never looked.
+
 - **The performance benchmark now has a merge-blocking regression budget, and it budgets work
   units rather than seconds.** `make bench` has timed the pipeline since v0.1 and
   `docs/PERFORMANCE.md` has published the numbers, but nothing ever compared a run to anything:
