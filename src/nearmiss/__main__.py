@@ -11,6 +11,7 @@ nearmiss run       --config C                   # intake -> ... -> brief, end to
 nearmiss submit   <submission.json> --config C  # queue a public submission (PENDING)
 nearmiss moderate  list|approve|reject|export|stats --config C  # review the moderation queue
 nearmiss contributor export|delete|purge-expired --config C  # data-rights (token = auth)
+nearmiss crosswalk init|import                   # a group's own spreadsheet -> intake reports
 nearmiss preregister --config C [--out DIR]     # EXP-16: freeze flagged corridors (hash+timestamp)
 nearmiss score-preregistration --registration F --config C [--out DIR]  # EXP-16: score vs held-out
 nearmiss coverage  --config C [--registry R] [--fars-root R]  # evidence + verified gaps
@@ -32,10 +33,17 @@ import sys
 from pathlib import Path
 
 from . import __version__, obs
+from .adapters.spreadsheet import SKIP_REASONS, SpreadsheetAdapter, SpreadsheetCrosswalkError
 from .brief import render_brief
 from .config import Config, load_config
 from .contributor import delete_reports, export_reports, purge_expired
 from .coverage import assess_coverage, load_source_registry
+from .crosswalk_init import (
+    CrosswalkInitError,
+    init_crosswalk,
+    load_answers,
+    prompt_answers,
+)
 from .dossier import render_dossier
 from .engine import AnalysisBundle, build_analysis
 from .errors import NearmissError
@@ -425,6 +433,56 @@ def _cmd_submit(args: argparse.Namespace) -> int:
         flags = f" flags={sub.flags}" if sub.flags else ""
         print(f"submit: queued {sub.submission_id} (pending review){flags}")
     print(f"submit: {len(reports)} submission(s) pending in {config.submissions_dir}")
+    return 0
+
+
+def _cmd_crosswalk(args: argparse.Namespace) -> int:
+    if args.action == "init":
+        return _crosswalk_init(args)
+    return _crosswalk_import(args)
+
+
+def _crosswalk_init(args: argparse.Namespace) -> int:
+    csv_path, out_path = Path(getattr(args, "from")), Path(args.out)
+    try:
+        if args.answers:
+            answers = load_answers(Path(args.answers))
+        else:
+            answers = prompt_answers(csv_path, input, lambda line: print(line))
+        init_crosswalk(csv_path, answers, out_path)
+    except (CrosswalkInitError, SpreadsheetCrosswalkError, ValueError, OSError) as exc:
+        print(f"nearmiss: crosswalk init refused: {exc}", file=sys.stderr)
+        return 2
+    print(f"crosswalk init: wrote {out_path}")
+    print("  Read it before using it. The column mapping was proposed from the header row.")
+    return 0
+
+
+def _crosswalk_import(args: argparse.Namespace) -> int:
+    csv_path, out_path = Path(getattr(args, "from")), Path(args.out)
+    try:
+        adapter = SpreadsheetAdapter(Path(args.crosswalk))
+        result = adapter.read(adapter.fetch(path=csv_path))
+    except (SpreadsheetCrosswalkError, ValueError, OSError) as exc:
+        print(f"nearmiss: crosswalk import refused: {exc}", file=sys.stderr)
+        return 2
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(
+        json.dumps({"reports": result.reports}, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    print(f"crosswalk import: {len(result.reports)} report(s) from {result.rows_read} row(s)")
+    # Every exclusion is printed, including the zeroes. A reason that only
+    # appears when it is non-zero reads as "nothing was dropped" on a run that
+    # never looked, which is the same silence this whole pipeline refuses.
+    for reason in SKIP_REASONS:
+        print(f"  excluded, {reason}: {result.skipped.get(reason, 0)}")
+    if result.skipped_total:
+        print(
+            f"  {result.skipped_total} row(s) were excluded and are NOT in {out_path}. "
+            "Fix the crosswalk or the export; they are not missing at random."
+        )
+    print(f"  wrote {out_path}")
     return 0
 
 
@@ -1228,6 +1286,28 @@ def build_parser() -> argparse.ArgumentParser:
     p_submit.add_argument("source", help="submission JSON (one report, a list, or {reports:[...]})")
     add_config(p_submit)
     p_submit.set_defaults(func=_cmd_submit)
+
+    p_xwalk = sub.add_parser(
+        "crosswalk", help="build and use a crosswalk for a group's own spreadsheet of reports"
+    )
+    xwalk_sub = p_xwalk.add_subparsers(dest="action", required=True)
+    x_init = xwalk_sub.add_parser(
+        "init", help="propose a crosswalk manifest from a CSV export's header row"
+    )
+    x_init.add_argument("--from", required=True, metavar="CSV", help="the spreadsheet export")
+    x_init.add_argument("--out", required=True, help="where to write the crosswalk TOML")
+    x_init.add_argument(
+        "--answers",
+        help="TOML answers file (source metadata, the eight bias axes, value rules); "
+        "omit it to be asked the same questions interactively",
+    )
+    x_import = xwalk_sub.add_parser(
+        "import", help="turn a CSV export into intake reports through a crosswalk"
+    )
+    x_import.add_argument("--crosswalk", required=True, help="the crosswalk TOML")
+    x_import.add_argument("--from", required=True, metavar="CSV", help="the spreadsheet export")
+    x_import.add_argument("--out", required=True, help="output reports JSON path")
+    p_xwalk.set_defaults(func=_cmd_crosswalk)
 
     p_mod = sub.add_parser("moderate", help="review the public-submission moderation queue")
     add_config(p_mod)

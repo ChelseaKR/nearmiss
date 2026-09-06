@@ -1,0 +1,5 @@
+Outcome,Notes,Longitude,When it happened,Intersection,Latitude,Travel mode,What happened
+near miss,Mapped fine,-121.740517,2026-06-15T08:42:00-07:00,,38.544907,bike,close pass
+near miss,Mode nobody mapped,-121.740600,2026-06-15 09:00,,38.544900,skateboard,close pass
+near miss,Date is not a date,-121.740700,not a date,,38.544800,bike,close pass
+near miss,Neither coordinates nor address,,2026-06-15 10:00,,,bike,close pass

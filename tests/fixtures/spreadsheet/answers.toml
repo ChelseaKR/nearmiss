@@ -1,0 +1,69 @@
+# Answers for `nearmiss crosswalk init`, as a partner group would fill them in.
+
+[source]
+id = "davis-member-reports"
+name = "Davis Bike Collective member close-call log"
+url = "https://example.invalid/davis-bike-collective/close-calls"
+license = "Contributed by members to the collective under its own reporting consent form; the collective holds redistribution rights for aggregate outputs."
+publication_status = "research_only"
+publication_note = "The consent form members signed covers analysis and aggregate publication by the collective itself, and says nothing about redistribution by a third party, so derived data is not published from this repository until that is settled in writing."
+bias_label = "self-selected members of one advocacy group, concentrated on the routes they already ride"
+
+[source.bias_profile]
+route_choice = "Members log close calls on the routes they already choose to ride, so a street with no entries may be one nobody in the group is willing to use rather than one that is safe."
+reporter_pool = "Only people who joined the collective and remember the log appear here; casual riders, children, and people who ride without any advocacy connection are absent from it entirely."
+app_access = "The log is a shared spreadsheet reached by link, so it needs a device, an account, and the habit of opening it; a member without those reports nothing however often they are frightened."
+language = "The spreadsheet's column headers and prompts are English only, so Spanish-speaking members are under-represented and their routes are under-counted for language reasons alone."
+demographic_skew = "The collective's membership skews whiter, more male, and higher-income than the population that cycles in the city, so entry density partly tracks who joined rather than where the danger is."
+survivorship = "A corridor almost no member will ride produces no entries at all, and a low count here is never read as safety; the pipeline publishes exposure unknown instead of a flattering rate."
+salience = "A frightening close pass is far more likely to get logged than a chronic bad surface, so the hazard mix over-weights dramatic vehicle conflicts and under-weights slow infrastructure problems."
+temporal_campaign = "Entries spike after a group ride, a newsletter reminder, or a local crash in the news, which reflects attention that month rather than any change in how dangerous the street was."
+
+[field_map]
+timezone_offset = "-07:00"
+
+[[mode.rules]]
+when = "bike"
+value = "cyclist"
+rationale = "The log's own word for riding a bicycle."
+
+[[mode.rules]]
+when = "on foot"
+value = "pedestrian"
+rationale = "Walking, the log's own phrasing."
+
+[[mode.rules]]
+when = "wheelchair"
+value = "wheelchair"
+rationale = "Direct match with the intake enum."
+
+[hazard_type]
+default = "other"
+
+[[hazard_type.rules]]
+when = "close pass"
+value = "close_pass"
+rationale = "A motor vehicle passing too closely is exactly the close_pass definition."
+
+[[hazard_type.rules]]
+when = "pothole"
+value = "surface_hazard"
+rationale = "A pavement defect, the same bucket the BikeMaps crosswalk puts it in."
+
+[[hazard_type.rules]]
+when = "blind corner"
+value = "sightline"
+rationale = "Obstructed visibility at a corner is the sightline category."
+
+[severity]
+default = "near_miss"
+
+[[severity.rules]]
+contains = "minor"
+value = "minor"
+rationale = "The log writes 'minor injury' for contact without lasting harm."
+
+[[severity.rules]]
+contains = "serious"
+value = "serious"
+rationale = "The log writes 'serious injury' for a crash needing care."

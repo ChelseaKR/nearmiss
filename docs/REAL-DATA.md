@@ -336,6 +336,37 @@ The full crosswalk (including every rule's stated rationale) is the machine-read
 at `src/nearmiss/adapters/crosswalks/bikemaps.toml`; this table is a rendering of it for readers who
 don't want to open a TOML file.
 
+## 1c. Incidents — your own group's spreadsheet (no third-party licence)
+
+Sections 1 and 1b are both blocked on somebody else's terms: SimRa is `research_only` under a
+NonCommercial clause that survives aggregation, and BikeMaps is `undetermined` because nobody
+here has read its terms page into a citable statement. The one source with neither problem is
+the one a group already holds — its own log of member reports, usually a shared spreadsheet.
+
+`src/nearmiss/adapters/spreadsheet.py` is the generic adapter for that, and
+`nearmiss crosswalk init --from reports.csv --out our-reports.toml` writes the manifest it
+reads. The full recipe, including what it refuses to do, is in
+[`docs/ADAPTING.md`, section 0b](ADAPTING.md#0b-your-own-spreadsheet-in-one-command).
+
+Three things are worth restating here, because they are the honesty rules this file exists for:
+
+- **It is not registered in `adapters.registry`, and cannot be.** The registry maps one source
+  id to one adapter instance, and there is no single "spreadsheet" source — there is one per
+  group, with its own crosswalk living in that group's project directory rather than in this
+  package. `SpreadsheetAdapter` is constructed with a path for exactly that reason.
+- **`publication_status` still has to be answered.** A group's own records are not
+  automatically publishable: whether the consent its members gave covers redistribution *by
+  this repository* is a separate question from whether the group may analyse them, and the
+  manifest has to say which, on what basis. The example in
+  `tests/fixtures/spreadsheet/answers.toml` answers `research_only` and says why.
+- **`[mode]` has no default anywhere in this system.** A row whose travel mode the crosswalk
+  does not map is excluded and counted, never pooled. Dividing a wheelchair user's near miss
+  by a bicycle denominator is the failure RE-05 exists to prevent, and it starts at intake.
+
+This does not change what section 3 says about exposure. A group's own reports still need a
+denominator, and collecting counts by hand remains the work; see
+[Exposure — the genuinely hard part](#3-exposure--the-genuinely-hard-part-but-real-data-exists).
+
 ## 1b. Incidents — SimRa (TU Berlin), the second source adapter
 
 [SimRa](https://github.com/simra-project/dataset) (TU Berlin) is a crowdsourced, openly

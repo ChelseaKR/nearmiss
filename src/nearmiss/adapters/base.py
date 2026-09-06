@@ -224,6 +224,31 @@ class Crosswalk:
     hazard_rules: tuple[tuple[str, str, str], ...]  # (when, value, rationale)
     severity_default: str
     severity_rules: tuple[tuple[str, str, str], ...]  # (contains, value, rationale)
+    # Optional [mode] table: source travel-mode vocabulary -> the intake enum.
+    # Deliberately has no default. BikeMaps and SimRa are cycling-specific, so
+    # their adapters assign mode themselves and leave this empty; a source that
+    # carries several modes must map every value it uses, because guessing the
+    # mode of an unmapped row is what turns a wheelchair user's near miss into
+    # a cyclist's. mode_from() returns None for an unmapped value and the
+    # caller reports the row as unmapped rather than filling it in.
+    mode_rules: tuple[tuple[str, str, str], ...] = ()  # (when, value, rationale)
+
+    def mode_from(self, value: str | None) -> str | None:
+        """The intake ``mode`` for one source value, or None if unmapped.
+
+        There is no default on purpose: an unmapped mode is missing
+        information, and the only honest renderings of missing information are
+        "unmapped" and "excluded, and counted". ``mode`` has no ``unknown``
+        member in ``schema/report.schema.json``, so there is nothing to fall
+        back to that would not be an invention.
+        """
+        if not value:
+            return None
+        needle = value.strip()
+        for when, mapped, _rationale in self.mode_rules:
+            if needle.casefold() == when.casefold():
+                return mapped
+        return None
 
     def hazard_from(self, value: str | None) -> str:
         if value:
@@ -364,6 +389,23 @@ def load_crosswalk(name: str) -> Crosswalk:
     path = CROSSWALK_DIR / f"{name}.toml"
     if not path.is_file():
         raise FileNotFoundError(f"no crosswalk manifest at {path}")
+    return load_crosswalk_file(path, name=name)
+
+
+def load_crosswalk_file(path: Path, name: str | None = None) -> Crosswalk:
+    """Load and validate a crosswalk manifest from an arbitrary path.
+
+    :func:`load_crosswalk` is this function with the path resolved inside
+    ``crosswalks/``. It is split out for sources whose manifest is not shipped
+    with the package -- a partner group's own spreadsheet crosswalk lives in
+    that group's project directory, not here -- so a generated manifest passes
+    through exactly the same validation as a committed one. Sharing the body
+    rather than re-implementing it is the point: a generator that wrote a blank
+    bias answer would otherwise be checked by nothing.
+    """
+    name = name or path.stem
+    if not path.is_file():
+        raise FileNotFoundError(f"no crosswalk manifest at {path}")
     with path.open("rb") as fh:
         data = tomllib.load(fh)
 
@@ -400,6 +442,24 @@ def load_crosswalk(name: str) -> Crosswalk:
             f"{sorted(valid_hazard)}: {bad_hazard}"
         )
 
+    mode = data.get("mode", {})
+    mode_rules = tuple(
+        (r["when"], r["value"], r.get("rationale", "")) for r in mode.get("rules", [])
+    )
+    if "default" in mode:
+        raise ValueError(
+            f"crosswalk {name!r}: [mode] must not carry a default. An unmapped travel mode "
+            f"is missing information, and defaulting it would record a mode nobody reported; "
+            f"map every value the source uses, and unmapped rows are reported as unmapped."
+        )
+    valid_mode = _intake_enum("mode")
+    bad_mode = sorted({v for _, v, _ in mode_rules if v not in valid_mode})
+    if bad_mode:
+        raise ValueError(
+            f"crosswalk {name!r}: mode value(s) not in intake schema enum "
+            f"{sorted(valid_mode)}: {bad_mode}"
+        )
+
     valid_severity = _intake_enum("severity")
     bad_severity = sorted(
         {v for _, v, _ in severity_rules if v not in valid_severity}
@@ -424,4 +484,5 @@ def load_crosswalk(name: str) -> Crosswalk:
         hazard_rules=hazard_rules,
         severity_default=severity_default,
         severity_rules=severity_rules,
+        mode_rules=mode_rules,
     )
