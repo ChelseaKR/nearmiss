@@ -11,6 +11,7 @@ import pytest
 
 from nearmiss import __main__ as cli
 from nearmiss import fars_year_activation as activation
+from nearmiss.ingestion import IngestionError
 
 ROOT = Path(__file__).resolve().parents[1]
 _RAW_LEXICAL = "downloads/../reviewed/FARS2024NationalCSV.zip"
@@ -91,6 +92,17 @@ def test_dispatch_preflights_root_and_emits_exact_sorted_aggregate_line(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    # Pin both inputs to boundary discovery at this checkout.  Discovery walks the
+    # working directory and the imported module's tree, so a second checkout of the
+    # same repository -- a git worktree, or an editable install exercised from
+    # elsewhere -- contributes a second boundary, the guard below runs once per
+    # boundary, and this test fails for a reason that has nothing to do with the
+    # dispatch contract it exists to state.  The two-boundary shape is a real
+    # contract and is covered on its own terms in
+    # test_a_second_checkout_is_preflighted_as_its_own_boundary.
+    monkeypatch.chdir(ROOT)
+    monkeypatch.setattr(cli, "__file__", str(ROOT / "src" / "nearmiss" / "__main__.py"))
+
     requested_root = tmp_path / "operator-root"
     resolved_root = requested_root.resolve()
     events: list[str] = []
@@ -153,6 +165,165 @@ def test_raw_archive_is_passed_lexically_without_expansion_or_resolution(
     assert cli.main(_argv(tmp_path / "private", raw_archive=lexical)) == 0
     assert observed == [lexical]
     assert capsys.readouterr().err == ""
+
+
+def _make_checkout(root: Path) -> Path:
+    """Write the identity markers that make ``root`` a nearmiss source checkout.
+
+    Deliberately written out here rather than imported from the module under test:
+    a fixture built from the code's own marker list would agree with any change to
+    that list, including a change that stops recognising a real checkout.
+    """
+
+    (root / "src" / "nearmiss").mkdir(parents=True)
+    (root / "web").mkdir()
+    (root / "data" / "published").mkdir(parents=True)
+    (root / "pyproject.toml").write_text("# checkout marker\n", encoding="utf-8")
+    (root / "index.html").write_text("<!doctype html>\n", encoding="utf-8")
+    module = root / "src" / "nearmiss" / "__main__.py"
+    module.write_text("# checkout marker\n", encoding="utf-8")
+    return module
+
+
+def test_a_second_checkout_is_preflighted_as_its_own_boundary(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Every operator-visible tree is guarded, and the invocation tree is the root.
+
+    An editable install exercised from a second working tree -- a git worktree, a
+    developer running one checkout's tests against another checkout's install --
+    makes the working directory and the imported module resolve to two different
+    nearmiss checkouts.  Both are operator-visible, so a private root inside either
+    must be refused; the ``repository_root`` handed to activation is the invocation
+    tree, never the install prefix.
+    """
+    installed_checkout = tmp_path / "second-checkout"
+    installed_module = _make_checkout(installed_checkout)
+    requested_root = tmp_path / "operator-root"
+    resolved_root = requested_root.resolve()
+    guarded: list[Path] = []
+    received: dict[str, object] = {}
+    values = _evidence_values()
+
+    def guard(root: str | Path, repository_root: str | Path) -> Path:
+        assert root == str(requested_root)
+        guarded.append(Path(repository_root))
+        return resolved_root
+
+    def activate(**kwargs: object) -> _Evidence:
+        received.update(kwargs)
+        return _Evidence(values)
+
+    monkeypatch.chdir(ROOT)
+    monkeypatch.setattr(cli, "__file__", str(installed_module))
+    monkeypatch.setattr(cli, "require_private_root_outside_repository", guard)
+    monkeypatch.setattr(activation, "activate_fars_year", activate)
+
+    assert cli.main(_argv(requested_root)) == 0
+
+    assert guarded == [ROOT, installed_checkout.resolve()]
+    assert received["repository_root"] == ROOT
+    assert capsys.readouterr().err == ""
+
+
+def test_boundaries_that_disagree_about_the_private_root_fail_closed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Two boundaries resolving one root differently is a refusal, not a choice."""
+    installed_checkout = tmp_path / "second-checkout"
+    installed_module = _make_checkout(installed_checkout)
+    resolutions = iter([tmp_path / "first", tmp_path / "second"])
+
+    def guard(root: str | Path, repository_root: str | Path) -> Path:
+        return next(resolutions)
+
+    def forbidden_activation(**_kwargs: object) -> NoReturn:
+        raise AssertionError("activation must not run when the boundaries disagree")
+
+    monkeypatch.chdir(ROOT)
+    monkeypatch.setattr(cli, "__file__", str(installed_module))
+    monkeypatch.setattr(cli, "require_private_root_outside_repository", guard)
+    monkeypatch.setattr(activation, "activate_fars_year", forbidden_activation)
+
+    assert cli.main(_argv(tmp_path / "operator-root")) == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == "nearmiss: error: annual FARS activation failed\n"
+
+
+def test_an_internal_fault_is_not_reported_as_an_annual_fars_data_fault(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A fault in this package must not be reported as a fact about FARS data.
+
+    One broad ``except`` once rewrote every internal fault into "annual FARS
+    activation failed", sending a reader to inspect the dataset for a bug in this
+    file.  It also made the forbidden-activation sentinels below unable to fail:
+    they report a regression by raising ``AssertionError``, and laundered into the
+    data refusal that produced the same exit code and the same stderr as the refusal
+    they exist to tell apart.  Redaction is unchanged -- the fault's own message is
+    still never echoed.
+    """
+
+    def broken_activation(**_kwargs: object) -> NoReturn:
+        raise AssertionError("internal invariant broken at /private/secret")
+
+    monkeypatch.setattr(
+        cli,
+        "require_private_root_outside_repository",
+        lambda root, repository_root: Path(root),
+    )
+    monkeypatch.setattr(activation, "activate_fars_year", broken_activation)
+
+    assert cli.main(_argv(tmp_path / "operator-root")) == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == (
+        "nearmiss: error: annual FARS activation hit an internal nearmiss fault "
+        "(AssertionError); the FARS input is not implicated\n"
+    )
+    assert "secret" not in captured.err
+    assert "annual FARS activation failed" not in captured.err
+
+
+def test_an_internal_fault_with_a_hostile_type_name_prints_no_type_name(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The type name is printed only when it is a plain identifier.
+
+    ``type()`` does not require ``__name__`` to be an identifier, so a class built
+    at runtime can carry an arbitrary string -- including a private path.  The label
+    is a diagnostic, not a channel: anything that is not a short identifier is
+    dropped rather than printed.
+    """
+    hostile = type("/private/secret", (Exception,), {})
+
+    def broken_activation(**_kwargs: object) -> NoReturn:
+        raise hostile()
+
+    monkeypatch.setattr(
+        cli,
+        "require_private_root_outside_repository",
+        lambda root, repository_root: Path(root),
+    )
+    monkeypatch.setattr(activation, "activate_fars_year", broken_activation)
+
+    assert cli.main(_argv(tmp_path / "operator-root")) == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == (
+        "nearmiss: error: annual FARS activation hit an internal nearmiss fault "
+        "(unnamed); the FARS input is not implicated\n"
+    )
+    assert "secret" not in captured.err
 
 
 def test_wheel_layout_uses_invocation_checkout_not_install_prefix(
@@ -376,15 +547,22 @@ def test_malformed_root_has_the_same_constant_redacted_error(
     [
         ValueError("raw archive /private/secret.zip was rejected"),
         OSError("private root /private/secret failed"),
-        RuntimeError("unexpected internal /private/secret detail"),
+        IngestionError("ingestion refused /private/secret"),
     ],
 )
-def test_activation_failures_share_one_constant_redacted_error(
+def test_operator_faults_share_one_constant_redacted_error(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
     error: Exception,
 ) -> None:
+    """A rejected input reports one constant, whatever the underlying message said.
+
+    An internal fault is redacted just as hard but reports a *different* constant,
+    because it is not a fact about FARS data; see
+    test_an_internal_fault_is_not_reported_as_an_annual_fars_data_fault.
+    """
+
     def fail(**_kwargs: object) -> NoReturn:
         raise error
 
@@ -434,7 +612,13 @@ def test_evidence_projection_key_drift_fails_closed_before_stdout(
     assert cli.main(_argv(tmp_path / "private")) == 2
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert captured.err == "nearmiss: error: annual FARS activation failed\n"
+    # Redacted exactly as hard as before, but attributed honestly: an evidence
+    # projection whose key set drifted is a contract fault in this package, and
+    # reporting it as "annual FARS activation failed" pointed at the dataset.
+    assert captured.err == (
+        "nearmiss: error: annual FARS activation hit an internal nearmiss fault "
+        "(RuntimeError); the FARS input is not implicated\n"
+    )
     assert "secret" not in captured.err
 
 
