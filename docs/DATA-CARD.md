@@ -459,7 +459,7 @@ baselines; the briefs restate the relevant ones in plain language.
   reporting spike that is about attention, not a change in danger.
 - **Per-source bias when reports are imported from a real-data source.** Each source adapter
   (`src/nearmiss/adapters/`, see [`docs/REAL-DATA.md`](REAL-DATA.md#source-adapters)) carries its
-  own `bias_label` and `bias_notes` in its crosswalk manifest — e.g. BikeMaps.org skews toward
+  own `bias_label` and `[source.bias_profile]` in its crosswalk manifest — e.g. BikeMaps.org skews toward
   self-selected app-user cyclists in cities where it has been promoted, while SimRa skews toward
   app-recruited riders in a handful of research-partner regions and can only ever report
   near-misses, never collision severity. A published dataset assembled from more than one source

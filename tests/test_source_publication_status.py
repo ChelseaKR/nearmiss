@@ -23,6 +23,7 @@ cannot drift from the manifests again without failing here.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -32,7 +33,22 @@ from nearmiss.adapters.base import PUBLICATION_STATUSES, Crosswalk, load_crosswa
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_CARD = ROOT / "docs" / "DATA-CARD.md"
+REAL_DATA = ROOT / "docs" / "REAL-DATA.md"
 CROSSWALKS = ROOT / "src" / "nearmiss" / "adapters" / "crosswalks"
+
+#: The one shape `docs/REAL-DATA.md` may state a source's publication status in. Fixing the
+#: shape is what makes the claim findable by a gate instead of by a careful reader.
+_STATUS_BLOCK = re.compile(
+    r"^> \*\*Publication status: `(?P<status>[a-z_]+)`\*\* "
+    r"\(`src/nearmiss/adapters/crosswalks/(?P<source>[a-z0-9_]+)\.toml`\)\.",
+    flags=re.MULTILINE,
+)
+
+
+def _real_data_statuses() -> dict[str, str]:
+    text = REAL_DATA.read_text(encoding="utf-8")
+    return {m.group("source"): m.group("status") for m in _STATUS_BLOCK.finditer(text)}
+
 
 SOURCE_IDS = sorted(registry)
 
@@ -112,6 +128,101 @@ def test_no_data_card_table_row_asserts_a_licence_no_manifest_backs() -> None:
             "a docs/DATA-CARD.md table row describes BikeMaps without quoting the "
             f"licence its crosswalk states: {row}"
         )
+
+
+# --- The adapter guide states it too, because that is the document authors read ----
+#
+# Issue #186 again, second instance. `docs/DATA-CARD.md` and `docs/ADAPTING.md` were both
+# corrected to carry each source's publication status; `docs/REAL-DATA.md` — the per-source
+# guide an adapter author actually works from — was not, and the gate above could not see it
+# because it only ever read the data card. So §1b went on calling SimRa an "openly-published"
+# dataset with no mention of CC BY-NC, one hundred and seventy lines above the section that
+# refuses a SeeClickFix adapter *for the NonCommercial clause*. The identical objection
+# disqualified an unbuilt adapter and stayed silent about a shipped one, which is the
+# asymmetry #186 was filed about, surviving in the document that routes contributors.
+
+
+@pytest.mark.parametrize("source_id", SOURCE_IDS)
+def test_the_adapter_guide_states_each_sources_publication_status(source_id: str) -> None:
+    """A registered source with no status block in the guide is the drift, restarting."""
+    stated = _real_data_statuses()
+    assert source_id in stated, (
+        f"docs/REAL-DATA.md has no publication-status block for {source_id!r}. Every "
+        f"registered source needs one, in the form:\n"
+        f"> **Publication status: `<status>`** "
+        f"(`src/nearmiss/adapters/crosswalks/{source_id}.toml`)."
+    )
+    assert stated[source_id] == crosswalk(source_id).publication_status, (
+        f"docs/REAL-DATA.md says {source_id} is {stated[source_id]!r}; its crosswalk says "
+        f"{crosswalk(source_id).publication_status!r}. The manifest is the source of truth."
+    )
+
+
+def test_the_adapter_guide_describes_no_source_it_does_not_register() -> None:
+    """A status block for a source that was removed would be a claim about nothing."""
+    assert set(_real_data_statuses()) <= set(SOURCE_IDS)
+
+
+#: An unqualified openness claim is a redistribution claim, and no registered source can
+#: back one today. Written as fragments so this module can name the wording it forbids
+#: without tripping its own check — the same convention `tests/test_debt_markers.py` uses
+#: for the marker words.
+_OPENNESS_CLAIM = ("openly", "published")
+
+
+def openness_claims_in_prose(text: str) -> list[str]:
+    """Lines asserting open publication, ignoring block quotes.
+
+    The status blocks are block quotes, and they are precisely where a correction has to
+    quote the wording it replaced. What is being policed is the document's own descriptive
+    prose: the sentence a reader takes as this project's current claim about a source.
+    """
+    joined = "".join(_OPENNESS_CLAIM)
+    claims = []
+    for line in text.splitlines():
+        if line.lstrip().startswith(">"):
+            continue
+        squashed = "".join(line.lower().split()).replace("-", "").replace("*", "")
+        if joined in squashed:
+            claims.append(line.strip())
+    return claims
+
+
+def test_no_prose_line_advertises_a_source_as_openly_published() -> None:
+    """The exact wording that hid the SimRa clause: an openness claim with no licence.
+
+    Applied to a source whose crosswalk says `research_only` or `undetermined`, it is a
+    redistribution assertion no manifest backs — the same defect the BikeMaps licence row
+    was corrected for, in prose rather than in a table. This is unconditional while no
+    registered source is `publishable`, which the assertion below pins rather than assumes.
+    """
+    assert all(crosswalk(s).publication_status != "publishable" for s in SOURCE_IDS), (
+        "a source is now publishable; this check has to become per-source rather than "
+        "unconditional. Do not simply delete it."
+    )
+    claims = openness_claims_in_prose(REAL_DATA.read_text(encoding="utf-8"))
+    assert claims == [], (
+        "docs/REAL-DATA.md asserts open publication while no registered source is "
+        f"`publishable`: {claims}"
+    )
+
+
+def test_the_openness_check_fails_on_a_planted_claim() -> None:
+    """A check that cannot be shown to fail is not a check."""
+    planted = "SimRa is a crowdsourced, openly-published dataset of near-crashes.\n"
+    assert openness_claims_in_prose(planted) == [planted.strip()]
+    assert openness_claims_in_prose("> " + planted) == []
+
+
+def test_the_guide_names_the_clause_that_binds_simra_where_it_refuses_seeclickfix() -> None:
+    """Both halves of the asymmetry have to be visible in one document, or it recurs."""
+    text = REAL_DATA.read_text(encoding="utf-8")
+    assert "SeeClickFix" in text and "NonCommercial" in text
+    simra_block = text.split("crosswalks/simra.toml")[1][:1600]
+    assert "NonCommercial" in simra_block, (
+        "docs/REAL-DATA.md refuses a SeeClickFix adapter on the NonCommercial clause but "
+        "does not name that clause where it documents SimRa, which carries it."
+    )
 
 
 # --- The contract refuses an unanswered or hand-waved status -----------------------

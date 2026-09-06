@@ -327,6 +327,26 @@ every entry.
   the published GeoJSON's own rates, rebuilds the bias block from the analysis and compares it
   to the committed sidecar, and walks all four re-segmentation outcomes across both renderers.
 
+- **The adapter guide refused a source for a clause it did not mention on a source it
+  ships.** `docs/REAL-DATA.md` § "What this does not license" declines a SeeClickFix adapter
+  partly because CC BY-NC-SA's NonCommercial clause "fails the Open Definition and is
+  incompatible with this project's Apache-2.0 posture". One hundred and seventy lines above
+  it, §1b introduced SimRa as an "openly-published" dataset and said nothing about SimRa's
+  own CC BY-NC 4.0 licence — an unqualified redistribution claim that no manifest backed,
+  and the same defect the BikeMaps licence row was corrected for. `docs/DATA-CARD.md`,
+  `docs/ADAPTING.md`, and both crosswalks had been corrected for #186; the per-source guide
+  an adapter author actually works from had not, and the parity gate could not see it
+  because it only ever read the data card.
+
+  `docs/REAL-DATA.md` now carries a publication-status block for every registered source,
+  quoting the manifest: BikeMaps.org `undetermined`, SimRa `research_only` with the
+  NonCommercial clause named where the source is documented rather than three files away.
+  `tests/test_source_publication_status.py` reads that document too, so a registered source
+  with no status block, or one whose stated status disagrees with its crosswalk, fails —
+  and an unqualified open-publication claim in the guide's prose fails while no registered
+  source is `publishable`. Also corrected: both documents pointed readers at a manifest key
+  `bias_notes`, which was replaced by the required `[source.bias_profile]` table (#186).
+
 ### Added
 
 - **The exposure-sensitivity pass exists now, and it is allowed to say it did not run
