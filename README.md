@@ -620,12 +620,15 @@ distributed tracing, metrics/SLO dashboards, burn-rate alerting) are **out of sc
 is no always-on distributed service to trace or alert on. What Tier C requires, and what's shipped:
 
 - **Structured logs.**
-  <!-- claim:obs-intake-only -->
-  `src/nearmiss/obs.py` emits structured JSON lines (timestamp, level, message, service, `request_id`,
-  latency) for the read-only server's request intake ([`src/nearmiss/server.py`](src/nearmiss/server.py));
-  per-pipeline-stage instrumentation is planned, not yet wired. Rebuilds report coverage and
-  quality-flag counts.
-  <!-- /claim:obs-intake-only -->
+  <!-- claim:obs-stage-telemetry -->
+  `src/nearmiss/obs.py` emits structured JSON lines (timestamp, level, message, service) for two
+  callers. The read-only server's request intake ([`src/nearmiss/server.py`](src/nearmiss/server.py))
+  adds `request_id`, method, status and latency. `nearmiss run` adds one `stage` record per pipeline
+  stage — `load`, `pipeline`, `analyze` — carrying that stage's counts and its `ms` wall-time, so
+  intake-through-publish telemetry lands on one stream. Those counts are the same deterministic
+  provenance the run manifest hashes ([`src/nearmiss/manifest.py`](src/nearmiss/manifest.py)); the
+  `ms` sidecar is never hashed. Rebuilds report coverage and quality-flag counts.
+  <!-- /claim:obs-stage-telemetry -->
 - **No secrets or PII in logs.** The read-only server ([`src/nearmiss/server.py`](src/nearmiss/server.py))
   emits one JSON line per request (method, status, latency, `request_id`, and a **redacted** path — a
   protected `data/raw/` or dotfile target collapses to `<blocked>`) — hard rule #4 (contributor privacy)

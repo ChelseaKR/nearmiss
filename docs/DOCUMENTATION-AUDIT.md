@@ -85,7 +85,7 @@ These are real predicates, so they can pass or fail.
 | Root process docs | pass | `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md` |
 | Root legal, citation, and conduct docs | pass | `LICENSE`, `NOTICE`, `CITATION.cff`, `CODE_OF_CONDUCT.md` |
 | Root-adjacent GitHub templates | pass | `.github/PULL_REQUEST_TEMPLATE.md`, `.github/CODEOWNERS` |
-| Local doc links resolve | pass | 495 relative links checked in 101 Markdown files; 0 unresolved |
+| Local doc links resolve | pass | 496 relative links checked in 101 Markdown files; 0 unresolved |
 
 ## Inventory
 

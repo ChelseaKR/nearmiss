@@ -36,7 +36,7 @@ only removes blind spots.
 | Claim ID | Doc anchor (file + section) | Witness (test or file) |
 | --- | --- | --- |
 | `lockfile-committed-hashed` | `README.md` — § Install | `requirements.lock` |
-| `obs-intake-only` | `README.md` — § Observability | `src/nearmiss/obs.py` |
+| `obs-stage-telemetry` | `README.md` — § Observability | `tests/test_observability.py::test_run_command_emits_one_structured_stage_log_per_pipeline_stage` |
 | `i18n-gate-count` | `README.md` — § Standards conformance | `tests/test_readme_restated_facts.py::test_the_i18n_gate_count_matches_what_make_i18n_runs` |
 | `vuln-management-hashed-locks` | `README.md` — § Privacy, security, accountability | `tests/test_readme_restated_facts.py::test_the_readme_never_calls_the_committed_hashed_lock_planned` |
 | `standards-table-cross-reference` | `README.md` — § Observability | `tests/test_readme_restated_facts.py::test_the_standards_cross_reference_counts_the_standards_table` |
