@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# CQ-34's merge gate proves a debt marker *carries* an issue reference. It is offline by
+# design, so it cannot see that the issue is closed, absent, or a pull request — the state
+# that was live when `CITATION.cff` read a marker pointing at #184, a closed issue about
+# something else, and CI stayed green over it (#233).
+#
+# This is the pass that can see it, and it runs HERE rather than in `make verify` so the
+# merge gate keeps no dependency on api.github.com. A red run means a marker's tracking is
+# fictional; an UNDETERMINED run (exit 2) means the lookup could not be performed and is
+# reported as its own outcome, never folded into a pass. ADR 0021.
+name: debt marker issues
+
+on:
+  schedule:
+    # Weekly. Markers change on the scale of pull requests, not minutes, and a daily run
+    # would only add noise to the same one-marker answer.
+    - cron: "41 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: debt-marker-issues
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    name: resolve every linked debt marker against the live issue tracker
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Resolve linked issues (make markers-online)
+        env:
+          # Only lifts the unauthenticated rate limit. The job is granted `issues: read`
+          # and nothing else; it never writes.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          make markers-online PYTHON=python
+          rc="$?"
+          set -e
+          if [ "$rc" = "2" ]; then
+            echo "::error::debt-marker resolution was UNDETERMINED — the issue tracker could not be read, so nothing was verified. This is not a pass."
+          fi
+          exit "$rc"

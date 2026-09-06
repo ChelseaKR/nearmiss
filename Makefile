@@ -32,7 +32,7 @@ PUBLISHED_DIR := data/published
 .DEFAULT_GOAL := help
 
 .PHONY: help install lock lock-check lock-dev lint type test accessibility axe rtl web-check security verify smoke-wheel \
-        conformance i18n i18n-compile i18n-pseudo claims markers qgis-plugin-test \
+        conformance i18n i18n-compile i18n-pseudo claims markers markers-online qgis-plugin-test \
         docs-audit docs-audit-check docs-audit-accept-narrative \
         reproduce reproduce-check sensitivity demo teach publish serve bench bench-suite bench-suite-verify \
         bench-check \
@@ -329,6 +329,16 @@ markers: ## CQ-34: no bare debt markers — each one carries a linked issue refe
 	# by assertion rather than by gate. Local == CI. CQ-35 (suppressions needing an
 	# issue reference) is deliberately NOT wired here — see the tool's docstring.
 	$(PYTHON) tools/check_debt_markers.py
+
+markers-online: ## CQ-34 online (#233): does each linked issue exist, is it open, is it an issue?
+	# NOT part of `verify`, and that is the point. The merge gate above must stay
+	# fast, local and identical in CI; this pass needs api.github.com, so it runs
+	# from .github/workflows/debt-marker-issues.yml (scheduled) and by hand here.
+	# Exit codes: 0 clean, 1 a marker tracks a closed/absent issue or a pull request,
+	# 2 the lookup could NOT be performed — reported as undetermined, never as a pass.
+	# Relevance is deliberately not scored; the run prints each issue's live title
+	# beside the marker so a reader decides. Set GITHUB_TOKEN to lift the rate limit.
+	$(PYTHON) tools/check_debt_markers.py --resolve-issues
 
 verify: lint type test accessibility web-check security i18n claims conformance reproduce-check bench-check markers ## Full merge gate: lint + type + test + web/a11y + security + i18n + claims + conformance + HR5 reproduction + benchmark reproduction + debt markers
 	@echo "verify: all merge gates green (lint, type, test, web/a11y, security, i18n, claims, conformance, reproduce-check, bench-check, markers)."
