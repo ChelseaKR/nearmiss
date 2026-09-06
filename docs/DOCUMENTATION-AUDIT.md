@@ -94,7 +94,7 @@ Counts, not verdicts. A count cannot pass or fail; it can only be current, which
 | Surface | Count | Evidence |
 | --- | ---: | --- |
 | Hand-authored docs | 106 | Markdown at the repository root and under `docs/`, `data/`, `infra/`, `notebooks/`, `schema/`, `src/`, `tests/`, `web/`, plus the root legal and template files |
-| Test files | 124 | `tests/test_*.py` |
+| Test files | 125 | `tests/test_*.py` |
 | Workflow files | 7 | `.github/workflows/*.yml` |
 | Grouped/vendored doc content | 16 | `docs/standards/` (16) |
 
