@@ -60,8 +60,8 @@ preferred-citation:
     - given-names: Chelsea
       family-names: Kelly-Reif
       alias: ChelseaKR
-  version: 0.1.0
-  date-released: '2026-06-16'
+  version: 0.1.2
+  date-released: '2026-08-28'
   license: Apache-2.0
   url: https://nearmiss.chelseakr.com/fars/national/
   repository: https://github.com/ChelseaKR/nearmiss
