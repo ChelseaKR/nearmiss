@@ -395,9 +395,9 @@ alone can never speak to collision severity.
 
 The full crosswalk (with rationale) is `src/nearmiss/adapters/crosswalks/simra.toml`. SimRa's own bias
 profile — app-recruited, region-limited, near-miss-detection-only — is in that manifest's
-`[source.bias_profile]` table and is meaningfully different from BikeMaps': combining the two sources without naming
-each one's skew separately would be exactly the kind of averaging-away this project's bias rule (HR3)
-exists to prevent.
+`[source.bias_profile]` table and is meaningfully different from BikeMaps': combining the two
+sources without naming each one's skew separately would be exactly the kind of averaging-away this
+project's bias rule (HR3) exists to prevent.
 
 ## 2. Street network — real, available today (OpenStreetMap)
 

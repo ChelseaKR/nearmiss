@@ -345,7 +345,10 @@ every entry.
   with no status block, or one whose stated status disagrees with its crosswalk, fails —
   and an unqualified open-publication claim in the guide's prose fails while no registered
   source is `publishable`. Also corrected: both documents pointed readers at a manifest key
-  `bias_notes`, which was replaced by the required `[source.bias_profile]` table (#186).
+  `bias_notes`, which was replaced by the required `[source.bias_profile]` table, and
+  `CONTRIBUTING.md`'s data-rights checklist now says what a NonCommercial licence actually
+  disqualifies — publication, not registration — and points at `publication_status`, since a
+  reader of the old wording would conclude SimRa should never have had an adapter (#186).
 
 ### Added
 

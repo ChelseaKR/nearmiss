@@ -340,7 +340,14 @@ any adapter is written:
    GeoJSON, so confirm the license permits derivative works *and* their distribution. Watch for
    **NonCommercial** terms (incompatible with Apache-2.0 and with the Open Definition) and
    **ShareAlike** terms (viral: they force their own license onto the combined dataset and can
-   contaminate otherwise-clean sources merged alongside them).
+   contaminate otherwise-clean sources merged alongside them). A NonCommercial source is not
+   automatically refused an adapter — it is refused *publication*. That distinction is recorded
+   per source, in machine-readable form, by the required `publication_status` field on every
+   crosswalk (`publishable` / `research_only` / `undetermined`, see
+   `nearmiss.adapters.base.PUBLICATION_STATUSES`): SimRa is registered and is
+   `research_only` for exactly this clause, so it may be analysed locally and nothing derived
+   from it may be published from this repository. Say in the proposal which of the three you
+   are asking for; "we'll work the licence out later" is the state issue #186 was filed about.
 3. **Attribution obligations.** Record the exact attribution string required and where it must
    appear. It belongs in the crosswalk manifest's `license` field and in the data card.
 4. **Evidence, as a URL to the actual license.** Not the homepage, not "it is open data" — a link
