@@ -1061,11 +1061,50 @@ def _cmd_ingest_fars(args: argparse.Namespace) -> int:
     return 0
 
 
-def _cmd_ingest_fars_year(args: argparse.Namespace) -> int:
-    """Activate one exact reviewed annual FARS accident/person archive."""
-    try:
-        from .fars_year_activation import activate_fars_year
+def _internal_fault_label(exc: BaseException) -> str:
+    """Name ``exc``'s type for an operator, or say nothing, but never leak.
 
+    A raised exception's *message* can name the operator's private storage root, so
+    it is never echoed.  A type name is a program identifier rather than operator
+    data, so it is safe to print -- but ``type()`` does not require ``__name__`` to
+    be an identifier, and a class built at runtime can carry an arbitrary string.
+    Anything that is not a plain short identifier is dropped rather than printed.
+    """
+
+    name = getattr(type(exc), "__name__", None)
+    if isinstance(name, str) and name.isidentifier() and len(name) <= 64:
+        return name
+    return "unnamed"
+
+
+def _cmd_ingest_fars_year(args: argparse.Namespace) -> int:
+    """Activate one exact reviewed annual FARS accident/person archive.
+
+    Two contracts meet in the dispatch below and neither may be traded for the other.
+
+    *Nothing underneath is echoed.*  A rejected root, a rejected archive and a refused
+    ingestion all report one constant string, because the underlying message can name
+    the operator's private storage root.  That is why the ``except`` stays broad.
+
+    *A fault in this package is not a fact about FARS data.*  Folding every internal
+    fault into "annual FARS activation failed" sent a reader to inspect the dataset
+    for an ``AssertionError`` raised in this file, and it silenced the
+    forbidden-activation sentinels in the tests: those signal a regression by raising
+    ``AssertionError`` from inside this block, and laundered into the data refusal
+    they produced the same exit code and the same stderr as the refusal they exist to
+    tell apart, so they could not fail.  An internal fault therefore gets its own
+    constant, redacted exactly as hard, that says which side the fault is on.
+
+    ``KeyboardInterrupt`` and ``SystemExit`` are not ``Exception`` and pass through
+    untouched; an interrupt is neither a data fault nor a bug.
+    """
+    # Imported before the block, not inside it: an ``except`` clause is evaluated when
+    # a fault is being handled, so a name bound inside the block it guards would raise
+    # NameError over the top of the fault it was meant to classify.
+    from .fars_year_activation import activate_fars_year
+    from .ingestion import IngestionError
+
+    try:
         private_root, repository_root = _preflight_annual_fars_private_root(args.root)
         evidence = activate_fars_year(
             root=private_root,
@@ -1076,15 +1115,20 @@ def _cmd_ingest_fars_year(args: argparse.Namespace) -> int:
         )
         projection = evidence.as_dict()
         if set(projection) != _FARS_YEAR_CLI_EVIDENCE_KEYS:
-            raise ValueError("annual FARS evidence projection changed")
+            raise RuntimeError("annual FARS evidence projection changed")
         output = json.dumps(
             projection,
             ensure_ascii=False,
             sort_keys=True,
             allow_nan=False,
         )
-    except Exception:
+    except (IngestionError, ValueError, OSError):
         raise NearmissError("annual FARS activation failed") from None
+    except Exception as exc:
+        raise NearmissError(
+            "annual FARS activation hit an internal nearmiss fault "
+            f"({_internal_fault_label(exc)}); the FARS input is not implicated"
+        ) from None
     print(output)
     return 0
 
