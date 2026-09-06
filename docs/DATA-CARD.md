@@ -12,7 +12,7 @@ weak, this card says so plainly. Read the "Out-of-scope and discouraged uses" an
 
 - **Dataset name:** nearmiss published open dataset
 - **Version:** tracks the release tag of the repository (semver); the exact dataset version
-  (`dataset_version`, currently `0.1.0`), schema version (`schema_version`, currently `1.0.0`),
+  (`dataset_version`, currently `0.1.2`), schema version (`schema_version`, currently `1.3.0`),
   and content hash are recorded both in the published GeoJSON's embedded `metadata` member and
   in the per-city metadata sidecar (`<city-slug>.metadata.json`, e.g. `davis.metadata.json`)
   shipped next to the GeoJSON.

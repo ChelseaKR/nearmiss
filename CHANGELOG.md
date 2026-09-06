@@ -233,6 +233,32 @@ every entry.
 
 ### Fixed
 
+- **The citation told researchers to cite a dataset version this repository does not
+  ship.** `CITATION.cff`'s `preferred-citation` block — the *dataset* citation, the thing a
+  citing reader is pointed at — read `version: 0.1.0` while
+  `src/nearmiss/versions.py` had held `DATASET_VERSION = "0.1.2"` since 2026-08-22
+  (`f90fabe`) and both committed sidecars (`data/published/davis.metadata.json`,
+  `data/published/riverside.metadata.json`) recorded `"version": "0.1.2"`. The header of
+  `docs/DATA-CARD.md` restated the same field as "currently `0.1.0`" and the published
+  dataset schema version as "currently `1.0.0`", which had been `1.3.0` since 2026-08-27
+  (`4991ad9`). Nothing failed and nothing was missing: a superseded number was simply
+  rendered as a current one, in the two documents whose whole job is to tell somebody what
+  to cite (#227).
+
+  Corrected, and now derived rather than restated: `tests/test_citation_versions.py` reads
+  `nearmiss.versions` and the published sidecars and fails if either document names a
+  version the code does not hold. The dataset block's `date-released` moves to 2026-08-28,
+  the day `4bfb726` last regenerated the committed sidecars; that date is *not* derivable
+  from anything in the tree (no published artifact carries a generation timestamp), and the
+  test says so rather than implying a coverage it does not have.
+
+  This is the automatable half of #227. The DOI itself still needs a Zenodo (or equivalent)
+  account and stays open there. Noted while fixing it, and **not** closed here:
+  `docs/standards/DOCUMENTATION-STANDARD.md` declares DOC-08 an AUTO-GATE enforced by
+  `cffconvert --validate` in CI, and no such gate exists anywhere in this repository —
+  the same "declared AUTO-GATE with no implementation" shape CQ-34 was in before
+  `tools/check_debt_markers.py`.
+
 - **The `mypy --strict` gate covered two of the project's three Python trees while the
   README advertised it over all of them.** `pyproject.toml` set
   `files = ["src", "tests"]`, so all 31 scripts under `tools/` — including every gate the
