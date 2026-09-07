@@ -63,7 +63,7 @@ dev = [
   # version so the blocking pip-audit gate cannot resolve to msgpack 1.2.0
   # (GHSA-6v7p-g79w-8964, fixed in 1.2.1). Keeps the SCA gate deterministically
   # green instead of relying on the resolver to pick the newest msgpack.
-  "msgpack>=1.2.1",
+  "msgpack>=1.2.2",
   # pip-audit pulls in pip-api -> pip transitively; pin the fixed version so the
   # blocking pip-audit gate cannot resolve to a vulnerable pip (PYSEC-2026-3721,
   # fixed in 26.2). Same defect class and same fix as the msgpack pin above.
