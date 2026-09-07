@@ -620,6 +620,33 @@ every entry.
   (`test_every_benchmark_city_is_currently_a_disconnected_grid`) is replaced by its mirror,
   `test_every_benchmark_city_has_a_connected_street_network`, pinning the fix as a regression guard.
 
+- **The i18n gate's escape hatch could not be reached without editing Python, and
+  the English catalog was never asserted to be an identity map.** Follow-on to the
+  G5-U check: `docs/I18N.md`'s community-translation runbook promises that adding
+  a locale never requires touching Python, so an in-code allowlist would have made
+  a legitimately identical string in a new locale the one exception. It now lives
+  at `src/nearmiss/locales/identical_by_design.json`, beside the catalogs, and it
+  is self-limiting rather than append-only: an entry with no written reason, for an
+  unchecked locale, for the source locale, for a msgid the template dropped, or for
+  a row that has since been translated, each fail the gate. A malformed file fails
+  too, rather than reading as "no exemptions" — an exemption file that fails open
+  turns the check it guards into one that cannot fail.
+
+  Two floors added with it. `en` is the language the msgids are written in, so its
+  msgstr must now *equal* its msgid (`web.*` ids excluded, since their msgid is an
+  opaque key and their `en` msgstr is the English text). And if `CATALOGS` ever
+  held no locale but `en`, the gate fails rather than printing "no verbatim
+  English" as a claim over the empty set.
+
+  Ported from the sibling implementation in `fare-policy-assistant`, but
+  deliberately not a copy of its exemption rule, which was measured against these
+  catalogs first. Its two mechanical classes are "no alphabetic content once
+  placeholders are stripped" and "a single ALL-CAPS token or bare URL"; against
+  `nearmiss` that fires on **`n`** — the sample-size symbol, a real msgid here
+  whose `es` msgstr is `n` — and, because it compares `msgstr` to `msgid`, it is
+  vacuous over the **348 of 479** msgids that are `web.*` keys rather than English
+  text. Both differences are pinned by tests.
+
 ## [0.4.0] - 2026-08-16
 
 ### Added

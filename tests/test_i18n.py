@@ -220,7 +220,7 @@ def test_identical_translation_is_allowed_when_nothing_is_translatable(source: s
     """The positive control: the gate must NOT fire on a string with no words to translate."""
     assert not check_catalog_parity._is_translatable(source), source
     en, es = _catalogs({source: (source, source)})
-    assert check_catalog_parity._check_untranslated("es", es, en) == []
+    assert check_catalog_parity._check_untranslated("es", es, en, {}) == []
 
 
 UNTRANSLATED_SENTENCES = [
@@ -235,7 +235,7 @@ UNTRANSLATED_SENTENCES = [
 def test_verbatim_english_spanish_msgstr_fails(source: str) -> None:
     """The negative control: a Spanish msgstr copied verbatim from English is a defect."""
     en, es = _catalogs({source: (source, source)})
-    errors = check_catalog_parity._check_untranslated("es", es, en)
+    errors = check_catalog_parity._check_untranslated("es", es, en, {})
     assert len(errors) == 1, errors
     assert "byte-identical to the English source" in errors[0]
 
@@ -245,7 +245,7 @@ def test_translated_spanish_msgstr_passes() -> None:
     en, es = _catalogs(
         {source: (source, "Ningún segmento alcanza significancia con este tamaño de muestra.")}
     )
-    assert check_catalog_parity._check_untranslated("es", es, en) == []
+    assert check_catalog_parity._check_untranslated("es", es, en, {}) == []
 
 
 def test_web_key_compares_the_english_translation_not_the_msgid() -> None:
@@ -253,14 +253,14 @@ def test_web_key_compares_the_english_translation_not_the_msgid() -> None:
     en, es = _catalogs(
         {"web.app.export": ("Download the ranked corridors", "Download the ranked corridors")}
     )
-    errors = check_catalog_parity._check_untranslated("es", es, en)
+    errors = check_catalog_parity._check_untranslated("es", es, en, {})
     assert len(errors) == 1, errors
     assert "web.app.export" in errors[0]
 
     en, es = _catalogs(
         {"web.app.export": ("Download the ranked corridors", "Descargar los corredores")}
     )
-    assert check_catalog_parity._check_untranslated("es", es, en) == []
+    assert check_catalog_parity._check_untranslated("es", es, en, {}) == []
 
 
 def test_source_locale_identity_rows_are_not_flagged() -> None:
@@ -286,14 +286,113 @@ def test_source_locale_identity_rows_are_not_flagged() -> None:
     assert len(identity) > 100, "expected the English catalog to be mostly identity rows"
 
 
-def test_identical_ok_allowlist_suppresses_a_finding(monkeypatch: pytest.MonkeyPatch) -> None:
-    source = "Reported near misses per 1000 riders"
-    en, es = _catalogs({source: (source, source)})
-    assert check_catalog_parity._check_untranslated("es", es, en) != []
-    monkeypatch.setattr(
-        check_catalog_parity, "IDENTICAL_OK", {"es": {source: "identical by decision (test)"}}
+# --- the reasoned exemption file, and why it is a file --------------------------
+#
+# docs/I18N.md promises a contributor adding a locale never edits Python, so the
+# escape hatch for a legitimately identical string cannot live in this tool. It is
+# self-limiting on purpose: an entry with no reason, for an unchecked locale, for a
+# msgid the template dropped, or for a row that has since been translated, all fail
+# the gate. A list that only grows stops describing the catalogs and starts
+# describing the project's history.
+
+SOURCE_SENTENCE = "Reported near misses per 1000 riders"
+
+
+def _write_exemptions(tmp_path: Path, entries: list[dict[str, str]]) -> Path:
+    path = tmp_path / "identical_by_design.json"
+    path.write_text(json.dumps({"identical_by_design": entries}), encoding="utf-8")
+    return path
+
+
+def test_an_exemption_with_a_reason_allows_the_identical_row(tmp_path: Path) -> None:
+    en, es = _catalogs({SOURCE_SENTENCE: (SOURCE_SENTENCE, SOURCE_SENTENCE)})
+    assert check_catalog_parity._check_untranslated("es", es, en, {}) != []
+    exemptions, errors = check_catalog_parity.load_exemptions(
+        _write_exemptions(
+            tmp_path,
+            [{"locale": "es", "msgid": SOURCE_SENTENCE, "reason": "identical by decision (test)"}],
+        )
     )
-    assert check_catalog_parity._check_untranslated("es", es, en) == []
+    assert errors == []
+    assert check_catalog_parity._check_untranslated("es", es, en, exemptions) == []
+
+
+def test_an_exemption_without_a_reason_is_refused(tmp_path: Path) -> None:
+    exemptions, errors = check_catalog_parity.load_exemptions(
+        _write_exemptions(tmp_path, [{"locale": "es", "msgid": SOURCE_SENTENCE, "reason": "  "}])
+    )
+    assert exemptions == {}
+    assert any("no reason" in e for e in errors), errors
+
+
+def test_a_malformed_exemption_file_fails_rather_than_reading_as_empty(tmp_path: Path) -> None:
+    path = tmp_path / "identical_by_design.json"
+    path.write_text("{ not json", encoding="utf-8")
+    exemptions, errors = check_catalog_parity.load_exemptions(path)
+    assert exemptions == {}
+    assert errors, "a file that cannot be read must fail, not read as no exemptions"
+
+
+def test_a_missing_exemption_file_simply_means_none(tmp_path: Path) -> None:
+    assert check_catalog_parity.load_exemptions(tmp_path / "absent.json") == ({}, [])
+
+
+def test_an_exemption_that_has_stopped_applying_must_be_deleted() -> None:
+    en, es = _catalogs({SOURCE_SENTENCE: (SOURCE_SENTENCE, "Cuasi-accidentes por cada 1000")})
+    errors = check_catalog_parity._check_stale_exemptions(
+        {"en": en, "es": es}, en, {SOURCE_SENTENCE}, {("es", SOURCE_SENTENCE): "was identical"}
+    )
+    assert any("now translated" in e for e in errors), errors
+
+
+def test_an_exemption_for_a_msgid_the_template_dropped_must_be_deleted() -> None:
+    en, es = _catalogs({SOURCE_SENTENCE: (SOURCE_SENTENCE, SOURCE_SENTENCE)})
+    errors = check_catalog_parity._check_stale_exemptions(
+        {"en": en, "es": es}, en, set(), {("es", SOURCE_SENTENCE): "identical by decision"}
+    )
+    assert any("no longer declares" in e for e in errors), errors
+
+
+@pytest.mark.parametrize(
+    ("locale", "needle"),
+    [("fr", "not a checked catalog"), ("en", "source locale")],
+)
+def test_an_exemption_for_a_locale_that_cannot_use_it_is_refused(locale: str, needle: str) -> None:
+    en, es = _catalogs({SOURCE_SENTENCE: (SOURCE_SENTENCE, SOURCE_SENTENCE)})
+    errors = check_catalog_parity._check_stale_exemptions(
+        {"en": en, "es": es}, en, {SOURCE_SENTENCE}, {(locale, SOURCE_SENTENCE): "a reason"}
+    )
+    assert any(needle in e for e in errors), errors
+
+
+def test_the_committed_exemption_file_is_readable_and_currently_empty() -> None:
+    exemptions, errors = check_catalog_parity.load_exemptions(check_catalog_parity.EXEMPTIONS)
+    assert errors == []
+    assert exemptions == {}, f"unexpected exemptions in {check_catalog_parity.EXEMPTIONS}"
+
+
+# --- the source catalog is an identity map, and must stay one -------------------
+
+
+def test_an_english_msgstr_that_drifts_from_its_msgid_fails() -> None:
+    en, _ = _catalogs({SOURCE_SENTENCE: ("Reported near misses per 1000 RIDERS", SOURCE_SENTENCE)})
+    errors = check_catalog_parity._check_source_identity(en)
+    assert len(errors) == 1, errors
+    assert "identity map by construction" in errors[0]
+
+
+def test_a_web_key_is_exempt_from_the_source_identity_rule() -> None:
+    # web.* msgids are opaque keys; their `en` msgstr is the English string and is
+    # SUPPOSED to differ from the key. Requiring identity there would be nonsense.
+    en, _ = _catalogs({"web.app.title": ("Where the danger actually is", "Donde está el peligro")})
+    assert check_catalog_parity._check_source_identity(en) == []
+
+
+def test_the_committed_english_catalog_is_an_identity_map() -> None:
+    en_po = REPO_ROOT / "src" / "nearmiss" / "locales" / "en" / "LC_MESSAGES" / "messages.po"
+    with en_po.open("rb") as handle:
+        english = read_po(handle, locale="en")
+    assert check_catalog_parity._check_source_identity(english) == []
 
 
 def test_catalog_parity_gate_passes_on_the_committed_catalogs() -> None:
@@ -304,3 +403,52 @@ def test_catalog_parity_gate_passes_on_the_committed_catalogs() -> None:
         text=True,
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+# --- where fare-policy-assistant's sibling rule does not transfer ---------------
+#
+# fare-policy-assistant landed the same gate (its PR #234) with two mechanical
+# exemptions: no alphabetic content once {placeholders} are stripped, or a single
+# ALL-CAPS token / bare URL. That is right for its catalogs and measurably wrong
+# for these, in two ways, which is why nearmiss's rule is not a copy:
+#
+#   1. `n` — the sample-size symbol, and a real msgid here whose `es` msgstr is
+#      `n`. It has alphabetic content and is not upper case, so FPA's rule fires
+#      on it: one false positive on a green catalog, on day one.
+#   2. 348 of these 479 msgids are `web.*` KEYS, not English text. FPA compares
+#      msgstr against msgid, which for an opaque key can never be equal, so its
+#      rule is vacuous over 73% of this catalog. nearmiss resolves a web id's
+#      source to its `en` msgstr instead — that is what makes the check bite.
+
+
+def test_a_single_letter_is_a_symbol_not_a_word() -> None:
+    # `n` is a real msgid here and its es msgstr is `n`. A rule that requires
+    # upper case for a single-token exemption fires on it.
+    assert not check_catalog_parity._is_translatable("n")
+    assert not check_catalog_parity._is_translatable("z")
+    assert check_catalog_parity._translatable_words("n") == []
+
+
+@pytest.mark.parametrize("source", ["Rank", "Corridor", "Segment", "Help", "Fares", "Senior"])
+def test_an_ordinary_word_is_not_exempt_just_for_being_short(source: str) -> None:
+    # The exemption is about the source having nothing to translate, never about
+    # a string being brief. Each of these is one word and every one is gated.
+    assert check_catalog_parity._is_translatable(source), source
+    en, es = _catalogs({source: (source, source)})
+    assert check_catalog_parity._check_untranslated("es", es, en, {}) != []
+
+
+def test_a_web_key_is_compared_against_its_english_string_not_its_key() -> None:
+    # The half FPA's rule cannot reach: an untranslated web string is identical to
+    # the ENGLISH MSGSTR, never to the opaque msgid, so comparing against the msgid
+    # would report nothing for 348 of this catalog's 479 ids.
+    en, es = _catalogs({"web.app.summary": ("Reports per 1000 riders", "Reports per 1000 riders")})
+    errors = check_catalog_parity._check_untranslated("es", es, en, {})
+    assert len(errors) == 1, errors
+    assert "web.app.summary" in errors[0]
+
+
+def test_the_rule_refuses_to_run_against_no_target_locale() -> None:
+    en, _ = _catalogs({"Rank": ("Rank", "Rango")})
+    assert check_catalog_parity._check_target_locales({"en": en}) != []
+    assert check_catalog_parity._check_target_locales({"en": en, "es": en}) == []
