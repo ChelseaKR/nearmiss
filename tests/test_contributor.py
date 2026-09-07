@@ -315,7 +315,60 @@ def test_purge_keeps_records_with_unparseable_time(
     bad["occurred_at"] = "not-a-timestamp"
     _write_raw(cfg, [bad])
     result = purge_expired(cfg, now=datetime(2026, 7, 2, tzinfo=UTC))
-    # Fail-safe: a record whose age is unknown is kept, never silently dropped.
+    # Fail-safe: a record whose age is unknown is kept, never silently dropped —
+    # but it is COUNTED, because "kept" and "inside the retention window" are not
+    # the same outcome and `raw_removed` alone reads as "the window was applied".
     assert result.raw_removed == 0
+    assert result.kept_age_unmeasurable == 1
     raw_text = (cfg.raw_dir / "reports.json").read_text(encoding="utf-8")
     assert str(bad["id"]) in raw_text
+
+
+# --- the third state: absent, malformed, or FUTURE -----------------------------
+#
+# A future `occurred_at` yields a negative age, which satisfies "younger than the
+# retention window" permanently — a record dated 2099 would never expire. A broken
+# clock is not fresh data, so it lands in the unmeasurable bucket with the others.
+
+
+@pytest.mark.parametrize(
+    ("label", "occurred_at"),
+    [
+        ("absent", ""),
+        ("malformed", "not-a-timestamp"),
+        ("future", "2099-01-01T00:00:00Z"),
+    ],
+)
+def test_purge_counts_every_unmeasurable_age(
+    config: Config,
+    tmp_path: Path,
+    a_valid_report: dict[str, object],
+    label: str,
+    occurred_at: str,
+) -> None:
+    cfg = dataclasses.replace(_cfg(config, tmp_path), retention_days=1)
+    record = copy.deepcopy(a_valid_report)
+    record["id"] = "00000000-0000-4000-8000-0000000000dd"
+    record["occurred_at"] = occurred_at
+    _write_raw(cfg, [record])
+    result = purge_expired(cfg, now=datetime(2026, 7, 2, tzinfo=UTC))
+    assert result.raw_removed == 0, label
+    assert result.kept_age_unmeasurable == 1, label
+    assert str(record["id"]) in (cfg.raw_dir / "reports.json").read_text(encoding="utf-8")
+
+
+def test_purge_reports_zero_unmeasurable_when_every_age_is_readable(
+    config: Config, tmp_path: Path, a_valid_report: dict[str, object]
+) -> None:
+    # The counter is always reported, including its zero: a counter that appears
+    # only when it fires reads as "nothing was held back" on a run that never looked.
+    cfg = dataclasses.replace(_cfg(config, tmp_path), retention_days=30)
+    old = copy.deepcopy(a_valid_report)
+    old["id"] = "00000000-0000-4000-8000-0000000000ee"
+    old["occurred_at"] = "2020-01-01T00:00:00Z"
+    recent = copy.deepcopy(a_valid_report)
+    recent["id"] = "00000000-0000-4000-8000-0000000000ff"
+    recent["occurred_at"] = "2026-07-01T00:00:00Z"
+    _write_raw(cfg, [old, recent])
+    result = purge_expired(cfg, now=datetime(2026, 7, 2, tzinfo=UTC))
+    assert (result.raw_removed, result.kept_age_unmeasurable) == (1, 0)
