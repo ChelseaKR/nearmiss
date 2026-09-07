@@ -18,8 +18,12 @@ Enforces, over ``src/nearmiss/locales``:
   Spanish ``msgstr`` that is verbatim English (it is non-empty, its key matches,
   its placeholders are trivially identical), so without this check a paste of the
   English string ships as Spanish and every gate stays green. See
-  :func:`_is_translatable` for the exemption rule and ``IDENTICAL_OK`` for the
-  per-msgid escape hatch.
+  :func:`_is_translatable` for the structural exemption rule and
+  ``identical_by_design.json`` for the reasoned per-msgid escape hatch.
+* **Identity in the source locale** — ``en`` is the language the msgids are
+  written in, so an ``en`` msgstr must *equal* its msgid. (The ``web.*`` ids are
+  keys rather than English text, so they are excluded from that half: their
+  ``en`` msgstr is the English string itself and is *supposed* to differ.)
 
 * **Web domain** — every ``web.*`` msgid (the web-UI strings registered in
   :mod:`nearmiss.web_i18n`, single-sourced into ``web/locales/*.json`` by
@@ -126,12 +130,14 @@ NON_TRANSLATABLE_TERMS = frozenset(
 )
 
 #: Escape hatch: msgids whose translation is *deliberately* byte-identical to the
-#: English source in a given locale, each with the reason it is identical. Keeping
-#: it here rather than loosening the rule makes the set of identical strings an
-#: auditable register instead of an invisible hole. Empty today — every one of the
-#: four identical strings in the catalogs (``n``, ``—``, ``{published} / {total}``,
-#: ``{year} · {mode}``) carries no translatable word and is exempt structurally.
-IDENTICAL_OK: dict[str, dict[str, str]] = {}
+#: English source in a given locale, each with the reason it is identical. It
+#: lives beside the catalogs rather than in this file because docs/I18N.md
+#: promises a contributor adding a locale never edits Python, and a legitimately
+#: identical string in a new locale must not be the exception to that. Empty
+#: today — every one of the four identical strings in the catalogs (``n``, ``—``,
+#: ``{published} / {total}``, ``{year} · {mode}``) carries no translatable word
+#: and is exempt structurally, with no entry required.
+EXEMPTIONS = LOCALES / "identical_by_design.json"
 
 
 def _load(path: Path, locale: str | None) -> Catalog:
@@ -284,15 +290,140 @@ def _source_forms_all(en: Catalog) -> list[str]:
     return [form for message in en if message.id for form in _source_forms(message, en)]
 
 
-def _check_untranslated(name: str, catalog: Catalog, en: Catalog) -> list[str]:
+def _is_identical_to_source(message: Message, en: Catalog) -> bool:
+    """True when the translation adds no text its English source did not have.
+
+    Deliberately a subset test over *sets* rather than a positional comparison:
+    a locale may declare a different number of plural forms than English does,
+    and a catalog that fills all of them with English is untranslated whichever
+    way round the forms landed.
+    """
+    sources, targets = set(_source_forms(message, en)), set(_target_forms(message))
+    return bool(targets) and targets <= sources
+
+
+def load_exemptions(path: Path) -> tuple[dict[tuple[str, str], str], list[str]]:
+    """Read the reasoned exemption list, or report why it cannot be read.
+
+    A missing file means "no exemptions" and is fine. A malformed one is an
+    error rather than a silent empty dict, because an exemption file that fails
+    open turns the check it guards into one that cannot fail — which reads
+    exactly like a check that passed.
+    """
+    if not path.is_file():
+        return {}, []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return {}, [f"G5-U: {path.name} could not be read as JSON: {exc}"]
+    if not isinstance(payload, dict) or not isinstance(payload.get("identical_by_design"), list):
+        return {}, [f"G5-U: {path.name} must be an object with an identical_by_design list"]
+
+    exemptions: dict[tuple[str, str], str] = {}
+    errors: list[str] = []
+    for index, entry in enumerate(payload["identical_by_design"]):
+        if not isinstance(entry, dict):
+            errors.append(f"G5-U: {path.name} entry {index} is not an object")
+            continue
+        locale, msgid, reason = entry.get("locale"), entry.get("msgid"), entry.get("reason")
+        if not isinstance(locale, str) or not isinstance(msgid, str):
+            errors.append(f"G5-U: {path.name} entry {index} needs a locale and a msgid")
+            continue
+        if not isinstance(reason, str) or not reason.strip():
+            errors.append(
+                f"G5-U: {path.name} exempts {locale}/{msgid!r} with no reason. An exemption "
+                "with no written reason is the gate switched off for that row"
+            )
+            continue
+        exemptions[(locale, msgid)] = reason
+    return exemptions, errors
+
+
+def _check_stale_exemptions(
+    catalogs: dict[str, Catalog],
+    en: Catalog,
+    pot_ids: set[str],
+    exemptions: dict[tuple[str, str], str],
+) -> list[str]:
+    """An exemption that is not currently doing anything must be deleted.
+
+    Without this the list only ever grows, and a list that only grows stops
+    describing the catalogs and starts describing the project's history — at
+    which point nobody can tell a live judgement from a fossil.
+    """
+    errors: list[str] = []
+    for locale, msgid in sorted(exemptions):
+        if locale not in catalogs:
+            errors.append(
+                f"G5-U: {EXEMPTIONS.name} exempts locale {locale!r}, which is not a checked "
+                f"catalog ({', '.join(sorted(catalogs))})"
+            )
+        elif locale == SOURCE_LOCALE:
+            errors.append(
+                f"G5-U: {EXEMPTIONS.name} exempts the source locale {locale!r}, where identity "
+                "is required rather than excused"
+            )
+        elif msgid not in pot_ids:
+            errors.append(
+                f"G5-U: {EXEMPTIONS.name} exempts {locale}/{msgid!r}, which the template no "
+                "longer declares. Remove the entry"
+            )
+        else:
+            message = catalogs[locale].get(msgid)
+            if message is None or not _is_identical_to_source(message, en):
+                errors.append(
+                    f"G5-U: {EXEMPTIONS.name} exempts {locale}/{msgid!r}, which is now "
+                    "translated (or absent). Remove the entry"
+                )
+    return errors
+
+
+def _check_source_identity(en: Catalog) -> list[str]:
+    """``en`` is the language the msgids are written in, so its msgstr must match.
+
+    Excludes ``web.*``: those msgids are opaque keys, so their ``en`` msgstr is
+    the English string and is supposed to differ from the key.
+    """
+    errors: list[str] = []
+    for message in en:
+        if not message.id or _key(message).startswith(WEB_PREFIX):
+            continue
+        if set(_target_forms(message)) <= set(_source_forms(message, en)):
+            continue
+        errors.append(
+            f"G5-U: the en msgstr for {_key(message)!r} differs from its msgid. The source "
+            "catalog is an identity map by construction (docs/I18N.md: 'the source string is "
+            "the English text itself'); edit the source string and re-extract instead"
+        )
+    return errors
+
+
+def _check_target_locales(catalogs: dict[str, Catalog]) -> list[str]:
+    """There must be something to compare against, or the rule reports over nothing.
+
+    Without this, dropping every non-source locale from ``CATALOGS`` would make
+    "no verbatim English in any target locale" a claim about the empty set,
+    printed in the same words as a real pass.
+    """
+    if [name for name in catalogs if name != SOURCE_LOCALE]:
+        return []
+    return [
+        f"G5-U: no catalog other than {SOURCE_LOCALE!r} was checked, so the "
+        "differ-from-source rule ran against nothing. Add the target locales to "
+        "CATALOGS or remove this check with them"
+    ]
+
+
+def _check_untranslated(
+    name: str, catalog: Catalog, en: Catalog, exemptions: dict[tuple[str, str], str]
+) -> list[str]:
     """G5: no translation is verbatim English where there was English to translate."""
     errors: list[str] = []
-    allowed = IDENTICAL_OK.get(name, {})
     for message in catalog:
         if not message.id:
             continue
         key = _key(message)
-        if key in allowed:
+        if (name, key) in exemptions:
             continue
         # strict=False: a source/target plural-arity mismatch is already a G5
         # finding from _check_message; here we simply check the forms that pair up.
@@ -302,11 +433,11 @@ def _check_untranslated(name: str, catalog: Catalog, en: Catalog) -> list[str]:
                 continue
             where = f"{key!r}" if len(forms) == 1 else f"{key!r} plural form {index}"
             errors.append(
-                f"G5: {name} translation for {where} is byte-identical to the English "
+                f"G5-U: {name} translation for {where} is byte-identical to the English "
                 f"source {source!r} — it looks untranslated. If it is genuinely the "
                 f"same in {name} (a proper noun, an acronym, a unit), add the term to "
-                f"NON_TRANSLATABLE_TERMS or the msgid to IDENTICAL_OK[{name!r}] in "
-                f"{Path(__file__).name}, with the reason."
+                f"NON_TRANSLATABLE_TERMS in {Path(__file__).name}, or the msgid to "
+                f"{EXEMPTIONS.name} with a written reason."
             )
     return errors
 
@@ -363,14 +494,21 @@ def main() -> int:
     es = _load(LOCALES / "es" / "LC_MESSAGES" / "messages.po", "es")
 
     pot_ids, en_ids, es_ids = _ids(pot), _ids(en), _ids(es)
+    catalogs = {"en": en, "es": es}
+    exemptions, exemption_errors = load_exemptions(EXEMPTIONS)
+    errors.extend(exemption_errors)
 
     errors.extend(_check_key_parity(en_ids, es_ids))
     errors.extend(_check_pot_coverage(pot_ids, en_ids, es_ids))
-    for name, catalog in (("en", en), ("es", es)):
+    for name, catalog in sorted(catalogs.items()):
         for message in catalog:
             errors.extend(_check_message(name, message))
         if name != SOURCE_LOCALE:
-            errors.extend(_check_untranslated(name, catalog, en))
+            errors.extend(_check_untranslated(name, catalog, en, exemptions))
+
+    errors.extend(_check_source_identity(en))
+    errors.extend(_check_stale_exemptions(catalogs, en, pot_ids, exemptions))
+    errors.extend(_check_target_locales(catalogs))
 
     errors.extend(_check_web(pot_ids, en, es))
 
@@ -385,7 +523,8 @@ def main() -> int:
         f"catalog parity OK: {len(pot_ids)} msgids ({web_count} web.*), en/es key-parity + "
         "completeness + placeholder parity + web JSON match hold; "
         f"{gated} of {len(_source_forms_all(en))} source forms carry translatable words "
-        "and none of them is verbatim English in es."
+        "and none of them is verbatim English in es; en is an identity map; "
+        f"{len(exemptions)} reasoned exemption(s), all still applying."
     )
     return 0
 
