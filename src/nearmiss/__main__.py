@@ -564,7 +564,9 @@ def _cmd_contributor(args: argparse.Namespace) -> int:
         print(
             f"contributor: purged {purge.raw_removed} raw record(s) older than "
             f"{purge.retention_days} day(s) (cutoff {purge.cutoff}); "
-            f"wrote {purge.tombstones_added} tombstone(s)."
+            f"wrote {purge.tombstones_added} tombstone(s); "
+            f"kept {purge.kept_age_unmeasurable} record(s) whose age could not be "
+            "determined (absent, malformed, or future occurred_at)."
         )
         return 0
     raise NearmissError(f"unknown contributor action {action!r}")  # pragma: no cover

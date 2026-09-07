@@ -265,6 +265,49 @@ every entry.
 
 ### Fixed
 
+- **Intake accepted any string as an event time, and the retention sweep kept what it
+  could not age without counting it.** Two instances of one root cause: an `occurred_at`
+  that is absent, malformed, or in the future was folded into one of the two normal
+  states instead of being a third state of its own (#272).
+
+  `schema/report.schema.json` says `occurred_at` is "an ISO-8601 / RFC 3339 date-time with
+  an explicit timezone offset" and declares `"format": "date-time"`, and nothing enforced
+  it: `validation._validator_for` built its validator with no `format_checker`, so
+  `format` was annotation-only — and even with one, `date-time` is **not** among
+  jsonschema's built-in checkers (it needs the optional `rfc3339-validator` package), and
+  a `FormatChecker` answers `conforms() is True` for a format it does not know, silently.
+  Measured on `main`, `validate_report` returned **no problems** for `""`, `"not a time"`,
+  `"yesterday"`, `"2026-13-45T99:99:99Z"` and `"2026-06-15T08:42:00"`.
+
+  Both survivors caused a specific misreport. An **unparseable** timestamp reaches
+  `pipeline._apply_window`, which compares `occurred_at[:10]` as a *string* — `"not a tim"`
+  sorts after `"2026-12-31"` — so the report was classified `out_of_window` and reported as
+  one that fell outside the stated analysis period; it did not, its time could not be read.
+  A timestamp with **no offset** is worse because it parses: `stats/temporal` deliberately
+  reports the local wall-clock hour the contributor experienced, so a naive value
+  contributed an hour in an unstated zone to the published `peak_hour` claim. The
+  spreadsheet adapter already refused these and counted them and the BikeMaps adapter
+  appended a configured offset rather than guess, so the strictness of a report depended on
+  which door it came in.
+
+  `validate_report` now rejects both, as a code rule rather than a schema annotation —
+  `util.parse_rfc3339_datetime` requires the offset — and `_validator_for` supplies a
+  `FormatChecker` so any format jsonschema *can* check is checked.
+  `tests/test_validation.py` pins the reason the rule cannot live in `"format"` alone, so a
+  future reader does not have to rediscover that a `FormatChecker` skips unknown formats
+  without saying so.
+
+  Separately, `contributor.purge_expired` kept a record whose `occurred_at` would not parse
+  — correctly, fail-safe — but counted it nowhere, so `purged N raw record(s) older than
+  M day(s)` read as though the retention window had been applied to every record. And a
+  **future** `occurred_at` gives a negative age, which satisfies "younger than the window"
+  permanently: a record dated 2099 could never expire. `PurgeResult` now carries
+  `kept_age_unmeasurable`, covering absent, malformed and future alike, printed on every
+  run including when it is zero.
+
+  All 5003 report rows committed in this repository already parse and already carry an
+  explicit offset, so none of this changes committed data.
+
 - **An exposure layer with no readable vintage published as one whose vintage had been
   checked against the reports and found to match.** `exposure.is_stale` returns `False`
   for a date it cannot parse — a deliberate "staleness is a soft caveat, not a hard

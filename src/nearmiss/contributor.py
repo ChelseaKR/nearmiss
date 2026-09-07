@@ -351,6 +351,13 @@ class PurgeResult:
     cutoff: str
     raw_removed: int
     tombstones_added: int
+    #: Records kept because their age could not be determined — an absent,
+    #: malformed, or *future* ``occurred_at``. Keeping them is the fail-safe
+    #: choice, but an operator reading ``raw_removed`` alone would conclude the
+    #: retention window had been applied to every record. It had not. This is
+    #: always reported, including when it is zero: a counter that appears only
+    #: when it fires reads as "nothing was held back" on a run that never looked.
+    kept_age_unmeasurable: int = 0
 
 
 def purge_expired(config: Config, now: datetime | None = None) -> PurgeResult:
@@ -358,9 +365,17 @@ def purge_expired(config: Config, now: datetime | None = None) -> PurgeResult:
 
     A record is expired when its ``occurred_at`` event time is strictly older than
     ``now - retention_days``. Expired records are removed from every raw report
-    file and tombstoned (so they cannot be re-imported). Records without a
-    parseable ``occurred_at`` are kept (fail-safe: never silently drop data whose
-    age is unknown).
+    file and tombstoned (so they cannot be re-imported).
+
+    A record whose age cannot be determined is **kept and counted** in
+    ``kept_age_unmeasurable``. Keeping is the fail-safe choice — never silently
+    drop data whose age is unknown — but it is not the same outcome as "inside the
+    retention window", and reporting only ``raw_removed`` would let an operator
+    conclude the window had been applied to every record. Three states, not two:
+    expired, within the window, and unmeasurable. Unmeasurable covers an absent
+    ``occurred_at``, a malformed one, **and a future one** — a negative age
+    satisfies "younger than the window" permanently, so a record dated 2099 would
+    otherwise never expire, and a broken clock is not fresh data.
 
     ``retention_days <= 0`` disables retention and is a no-op.
     """
@@ -376,12 +391,19 @@ def purge_expired(config: Config, now: datetime | None = None) -> PurgeResult:
 
     expired_ids: list[object] = []
     raw_removed = 0
+    unmeasurable = 0
+    reference_epoch = reference.timestamp()
     for path in _raw_report_files(config):
         reports = _read_raw_reports(path)
         kept = []
         for r in reports:
             ts = parse_ts(str(r.get("occurred_at", "")))
-            if ts is not None and ts < cutoff_epoch:
+            # A future event time yields a negative age, which satisfies "younger
+            # than the window" forever; it is a broken record, not a fresh one.
+            if ts is None or ts > reference_epoch:
+                unmeasurable += 1
+                kept.append(r)
+            elif ts < cutoff_epoch:
                 expired_ids.append(r.get("id"))
                 raw_removed += 1
             else:
@@ -395,4 +417,5 @@ def purge_expired(config: Config, now: datetime | None = None) -> PurgeResult:
         cutoff=cutoff_iso,
         raw_removed=raw_removed,
         tombstones_added=added,
+        kept_age_unmeasurable=unmeasurable,
     )
