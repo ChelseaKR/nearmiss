@@ -31,7 +31,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      # `shell: bash` is `bash --noprofile --norc -eo pipefail {0}`. Actions' default
+      # `run:` shell is `bash -e {0}` -- errexit WITHOUT pipefail -- so the
+      # `git ls-remote ... | cut -f1` below returned `cut`'s status, which is always 0.
+      # An ls-remote that failed left `remote_sha` empty, the "main moved" branch was
+      # taken, and this job answered `exit 0` while the live site had failed
+      # verification. The one thing this sentinel exists to report is the one thing an
+      # unreachable remote made it unable to report.
       - name: Verify deployed main and negative privacy paths
+        shell: bash
         run: |
           expected_sha="$(git rev-parse HEAD)"
           set +e
