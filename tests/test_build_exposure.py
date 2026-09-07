@@ -13,6 +13,8 @@ import json
 from pathlib import Path
 from types import ModuleType
 
+import pytest
+
 from nearmiss.loaders import load_exposure, load_streets
 from nearmiss.models import Segment
 
@@ -148,3 +150,50 @@ def test_reads_csv_and_geojson_counts(tmp_path: Path) -> None:
     )
     gj_obs = be.read_counts(gj_path, "count", "lat", "lon")
     assert gj_obs == [(48.42, -123.395, 100.0)]
+
+
+# --- the as-of vintage is required, and must be readable -----------------------
+#
+# `--date` used to default to the empty string, so the documented way to build an
+# exposure layer (and `make real` itself, which never passed --date) produced rows
+# with no readable vintage. `exposure.is_stale` returns False for a date it cannot
+# parse, so those rows publish with no `exposure_stale` flag — indistinguishable
+# from a denominator whose vintage was checked against the reports and matched.
+
+
+def test_date_is_required(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exc:
+        be.parse_args(["--streets", "s.geojson", "--counts", "c.csv"])
+    assert exc.value.code == 2
+    assert "--date" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("bad", ["", "today", "2026-13-45", "2026-1-1", "20260101"])
+def test_date_rejects_an_unreadable_vintage(bad: str, capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exc:
+        be.parse_args(["--streets", "s.geojson", "--counts", "c.csv", "--date", bad])
+    assert exc.value.code == 2
+    assert "ISO-8601 calendar date" in capsys.readouterr().err
+
+
+def test_date_accepts_a_calendar_date() -> None:
+    args = be.parse_args(["--streets", "s.geojson", "--counts", "c.csv", "--date", "2025-01-01"])
+    assert args.date == "2025-01-01"
+
+
+def test_built_rows_carry_a_vintage_the_loader_accepts(tmp_path: Path) -> None:
+    # The end of the chain: what the tool writes must survive the loader's vintage
+    # check, so the two rules cannot drift apart.
+    segments = _segments(tmp_path)
+    exposure = be.build_exposure(
+        segments,
+        {"A": 100.0},
+        source="ca_at",
+        date=be.parse_args(["--streets", "s", "--counts", "c", "--date", "2025-01-01"]).date,
+        model_fallback=True,
+        fallback_estimate=None,
+    )
+    path = tmp_path / "exposure.json"
+    path.write_text(json.dumps(exposure), encoding="utf-8")
+    loaded = load_exposure(path)
+    assert {e.date for e in loaded.values()} == {"2025-01-01"}

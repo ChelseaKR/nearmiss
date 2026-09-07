@@ -614,9 +614,15 @@ real run never clobbers the committed synthetic demo or the `make reproduce` gat
 Run one end to end (where the network is open):
 
 ```bash
-make real CITY=davis COUNTS=path/to/ca_at_counts.csv   # fetch streets + reports, build exposure
+make real CITY=davis COUNTS=path/to/ca_at_counts.csv COUNTS_DATE=2025-01-01
 nearmiss run --config config/davis.toml                # publish to data/real/davis/published/
 ```
+
+`COUNTS_DATE` is the as-of vintage of the count file and is required whenever
+`COUNTS` is given. It is not bookkeeping: `exposure_stale` — the temporal-alignment
+caveat in [METHODOLOGY §3.2](METHODOLOGY.md) — is computed by comparing that vintage
+against the reports, and a vintage that cannot be read yields *no* caveat, which is
+indistinguishable from a vintage that was checked and matched.
 
 Davis is the harder, more honest case: it is one of the highest cycling-share cities in the US, yet
 crowdsourced near-miss reports and open per-segment counts are both sparse, so expect many

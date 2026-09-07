@@ -14,6 +14,7 @@ from pathlib import Path
 
 from .errors import NearmissError
 from .models import Exposure, ExposureReading, ExposureTier, Report, Segment
+from .util import parse_iso_date
 
 _EXPOSURE_TIERS: frozenset[str] = frozenset(("observed", "modeled", "proxy", "unknown"))
 _MAX_JSON_NESTING = 256
@@ -146,6 +147,31 @@ def _tier(path: Path, row: dict[str, object]) -> ExposureTier:
     return value  # type: ignore[return-value]
 
 
+def _exposure_date(path: Path, row: dict[str, object], where: str) -> str:
+    """Parse an exposure vintage, refusing anything that is not ``YYYY-MM-DD``.
+
+    An unreadable vintage is *unmeasurable*, not *aligned*. Downstream,
+    :func:`nearmiss.exposure.is_stale` returns ``False`` for a date it cannot
+    parse — a deliberate soft-caveat choice for a pure helper, but it means an
+    unreadable date reaches the published dataset with no ``exposure_stale``
+    flag, i.e. indistinguishable from a vintage that was checked and found to
+    match the reports. The only place to tell those apart is here, at the point
+    the value enters the pipeline, so this refuses rather than tolerates. The
+    rule is exactly the ``"format": "date"`` the published dataset contract
+    declares for ``exposure_date`` (:mod:`nearmiss.util`).
+    """
+    raw = row.get("date")
+    value = "" if raw is None else str(raw)
+    if parse_iso_date(value) is None:
+        raise NearmissError(
+            f"{path}: {where} has an unreadable exposure vintage {value!r}; "
+            "'date' must be an ISO-8601 calendar date (YYYY-MM-DD). "
+            "A vintage that cannot be read is not a vintage that matches the reports — "
+            "see docs/METHODOLOGY.md section 3.2."
+        )
+    return value
+
+
 def _sources(path: Path, row: dict[str, object]) -> tuple[ExposureReading, ...]:
     """Parse optional corroborating readings (multi-source exposure; FIX-04)."""
     raw = row.get("sources")
@@ -159,7 +185,7 @@ def _sources(path: Path, row: dict[str, object]) -> tuple[ExposureReading, ...]:
             ExposureReading(
                 estimate=float(entry["estimate"]),
                 source=str(entry["source"]),
-                date=str(entry["date"]),
+                date=_exposure_date(path, entry, "corroborating exposure reading"),
                 tier=_tier(path, entry),
             )
         )
@@ -173,6 +199,10 @@ def load_exposure(path: Path) -> dict[str, Exposure]:
     (additional corroborating readings) fields; both are backward compatible —
     older exposure files with neither field load with ``tier="unknown"`` and no
     corroborating sources, honestly rather than silently promoted to "observed".
+
+    ``date`` is **not** backward compatible in the same way: it is required to be
+    an ISO-8601 calendar date, because an unreadable vintage is published as a
+    vintage that matches the reports (see :func:`_exposure_date`).
     """
     data = _read_json(path)
     rows = data.get("segments", []) if isinstance(data, dict) else data
@@ -186,7 +216,7 @@ def load_exposure(path: Path) -> dict[str, Exposure]:
                 segment_id=sid,
                 estimate=float(row["estimate"]),
                 source=str(row["source"]),
-                date=str(row["date"]),
+                date=_exposure_date(path, row, f"exposure row {sid!r}"),
                 tier=_tier(path, row),
                 sources=_sources(path, row),
             )

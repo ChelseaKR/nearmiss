@@ -10,7 +10,7 @@ import pytest
 from nearmiss.config import load_config
 from nearmiss.errors import ConfigError, NearmissError
 from nearmiss.exposure import attach_exposure, corroboration, coverage, is_stale, is_usable
-from nearmiss.loaders import load_reports, load_streets
+from nearmiss.loaders import load_exposure, load_reports, load_streets
 from nearmiss.models import Exposure, ExposureReading
 from nearmiss.server import is_blocked_path
 
@@ -167,7 +167,25 @@ def test_is_stale_flags_exposure_far_from_the_reference_date() -> None:
 
 
 def test_is_stale_is_false_for_unparseable_dates() -> None:
+    # This is the soft-caveat behaviour of a pure helper, NOT a statement that an
+    # unreadable vintage is an aligned one. `False` here means "no exposure_stale
+    # flag", which a reader cannot tell apart from "checked and matched" — so the
+    # unreadable case is refused upstream, at load time, and never reaches here.
+    # `test_load_exposure_rejects_an_unreadable_vintage` is the test that matters;
+    # this one only pins that the helper does not raise mid-pipeline.
     assert not is_stale("not-a-date", "2026-01-01", threshold_days=365)
+
+
+def test_the_unreadable_vintage_cannot_reach_is_stale(tmp_path: Path) -> None:
+    """The guard that makes the tolerance above safe: an unreadable vintage is
+    refused where it enters, so `is_stale`'s False can only ever mean "compared"."""
+    payload = {
+        "segments": [{"segment_id": "s1", "estimate": 100.0, "source": "counts", "date": ""}]
+    }
+    path = tmp_path / "exp.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(NearmissError, match="unreadable exposure vintage"):
+        load_exposure(path)
 
 
 @pytest.mark.parametrize(

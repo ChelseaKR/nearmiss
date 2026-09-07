@@ -75,6 +75,14 @@ def is_stale(exposure_date: str, reference_date: str, threshold_days: float) -> 
     (METHODOLOGY §3.2: "a rate whose exposure was measured in a different period
     than its reports has a temporal mismatch"). Unparseable dates are treated as
     "not stale" rather than raising — staleness is a soft caveat, not a hard error.
+
+    That tolerance is only safe because the unreadable case cannot reach here:
+    :func:`nearmiss.loaders.load_exposure` refuses an exposure vintage that is not
+    an ISO-8601 calendar date. Without that refusal this function's ``False``
+    would publish as "the vintage was compared to the reports and matched", which
+    is the opposite of what an unreadable date means. **Do not relax the loader's
+    check without giving the unmeasurable case a flag of its own here** — a soft
+    caveat with no third state renders an absence as a measurement.
     """
     exp_ts = parse_ts(exposure_date)
     ref_ts = parse_ts(reference_date)

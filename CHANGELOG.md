@@ -265,6 +265,45 @@ every entry.
 
 ### Fixed
 
+- **An exposure layer with no readable vintage published as one whose vintage had been
+  checked against the reports and found to match.** `exposure.is_stale` returns `False`
+  for a date it cannot parse — a deliberate "staleness is a soft caveat, not a hard
+  error" choice — and `False` means no `exposure_stale` quality flag. So a reader of the
+  published dataset could not tell *"the vintage was compared to the report window and is
+  aligned"* from *"the vintage could not be read at all"*: both rendered as the same
+  absence, which is the same shape as a failed read counted as a zero (#270).
+
+  Nothing upstream stopped one getting there. `loaders.load_exposure` did
+  `date=str(row["date"])`, and `str()` never raises. `publish._dataset_validator()` built
+  its validator with no `format_checker`, so `schema/dataset.schema.json`'s
+  `"format": "date"` on `exposure_date` — the only `format` declaration in that schema —
+  was documentation the gate never read, while eight other schemas in this package
+  already validated with `FormatChecker()`. And `tools/build_exposure.py` declared
+  `--date` with `default=""` while `make real` never passed `--date` at all, so the
+  repository's own "assemble all REAL inputs" target built every exposure row with an
+  empty vintage.
+
+  Measured on `a11912d` before the fix, with the Davis demo's committed exposure fixture
+  and every row's `date` set to `""` and nothing else changed: nine published features
+  carried `"exposure_date": ""`, none carried `exposure_stale`, and `publish()` — which
+  runs `assert_conforms_to_schema` before writing — succeeded.
+
+  Fixed at all three layers, so no one of them is the only thing standing between an
+  unreadable vintage and a published rate: `load_exposure` refuses a vintage that is not
+  an ISO-8601 calendar date (on the primary row and on every corroborating `sources[]`
+  reading), the published-dataset contract gate now supplies a `FormatChecker`, and
+  `--date` is required and validated (with `make real` refusing `COUNTS` without
+  `COUNTS_DATE`). All three use one rule, `util.parse_iso_date`, which is RFC 3339
+  `full-date` rather than `datetime.date.fromisoformat` — the latter has accepted
+  `20240102` and `2024-W01-1` since 3.11, neither of which satisfies `"format": "date"`,
+  so using it would have let a value pass the loader and fail the publish gate.
+  `tests/test_dataset_schema.py` additionally asserts that jsonschema's `date` checker is
+  present and really rejects, because a `FormatChecker` silently ignores any format it has
+  no checker for and a checker that cannot fail reads exactly like one that passed.
+
+  None of the 1054 exposure rows committed in this repository has a malformed date, so the
+  refusal changes no committed input.
+
 - **The citation told researchers to cite a dataset version this repository does not
   ship.** `CITATION.cff`'s `preferred-citation` block — the *dataset* citation, the thing a
   citing reader is pointed at — read `version: 0.1.0` while

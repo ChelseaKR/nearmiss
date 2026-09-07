@@ -233,11 +233,25 @@ def assert_published_clean(
 
 @lru_cache(maxsize=1)
 def _dataset_validator() -> jsonschema.protocols.Validator:
-    """Load and cache the draft 2020-12 validator for the published dataset schema."""
+    """Load and cache the draft 2020-12 validator for the published dataset schema.
+
+    ``format_checker`` is not optional here. JSON Schema treats ``format`` as an
+    annotation unless a checker is supplied, so without it the schema's
+    ``"format": "date"`` on ``exposure_date`` is documentation the gate never
+    reads — and an unreadable exposure vintage passes the published-dataset
+    contract check. Every other schema in this package already validates with
+    ``FormatChecker()`` (``ingestion``, ``fars_context_schema``,
+    ``outcome_artifacts``, …); the published dataset was the one that did not.
+
+    A ``FormatChecker`` silently ignores any format it has no checker for, so
+    ``tests/test_publish_contract.py`` asserts that ``date`` is one it *does*
+    have and that it actually rejects a bad value — a checker that cannot fail
+    would otherwise read exactly like a checker that passed.
+    """
     schema = json.loads(_SCHEMA_JSON_FILE.read_text(encoding="utf-8"))
     cls = jsonschema.validators.validator_for(schema)
     cls.check_schema(schema)
-    return cls(schema)
+    return cls(schema, format_checker=jsonschema.FormatChecker())
 
 
 def assert_conforms_to_schema(geojson: dict[str, object]) -> None:
