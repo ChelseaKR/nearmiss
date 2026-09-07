@@ -125,9 +125,66 @@ def test_load_exposure_rejects_malformed_row(tmp_path: Path) -> None:
 
 
 def test_load_exposure_rejects_row_missing_required_key(tmp_path: Path) -> None:
+    # A row with no `date` is refused by the vintage check, which reports it more
+    # precisely than the generic "malformed exposure row" wrapper used to.
     payload = {"segments": [{"segment_id": "s1", "estimate": 1.0, "source": "x"}]}  # no date
-    with pytest.raises(NearmissError, match="malformed exposure row"):
+    with pytest.raises(NearmissError, match="unreadable exposure vintage"):
         load_exposure(_write(tmp_path / "exp.json", payload))
+
+
+# --- the exposure vintage must be readable, or it is not a vintage -------------
+#
+# `exposure.is_stale` returns False for a date it cannot parse, so an unreadable
+# vintage reaches the published dataset with NO `exposure_stale` flag — byte-for-byte
+# indistinguishable from a vintage that was compared against the reports and found to
+# match. The absence of a caveat gets read as the presence of a check. The only place
+# the two can still be told apart is here, where the value enters the pipeline.
+
+
+@pytest.mark.parametrize(
+    "bad_date",
+    [
+        "",  # what tools/build_exposure.py --date used to default to
+        "d",
+        "sometime in 2019",
+        "2026-13-45",  # well-shaped and not a real date
+        "20260101",  # ISO basic form: date.fromisoformat takes it, "format": "date" does not
+        "2026-1-1",  # unpadded
+        "2026-01-01T09:00:00Z",  # a timestamp, not a calendar date
+    ],
+)
+def test_load_exposure_rejects_an_unreadable_vintage(tmp_path: Path, bad_date: str) -> None:
+    payload = {
+        "segments": [{"segment_id": "s1", "estimate": 100.0, "source": "counts", "date": bad_date}]
+    }
+    with pytest.raises(NearmissError, match="unreadable exposure vintage"):
+        load_exposure(_write(tmp_path / "exp.json", payload))
+
+
+def test_load_exposure_rejects_an_unreadable_vintage_on_a_corroborating_reading(
+    tmp_path: Path,
+) -> None:
+    payload = {
+        "segments": [
+            {
+                "segment_id": "s1",
+                "estimate": 100.0,
+                "source": "count-station-12",
+                "date": "2026-01-01",
+                "sources": [{"estimate": 140.0, "source": "demand-model-v2", "date": ""}],
+            }
+        ]
+    }
+    with pytest.raises(NearmissError, match="corroborating exposure reading"):
+        load_exposure(_write(tmp_path / "exp.json", payload))
+
+
+@pytest.mark.parametrize("good_date", ["2026-01-01", "1999-12-31", "2024-02-29"])
+def test_load_exposure_accepts_a_calendar_date(tmp_path: Path, good_date: str) -> None:
+    payload = {
+        "segments": [{"segment_id": "s1", "estimate": 100.0, "source": "counts", "date": good_date}]
+    }
+    assert load_exposure(_write(tmp_path / "exp.json", payload))["s1"].date == good_date
 
 
 def test_load_exposure_defaults_tier_to_unknown_for_old_rows(tmp_path: Path) -> None:

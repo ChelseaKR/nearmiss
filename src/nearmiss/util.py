@@ -2,8 +2,34 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
+
+#: RFC 3339 ``full-date``: exactly ``YYYY-MM-DD``. Deliberately stricter than
+#: :meth:`datetime.date.fromisoformat`, which since 3.11 also accepts the basic
+#: form (``20240102``) and ISO week dates (``2024-W01-1``) — neither of which
+#: satisfies the ``"format": "date"`` constraint the published dataset contract
+#: declares. Keeping the loader's rule identical to the contract's rule is the
+#: point: a value that survives one gate must survive the other.
+_ISO_DATE = re.compile(r"\A\d{4}-\d{2}-\d{2}\Z")
+
+
+def parse_iso_date(value: str) -> date | None:
+    """Parse an RFC 3339 ``full-date`` (``YYYY-MM-DD``); ``None`` if it is not one.
+
+    ``None`` means *unmeasurable*, and callers must treat it as a third state —
+    neither a valid date nor a silently-tolerated one. See
+    :func:`nearmiss.exposure.is_stale`, whose caller cannot distinguish "the
+    vintage matches the reports" from "the vintage could not be read" unless the
+    unreadable case is refused before it gets there.
+    """
+    if not _ISO_DATE.match(value):
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
 
 
 def parse_ts(iso: str) -> float | None:

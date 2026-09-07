@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from jsonschema import FormatChecker
 from jsonschema.protocols import Validator
 from jsonschema.validators import validator_for
 
@@ -47,7 +48,10 @@ def _validator() -> Validator:
     schema = _load_schema()
     cls = validator_for(schema)
     cls.check_schema(schema)
-    return cls(schema)
+    # Same construction publish.py uses. Without format_checker, JSON Schema
+    # treats "format" as an annotation and the schema's "format": "date" on
+    # exposure_date constrains nothing — see the tests below.
+    return cls(schema, format_checker=FormatChecker())
 
 
 def _load(path: Path) -> Any:
@@ -122,6 +126,46 @@ def test_publish_time_gate_accepts_valid_and_rejects_invalid() -> None:
         assert_conforms_to_schema(bad)
     assert "dataset.schema.json" in str(exc.value)
     assert exc.value.problems  # each schema error surfaced for debugging
+
+
+# --- "format": "date" must actually execute -----------------------------------
+#
+# JSON Schema treats `format` as an annotation unless the validator is given a
+# FormatChecker, and `publish.py` was not giving it one. So the schema's
+# "format": "date" on exposure_date was documentation the gate never read, and an
+# unreadable exposure vintage — the empty string `tools/build_exposure.py` used to
+# default to — passed the published-dataset contract check. A FormatChecker also
+# ignores, silently, any format it has no checker for (`date-time` and `uri` need
+# optional packages and are absent here), so the first test below pins that `date`
+# is one it really has and really rejects with: a checker that cannot fail reads
+# exactly like a checker that passed.
+
+
+def test_format_checker_has_a_working_date_checker() -> None:
+    checker = FormatChecker()
+    assert "date" in checker.checkers, (
+        "jsonschema has no 'date' format checker in this environment; the "
+        "published dataset's exposure_date format constraint would silently no-op"
+    )
+    assert checker.conforms("2026-05-01", "date")
+    assert not checker.conforms("sometime in 2026", "date")
+    assert not checker.conforms("", "date")
+
+
+@pytest.mark.parametrize("bad_date", ["", "sometime in 2026", "2026-13-45", "20260501"])
+def test_unreadable_exposure_date_fails_the_publish_gate(bad_date: str) -> None:
+    data = _davis()
+    feature = next(f for f in data["features"] if f["properties"].get("exposure_date") is not None)
+    feature["properties"]["exposure_date"] = bad_date
+    with pytest.raises(ValidationError):
+        assert_conforms_to_schema(data)
+
+
+def test_a_real_exposure_date_still_passes_the_publish_gate() -> None:
+    data = _davis()
+    feature = next(f for f in data["features"] if f["properties"].get("exposure_date") is not None)
+    feature["properties"]["exposure_date"] = "2019-02-28"
+    assert_conforms_to_schema(data)
 
 
 def test_pristine_copy_still_validates() -> None:

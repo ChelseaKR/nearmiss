@@ -44,7 +44,26 @@ from typing import Any
 
 from nearmiss.geometry import point_to_polyline_m
 from nearmiss.loaders import load_streets
-from nearmiss.util import reference_point
+from nearmiss.util import parse_iso_date, reference_point
+
+
+def iso_date(value: str) -> str:
+    """argparse type for ``--date``: an ISO-8601 calendar date, or a clear refusal.
+
+    ``--date`` used to default to the empty string, so the documented way to build
+    an exposure layer produced rows with no readable vintage. Downstream that is
+    invisible: ``exposure.is_stale`` returns False for a date it cannot parse, so
+    the segment publishes with no ``exposure_stale`` flag and reads exactly like a
+    vintage that was checked against the reports and found to match. An exposure
+    estimate always carries its source *and date* (hard rule #1), so the date is
+    required and has to be readable.
+    """
+    if parse_iso_date(value) is None:
+        raise argparse.ArgumentTypeError(
+            f"--date must be an ISO-8601 calendar date (YYYY-MM-DD), got {value!r}. "
+            "State the vintage of the counts; an unreadable one publishes as an aligned one."
+        )
+    return value
 
 
 def _to_float(value: Any) -> float | None:
@@ -173,7 +192,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--lat-field", default="lat", help="CSV latitude column (CSV only).")
     p.add_argument("--lon-field", default="lon", help="CSV longitude column (CSV only).")
     p.add_argument("--source", default="bike_counts", help="Exposure source label.")
-    p.add_argument("--date", default="", help="As-of date (ISO) for the exposure figures.")
+    p.add_argument(
+        "--date",
+        required=True,
+        type=iso_date,
+        help="As-of date (YYYY-MM-DD) for the exposure figures. Required: a rate whose "
+        "denominator has no readable vintage cannot be checked for temporal alignment.",
+    )
     p.add_argument("--max-snap-m", type=float, default=30.0, help="Max counter->segment distance.")
     p.add_argument(
         "--aggregate",
