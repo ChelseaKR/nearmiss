@@ -14,6 +14,9 @@ import sys
 from pathlib import Path
 
 import pytest
+from babel.messages.catalog import Catalog
+from babel.messages.pofile import read_po
+from tools import check_catalog_parity
 
 from nearmiss.i18n import (
     DEFAULT_LANGUAGE,
@@ -165,6 +168,137 @@ def test_web_json_en_es_key_parity() -> None:
 def test_po2json_check_passes() -> None:
     result = subprocess.run(
         [sys.executable, "tools/po2json.py", "--check"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+# --- G5 untranslated-source: a Spanish msgstr may not be verbatim English ------
+#
+# Key-parity, completeness and placeholder parity are ALL satisfied by a Spanish
+# msgstr that is a verbatim copy of its English msgid, so before this check the
+# gate was green on an untranslated catalog. The design problem is false
+# positives: proper nouns, acronyms, URLs, bare numbers and pure-placeholder
+# strings are legitimately identical, and a gate that fires on `CSV` gets turned
+# off. These tests pin both halves — it fires on a sentence, it does not fire on
+# the identical-by-right strings.
+
+
+def _catalogs(entries: dict[str, tuple[str, str]]) -> tuple[Catalog, Catalog]:
+    """Build an (en, es) catalog pair from ``{msgid: (en_msgstr, es_msgstr)}``."""
+    en, es = Catalog(locale="en"), Catalog(locale="es")
+    for msgid, (en_string, es_string) in entries.items():
+        en.add(msgid, en_string)
+        es.add(msgid, es_string)
+    return en, es
+
+
+IDENTICAL_BY_RIGHT = [
+    "CSV",
+    "GeoJSON",
+    "OK",
+    "nearmiss",
+    "BikeMaps",
+    "Riverside",
+    "OpenStreetMap",
+    "n",
+    "z",
+    "—",
+    "2026",
+    "95%",
+    "{published} / {total}",
+    "{year} · {mode}",
+    "https://bikemaps.org/",
+    "`--lang es`",
+]
+
+
+@pytest.mark.parametrize("source", IDENTICAL_BY_RIGHT)
+def test_identical_translation_is_allowed_when_nothing_is_translatable(source: str) -> None:
+    """The positive control: the gate must NOT fire on a string with no words to translate."""
+    assert not check_catalog_parity._is_translatable(source), source
+    en, es = _catalogs({source: (source, source)})
+    assert check_catalog_parity._check_untranslated("es", es, en) == []
+
+
+UNTRANSLATED_SENTENCES = [
+    "No segment reaches statistical significance at this sample size.",
+    "Those intervals have already been widened accordingly (quasi-Poisson).",
+    "Export the ranked corridors as CSV",
+    "Reported near misses per 1000 riders",
+]
+
+
+@pytest.mark.parametrize("source", UNTRANSLATED_SENTENCES)
+def test_verbatim_english_spanish_msgstr_fails(source: str) -> None:
+    """The negative control: a Spanish msgstr copied verbatim from English is a defect."""
+    en, es = _catalogs({source: (source, source)})
+    errors = check_catalog_parity._check_untranslated("es", es, en)
+    assert len(errors) == 1, errors
+    assert "byte-identical to the English source" in errors[0]
+
+
+def test_translated_spanish_msgstr_passes() -> None:
+    source = "No segment reaches statistical significance at this sample size."
+    en, es = _catalogs(
+        {source: (source, "Ningún segmento alcanza significancia con este tamaño de muestra.")}
+    )
+    assert check_catalog_parity._check_untranslated("es", es, en) == []
+
+
+def test_web_key_compares_the_english_translation_not_the_msgid() -> None:
+    """``web.*`` msgids are opaque keys, so the English *msgstr* is the source text."""
+    en, es = _catalogs(
+        {"web.app.export": ("Download the ranked corridors", "Download the ranked corridors")}
+    )
+    errors = check_catalog_parity._check_untranslated("es", es, en)
+    assert len(errors) == 1, errors
+    assert "web.app.export" in errors[0]
+
+    en, es = _catalogs(
+        {"web.app.export": ("Download the ranked corridors", "Descargar los corredores")}
+    )
+    assert check_catalog_parity._check_untranslated("es", es, en) == []
+
+
+def test_source_locale_identity_rows_are_not_flagged() -> None:
+    """``en`` msgstr == msgid is the identity row the catalog is *supposed* to have.
+
+    Almost every row of the real English catalog is byte-identical to its msgid,
+    so if the rule were applied to the source locale the gate could never pass.
+    That the gate does pass (the subprocess test above) is the proof it is skipped;
+    this pins the premise — that the English catalog really is identity rows.
+    """
+    assert check_catalog_parity.SOURCE_LOCALE == "en"
+    en_po = REPO_ROOT / "src" / "nearmiss" / "locales" / "en" / "LC_MESSAGES" / "messages.po"
+    with en_po.open("rb") as handle:
+        english = read_po(handle, locale="en")
+    identity = [
+        message
+        for message in english
+        if message.id
+        and isinstance(message.id, str)
+        and not message.id.startswith("web.")
+        and message.string == message.id
+    ]
+    assert len(identity) > 100, "expected the English catalog to be mostly identity rows"
+
+
+def test_identical_ok_allowlist_suppresses_a_finding(monkeypatch: pytest.MonkeyPatch) -> None:
+    source = "Reported near misses per 1000 riders"
+    en, es = _catalogs({source: (source, source)})
+    assert check_catalog_parity._check_untranslated("es", es, en) != []
+    monkeypatch.setattr(
+        check_catalog_parity, "IDENTICAL_OK", {"es": {source: "identical by decision (test)"}}
+    )
+    assert check_catalog_parity._check_untranslated("es", es, en) == []
+
+
+def test_catalog_parity_gate_passes_on_the_committed_catalogs() -> None:
+    result = subprocess.run(
+        [sys.executable, "tools/check_catalog_parity.py"],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
