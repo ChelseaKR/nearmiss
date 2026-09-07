@@ -676,3 +676,110 @@ def test_candidate_must_be_canonical_v2_for_the_selected_revision(
         _activate(tmp_path, attempt_id="annual-forged")
     source = tmp_path / "private" / "fars-joined-2024"
     assert not (source / "normalized" / "current.json").exists()
+
+
+# ---------------------------------------------------------------------------
+# The post-commit cross-check between the public replay and the committed run.
+#
+# Measured on c94de73: deleting that whole `if` -- every clause of it -- changed
+# no test verdict (2173 passed either way). It is the last thing standing between
+# a committed artifact and the aggregate evidence this package publishes about
+# it, and nothing held it up. The tests below make it load-bearing.
+#
+# `VerifiedFarsYearEvidence.__init__` cross-checks source_id, source_revision_id,
+# contract_sha256, the mapping versions, release_status and raw_sha256 against the
+# registered contract, and demands a module-private proof object, so evidence that
+# disagrees with its own contract cannot be built through it at all. The digests it
+# only shape-checks -- accident_sha256, person_sha256, normalized_sha256 -- and
+# attempt_id are therefore the fields a genuine instance can differ in, and they
+# are what these tests move.
+# ---------------------------------------------------------------------------
+
+
+def _evidence_with(
+    evidence: verifier.VerifiedFarsYearEvidence,
+    **changes: object,
+) -> verifier.VerifiedFarsYearEvidence:
+    """Build a real, constructor-validated evidence object differing in ``changes``."""
+    values: dict[str, Any] = evidence.as_dict()
+    unknown = set(changes) - set(values)
+    assert not unknown, f"not evidence fields: {sorted(unknown)}"
+    values.update(changes)
+    return verifier.VerifiedFarsYearEvidence(**values, _proof=verifier._EVIDENCE_PROOF)
+
+
+def test_a_public_replay_that_disagrees_with_the_committed_run_is_refused(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The replay's own evidence has to equal what the locked transaction committed.
+
+    ``accident_sha256`` is moved because the constructor only shape-checks it, so the
+    object handed back is a genuine one -- the refusal cannot come from a rejected
+    construction -- and no other clause of the cross-check reads that field, so this
+    isolates the whole-object comparison.
+    """
+    committed: list[verifier.VerifiedFarsYearEvidence] = []
+    original_locked = verifier._verify_activated_fars_year_locked
+
+    def record(*args: Any, **kwargs: Any) -> Any:
+        snapshot = original_locked(*args, **kwargs)
+        committed.append(snapshot.evidence)
+        return snapshot
+
+    def disagreeing_replay(*_args: Any, **_kwargs: Any) -> verifier.VerifiedFarsYearEvidence:
+        assert committed, "the locked transaction did not commit before the public replay"
+        return _evidence_with(committed[0], accident_sha256="0" * 64)
+
+    monkeypatch.setattr(verifier, "_verify_activated_fars_year_locked", record)
+    monkeypatch.setattr(verifier, "verify_active_fars_year", disagreeing_replay)
+
+    with pytest.raises(IngestionError, match="does not match the committed result"):
+        _activate(tmp_path, attempt_id="annual-replay-disagrees")
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("normalized_sha256", "1" * 64),
+        ("attempt_id", "annual-some-other-attempt"),
+    ],
+)
+def test_committed_evidence_is_checked_field_by_field_even_when_the_replay_agrees(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    value: str,
+) -> None:
+    """Defence in depth: a replay that agrees with a lie must not carry it through.
+
+    The whole-object comparison is defeated here on purpose -- the public replay
+    returns exactly what the transaction captured -- so only the field-by-field
+    clauses can refuse. ``normalized_sha256`` is checked against the ingestion
+    result's digest and ``attempt_id`` against the receipt filename, so neither
+    can agree with itself.
+    """
+    original_locked = verifier._verify_activated_fars_year_locked
+    tampered: list[verifier.VerifiedFarsYearEvidence] = []
+
+    class _Snapshot:
+        def __init__(self, evidence: verifier.VerifiedFarsYearEvidence) -> None:
+            self.evidence = evidence
+
+    def tamper(*args: Any, **kwargs: Any) -> Any:
+        snapshot = original_locked(*args, **kwargs)
+        evidence = _evidence_with(snapshot.evidence, **{field: value})
+        assert getattr(evidence, field) == value, "the tamper did not land"
+        assert getattr(snapshot.evidence, field) != value, "the tamper changed nothing"
+        tampered.append(evidence)
+        return _Snapshot(evidence)
+
+    def agreeing_replay(*_args: Any, **_kwargs: Any) -> verifier.VerifiedFarsYearEvidence:
+        assert tampered, "the locked transaction did not commit before the public replay"
+        return tampered[0]
+
+    monkeypatch.setattr(verifier, "_verify_activated_fars_year_locked", tamper)
+    monkeypatch.setattr(verifier, "verify_active_fars_year", agreeing_replay)
+
+    with pytest.raises(IngestionError, match="does not match the committed result"):
+        _activate(tmp_path, attempt_id="annual-replay-agrees-with-a-lie")
