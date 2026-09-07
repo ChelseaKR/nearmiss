@@ -12,6 +12,14 @@ Enforces, over ``src/nearmiss/locales``:
   than deferred: there is no untranslated-ES backlog to wave through.
 * **G5 placeholder parity** — the set of ``{...}`` fields is identical between
   each msgid and its translation (so a rename or dropped ``{name}`` cannot ship).
+* **G5 untranslated-source** — a non-source-locale translation may not be
+  byte-identical to its English source *when the source carries translatable
+  words*. Key-parity, completeness and placeholder parity are all satisfied by a
+  Spanish ``msgstr`` that is verbatim English (it is non-empty, its key matches,
+  its placeholders are trivially identical), so without this check a paste of the
+  English string ships as Spanish and every gate stays green. See
+  :func:`_is_translatable` for the exemption rule and ``IDENTICAL_OK`` for the
+  per-msgid escape hatch.
 
 * **Web domain** — every ``web.*`` msgid (the web-UI strings registered in
   :mod:`nearmiss.web_i18n`, single-sourced into ``web/locales/*.json`` by
@@ -40,9 +48,90 @@ LOCALES = ROOT / "src" / "nearmiss" / "locales"
 WEB_LOCALES = ROOT / "web" / "locales"
 POT = LOCALES / "messages.pot"
 CATALOGS = {"en", "es"}
+SOURCE_LOCALE = "en"
 WEB_PREFIX = "web."
 
 _FIELD = re.compile(r"\{[^{}]*\}")
+_URL = re.compile(r"(?:https?://|www\.)\S+", re.IGNORECASE)
+_CODE = re.compile(r"`[^`]*`")
+#: A "word" is two or more letters. Single letters are maths/variable names
+#: (``n``, ``z``, ``k``) and are the same in every language.
+_WORD = re.compile(r"[^\W\d_]{2,}", re.UNICODE)
+
+#: Terms that are legitimately identical in every locale: file formats, network
+#: and standards acronyms, product and place names. Matched case-insensitively
+#: and removed before counting translatable words, so ``CSV`` and ``BikeMaps``
+#: are exempt from the untranslated-source check while ``CSV export`` is not.
+#: Adding a term only ever *narrows* the gate — it can never cause a failure.
+NON_TRANSLATABLE_TERMS = frozenset(
+    {
+        # file formats / encodings
+        "csv",
+        "tsv",
+        "json",
+        "geojson",
+        "geopackage",
+        "gpkg",
+        "parquet",
+        "pdf",
+        "png",
+        "svg",
+        "jpeg",
+        "jpg",
+        "zip",
+        "toml",
+        "yaml",
+        "yml",
+        "xml",
+        "utf",
+        # protocols / standards / acronyms
+        "api",
+        "cli",
+        "css",
+        "doi",
+        "gtfs",
+        "html",
+        "http",
+        "https",
+        "orcid",
+        "rfc",
+        "rss",
+        "sha",
+        "sql",
+        "url",
+        "uri",
+        "utc",
+        "wcag",
+        # short forms written the same way in English and Spanish
+        "etc",
+        "ok",
+        "vs",
+        # products, projects and places named in this catalog
+        "bikemaps",
+        "cloudfront",
+        "davis",
+        "github",
+        "leaflet",
+        "mapbox",
+        "nearmiss",
+        "openstreetmap",
+        "osm",
+        "potsdam",
+        "python",
+        "qgis",
+        "riverside",
+        "simra",
+        "zenodo",
+    }
+)
+
+#: Escape hatch: msgids whose translation is *deliberately* byte-identical to the
+#: English source in a given locale, each with the reason it is identical. Keeping
+#: it here rather than loosening the rule makes the set of identical strings an
+#: auditable register instead of an invisible hole. Empty today — every one of the
+#: four identical strings in the catalogs (``n``, ``—``, ``{published} / {total}``,
+#: ``{year} · {mode}``) carries no translatable word and is exempt structurally.
+IDENTICAL_OK: dict[str, dict[str, str]] = {}
 
 
 def _load(path: Path, locale: str | None) -> Catalog:
@@ -146,6 +235,82 @@ def _string(catalog: Catalog, msgid: str) -> str:
     return message.string if message and isinstance(message.string, str) else ""
 
 
+def _translatable_words(source: str) -> list[str]:
+    """The words in ``source`` that a translator would actually have to translate.
+
+    Placeholders, backticked code spans and URLs are removed wholesale; digits,
+    punctuation and single letters never count; and :data:`NON_TRANSLATABLE_TERMS`
+    (formats, acronyms, product and place names) are dropped from what remains.
+    """
+    text = _CODE.sub(" ", _URL.sub(" ", source))
+    text = _FIELD.sub(" ", text)
+    return [w for w in _WORD.findall(text) if w.lower() not in NON_TRANSLATABLE_TERMS]
+
+
+def _is_translatable(source: str) -> bool:
+    """Whether an identical translation of ``source`` should be treated as a defect.
+
+    ``'—'``, ``'n'``, ``'{published} / {total}'``, ``'CSV'`` and ``'BikeMaps'``
+    carry nothing to translate, so an identical target is correct, not missing
+    work. Anything with a real word left over does.
+    """
+    return bool(_translatable_words(source))
+
+
+def _source_forms(message: Message, en: Catalog) -> tuple[str, ...]:
+    """The English text a translation of ``message`` must differ from.
+
+    For a brief string the msgid *is* the English source. For a ``web.*`` id the
+    msgid is an opaque key, so the English source is that id's ``en`` msgstr.
+    """
+    key = _key(message)
+    if key.startswith(WEB_PREFIX):
+        source = _string(en, key)
+        return (source,) if source else ()
+    if isinstance(message.id, (tuple, list)):
+        return tuple(message.id)
+    return (message.id,)
+
+
+def _target_forms(message: Message) -> tuple[str, ...]:
+    target = message.string
+    if isinstance(target, (tuple, list)):
+        return tuple(target)
+    return (target,) if isinstance(target, str) else ()
+
+
+def _source_forms_all(en: Catalog) -> list[str]:
+    """Every English source form in the catalog, for the coverage line."""
+    return [form for message in en if message.id for form in _source_forms(message, en)]
+
+
+def _check_untranslated(name: str, catalog: Catalog, en: Catalog) -> list[str]:
+    """G5: no translation is verbatim English where there was English to translate."""
+    errors: list[str] = []
+    allowed = IDENTICAL_OK.get(name, {})
+    for message in catalog:
+        if not message.id:
+            continue
+        key = _key(message)
+        if key in allowed:
+            continue
+        # strict=False: a source/target plural-arity mismatch is already a G5
+        # finding from _check_message; here we simply check the forms that pair up.
+        forms = list(zip(_source_forms(message, en), _target_forms(message), strict=False))
+        for index, (source, target) in enumerate(forms):
+            if target != source or not _is_translatable(source):
+                continue
+            where = f"{key!r}" if len(forms) == 1 else f"{key!r} plural form {index}"
+            errors.append(
+                f"G5: {name} translation for {where} is byte-identical to the English "
+                f"source {source!r} — it looks untranslated. If it is genuinely the "
+                f"same in {name} (a proper noun, an acronym, a unit), add the term to "
+                f"NON_TRANSLATABLE_TERMS or the msgid to IDENTICAL_OK[{name!r}] in "
+                f"{Path(__file__).name}, with the reason."
+            )
+    return errors
+
+
 def _check_web(pot_ids: set[str], en: Catalog, es: Catalog) -> list[str]:
     """Gate the web domain: catalog completeness, EN/ES field parity, JSON match."""
     errors: list[str] = []
@@ -204,6 +369,8 @@ def main() -> int:
     for name, catalog in (("en", en), ("es", es)):
         for message in catalog:
             errors.extend(_check_message(name, message))
+        if name != SOURCE_LOCALE:
+            errors.extend(_check_untranslated(name, catalog, en))
 
     errors.extend(_check_web(pot_ids, en, es))
 
@@ -213,9 +380,12 @@ def main() -> int:
             print(f"  - {err}", file=sys.stderr)
         return 1
     web_count = sum(1 for mid in pot_ids if mid.startswith(WEB_PREFIX))
+    gated = sum(1 for source in _source_forms_all(en) if _is_translatable(source))
     print(
         f"catalog parity OK: {len(pot_ids)} msgids ({web_count} web.*), en/es key-parity + "
-        "completeness + placeholder parity + web JSON match hold."
+        "completeness + placeholder parity + web JSON match hold; "
+        f"{gated} of {len(_source_forms_all(en))} source forms carry translatable words "
+        "and none of them is verbatim English in es."
     )
     return 0
 

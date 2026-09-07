@@ -229,7 +229,8 @@ i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + B
 		src/$(PACKAGE)/locales/en/LC_MESSAGES/messages.po
 	msgfmt --check --check-format --check-domain -o /dev/null \
 		src/$(PACKAGE)/locales/es/LC_MESSAGES/messages.po
-	# G6 EN/ES key-parity + G5 completeness/placeholder parity + web JSON match.
+	# G6 EN/ES key-parity + G5 completeness/placeholder parity + G5-U no verbatim-English
+	# translation (see docs/I18N.md) + web JSON match.
 	$(PYTHON) tools/check_catalog_parity.py
 	# Web domain — committed web/locales/*.json match the PO catalogs (drift gate).
 	$(PYTHON) tools/po2json.py --check
@@ -237,7 +238,7 @@ i18n: ## i18n message-catalog gate: POT current + EN/ES parity + PO compiles + B
 	$(PYTHON) tools/check_bcp47.py
 	# G9 — pseudo-locale gate: no gettext bypass / hardcoded string, placeholders survive.
 	$(MAKE) i18n-pseudo PYTHON=$(PYTHON)
-	@echo "i18n: POT current; EN/ES key-parity + completeness; PO + web JSON compile; BCP-47 valid; pseudo-locale gate green."
+	@echo "i18n: POT current; EN/ES key-parity + completeness; no verbatim-English es msgstr; PO + web JSON compile; BCP-47 valid; pseudo-locale gate green."
 
 i18n-pseudo: ## G9 pseudo-locale gate: build the build-only xx catalog and assert no gettext bypass
 	# Generates a machine-pseudo `xx` catalog under build/ (NEVER under
