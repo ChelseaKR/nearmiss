@@ -58,6 +58,39 @@ every entry.
 
 ### Added
 
+- **"No denominator" is now a Tier 1 deliverable instead of a dead end: `nearmiss coverage
+  --plan-counts` says what to go and count.** #186 measured the bind — no open US dataset pairs
+  near-miss reports with the bicycle counts a rate needs — and until now a city in that position
+  got `exposure unknown` on every segment and an analysis that could rank nothing. Correct, and
+  useless to the group holding it.
+
+  The plan lists the segments to count, priority-ordered by report count, then street-network
+  degree, then segment id: lexicographic, so there is no invented weighting to argue with. Per
+  segment it states the observations needed for the denominator to stop being the limiting error
+  term (`N >= y / f²`, default `f = 0.5`), the hours that implies, the smallest rate ratio that
+  count would make distinguishable, and the expansion factor. `--out-dir` writes the JSON, an
+  operator-facing Markdown brief, and a count sheet in `tools/build_exposure.py`'s own CSV shape,
+  so a filled sheet becomes an exposure layer with no editing (#247).
+
+  Three refusals are the point of it. **It will not guess a flow rate:** with no
+  `--assumed-flow-per-hour` the hours column reads *unknown*, because an hours figure a group
+  plans volunteer time around is a claim and a claim needs an input. **It will not hide the
+  expansion factor:** sessions of unequal length produce counts that are not comparable to each
+  other, so the mechanical hours ratio that puts them on one basis is a per-segment field of both
+  the plan and the sheet — and `build_exposure.py --scale-field` **drops** a row whose factor
+  cannot be read rather than scaling it by an implicit 1, which would publish a two-hour count as
+  though it covered the period. **It will not present an empty plan as a finished city:** "every
+  reported segment already has a denominator", "reports exist but none snapped to a segment" and
+  "this city has no reports" are three statuses, not one blank list.
+
+  A plan is a work list, not a measurement. It carries `artifact_kind: collection_plan`, states no
+  rate and no ranking, and says on its face that report count records where people chose to
+  report, not where risk is. The count point is the midpoint *along* each segment (not
+  `polyline_centroid`, which for a bent street is off the pavement) and is emitted only when it is
+  strictly closer to its own segment than to any other; a tie is reported as `ambiguous` with no
+  coordinates rather than sending a volunteer to the wrong corner. Method and formulas are in
+  [`docs/METHODOLOGY.md` §5.6](docs/METHODOLOGY.md#56-threshold-sensitivity-and-statistical-power).
+
 - **A group's own spreadsheet is now a first-class source, and every row it cannot use is
   counted rather than dropped.** #186 recorded the bind: two report adapters and zero
   publishable real-data paths, because BikeMaps has no coverage in the demo cities, SimRa's
