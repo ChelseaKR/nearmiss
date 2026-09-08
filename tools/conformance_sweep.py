@@ -153,14 +153,35 @@ def missing_families(directory: Path) -> list[str]:
     return missing
 
 
+def _rule_cell(rule: str, entry: dict[str, Any]) -> str:
+    """`HR2=pass` plus, for a per-feature rule, how much of the artifact it judged.
+
+    A per-feature rule over an empty feature list returns no failures and used to
+    print exactly what a rule that examined every feature and found nothing wrong
+    prints. `riverside.corridors.geojson` is an empty FeatureCollection and the
+    sweep read `HR1=pass, HR2=pass, HR3=pass, HR4=pass, HR5=pass` over it.
+    """
+    cell = f"{rule}={entry['status']}"
+    if "examined" in entry and "available" in entry:
+        cell += f"({entry['examined']}/{entry['available']} features)"
+    return cell
+
+
 def print_verdict(verdict: dict[str, Any]) -> list[str]:
     """Print one artifact's line and return its failures as problem strings."""
     name = Path(verdict["artifact"]).name
-    summary = ", ".join(f"{rule}={entry['status']}" for rule, entry in verdict["rules"].items())
+    summary = ", ".join(_rule_cell(rule, entry) for rule, entry in verdict["rules"].items())
     marker = "PASS" if verdict["verdict"] == "pass" else "FAIL"
     print(f"  {marker}  {name} [{verdict['family']}] {summary}")
     for rule, reason in (verdict.get("rules_not_applicable") or {}).items():
         print(f"          {rule} not evaluated: {reason}")
+    # The corridor family's note explains that HR3 and HR5 are carried through the
+    # primary rather than asserted here -- and it is the reason both cells come from
+    # one predicate. It was on the verdict object and printed by nothing, so two
+    # cells read as two independent judgements.
+    note = verdict.get("note")
+    if note and verdict.get("family") == "city_corridor_view":
+        print(f"          note: {note}")
     if verdict["verdict"] == "pass":
         return []
     return [

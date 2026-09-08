@@ -398,7 +398,28 @@ def verify_artifact(
         "HR5": check_hr5(geojson_path, geojson_bytes, sidecar, sidecar_path),
     }
 
-    rules: dict[str, Any] = {rule: _rule(fails) for rule, fails in rule_failures.items()}
+    # Coverage for the three per-feature rules. HR3 and HR5 read the document as a
+    # whole, so a feature count would say nothing about them.
+    coverage: dict[str, dict[str, Any]] = {
+        "HR1": {
+            "examined": len(features),
+            "available": len(features),
+            "empty_reason": NO_FEATURES_REASON,
+        },
+        "HR2": {
+            "examined": _rated(features),
+            "available": len(features),
+            "empty_reason": NO_RATED_FEATURES_REASON if features else NO_FEATURES_REASON,
+        },
+        "HR4": {
+            "examined": len(features),
+            "available": len(features),
+            "empty_reason": NO_FEATURES_REASON,
+        },
+    }
+    rules: dict[str, Any] = {
+        rule: _rule(fails, **coverage.get(rule, {})) for rule, fails in rule_failures.items()
+    }
     verdict = "pass" if all(r["pass"] for r in rules.values()) else "fail"
 
     return {
@@ -409,6 +430,7 @@ def verify_artifact(
         "small_n": small_n,
         "verdict": verdict,
         "rules": rules,
+        "rules_not_applicable": _not_applicable(rules),
         "note": VERDICT_NOTE,
     }
 
@@ -735,13 +757,75 @@ def verify_fars_state_context(
     }
 
 
-def _rule(failures: list[str]) -> dict[str, Any]:
-    """A rule entry carrying both the boolean and the explicit status."""
-    return {
+def _rule(
+    failures: list[str],
+    *,
+    examined: int | None = None,
+    available: int | None = None,
+    empty_reason: str | None = None,
+) -> dict[str, Any]:
+    """A rule entry carrying the boolean, the explicit status, and its coverage.
+
+    ``examined``/``available`` are how many features the rule actually judged and
+    how many the artifact holds. They are carried because a per-feature rule over
+    an empty feature list returns no failures and reads exactly like a rule that
+    examined every feature and found nothing wrong: `riverside.corridors.geojson`
+    is an empty FeatureCollection and printed `HR1=pass, HR2=pass, HR4=pass`.
+
+    A rule that judged nothing because there was nothing to judge is reported
+    ``not_applicable`` with ``empty_reason``, which is what the FARS family
+    already does for HR2 and prints beneath the verdict line. The overall verdict
+    is unchanged -- ``not_applicable`` was never a failure and still is not --
+    but the label stops claiming a judgement that was not made.
+    """
+    if not failures and examined == 0 and empty_reason is not None:
+        status = STATUS_NOT_APPLICABLE
+    else:
+        status = STATUS_PASS if not failures else STATUS_FAIL
+    entry: dict[str, Any] = {
         "pass": not failures,
-        "status": STATUS_PASS if not failures else STATUS_FAIL,
+        "status": status,
         "failures": failures,
     }
+    if examined is not None:
+        entry["examined"] = examined
+    if available is not None:
+        entry["available"] = available
+    if status == STATUS_NOT_APPLICABLE and empty_reason is not None:
+        entry["not_applicable_reason"] = empty_reason
+    return entry
+
+
+def _not_applicable(rules: dict[str, Any]) -> dict[str, str]:
+    """The reason for every rule this verdict did not evaluate, keyed by rule."""
+    return {
+        rule: entry["not_applicable_reason"]
+        for rule, entry in rules.items()
+        if entry["status"] == STATUS_NOT_APPLICABLE and "not_applicable_reason" in entry
+    }
+
+
+def _rated(features: list[dict[str, Any]]) -> int:
+    """How many features carry a ``rate``, i.e. how many reach HR2's body.
+
+    HR2 opens `rate = props.get("rate"); if rate is None: continue`, so every
+    assertion it makes -- interval containment, integer n, positive-rate-needs-n,
+    small-n-must-be-marked -- is reached only by a rated feature. Measured across
+    the published tree on 2026-09-08: 15 of 183 features.
+    """
+    return sum(1 for feature in features if _properties(feature).get("rate") is not None)
+
+
+NO_FEATURES_REASON = (
+    "the artifact publishes no features, so this per-feature rule had nothing to judge; "
+    "a rule that examined zero features is not the same statement as a rule that examined "
+    "every feature and found nothing wrong"
+)
+
+NO_RATED_FEATURES_REASON = (
+    "no feature in the artifact carries a rate, and every HR2 assertion is reached only "
+    "through one; the rule examined zero of the artifact's features"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -832,10 +916,25 @@ def verify_corridor_artifact(
         )
 
     rules: dict[str, Any] = {
-        "HR1": _rule(check_hr1(features)),
-        "HR2": _rule(check_hr2(features, small_n)),
+        "HR1": _rule(
+            check_hr1(features),
+            examined=len(features),
+            available=len(features),
+            empty_reason=NO_FEATURES_REASON,
+        ),
+        "HR2": _rule(
+            check_hr2(features, small_n),
+            examined=_rated(features),
+            available=len(features),
+            empty_reason=NO_RATED_FEATURES_REASON if features else NO_FEATURES_REASON,
+        ),
         "HR3": _rule(binding),
-        "HR4": _rule(check_hr4(features, resolved_floor)),
+        "HR4": _rule(
+            check_hr4(features, resolved_floor),
+            examined=len(features),
+            available=len(features),
+            empty_reason=NO_FEATURES_REASON,
+        ),
         "HR5": _rule(binding),
     }
     verdict = "pass" if all(rule["status"] != STATUS_FAIL for rule in rules.values()) else "fail"
@@ -848,6 +947,7 @@ def verify_corridor_artifact(
         "small_n": small_n,
         "verdict": verdict,
         "rules": rules,
+        "rules_not_applicable": _not_applicable(rules),
         "note": CORRIDOR_VERDICT_NOTE,
     }
 
