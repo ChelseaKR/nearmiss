@@ -349,3 +349,70 @@ def test_corridor_view_fails_when_a_corridor_rate_leaves_its_interval(
     _rewrite(corridor, mutate)
     verdict = vd.verify_corridor_artifact(corridor)
     assert verdict["rules"]["HR2"]["status"] == "fail"
+
+
+# --- Every per-feature rule says how much of the artifact it judged ---------------
+#
+# `riverside.corridors.geojson` is an empty FeatureCollection (its metadata records
+# `corridors_published: 0`), and the sweep printed
+#
+#     PASS  riverside.corridors.geojson [city_corridor_view] HR1=pass, HR2=pass, ...
+#
+# over it, counting the file among "10 published artifacts audited against HR1-HR5".
+# HR1, HR2 and HR4 are per-feature loops: over no features they return no failures,
+# which is byte-for-byte what a rule that examined every feature and found nothing
+# wrong returns. The FARS family already prints `HR2=not_applicable` with a written
+# reason in exactly that position; the city families had no such disclosure.
+#
+# HR2 narrows further, on every artifact: it opens `if rate is None: continue`, so
+# its four assertions are reached only through a rated feature. Measured across the
+# published tree on 2026-09-08: 15 of 183 features.
+
+
+def test_a_per_feature_rule_over_no_features_is_not_reported_as_a_pass() -> None:
+    verdict = vd.verify_corridor_artifact(PUBLISHED / "riverside.corridors.geojson")
+    assert verdict["rules"]["HR1"]["examined"] == 0
+    assert verdict["rules"]["HR1"]["available"] == 0
+    for rule in ("HR1", "HR2", "HR4"):
+        assert verdict["rules"][rule]["status"] == "not_applicable", rule
+        assert verdict["rules_not_applicable"][rule].strip(), rule
+    # The verdict itself is unchanged: not_applicable was never a failure.
+    assert verdict["verdict"] == "pass"
+
+
+def test_hr2_reports_the_rated_share_rather_than_the_feature_count() -> None:
+    """The guard `if rate is None: continue` is where HR2's scope actually is."""
+    path = PUBLISHED / "davis.geojson"
+    features = vd._features(json.loads(path.read_text(encoding="utf-8")))
+    rated = sum(1 for f in features if (f.get("properties") or {}).get("rate") is not None)
+
+    hr2 = vd.verify_artifact(path)["rules"]["HR2"]
+    assert hr2["available"] == len(features)
+    assert hr2["examined"] == rated
+    assert hr2["examined"] < hr2["available"], hr2
+
+
+def test_every_per_feature_rule_carries_its_coverage_on_both_city_families() -> None:
+    """The floor. Without it the two assertions above could pass on one artifact."""
+    for verdict in (
+        vd.verify_artifact(PUBLISHED / "davis.geojson"),
+        vd.verify_corridor_artifact(PUBLISHED / "davis.corridors.geojson"),
+    ):
+        for rule in ("HR1", "HR2", "HR4"):
+            entry = verdict["rules"][rule]
+            assert "examined" in entry and "available" in entry, (verdict["family"], rule)
+        # HR3 and HR5 read the document as a whole; a feature count would be a lie
+        # about what they judged.
+        for rule in ("HR3", "HR5"):
+            assert "examined" not in verdict["rules"][rule], (verdict["family"], rule)
+
+
+def test_the_printed_line_carries_the_counts_and_the_corridor_note() -> None:
+    result = run_sweep(PUBLISHED)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "HR2=pass(9/177 features)" in result.stdout, result.stdout
+    assert "HR1=not_applicable(0/0 features)" in result.stdout, result.stdout
+    # CORRIDOR_VERDICT_NOTE explains that HR3 and HR5 are carried through the primary
+    # -- which is also why both cells come from one predicate. It sat on the verdict
+    # object and was printed by nothing, so the two cells read as two judgements.
+    assert "note: This verdict covers the corridor companion artifact" in result.stdout
