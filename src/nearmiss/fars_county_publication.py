@@ -26,7 +26,7 @@ import re
 from collections.abc import Mapping, Sequence
 from typing import Any, NoReturn, cast
 
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
 
 from .adapters.fars_joined import MODE_ORDER
 from .fars_county_boundary_publication import (
@@ -236,7 +236,16 @@ FARS_COUNTY_PUBLIC_ARTIFACT_SCHEMA: dict[str, object] = {
     },
 }
 
-_VALIDATOR = Draft202012Validator(FARS_COUNTY_PUBLIC_ARTIFACT_SCHEMA)
+# Built WITH a checker, like every other validator here. This schema's only `format`
+# is `uri`, which jsonschema cannot check without an optional package, so this changes
+# nothing today and is not being described as a fix — see
+# tests/test_declared_formats_are_enforced.py, which records that gap once for the whole
+# repository rather than leaving it to a comment per module. What it does buy is that a
+# future `format` added to this schema is enforced on the day it is written instead of
+# reading as enforced and doing nothing.
+_VALIDATOR = Draft202012Validator(
+    FARS_COUNTY_PUBLIC_ARTIFACT_SCHEMA, format_checker=FormatChecker()
+)
 
 
 def _canonical_json_bytes(value: Mapping[str, object]) -> bytes:
