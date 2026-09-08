@@ -56,6 +56,39 @@ every entry.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A `"format"` in a schema is documentation until something enforces it, and this
+  repository had no check that anything did** (`tests/test_declared_formats_are_enforced.py`,
+  `src/nearmiss/fars_county_publication.py`). Two independent ways a format goes inert had
+  each been found here, fixed for one field, and written down in one comment apiece: a
+  validator built without a `FormatChecker` (the published dataset's `exposure_date`), and a
+  `FormatChecker` that **silently skips** any format it has no checker for — `date-time` and
+  `uri` need optional packages, which is why `occurred_at`'s contract had to be
+  re-implemented in code (#273).
+
+  Neither fact was machine-checked, so nothing stopped the next `"format": "uri"` being added
+  in the belief that it validates. The new test discovers **every** `schema/*.json` and
+  **every** module-level `Draft202012Validator` in the package — discovered, never listed,
+  because a hand-kept list goes stale exactly at the validator most likely to carry the
+  mistake — and holds each declared format to one of two states: live **and demonstrably
+  able to reject a known-bad value**, or recorded in `UNENFORCED_FORMATS` with the reason and
+  with where the constraint really lives. The registry is self-limiting: an entry for a
+  format nothing declares, for a format this environment can now check, or with no written
+  reason fails until it is deleted.
+
+  **Run against the unmodified tree it found one real disagreement**, which is the whole
+  reason to write it: `fars_county_publication._VALIDATOR` declares `"format": "uri"` and was
+  built with no checker. That is now consistent with the other 13. It is *not* described as a
+  fix — `uri` is unenforceable here either way, and saying otherwise would be the same defect
+  in a changelog entry — but a future format added to that schema is enforced on the day it
+  is written instead of reading as enforced and doing nothing.
+
+  Also measured rather than assumed: this environment's `date` checker is RFC 3339-strict and
+  rejects `20260501` and `2026-W01-1`, which `datetime.date.fromisoformat` accepts since
+  3.11. A loader validating with one rule and a publisher gating on the other would disagree
+  about the same string, so that is pinned too.
+
 ### Added
 
 - **"No denominator" is now a Tier 1 deliverable instead of a dead end: `nearmiss coverage
