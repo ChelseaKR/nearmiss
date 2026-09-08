@@ -222,15 +222,21 @@ def test_with_an_assumed_flow_the_hours_and_ratio_are_computed_and_reproducible(
     no_exposure_config: Config,
 ) -> None:
     plan = build_count_plan(no_exposure_config, assumed_flow_per_hour=12.0)
-    z_total = z_for_two_sided_alpha_and_power(0.05, 0.8)
+    # Restated from the formulas rather than computed by the functions under test: a
+    # fixture derived from the code it checks moves with any change to it and can
+    # never catch a wrong one. 0.25 is the default denominator share squared, and
+    # 2.801585218 is z_{0.975} + z_{0.8}, pinned by value in the two tests above.
     for target in plan.targets:
-        required = observations_required(target.report_count, 0.5)
+        required = math.ceil(target.report_count / 0.25)
         hours = float(math.ceil(required / 12.0))
         assert target.observations_required == required
         assert target.observation_hours_target == hours
         assert target.observations_at_target_hours == pytest.approx(hours * 12.0)
+        expected_ratio = math.exp(
+            2.801585218 * math.sqrt(1.0 / target.report_count + 1.0 / (hours * 12.0))
+        )
         assert target.minimum_detectable_rate_ratio == pytest.approx(
-            round(minimum_detectable_rate_ratio(target.report_count, hours * 12.0, z_total), 3)
+            round(expected_ratio, 3), abs=5e-4
         )
         # Nothing to expand onto, so the factor stays absent rather than 1.0.
         assert target.exposure_expansion_factor is None
