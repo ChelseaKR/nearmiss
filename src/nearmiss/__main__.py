@@ -15,6 +15,7 @@ nearmiss crosswalk init|import                   # a group's own spreadsheet -> 
 nearmiss preregister --config C [--out DIR]     # EXP-16: freeze flagged corridors (hash+timestamp)
 nearmiss score-preregistration --registration F --config C [--out DIR]  # EXP-16: score vs held-out
 nearmiss coverage  --config C [--registry R] [--fars-root R]  # evidence + verified gaps
+nearmiss coverage  --config C --plan-counts [--out-dir D]  # what to go and count, and why
 nearmiss ingest-fars EXPORT --root R --year Y # preserve + validate a private FARS artifact
 nearmiss ingest-fars-joined EXPORT --root R    # private 2024 crash/person join
 nearmiss ingest-fars-year RAW_ARCHIVE --root R --year Y --contract-revision N  # exact annual join
@@ -37,6 +38,15 @@ from .adapters.spreadsheet import SKIP_REASONS, SpreadsheetAdapter, SpreadsheetC
 from .brief import render_brief
 from .config import Config, load_config
 from .contributor import delete_reports, export_reports, purge_expired
+from .count_plan import (
+    DEFAULT_ALPHA,
+    DEFAULT_DENOMINATOR_SHARE,
+    DEFAULT_POWER,
+    build_count_plan,
+    render_count_plan_json,
+    render_count_plan_markdown,
+    render_count_sheet_csv,
+)
 from .coverage import assess_coverage, load_source_registry
 from .crosswalk_init import (
     CrosswalkInitError,
@@ -670,8 +680,40 @@ def _cmd_version(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_count_plan(args: argparse.Namespace) -> int:
+    """Print (and optionally write) the targeted manual-count plan.
+
+    Needs no source registry: the plan reads the analysis, not the declarations.
+    """
+    config = load_config(args.config)
+    plan = build_count_plan(
+        config,
+        assumed_flow_per_hour=args.assumed_flow_per_hour,
+        expansion_period_hours=args.expansion_period_hours,
+        alpha=args.alpha,
+        power=args.power,
+        denominator_share=args.denominator_share,
+    )
+    text = render_count_plan_json(plan)
+    if args.out_dir:
+        out = Path(args.out_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        slug = _slug(config.city)
+        (out / f"{slug}-count-plan.json").write_text(text, encoding="utf-8")
+        (out / f"{slug}-count-plan.md").write_text(
+            render_count_plan_markdown(plan), encoding="utf-8"
+        )
+        (out / f"{slug}-count-sheet.csv").write_text(render_count_sheet_csv(plan), encoding="utf-8")
+        print(f"count plan [{config.city}]: {plan.status} -> {out}")
+        return 0
+    print(text, end="")
+    return 0
+
+
 def _cmd_coverage(args: argparse.Namespace) -> int:
     """Print the machine-readable evidence tier and source/capability gaps."""
+    if args.plan_counts:
+        return _cmd_count_plan(args)
     config = load_config(args.config)
     registry_path = Path(args.registry) if args.registry else config.source_registry_path
     if registry_path is None:
@@ -699,6 +741,24 @@ def _cmd_coverage(args: argparse.Namespace) -> int:
     )
     print(json.dumps(assessment.as_dict(), ensure_ascii=False, indent=2, sort_keys=True))
     return 0
+
+
+def _positive_float(value: str) -> float:
+    try:
+        parsed = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be a positive number") from exc
+    if not math.isfinite(parsed) or parsed <= 0:
+        raise argparse.ArgumentTypeError("must be a positive number")
+    return parsed
+
+
+def _unit_interval(value: str) -> float:
+    """A probability-like knob: strictly inside (0, 1), never 0 or 1."""
+    parsed = _positive_float(value)
+    if parsed >= 1.0:
+        raise argparse.ArgumentTypeError("must be greater than 0 and less than 1")
+    return parsed
 
 
 def _positive_int(value: str) -> int:
@@ -1464,6 +1524,43 @@ def build_parser() -> argparse.ArgumentParser:
     p_coverage.add_argument(
         "--fars-root",
         help="private ingestion root whose active FARS chain must verify or fail closed",
+    )
+    p_coverage.add_argument(
+        "--plan-counts",
+        action="store_true",
+        help="emit a targeted manual-count plan instead of the coverage assessment",
+    )
+    p_coverage.add_argument(
+        "--assumed-flow-per-hour",
+        type=_positive_float,
+        default=None,
+        help="people per hour assumed to pass a segment; without it the plan reports "
+        "observation hours as unknown rather than estimating them",
+    )
+    p_coverage.add_argument(
+        "--expansion-period-hours",
+        type=_positive_float,
+        default=None,
+        help="hours the denominator should represent; sets the per-segment expansion "
+        "factor that puts unequal sessions on one basis (mechanical ratio only — this "
+        "tool does not estimate day-of-week or seasonal factors)",
+    )
+    p_coverage.add_argument(
+        "--alpha", type=_unit_interval, default=DEFAULT_ALPHA, help="two-sided test level"
+    )
+    p_coverage.add_argument(
+        "--power", type=_unit_interval, default=DEFAULT_POWER, help="target statistical power"
+    )
+    p_coverage.add_argument(
+        "--denominator-share",
+        type=_unit_interval,
+        default=DEFAULT_DENOMINATOR_SHARE,
+        help="share of the report count's relative sampling error the denominator may "
+        "contribute (default 0.5)",
+    )
+    p_coverage.add_argument(
+        "--out-dir",
+        help="write <city>-count-plan.json/.md and <city>-count-sheet.csv here",
     )
     p_coverage.set_defaults(func=_cmd_coverage)
 

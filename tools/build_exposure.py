@@ -73,8 +73,30 @@ def _to_float(value: Any) -> float | None:
         return None
 
 
+def _scaled(count: float, raw_scale: Any, scale_field: str | None) -> float | None:
+    """Apply a per-row expansion factor, refusing the row when it cannot be read.
+
+    A session count and an annual denominator are different quantities; when
+    sessions differ in length, only the expansion factor makes two counts
+    comparable. So a row that asks to be scaled and carries no readable factor is
+    **dropped**, never scaled by an implicit 1.0 — a silent 1.0 would publish a
+    two-hour count as though it covered the whole period, which is this project's
+    dominant defect (an absence rendered as a measurement) inside a denominator.
+    """
+    if scale_field is None:
+        return count
+    scale = _to_float(raw_scale)
+    if scale is None or scale <= 0:
+        return None
+    return count * scale
+
+
 def read_counts(
-    path: Path, count_field: str, lat_field: str, lon_field: str
+    path: Path,
+    count_field: str,
+    lat_field: str,
+    lon_field: str,
+    scale_field: str | None = None,
 ) -> list[tuple[float, float, float]]:
     """Return [(lat, lon, count), ...] from a GeoJSON points file or a CSV."""
     text = path.read_text(encoding="utf-8")
@@ -94,7 +116,10 @@ def read_counts(
             count = _to_float(props.get(count_field))
             if count is None or count <= 0:
                 continue
-            obs.append((float(coords[1]), float(coords[0]), count))
+            scaled = _scaled(count, props.get(scale_field) if scale_field else None, scale_field)
+            if scaled is None:
+                continue
+            obs.append((float(coords[1]), float(coords[0]), scaled))
         return obs
 
     reader = csv.DictReader(text.splitlines())
@@ -104,7 +129,10 @@ def read_counts(
         count = _to_float(row.get(count_field))
         if lat is None or lon is None or count is None or count <= 0:
             continue
-        obs.append((lat, lon, count))
+        scaled = _scaled(count, row.get(scale_field) if scale_field else None, scale_field)
+        if scaled is None:
+            continue
+        obs.append((lat, lon, scaled))
     return obs
 
 
@@ -191,6 +219,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--count-field", default="count", help="Property/column holding the count.")
     p.add_argument("--lat-field", default="lat", help="CSV latitude column (CSV only).")
     p.add_argument("--lon-field", default="lon", help="CSV longitude column (CSV only).")
+    p.add_argument(
+        "--scale-field",
+        default=None,
+        help="Optional per-row expansion factor column/property (e.g. the "
+        "exposure_expansion_factor a `nearmiss coverage --plan-counts` sheet carries). "
+        "Each count is multiplied by it, putting sessions of unequal length on one "
+        "basis. A row with no readable factor is dropped, not scaled by 1.",
+    )
     p.add_argument("--source", default="bike_counts", help="Exposure source label.")
     p.add_argument(
         "--date",
@@ -224,7 +260,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
     segments = load_streets(Path(args.streets))
-    obs = read_counts(Path(args.counts), args.count_field, args.lat_field, args.lon_field)
+    obs = read_counts(
+        Path(args.counts),
+        args.count_field,
+        args.lat_field,
+        args.lon_field,
+        args.scale_field,
+    )
     if not obs:
         print("build_exposure: no usable count observations in --counts.", file=sys.stderr)
         return 1
