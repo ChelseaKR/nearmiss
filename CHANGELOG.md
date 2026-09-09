@@ -58,6 +58,37 @@ every entry.
 
 ### Fixed
 
+- **The conformance sweep's FARS rules printed a verdict with no denominator, and two of
+  them are satisfied by an empty collection** (`tools/verify_dataset.py`,
+  `tools/conformance_sweep.py`, `tests/test_conformance_sweep.py`). The coverage figures
+  added when `riverside.corridors.geojson` was found printing `HR1=pass, HR2=pass, HR4=pass`
+  over an empty `FeatureCollection` reached the two **city** families and stopped there. The
+  FARS family — six of the ten audited artifacts, and the only real data this project
+  publishes — still read `HR1=pass, HR2=not_applicable, HR3=pass, HR4=pass, HR5=pass`.
+
+  Two of those cells are per-item rules whose every assertion sits inside a loop:
+
+  - **HR4** iterates `_fars_cells(artifact)`. Over no cells it returns no failures, which is
+    byte-identical to having judged all **306** and found nothing wrong. Measured: with
+    `states` emptied, `origin/main`'s verifier reports `HR4=pass`. It now reports
+    `not_applicable` with its reason, and the overall verdict is unchanged, because
+    `not_applicable` was never a failure.
+  - **HR1 and HR2** scan the artifact's distinct property names — **44** in each committed
+    file — for rate-shaped and estimate-shaped keys. Finding none is what a clean document
+    and a reader that has stopped reaching the document both produce, and HR2 then
+    *publishes* the sentence "no field in it is estimate-shaped" as its `not_applicable`
+    reason. A scan that returns no names at all over a non-empty artifact is now a failure
+    rather than a pass, and HR2's reason states how many names it read.
+
+  HR3 (the caveat and metric block) and HR5 (the byte binding to the release index) carry no
+  coverage figure on purpose: neither is per-item, and a count beside them would describe a
+  scope they do not have.
+
+  The printed noun travels with the number. A FARS artifact has no features at all, so
+  `306/306 features` would have been a coverage figure that misdescribes what was covered;
+  the sweep now prints `HR4=pass(306/306 state-mode cells)` and
+  `HR1=pass(44/44 property names)`.
+
 - **A `"format"` in a schema is documentation until something enforces it, and this
   repository had no check that anything did** (`tests/test_declared_formats_are_enforced.py`,
   `src/nearmiss/fars_county_publication.py`). Two independent ways a format goes inert had

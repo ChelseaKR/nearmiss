@@ -416,3 +416,101 @@ def test_the_printed_line_carries_the_counts_and_the_corridor_note() -> None:
     # -- which is also why both cells come from one predicate. It sat on the verdict
     # object and was printed by nothing, so the two cells read as two judgements.
     assert "note: This verdict covers the corridor companion artifact" in result.stdout
+
+
+# --- The FARS family says how much of the artifact each rule judged ---------------
+#
+# The fix above reached the two city families and stopped there. The FARS family --
+# six of the ten audited artifacts, and the only real data this project publishes --
+# printed `HR1=pass, HR2=not_applicable, HR3=pass, HR4=pass, HR5=pass` with no
+# denominator anywhere on the line. Two of those cells are per-item rules over
+# collections that can be empty, and both are satisfied by an empty collection.
+
+
+def test_the_fars_rules_report_the_universe_each_one_judged() -> None:
+    """Measured on the committed artifacts: 44 distinct property names, 306 cells."""
+    verdict = vd.verify_fars_state_context(_fars(PUBLISHED))
+    for rule, unit in (
+        ("HR1", "property names"),
+        ("HR2", "property names"),
+        ("HR4", "state-mode cells"),
+    ):
+        entry = verdict["rules"][rule]
+        assert entry["examined"] > 0, (rule, entry)
+        assert entry["available"] == entry["examined"], (rule, entry)
+        assert entry["unit"] == unit, (rule, entry)
+    # HR3 reads the caveat and the metric block, and HR5 binds the artifact's bytes
+    # to the release index. Neither is per-item, and a count beside them would
+    # describe a scope they do not have.
+    for rule in ("HR3", "HR5"):
+        assert "examined" not in verdict["rules"][rule], rule
+
+
+def test_a_fars_artifact_with_no_cells_is_not_reported_as_a_pass(
+    published_copy: Path,
+) -> None:
+    """HR4's every assertion is inside `for label, cell in _fars_cells(artifact)`.
+
+    Over no cells it returns no failures, which is the same output as having judged
+    all 306 and found nothing wrong -- `riverside.corridors.geojson`'s defect, in
+    the family the earlier fix did not reach.
+    """
+    artifact = _fars(published_copy)
+
+    def mutate(payload: dict[str, Any]) -> None:
+        payload["states"] = []
+
+    _rewrite(artifact, mutate)
+    verdict = vd.verify_fars_state_context(artifact, index_paths=[])
+    hr4 = verdict["rules"]["HR4"]
+    assert hr4["examined"] == 0, hr4
+    assert hr4["status"] == "not_applicable", hr4
+    assert verdict["rules_not_applicable"]["HR4"].strip()
+    # not_applicable was never a failure and still is not; what changed is that the
+    # label no longer claims a judgement nothing made.
+    assert hr4["failures"] == []
+
+
+def test_a_property_name_scan_that_finds_nothing_fails_hr1_and_hr2(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An empty scan and a clean document produce the same output.
+
+    HR1 looks for rate-shaped names and HR2 for estimate-shaped ones. Both are
+    satisfied by finding none -- and HR2 then *publishes* the sentence "no field in
+    it is estimate-shaped", which is a claim about a scan. A reader that has stopped
+    reaching the document would put that sentence on the page as a fact about
+    NHTSA's data. The realistic break is simulated here, because no committed
+    artifact can produce it: the walker is made to return nothing.
+    """
+    artifact = json.loads(_fars(PUBLISHED).read_text(encoding="utf-8"))
+    assert artifact, "the artifact must be non-empty for the floor to be the right refusal"
+    monkeypatch.setattr(vd, "_walk_keys", lambda _obj: [])
+
+    hr1 = vd.check_fars_hr1(artifact)
+    assert any("judged nothing" in failure for failure in hr1), hr1
+
+    status, failures, reason = vd.check_fars_hr2(artifact)
+    assert status == "fail", (status, reason)
+    assert any("judged nothing" in failure for failure in failures), failures
+    assert "not_applicable" not in status
+
+
+def test_an_artifact_that_really_is_empty_is_not_blamed_for_the_scan_floor() -> None:
+    """The floor is about a broken reader, not about a small document.
+
+    Without this the refusal above is satisfied by a rule that fires on everything,
+    which is the stricter-looking wrong implementation.
+    """
+    assert vd._scan_floor({}, [], "HR1") == []
+    assert vd._scan_floor({"caveat": "x"}, ["caveat"], "HR1") == []
+    assert vd._scan_floor({"caveat": "x"}, [], "HR1") != []
+
+
+def test_the_printed_fars_line_carries_its_own_denominators() -> None:
+    result = run_sweep(PUBLISHED)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "HR4=pass(306/306 state-mode cells)" in result.stdout, result.stdout
+    assert "HR1=pass(44/44 property names)" in result.stdout, result.stdout
+    # The noun has to travel with the number: these artifacts have no features at all.
+    assert "306/306 features" not in result.stdout, result.stdout

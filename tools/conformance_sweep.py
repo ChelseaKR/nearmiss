@@ -154,16 +154,21 @@ def missing_families(directory: Path) -> list[str]:
 
 
 def _rule_cell(rule: str, entry: dict[str, Any]) -> str:
-    """`HR2=pass` plus, for a per-feature rule, how much of the artifact it judged.
+    """`HR2=pass` plus, for a per-item rule, how much of the artifact it judged.
 
-    A per-feature rule over an empty feature list returns no failures and used to
-    print exactly what a rule that examined every feature and found nothing wrong
-    prints. `riverside.corridors.geojson` is an empty FeatureCollection and the
-    sweep read `HR1=pass, HR2=pass, HR3=pass, HR4=pass, HR5=pass` over it.
+    A per-item rule over an empty collection returns no failures and used to print
+    exactly what a rule that examined every item and found nothing wrong prints.
+    `riverside.corridors.geojson` is an empty FeatureCollection and the sweep read
+    `HR1=pass, HR2=pass, HR3=pass, HR4=pass, HR5=pass` over it.
+
+    The noun comes from the entry. The city families judge features; the FARS
+    family judges state-mode cells and property names, and printing "306/306
+    features" over an artifact that has no features would be a coverage figure
+    that misdescribes what was covered.
     """
     cell = f"{rule}={entry['status']}"
     if "examined" in entry and "available" in entry:
-        cell += f"({entry['examined']}/{entry['available']} features)"
+        cell += f"({entry['examined']}/{entry['available']} {entry.get('unit', 'features')})"
     return cell
 
 
