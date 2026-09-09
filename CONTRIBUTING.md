@@ -33,6 +33,7 @@ finding more accessible — not just prettier.
 - [Proposing a schema change](#proposing-a-schema-change)
 - [Adding a city, an exposure source, or a hazard type](#adding-a-city-an-exposure-source-or-a-hazard-type)
 - [Pull request checklist](#pull-request-checklist)
+- [Commercial solicitation](#commercial-solicitation)
 - [Where to ask questions](#where-to-ask-questions)
 
 ## Code of conduct
@@ -523,6 +524,15 @@ description and check the boxes that apply.
 - [ ] The change would **hold up if a skeptical traffic engineer pushed back** on it.
 
 Smaller PRs review faster and break less. One coherent change per pull request is ideal.
+
+## Commercial solicitation
+
+Issues here are not open to bids. They are design records — written so a decision is
+reconstructable later — not scope documents for outside quoting, and unsolicited offers to
+implement one for a fee will be declined.
+
+Contributions through the normal fork-and-PR process are welcome, and `good first issue` is the
+place to start.
 
 ## Where to ask questions
 
