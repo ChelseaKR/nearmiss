@@ -536,12 +536,42 @@ def _fars_cells(artifact: Any) -> list[tuple[str, dict[str, Any]]]:
     return pairs
 
 
+def _fars_property_names(artifact: Any) -> list[str]:
+    """Every distinct property name reachable in the artifact, sorted.
+
+    This is the universe HR1 and HR2 scan. It is computed once and reported,
+    because both rules are satisfied by an *empty* scan: HR1 finds no rate-shaped
+    name and HR2 finds no estimate-shaped name, and neither can tell "this
+    document names nothing dangerous" from "the walker stopped reaching the
+    document". :func:`_scan_floor` is the refusal that separates them.
+    """
+    return sorted(set(_walk_keys(artifact)))
+
+
+def _scan_floor(artifact: Any, property_names: list[str], rule: str) -> list[str]:
+    """Refuse a property-name scan that found nothing over a non-empty document.
+
+    A scan that has stopped matching returns the same empty list as a document
+    with nothing wrong in it, and both print `pass`. The published artifacts
+    carry 44 distinct property names each; zero is not a cleaner artifact, it is
+    a reader that no longer reads.
+    """
+    if property_names or not isinstance(artifact, dict) or not artifact:
+        return []
+    return [
+        f"{rule}: the property-name scan found no names in a non-empty artifact, so this "
+        "rule judged nothing; an empty scan and a clean document are the same output and "
+        "must not report the same verdict"
+    ]
+
+
 def check_fars_hr1(artifact: Any) -> list[str]:
     """HR1 — a count-only artifact must publish no rate and must say counts are not risk."""
-    failures: list[str] = []
+    property_names = _fars_property_names(artifact)
+    failures: list[str] = _scan_floor(artifact, property_names, "HR1")
     # Deduplicated: the same offending key appears once per cell (306 of them), and 306
     # identical lines would bury the four other rules' output.
-    for key in sorted(set(_walk_keys(artifact))):
+    for key in property_names:
         hit = _tokens(key) & _FARS_RATE_TOKENS
         if hit:
             failures.append(
@@ -560,8 +590,23 @@ def check_fars_hr1(artifact: Any) -> list[str]:
 
 
 def check_fars_hr2(artifact: Any) -> tuple[str, list[str], str]:
-    """HR2 — returns ``(status, failures, reason)``; not applicable to a count-only artifact."""
-    estimate_keys = sorted({key for key in _walk_keys(artifact) if _tokens(key) & _ESTIMATE_TOKENS})
+    """HR2 — returns ``(status, failures, reason)``; not applicable to a count-only artifact.
+
+    The ``not_applicable`` reason is a claim about a *scan*: "no field in it is
+    estimate-shaped". That sentence is only true if the scan reached the fields.
+    An empty scan produces the identical verdict and the identical reason, which
+    would publish a reader's failure as a fact about NHTSA's data, so a scan that
+    finds no property names at all in a non-empty artifact fails here instead.
+    """
+    property_names = _fars_property_names(artifact)
+    floor = _scan_floor(artifact, property_names, "HR2")
+    if floor:
+        return (
+            STATUS_FAIL,
+            floor,
+            "the property-name scan found nothing, so HR2's not-applicability is unproven",
+        )
+    estimate_keys = sorted({key for key in property_names if _tokens(key) & _ESTIMATE_TOKENS})
     if estimate_keys:
         return (
             STATUS_FAIL,
@@ -576,7 +621,8 @@ def check_fars_hr2(artifact: Any) -> tuple[str, list[str], str]:
         STATUS_NOT_APPLICABLE,
         [],
         "the artifact publishes enumerated FARS crash counts, not estimates; no field in "
-        "it is estimate-shaped, so there is no estimate for an interval to attach to",
+        f"the {len(property_names)} distinct property names it publishes is estimate-shaped, "
+        "so there is no estimate for an interval to attach to",
     )
 
 
@@ -732,11 +778,47 @@ def verify_fars_state_context(
     release, index_path = _fars_index_release(artifact_path, index_paths)
     hr2_status, hr2_failures, hr2_reason = check_fars_hr2(artifact)
 
+    # The two universes these rules judge, computed once so the verdict can report
+    # them. HR1 and HR2 scan property names; HR4 walks every state-mode cell.
+    property_names = _fars_property_names(artifact)
+    cells = _fars_cells(artifact)
+
     rules: dict[str, Any] = {
-        "HR1": _rule(check_fars_hr1(artifact)),
-        "HR2": {"status": hr2_status, "failures": hr2_failures, "reason": hr2_reason},
+        # HR1 is not marked not_applicable over an empty scan: it also asserts the
+        # caveat, which is a document-level judgement it really did make. The empty
+        # scan is a *failure* instead, via `_scan_floor`.
+        "HR1": _rule(
+            check_fars_hr1(artifact),
+            examined=len(property_names),
+            available=len(property_names),
+            unit="property names",
+        ),
+        "HR2": {
+            "status": hr2_status,
+            "failures": hr2_failures,
+            "reason": hr2_reason,
+            "not_applicable_reason": hr2_reason,
+            "examined": len(property_names),
+            "available": len(property_names),
+            "unit": "property names",
+        },
         "HR3": _rule(check_fars_hr3(artifact, schema)),
-        "HR4": _rule(check_fars_hr4(artifact)),
+        # HR4 is purely per-cell: every assertion it makes is inside
+        # `for label, cell in _fars_cells(artifact)`. Over no cells it returns no
+        # failures, which is byte-identical to having judged all 306 and found
+        # nothing wrong. That is the riverside defect, in the family that carries
+        # the only real data this project publishes.
+        "HR4": _rule(
+            check_fars_hr4(artifact),
+            examined=len(cells),
+            available=len(cells),
+            empty_reason=NO_FARS_CELLS_REASON,
+            unit="state-mode cells",
+        ),
+        # HR5 keeps no coverage figure on purpose: it binds the artifact's bytes to
+        # the release index, which is a document-level judgement that no cell count
+        # describes. Its accounting recompute walks the cells, and the byte binding
+        # is what stops an empty artifact passing it.
         "HR5": _rule(check_fars_hr5(artifact_path, artifact_bytes, artifact, release, index_path)),
     }
     rules["HR2"]["pass"] = hr2_status == STATUS_PASS
@@ -748,11 +830,7 @@ def verify_fars_state_context(
         "schema": str(schema_path),
         "verdict": verdict,
         "rules": rules,
-        "rules_not_applicable": {
-            name: rule["reason"]
-            for name, rule in rules.items()
-            if rule["status"] == STATUS_NOT_APPLICABLE
-        },
+        "rules_not_applicable": _not_applicable(rules),
         "note": FARS_VERDICT_NOTE,
     }
 
@@ -763,13 +841,14 @@ def _rule(
     examined: int | None = None,
     available: int | None = None,
     empty_reason: str | None = None,
+    unit: str = "features",
 ) -> dict[str, Any]:
     """A rule entry carrying the boolean, the explicit status, and its coverage.
 
-    ``examined``/``available`` are how many features the rule actually judged and
-    how many the artifact holds. They are carried because a per-feature rule over
-    an empty feature list returns no failures and reads exactly like a rule that
-    examined every feature and found nothing wrong: `riverside.corridors.geojson`
+    ``examined``/``available`` are how many items the rule actually judged and
+    how many the artifact holds. They are carried because a per-item rule over an
+    empty collection returns no failures and reads exactly like a rule that
+    examined every item and found nothing wrong: `riverside.corridors.geojson`
     is an empty FeatureCollection and printed `HR1=pass, HR2=pass, HR4=pass`.
 
     A rule that judged nothing because there was nothing to judge is reported
@@ -777,6 +856,11 @@ def _rule(
     already does for HR2 and prints beneath the verdict line. The overall verdict
     is unchanged -- ``not_applicable`` was never a failure and still is not --
     but the label stops claiming a judgement that was not made.
+
+    ``unit`` names what was counted. The city families judge *features*; the FARS
+    family judges *state-mode cells* and *property names*, and a coverage figure
+    whose noun is wrong is worse than none, because a reader takes it for the
+    thing the noun says.
     """
     if not failures and examined == 0 and empty_reason is not None:
         status = STATUS_NOT_APPLICABLE
@@ -791,6 +875,7 @@ def _rule(
         entry["examined"] = examined
     if available is not None:
         entry["available"] = available
+        entry["unit"] = unit
     if status == STATUS_NOT_APPLICABLE and empty_reason is not None:
         entry["not_applicable_reason"] = empty_reason
     return entry
@@ -825,6 +910,13 @@ NO_FEATURES_REASON = (
 NO_RATED_FEATURES_REASON = (
     "no feature in the artifact carries a rate, and every HR2 assertion is reached only "
     "through one; the rule examined zero of the artifact's features"
+)
+
+NO_FARS_CELLS_REASON = (
+    "the artifact publishes no state-mode cells, so this per-cell rule had nothing to judge; "
+    "every HR4 assertion -- the k floor on a published cell, and the absence of a count on a "
+    "suppressed one -- is reached only through a cell, and a rule that examined zero of them "
+    "is not the same statement as one that examined all of them and found nothing wrong"
 )
 
 
