@@ -243,8 +243,21 @@ Two automated gates run locally and in CI on every pull request, and both are me
 
 - **Structural gate** — [`tools/a11y_check.py`](../tools/a11y_check.py), part of `make verify` and
   `make accessibility`. Dependency-free, and checks the page-level foundations: a language, a title,
-  landmarks and a heading, labeled data tables (`<caption>`, `<th scope>`), a skip link, and image
-  alternatives. It confirms the scaffolding is present; it says nothing about how the page behaves.
+  landmarks and a heading, labeled data tables (`<caption>`, `<th scope>`), a skip link, image
+  alternatives, and accessible button text. It confirms the scaffolding is present; it says nothing
+  about how the page behaves.
+
+  **Four of its nine rules are per-element, and a document that carries none of that element gives
+  them nothing to read.** Five rules (language, title, `<main>`, `<h1>`, skip link) are page-level
+  and evaluate everywhere. Over the nine audited documents the structural gate evaluated **54 of
+  81** rule cells; the rest report `not_applicable` with the element they did not find, printed
+  under the page's line, rather than as a pass. The one worth naming here is the image
+  alternative: the image-alternative rule has read **0** images, because no audited document
+  embeds an `<img>` — the Open Graph card is referenced from a `<meta>` tag and every map and
+  figure ships as inline SVG. The rule exists, it is correct, and this page set has never
+  exercised it, which is recorded in the gate's own `NO_INPUT_IN_THE_AUDITED_SET` and fails there
+  the day a page ships an image. Both figures in this paragraph are re-derived from the audited
+  documents by `tests/test_accessibility_claims.py`, not typed.
 - **axe-core in jsdom** — `make axe` → [`web/package.json`](../web/package.json) →
   [`web/axe_check.mjs`](../web/axe_check.mjs). It runs against **nine files**: `index.html`,
   `404.html`, `web/index.html`, `web/davis-demo.html`, `web/submit.html`, `web/embed.html`,
