@@ -31,6 +31,7 @@ import re
 from pathlib import Path
 
 import pytest
+import tools.a11y_check as a11y
 from tools.build_site import build_site
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -412,4 +413,153 @@ def test_the_axe_runner_does_not_claim_contrast_is_checked_elsewhere() -> None:
     assert "color-contrast checked separately" not in source, (
         "web/axe_check.mjs tells the reader contrast is checked somewhere else; no check "
         "in this repository computes contrast"
+    )
+
+
+# --- What the structural gate's nine rules have actually read ---------------------
+#
+# Five of the nine are page-level and always evaluate. The other four are guarded by
+# their element's population, so on a page with no <table> the caption and header-scope
+# rules judged nothing and printed the same PASS line a page whose tables are all
+# captioned gets. `docs/ACCESSIBILITY.md` names "image alternatives" as one of the
+# foundations this gate checks; measured, that rule has never had an input.
+
+
+def _structural_targets() -> list[str]:
+    structural = re.search(r"a11y_check\.py([^\n]*)", _read(ROOT / "Makefile"))
+    assert structural, "the Makefile no longer runs tools/a11y_check.py"
+    return structural.group(1).split()
+
+
+def _audited_results() -> dict[str, list[a11y.RuleResult]]:
+    return {
+        target: a11y.audit_rules((ROOT / target).read_text(encoding="utf-8"))
+        for target in _structural_targets()
+    }
+
+
+def test_a_rule_with_no_element_to_read_is_not_reported_as_a_pass() -> None:
+    """The defect, in one document: `web/embed.html` has no table, image or button."""
+    results = {r.rule: r for r in a11y.audit_rules(_read(ROOT / "web" / "embed.html"))}
+    for rule in ("table-caption", "table-header-scope", "image-alt", "button-text"):
+        assert results[rule].status == "not_applicable", (rule, results[rule])
+        assert results[rule].examined == 0, rule
+        reason = results[rule].reason
+        assert reason is not None and reason.strip(), rule
+    # Unchanged where there is something to read: the page-level rules still evaluate,
+    # and `audit()` still reports no problem, so the verdict has not moved.
+    for rule in ("html-lang", "document-title", "main-landmark", "h1-heading", "skip-link"):
+        assert results[rule].status == "pass", rule
+        assert results[rule].examined == 1, rule
+    assert a11y.audit(_read(ROOT / "web" / "embed.html")) == []
+
+
+def test_a_rule_with_something_to_read_still_reads_it() -> None:
+    """The paired accepted case: a `not_applicable` for everything would satisfy the above."""
+    results = {r.rule: r for r in a11y.audit_rules(_read(ROOT / "web" / "us-coverage.html"))}
+    for rule in ("table-caption", "table-header-scope", "button-text"):
+        assert results[rule].status == "pass", (rule, results[rule])
+        assert results[rule].examined > 0, rule
+        assert results[rule].reason is None, rule
+
+
+def test_a_real_defect_still_fails_the_rule_that_owns_it() -> None:
+    """A population of one, unsatisfied, must fail -- not be waved through as too small."""
+    page = (
+        "<html lang='en'><head><title>t</title></head><body>"
+        '<a href="#main">skip</a><main><h1>h</h1>'
+        "<table><tr><th scope='col'>a</th></tr></table>"
+        "<img src='x.png'><button></button>"
+        "</main></body></html>"
+    )
+    results = {r.rule: r for r in a11y.audit_rules(page)}
+    assert results["table-caption"].status == "fail"
+    assert results["image-alt"].status == "fail"
+    assert results["button-text"].status == "fail"
+    assert results["table-header-scope"].status == "pass"
+
+
+def test_the_gate_says_how_many_of_its_rule_cells_it_evaluated() -> None:
+    by_document = _audited_results()
+    cells = [r for results in by_document.values() for r in results]
+    evaluated = [r for r in cells if r.status != "not_applicable"]
+    assert len(cells) == 9 * len(by_document)
+    assert 0 < len(evaluated) < len(cells), (
+        "either every rule reads every page, in which case this whole disclosure is "
+        "unnecessary, or the scan has stopped finding elements"
+    )
+    census = "\n".join(a11y.census_lines(by_document))
+    assert f"{len(evaluated)} of {len(cells)} rule cells evaluated" in census
+
+
+def test_the_no_input_registry_is_self_limiting_in_both_directions() -> None:
+    """An exemption list goes stale silently; this one fails when it does.
+
+    Run against the audited set as committed it is quiet, which is the only state
+    worth having. The two failure directions are driven here rather than waited for.
+    """
+    by_document = _audited_results()
+    assert a11y.registry_problems(by_document) == []
+
+    # An entry for a rule that now has an input.
+    stale = dict(a11y.NO_INPUT_IN_THE_AUDITED_SET, **{"button-text": "no longer true"})
+    with_stale = _with_registry(stale, by_document)
+    assert any("Delete the entry" in p for p in with_stale), with_stale
+
+    # A rule with no input anywhere and nothing written down.
+    missing = {k: v for k, v in a11y.NO_INPUT_IN_THE_AUDITED_SET.items() if k != "image-alt"}
+    with_missing = _with_registry(missing, by_document)
+    assert any("image-alt" in p and "no input in any audited" in p for p in with_missing), (
+        with_missing
+    )
+
+    # An entry naming a rule this gate does not have.
+    invented = dict(a11y.NO_INPUT_IN_THE_AUDITED_SET, **{"colour-contrast": "not a rule here"})
+    with_invented = _with_registry(invented, by_document)
+    assert any("exempts nothing" in p for p in with_invented), with_invented
+
+
+def test_an_audit_of_no_documents_is_not_evidence() -> None:
+    """An empty run must not report every rule as covered by an empty universe."""
+    assert a11y.registry_problems({}) != []
+
+
+def _with_registry(
+    registry: dict[str, str], by_document: dict[str, list[a11y.RuleResult]]
+) -> list[str]:
+    original = a11y.NO_INPUT_IN_THE_AUDITED_SET
+    try:
+        a11y.NO_INPUT_IN_THE_AUDITED_SET = registry
+        return a11y.registry_problems(by_document)
+    finally:
+        a11y.NO_INPUT_IN_THE_AUDITED_SET = original
+
+
+def test_the_accessibility_statement_states_the_coverage_the_gate_actually_has() -> None:
+    """The document names image alternatives as a foundation this gate checks.
+
+    It is a rule the gate contains and has never run: zero `<img>` elements across the
+    nine audited documents. The sentence is now held to the measurement rather than to
+    the source, so a page that ships an image makes it false and this fails.
+    """
+    by_document = _audited_results()
+    per_rule = {r.rule: 0 for results in by_document.values() for r in results}
+    for results in by_document.values():
+        for result in results:
+            per_rule[result.rule] += result.available
+
+    document = " ".join(_read(ROOT / "docs" / "ACCESSIBILITY.md").split())
+    stated = re.search(r"the structural gate evaluated \*\*(\d+) of (\d+)\*\* rule cells", document)
+    assert stated is not None, "docs/ACCESSIBILITY.md no longer states the gate's coverage"
+    cells = [r for results in by_document.values() for r in results]
+    evaluated = [r for r in cells if r.status != "not_applicable"]
+    assert [int(g) for g in stated.groups()] == [len(evaluated), len(cells)], (
+        f"docs/ACCESSIBILITY.md states {stated.group(0)!r}; the gate evaluates "
+        f"{len(evaluated)} of {len(cells)}"
+    )
+    images = re.search(r"image-alternative rule has read \*\*(\d+)\*\* images", document)
+    assert images is not None, "docs/ACCESSIBILITY.md no longer states what image-alt read"
+    assert int(images.group(1)) == per_rule["image-alt"], (
+        f"docs/ACCESSIBILITY.md says the image rule has read {images.group(1)} images; "
+        f"the audited set holds {per_rule['image-alt']}"
     )

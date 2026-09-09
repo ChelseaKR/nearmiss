@@ -58,6 +58,39 @@ every entry.
 
 ### Fixed
 
+- **The structural accessibility gate printed a nine-rule `PASS` over pages where four of the
+  nine had nothing to read, and one of those four has never had an input**
+  (`tools/a11y_check.py`, `tests/test_accessibility_claims.py`, `docs/ACCESSIBILITY.md`).
+  Five of its rules are page-level (language, title, `<main>`, `<h1>`, skip link) and always
+  evaluate. The other four are guarded by their element's population — `if a.tables and …`,
+  `if a.buttons_total and …`, `a.img_total != a.img_with_alt` — so on a page with no `<table>`
+  they return no problem, which is byte-identical to a page whose tables are all captioned.
+  Measured over the nine audited documents:
+
+  | rule | documents where it had an input | elements |
+  |---|---:|---:|
+  | `table-caption` | 2 of 9 | 5 |
+  | `table-header-scope` | 2 of 9 | 5 |
+  | `image-alt` | **0 of 9** | **0** |
+  | `button-text` | 5 of 9 | 36 |
+
+  **54 of 81 rule cells were evaluated**, and `docs/ACCESSIBILITY.md` named "image
+  alternatives" among the foundations this gate checks while the image-alternative rule had
+  never read an image — no audited document embeds an `<img>` at all, because the Open Graph
+  card is referenced from a `<meta>` tag and every map and figure ships as inline SVG.
+
+  Each rule now carries `examined`/`available`, a rule with no element to read reports
+  `not_applicable` with its reason beneath the page's line rather than as a pass, and the run
+  prints the census. The verdict is unchanged: `not_applicable` was never a failure. The
+  vocabulary is deliberately the one `tools/verify_dataset.py` already uses for the published
+  artifacts — this repository had solved the same problem once, in one place.
+
+  `NO_INPUT_IN_THE_AUDITED_SET` records the one rule the whole page set cannot exercise, and
+  is self-limiting in both directions: an entry for a rule that later gains an input fails
+  until it is deleted, a rule with no input anywhere and no entry fails, and an entry naming a
+  rule the gate does not have fails. `docs/ACCESSIBILITY.md`'s two figures are re-derived from
+  the audited documents by a test rather than typed.
+
 - **The conformance sweep's FARS rules printed a verdict with no denominator, and two of
   them are satisfied by an empty collection** (`tools/verify_dataset.py`,
   `tools/conformance_sweep.py`, `tests/test_conformance_sweep.py`). The coverage figures
