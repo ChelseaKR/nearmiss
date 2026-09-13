@@ -1,20 +1,35 @@
 # SPDX-License-Identifier: Apache-2.0
-# nearmiss release — tag-triggered build, SBOM, keyless-signing, SLSA provenance,
+# nearmiss release — dispatched build, SBOM, keyless-signing, SLSA provenance,
 # and Trusted Publishing (FIX-11: docs/ideation/02-large-scale-fixes.md).
 #
 # Turns the claims in README.md ("signed releases") and
 # docs/standards/SECURITY-AND-SUPPLY-CHAIN-STANDARD.md §6 / RELEASE-AND-VERSIONING-STANDARD.md §4
-# from prose into a mechanism: pushing a `vX.Y.Z` tag on `main` builds the sdist/wheel, generates a
-# CycloneDX SBOM, signs every release artifact AND every published city GeoJSON with Sigstore
-# (keyless, OIDC — no long-lived key), attaches SLSA build provenance, cuts a GitHub Release carrying
-# all of it, and publishes to PyPI via Trusted Publishing (OIDC, no stored API token).
+# from prose into a mechanism: dispatching this workflow from `main` with an existing signed
+# `vX.Y.Z` tag builds the sdist/wheel, generates a CycloneDX SBOM, signs every release artifact AND
+# every published city GeoJSON with Sigstore (keyless, OIDC — no long-lived key), attaches SLSA build
+# provenance, cuts a GitHub Release carrying all of it, and publishes to PyPI via Trusted Publishing
+# (OIDC, no stored API token).
 #
-# NOTE for the first real release: PyPI Trusted Publishing must be registered for this repo/workflow
-# on pypi.org BEFORE the first tag is pushed (Settings -> Publishing on the PyPI project page,
-# pointing at ChelseaKR/nearmiss, workflow `release.yml`, environment `pypi`) — that is a one-time,
-# human, logged-in action on a third-party site that no CI job can perform on your behalf. Until it is
-# done, every stage through the signed GitHub Release still succeeds; only the `publish-pypi` job
-# fails, and it fails without touching or invalidating what `release` already published.
+# WHY DISPATCH, NOT `push: tags`. This used to fire on `push: tags: v*`, which made
+# `git push origin v0.5.0` — one command, no confirmation — upload to PyPI unattended. PyPI does not
+# allow a version to be re-uploaded, so a tag pushed by mistake, or at the wrong commit, could not be
+# taken back; `nearmiss-safety` 0.3.0, 0.3.1 and 0.4.0 all reached PyPI that way. Dispatch splits
+# tagging from publishing: the tag push is now inert, and releasing is a separate deliberate act that
+# additionally waits on the `pypi` environment's required reviewer.
+#
+# This is also what docs/standards/RELEASE-AND-VERSIONING-STANDARD.md §4 has prescribed all along —
+# "the maintainer dispatches the release workflow from the default branch and supplies that tag as an
+# input", because "a tag-push workflow executes the workflow definition stored at the tagged ref,
+# while the release authority must come from the reviewed workflow on trusted `main`". The trigger
+# now matches the standard the repository committed to.
+#
+# The `verify-tag` job below is the trust boundary and runs before anything else: nothing is built,
+# signed, released or uploaded from a tag that is not an annotated tag object, signed by a key in the
+# committed .github/allowed_signers, and reachable from origin/main.
+#
+# NOTE: PyPI Trusted Publishing is already registered for this repo (project `nearmiss-safety`,
+# workflow `release.yml`, environment `pypi`) and working. Keep the `environment: pypi` declaration on
+# publish-pypi in step with that registration — removing it would send a claim PyPI no longer expects.
 #
 # See docs/DATA-CARD.md "How to verify a release" for the consumer-facing verification commands this
 # workflow's signing stage exists to make possible.
@@ -22,18 +37,23 @@
 name: release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing signed stable SemVer tag (vX.Y.Z) to release"
+        required: true
+        type: string
 
 # Least privilege by default; each job widens only what it needs (SLSA build-isolation rule —
 # SECURITY-AND-SUPPLY-CHAIN-STANDARD.md §6.4).
 permissions:
   contents: read
 
-# Two tags can never publish at once.
+# Two releases of the same tag can never publish at once. Keyed on the tag input rather than
+# `github.ref`: every dispatch now runs from `refs/heads/main`, so a ref key would serialise
+# unrelated releases into one queue instead of guarding a single tag.
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag }}
   cancel-in-progress: false
 
 env:
@@ -42,10 +62,88 @@ env:
   PYTHONHASHSEED: "0"
 
 jobs:
+  # The trust boundary. Ported verbatim from ctdl-validate's publish path
+  # (.github/verify-release-tag.sh + .github/allowed_signers, byte-identical) rather than written
+  # fresh here, so there is one implementation of "is this a tag the maintainer signed" across the
+  # portfolio instead of several that drift.
+  #
+  # The script owns checks 1-4 (a tag was actually resolved; the grandfather list may only name
+  # literal tags; annotated tag object; signature verifies against the committed allowed-signers
+  # file). Its check 5, "the tag names the commit this run is building", does not apply to a dispatch
+  # from `main` — the run is building main's head, and the tag may legitimately name an earlier commit
+  # on main — so EXPECT_COMMIT is empty and the two steps around the script carry the equivalent
+  # guarantees that RELEASE-AND-VERSIONING-STANDARD.md §4 "0. trust" names: the dispatch ref is main,
+  # and the tag's commit is reachable from origin/main. Downstream jobs then build the commit this job
+  # resolved, not a second resolution of the same name.
+  #
+  # GRANDFATHERED_TAGS is empty: v0.2.0, v0.3.0, v0.3.1 and v0.4.0 are all annotated tags that verify
+  # against this allowed_signers today, so no release is exempt.
+  verify-tag:
+    name: verify-tag (the release tag is one the maintainer signed)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.verify.outputs.tag }}
+      commit: ${{ steps.verify.outputs.commit }}
+    steps:
+      - name: Check out trusted main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          # Full history and tags: the tag object being verified has to be present
+          # locally for `git verify-tag` to read its signature, and the ancestry
+          # check below needs main's history.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: The dispatch came from main
+        # Release authority comes from the reviewed workflow on trusted main. A dispatch from any
+        # other ref runs a workflow definition that was never reviewed on main.
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "::error::release must be dispatched from main, not ${GITHUB_REF}."
+            exit 1
+          fi
+
+      - name: The release tag is signed by a key this repository trusts
+        id: verify
+        env:
+          # Routed through env: rather than interpolated into the run: shell. A tag name is
+          # dispatch input and carries no guarantee about shell metacharacters.
+          RELEASE_TAG: ${{ inputs.tag }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          # Empty on purpose — see this job's comment.
+          EXPECT_COMMIT: ""
+          ALLOWED_SIGNERS: .github/allowed_signers
+          GRANDFATHERED_TAGS: ""
+        run: bash .github/verify-release-tag.sh
+
+      - name: The tag names a commit on main
+        # Without this, a signed tag cut on a side branch — never reviewed, never merged — would
+        # release. The signature proves who made the tag, not that the code passed review.
+        env:
+          RELEASE_COMMIT: ${{ steps.verify.outputs.commit }}
+        run: |
+          set -euo pipefail
+          git fetch --quiet origin main
+          if ! git merge-base --is-ancestor "${RELEASE_COMMIT}" origin/main; then
+            echo "::error::${RELEASE_COMMIT} is not reachable from origin/main. Release tags are cut on main only."
+            exit 1
+          fi
+
   release:
     name: build, verify, SBOM, sign, attest, GitHub Release
+    needs: [verify-tag]
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    env:
+      # The verified tag, used everywhere this job previously read GITHUB_REF_NAME. On a dispatch
+      # GITHUB_REF_NAME is "main"; the release identity has to come from the job that checked it.
+      RELEASE_TAG: ${{ needs.verify-tag.outputs.tag }}
     permissions:
       contents: write # create the GitHub Release and upload assets
       id-token: write # OIDC — cosign keyless signing (Fulcio/Rekor)
@@ -57,6 +155,9 @@ jobs:
       - name: Checkout the exact tagged commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # The commit the verified tag names. On a dispatch the default checkout is main's head,
+          # which is the tagged commit only by coincidence; this builds what the tag selected.
+          ref: ${{ needs.verify-tag.outputs.commit }}
           persist-credentials: false
 
       - name: Set up Python
@@ -77,7 +178,7 @@ jobs:
         # three independent ways and fails the release rather than publish a mismatched artifact.
         run: |
           set -euo pipefail
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TAG_VERSION="${RELEASE_TAG#v}"
           PYPROJECT_VERSION="$(python -c "import tomllib,pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")"
           INSTALLED_VERSION="$(python -c "import nearmiss; print(nearmiss.__version__)")"
           echo "tag=$TAG_VERSION pyproject=$PYPROJECT_VERSION installed=$INSTALLED_VERSION"
@@ -93,7 +194,7 @@ jobs:
         # step only refuses to release a version nobody wrote up.
         run: |
           set -euo pipefail
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TAG_VERSION="${RELEASE_TAG#v}"
           if ! grep -qE "^## \[${TAG_VERSION}\]" CHANGELOG.md; then
             echo "::error::CHANGELOG.md has no '## [${TAG_VERSION}]' section. Add the release entry (with its Intake report schema / Published dataset schema subsections) before tagging."
             exit 1
@@ -181,7 +282,7 @@ jobs:
       - name: Extract this release's CHANGELOG section (used as the GitHub Release body)
         run: |
           set -euo pipefail
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TAG_VERSION="${RELEASE_TAG#v}"
           awk -v ver="$TAG_VERSION" '
             $0 ~ "^## \\[" ver "\\]" { found=1; print; next }
             found && /^## \[/ { exit }
@@ -196,8 +297,8 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$ATTESTATION_BUNDLE_PATH"
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
+          gh release create "${RELEASE_TAG}" \
+            --title "${RELEASE_TAG}" \
             --notes-file release-notes.md \
             dist/*.whl dist/*.tar.gz \
             sbom.cdx.json ./*.sigstore.json dist/*.sigstore.json data/published/*.sigstore.json \
@@ -205,16 +306,25 @@ jobs:
 
   publish-pypi:
     name: publish to PyPI (Trusted Publishing, OIDC)
-    needs: release
+    needs: [verify-tag, release]
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    environment: pypi # required-reviewer / trusted-publisher gate (CI-CD-STANDARD §environments)
+    # The irreversible step, and the only one in this workflow that cannot be undone: PyPI does not
+    # allow a version to be re-uploaded. `pypi` carries a required reviewer, so this job waits for a
+    # human even with every gate above it green. The url is what the approval prompt shows them.
+    # CI-CD-STANDARD §environments — and note that `environment:` is only a gate while the
+    # environment exists AND has a protection rule; the name alone gates nothing.
+    environment:
+      name: pypi
+      url: https://pypi.org/p/nearmiss-safety
     permissions:
       id-token: write # OIDC — the ONLY publish credential; no stored PYPI_API_TOKEN
     steps:
       - name: Checkout the exact tagged commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # The same commit verify-tag resolved and the release job built.
+          ref: ${{ needs.verify-tag.outputs.commit }}
           persist-credentials: false
 
       - name: Set up Python

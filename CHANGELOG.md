@@ -56,6 +56,31 @@ every entry.
 
 ## [Unreleased]
 
+### Changed
+
+- **Pushing a version tag no longer publishes to PyPI.** `.github/workflows/release.yml` fired on
+  `push: tags: v*`, so `git push origin vX.Y.Z` — one command, no confirmation — built, signed,
+  released and uploaded to PyPI unattended. PyPI never allows a version to be re-uploaded, so a tag
+  pushed by mistake or at the wrong commit could not be taken back; `nearmiss-safety` 0.3.0, 0.3.1
+  and 0.4.0 all reached PyPI this way. The trigger is now `workflow_dispatch` with a required `tag`
+  input, dispatched from `main` — which is what
+  `docs/standards/RELEASE-AND-VERSIONING-STANDARD.md` §4 has prescribed all along ("the maintainer
+  dispatches the release workflow from the default branch and supplies that tag as an input").
+  Tagging and publishing are now separate deliberate acts, and the `pypi` environment's required
+  reviewer gates the upload itself.
+
+### Added
+
+- **A release tag is verified before anything is built, signed, released or uploaded.**
+  New `verify-tag` job, plus `.github/verify-release-tag.sh` and `.github/allowed_signers` ported
+  byte-identical from `ctdl-validate` rather than written fresh, so there is one implementation of
+  "is this a tag the maintainer signed" across the portfolio. It requires an annotated tag object
+  whose SSH signature verifies against the committed allowed-signers file, a dispatch from `main`,
+  and a tag whose commit is reachable from `origin/main`; the build and publish jobs then check out
+  the commit that job resolved rather than re-resolving the name. `GRANDFATHERED_TAGS` is empty —
+  v0.2.0, v0.3.0, v0.3.1 and v0.4.0 all verify against the committed key today, so nothing is
+  exempt.
+
 ### Fixed
 
 - **The structural accessibility gate printed a nine-rule `PASS` over pages where four of the
