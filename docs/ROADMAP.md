@@ -46,10 +46,14 @@ as N/A rather than filled with invented zeroes until that precondition was
 met, on 2026-08-08.
 
 **Definitions, since none of the three metrics has one obvious reading for a
-tag-triggered release pipeline (issue #184):** a *deployment* is one
-`release.yml` run triggered by pushing a version tag. A deployment *fails* if
-either of its two jobs (build/verify/SBOM/sign/attest/GitHub-Release, then
-publish-to-PyPI) does not complete successfully — a signed GitHub Release
+dispatched release pipeline (issue #184):** a *deployment* is one `release.yml`
+run dispatched from `main` for a signed version tag. (Through v0.4.0 a
+deployment was instead triggered by pushing that tag; the trigger became a
+manual dispatch so that pushing a tag is no longer an irreversible PyPI
+upload. The counting is unchanged — one run per intended release either way.)
+A deployment *fails* if any of its three jobs (verify-tag, then
+build/verify/SBOM/sign/attest/GitHub-Release, then publish-to-PyPI) does not
+complete successfully — a signed GitHub Release
 with no PyPI publish still counts as a failed deployment, because the release
 was not fully shipped. *Recovery* is the next deployment that completes the
 same intended release; where no such deployment exists, that is recorded as
