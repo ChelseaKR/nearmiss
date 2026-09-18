@@ -21,7 +21,7 @@ date above, to our knowledge, none has been asked to and none has reported back.
 
 ## 0. Scope: which surfaces this statement covers
 
-The public site serves six HTML documents across seven routes. The repository also keeps three
+The public site serves seven HTML documents across eight routes. The repository also keeps three
 source-only surfaces that are exercised by the accessibility gates but are **not** deployed.
 
 | Surface | Route(s) on the live site | Per-criterion ACR coverage |
@@ -32,6 +32,7 @@ source-only surfaces that are exercised by the accessibility gates but are **not
 | Nationwide FARS evidence studio (`web/us-coverage.html`) | `/fars/national/`, `/web/us-coverage.html` | **Not covered** — explicitly excluded by the ACR |
 | Studio (`web/studio.html`) | `/studio/` | **Not covered** |
 | Decision dossier sample (`web/dossier.html`) | `/dossier/` | **Not covered** |
+| Privacy page (`web/privacy.html`) | `/privacy/` | **Not covered** |
 | Davis synthetic methods lab (`web/davis-demo.html`) | not deployed — source/CI fixture | This is the surface the ACR's tables evaluate |
 | Submission prototype (`web/submit.html`) | not deployed — source/CI fixture | **Not covered** |
 | Embed fixture (`web/embed.html`) | not deployed — source/CI fixture | **Not covered** |
@@ -249,8 +250,8 @@ Two automated gates run locally and in CI on every pull request, and both are me
 
   **Four of its nine rules are per-element, and a document that carries none of that element gives
   them nothing to read.** Five rules (language, title, `<main>`, `<h1>`, skip link) are page-level
-  and evaluate everywhere. Over the nine audited documents the structural gate evaluated **54 of
-  81** rule cells; the rest report `not_applicable` with the element they did not find, printed
+  and evaluate everywhere. Over the ten audited documents the structural gate evaluated **61 of
+  90** rule cells; the rest report `not_applicable` with the element they did not find, printed
   under the page's line, rather than as a pass. The one worth naming here is the image
   alternative: the image-alternative rule has read **0** images, because no audited document
   embeds an `<img>` — the Open Graph card is referenced from a `<meta>` tag and every map and
@@ -259,9 +260,9 @@ Two automated gates run locally and in CI on every pull request, and both are me
   the day a page ships an image. Both figures in this paragraph are re-derived from the audited
   documents by `tests/test_accessibility_claims.py`, not typed.
 - **axe-core in jsdom** — `make axe` → [`web/package.json`](../web/package.json) →
-  [`web/axe_check.mjs`](../web/axe_check.mjs). It runs against **nine files**: `index.html`,
+  [`web/axe_check.mjs`](../web/axe_check.mjs). It runs against **ten files**: `index.html`,
   `404.html`, `web/index.html`, `web/davis-demo.html`, `web/submit.html`, `web/embed.html`,
-  `web/us-coverage.html`, `web/studio.html`, and `web/dossier.html`. Every one currently passes with
+  `web/us-coverage.html`, `web/studio.html`, `web/dossier.html`, and `web/privacy.html`. Every one currently passes with
   no violations.
 
 Three limits on the axe run, stated because they are easy to miss and they matter:

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#2543D8" />
     <link rel="icon" href="/web/vendor/brand/clearance-mark.svg" type="image/svg+xml" />
+    <script src="/web/analytics.js"></script>
     <title>US evidence studio — nearmiss</title>
     <meta
       name="description"
@@ -652,6 +653,25 @@
           >Accessibility status and open review</a
         >
       </p>
+      <div class="analytics-footer">
+        <p>
+          <span data-i18n="analytics_note">Pages on this site use Google Analytics 4 to count visits, with its advertising features off. It does not load when your browser sends Global Privacy Control or Do Not Track.</span>
+          <a href="/privacy/" data-i18n="analytics_privacy_link">Privacy: what it records and how to turn it off</a>
+        </p>
+        <p class="analytics-choice" data-analytics-choice hidden>
+          <button type="button" class="analytics-toggle">
+            <span data-analytics-label="opt-out" data-i18n="analytics_opt_out">Opt out of analytics</span>
+            <span data-analytics-label="back-in" data-i18n="analytics_opt_back_in" hidden>Opt back in</span>
+          </button>
+          <span class="analytics-status" role="status">
+            <span data-analytics-message="opted-out" data-i18n="analytics_opted_out" hidden>Opted out. From the next page you open, this site will not load Google Analytics in this browser.</span>
+            <span data-analytics-message="is-out" data-i18n="analytics_is_out" hidden>You have opted out: this site does not load Google Analytics in this browser.</span>
+            <span data-analytics-message="back-in" data-i18n="analytics_back_in" hidden>Opted back in. Analytics resumes from the next page you open.</span>
+            <span data-analytics-message="signal" data-i18n="analytics_signal" hidden>Analytics is off: your browser sends Global Privacy Control or Do Not Track.</span>
+            <span data-analytics-message="no-storage" data-i18n="analytics_no_storage" hidden>This browser is blocking site storage, so an opt-out cannot be remembered here. Global Privacy Control or Do Not Track keeps analytics off.</span>
+          </span>
+        </p>
+      </div>
     </footer>
 
     <script src="/web/i18n.js"></script>

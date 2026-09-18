@@ -58,6 +58,19 @@ every entry.
 
 ### Changed
 
+- **The public pages now load Google Analytics 4, and a `/privacy/` page says what it records
+  ([ADR 0022](docs/adr/0022-google-analytics-4-on-the-public-pages.md)).** Per the owner's
+  2026-09-17 decision to run GA4 on every public site in the portfolio. `web/analytics.js` holds the
+  measurement ID (`G-GSJMYXZTHM`) and loads GA only on `nearmiss.chelseakr.com`, and never under
+  Global Privacy Control, Do Not Track, or the new footer "Opt out of analytics" control
+  (`localStorage` `nearmiss:analytics-opt-out`). Google signals and ad personalization are off, the
+  three advertising consent settings are denied everywhere, and `analytics_storage` is denied by
+  default in the EEA, the UK and Switzerland. The page address is cut to origin, path and `utm_*`, so
+  the Atlas's selections never leave the browser. The Atlas footer is translated from nine new
+  `web.coverage.analytics_*` catalog entries; `/privacy/` is in English and Spanish. The 404 page
+  and the legacy redirect stub load nothing. README, `docs/DPIA.md`,
+  `docs/RESPONSIBLE-TECH-AUDITS.md` and `docs/ACCESSIBILITY.md` were changed to match.
+
 - **Pushing a version tag no longer publishes to PyPI.** `.github/workflows/release.yml` fired on
   `push: tags: v*`, so `git push origin vX.Y.Z` — one command, no confirmation — built, signed,
   released and uploaded to PyPI unattended. PyPI never allows a version to be re-uploaded, so a tag

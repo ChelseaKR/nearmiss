@@ -387,6 +387,16 @@ _COVERAGE_IDS: tuple[str, ...] = (
     N_("web.coverage.manifest"),
     N_("web.coverage.contract"),
     N_("web.coverage.footer"),
+    # The GA4 disclosure and footer opt-out (web/analytics.js, ADR 0022).
+    N_("web.coverage.analytics_back_in"),
+    N_("web.coverage.analytics_is_out"),
+    N_("web.coverage.analytics_no_storage"),
+    N_("web.coverage.analytics_note"),
+    N_("web.coverage.analytics_opt_back_in"),
+    N_("web.coverage.analytics_opt_out"),
+    N_("web.coverage.analytics_opted_out"),
+    N_("web.coverage.analytics_privacy_link"),
+    N_("web.coverage.analytics_signal"),
 )
 
 #: The full ``web.*`` inventory, single-sourced for :mod:`tools.po2json`,

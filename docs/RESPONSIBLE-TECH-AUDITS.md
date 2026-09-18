@@ -13,10 +13,11 @@ on each release per the framework's audit-as-artifact discipline.
   bias (raw counts confounding danger with traffic). See [§B](#b-bias--fairness-audit).
 - **C Privacy:** Applies (DPIA: [`docs/DPIA.md`](DPIA.md)). See [§C](#c-privacy--data-protection-audit-dpia-style).
 - **D Transparency:** Applies. See [§D](#d-transparency--explainability-audit).
-- **E Accessibility:** Applies (ACR: [`docs/accessibility/ACR.md`](accessibility/ACR.md)). **Six
-  shipped HTML documents** over seven routes: `index.html` (`/`), `404.html`, `web/index.html`
+- **E Accessibility:** Applies (ACR: [`docs/accessibility/ACR.md`](accessibility/ACR.md)). **Seven
+  shipped HTML documents** over eight routes: `index.html` (`/`), `404.html`, `web/index.html`
   (legacy redirect stub), `web/us-coverage.html` (`/fars/national/` and `/web/us-coverage.html`),
-  `web/studio.html` (`/studio/`), and `web/dossier.html` (`/dossier/`) — see
+  `web/studio.html` (`/studio/`), `web/dossier.html` (`/dossier/`), and `web/privacy.html`
+  (`/privacy/`) — see
   [`tools/build_site.py`](../tools/build_site.py) for the deployed allowlist. `web/davis-demo.html`,
   `web/submit.html`, and `web/embed.html` are source/CI fixtures and are **not** deployed. The ACR
   evaluates only the source-only `davis-demo.html` surface, so no shipped document has per-criterion
@@ -104,6 +105,17 @@ reporter's home, workplace, or routine.
 **Deployment update (2026-07-16):** that browser form is now source-only and absent from the
 production artifact. The risk remains applicable to CLI/operator intake and would become a public
 surface again only after a new reviewed deployment decision.
+
+**Deployment update (2026-09-17): visitor analytics.** The public pages (not `404.html` or the
+legacy redirect stub) now load Google Analytics 4 through `web/analytics.js`
+([ADR 0022](adr/0022-google-analytics-4-on-the-public-pages.md)). That is a separate processing
+activity from report intake: it concerns people reading the site, never contributors' reports, and
+never a file inspected in Studio. It loads only on `nearmiss.chelseakr.com` and not at all under
+Global Privacy Control, Do Not Track, or the footer opt-out; Google signals and ad personalization are
+off; analytics storage is denied by default in the EEA, the UK and Switzerland (cookieless pings
+there); the page address is cut to origin, path and `utm_*`; retention is 14 months. `/privacy/`
+states this in English and Spanish, and `tests/test_analytics.py` runs the loader and holds each
+guard with a negative control.
 
 **How do we test for it?** See the full DPIA: [`docs/DPIA.md`](DPIA.md), and the threat model's T1/T2
 and [residual-risk register](THREAT-MODEL.md#residual-risk-register) RR-1/RR-2. Data inventory,

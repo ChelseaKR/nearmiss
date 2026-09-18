@@ -151,7 +151,7 @@ accessibility: ## Structural WCAG gate on the web UI (merge-blocking)
 	# It was missing from this list while the axe run already covered it, so the
 	# structural gate skipped the deployed front door. Every file `npm run axe`
 	# scans is checked here too (tests/test_accessibility_claims.py asserts it).
-	$(PYTHON) tools/a11y_check.py index.html 404.html web/index.html web/davis-demo.html web/submit.html web/embed.html web/us-coverage.html web/studio.html web/dossier.html
+	$(PYTHON) tools/a11y_check.py index.html 404.html web/index.html web/davis-demo.html web/submit.html web/embed.html web/us-coverage.html web/studio.html web/dossier.html web/privacy.html
 	@echo "accessibility: structural checks passed."
 	@echo "NOTE: CI also runs axe; full conformance also requires manual NVDA + VoiceOver"
 	@echo "      review — see docs/accessibility/ACR.md (this gate is the floor, not the ceiling)."

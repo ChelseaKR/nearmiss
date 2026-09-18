@@ -9,6 +9,15 @@ alongside the next dated review of [`docs/THREAT-MODEL.md`](THREAT-MODEL.md).**
 > DPIA remain because local/operator imports still process precise reports and any future public
 > intake reactivation must be reviewed against this document before deployment.
 
+> **Deployment update (2026-09-17):** the public static site now loads Google Analytics 4 for
+> people reading it ([ADR 0022](adr/0022-google-analytics-4-on-the-public-pages.md), `/privacy/` on
+> the site). That is a separate processing activity from the report intake this DPIA assesses: it
+> never receives a report, a contributor token, or a file inspected in Studio, and it runs on none
+> of the intake paths. Its processor is Google LLC; it loads only on `nearmiss.chelseakr.com`, and
+> not under Global Privacy Control, Do Not Track, or the footer opt-out; ad features are off,
+> analytics storage is denied by default in the EEA, the UK and Switzerland, and data is kept 14
+> months. "No third-party processor" below remains true of submission data, which is its scope.
+
 > **Honesty note.** This is a maintainer-authored, first-pass DPIA for a solo-maintainer open-source
 > project — not a formal legal opinion, not reviewed by a data-protection officer or counsel, and not a
 > claim of regulatory compliance with any specific jurisdiction's law. It follows the standard DPIA

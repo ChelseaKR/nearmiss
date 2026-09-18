@@ -41,6 +41,7 @@ INDEXABLE_ROUTES = (
     "/",
     "/dossier/",
     "/fars/national/",
+    "/privacy/",
     "/studio/",
 )
 
@@ -50,6 +51,9 @@ SOCIAL_CARD_FILE = "og.png"
 
 PUBLIC_WEB_FILES = (
     "index.html",  # Public evidence-to-action gateway; not the former Davis application.
+    # The GA4 loader and footer opt-out every public page but 404 loads from <head>
+    # (docs/adr/0022-google-analytics-4-on-the-public-pages.md).
+    "analytics.js",
     "us-coverage.html",
     "us-coverage.js",
     "i18n.js",
@@ -257,6 +261,11 @@ def build_site(out: Path, source_sha: str) -> SiteManifest:
     _copy_file(
         ROOT / "web" / "dossier.html",
         out / "dossier" / "index.html",
+        allowed_root=ROOT / "web",
+    )
+    _copy_file(
+        ROOT / "web" / "privacy.html",
+        out / "privacy" / "index.html",
         allowed_root=ROOT / "web",
     )
     published = ROOT / "data" / "published"

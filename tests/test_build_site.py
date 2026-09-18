@@ -23,6 +23,7 @@ NATIONAL_CANONICAL = "https://nearmiss.chelseakr.com/fars/national/"
 APEX_CANONICAL = "https://nearmiss.chelseakr.com/"
 STUDIO_CANONICAL = "https://nearmiss.chelseakr.com/studio/"
 DOSSIER_CANONICAL = "https://nearmiss.chelseakr.com/dossier/"
+PRIVACY_CANONICAL = "https://nearmiss.chelseakr.com/privacy/"
 TITLE_MAX_CHARS = 60
 DESCRIPTION_MAX_CHARS = 160
 SOCIAL_CARD_URL = "https://nearmiss.chelseakr.com/og.png"
@@ -114,8 +115,10 @@ def test_site_artifact_contains_only_public_surfaces(tmp_path: Path) -> None:
         "dossier/index.html",
         "index.html",
         NATIONAL_MANIFEST_PATH,
+        "privacy/index.html",
         "studio/index.html",
         "web/index.html",
+        "web/analytics.js",
         "web/us-coverage.html",
         "web/us-coverage.js",
         "web/i18n.js",
@@ -249,6 +252,7 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
     expected = {
         "index.html": (APEX_CANONICAL, "NearMiss"),
         "dossier/index.html": (DOSSIER_CANONICAL, "NearMiss"),
+        "privacy/index.html": (PRIVACY_CANONICAL, "NearMiss"),
         "studio/index.html": (STUDIO_CANONICAL, "NearMiss"),
         "web/us-coverage.html": (NATIONAL_CANONICAL, "NearMiss Conflict Atlas"),
         NATIONAL_MANIFEST_PATH: (NATIONAL_CANONICAL, "NearMiss Conflict Atlas"),
@@ -339,6 +343,7 @@ def test_published_social_card_matches_its_declared_dimensions(tmp_path: Path) -
     routes = (
         "index.html",
         "dossier/index.html",
+        "privacy/index.html",
         "studio/index.html",
         NATIONAL_MANIFEST_PATH,
     )
@@ -451,6 +456,8 @@ def test_deploy_verifier_hash_binds_every_national_runtime_dependency() -> None:
         "fars/national/index.html|fars/national/",
         "dossier/index.html|dossier/",
         "studio/index.html|studio/",
+        "privacy/index.html|privacy/",
+        "web/analytics.js|web/analytics.js",
         "web/dossier.js|web/dossier.js",
         "web/studio.js|web/studio.js",
         "web/workflow.css|web/workflow.css",
@@ -571,7 +578,7 @@ def _minimal_site_source(root: Path) -> None:
         destination.parent.mkdir(parents=True, exist_ok=True)
         content = "{}" if destination.suffix == ".json" else "public"
         destination.write_text(content, encoding="utf-8")
-    for relative in ("studio.html", "dossier.html"):
+    for relative in ("studio.html", "dossier.html", "privacy.html"):
         (root / "web" / relative).write_text("public workflow", encoding="utf-8")
     for locale in build_site_module.PUBLIC_WEB_LOCALES:
         destination = root / "web" / "locales" / locale
