@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#2543d8" />
+    <meta
+      name="description"
+      content="What Google Analytics records when you read NearMiss, what is switched off, and how to turn it off. In English and Spanish."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NearMiss" />
+    <meta property="og:title" content="NearMiss privacy — what this site measures" />
+    <meta
+      property="og:description"
+      content="What Google Analytics records when you read NearMiss, what is switched off, and how to turn it off. In English and Spanish."
+    />
+    <meta property="og:url" content="https://nearmiss.chelseakr.com/privacy/" />
+    <meta property="og:image" content="https://nearmiss.chelseakr.com/og.png" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
+    <meta
+      property="og:image:alt"
+      content="nearmiss social card: the project name over an engraved overhead street diagram, with the line “Open near-miss data, exposure-normalized risk, and spatial evidence for road-safety advocacy.”"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://nearmiss.chelseakr.com/og.png" />
+    <meta
+      name="twitter:image:alt"
+      content="nearmiss social card: the project name over an engraved overhead street diagram, with the line “Open near-miss data, exposure-normalized risk, and spatial evidence for road-safety advocacy.”"
+    />
+    <meta name="twitter:title" content="NearMiss privacy — what this site measures" />
+    <meta
+      name="twitter:description"
+      content="What Google Analytics records when you read NearMiss, what is switched off, and how to turn it off. In English and Spanish."
+    />
+    <link rel="canonical" href="https://nearmiss.chelseakr.com/privacy/" />
+    <link rel="icon" href="/web/vendor/brand/clearance-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/web/style.css" />
+    <link rel="stylesheet" href="/web/brand.css" />
+    <link rel="stylesheet" href="/web/workflow.css" />
+    <link rel="stylesheet" href="/web/interface.css" />
+    <script src="/web/analytics.js"></script>
+    <title>NearMiss privacy — what this site measures</title>
+  </head>
+  <body class="workflow-page">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="workflow-header">
+      <nav class="workflow-nav" aria-label="Primary">
+        <a class="brand-lockup" href="/" aria-label="NearMiss home">
+          <svg class="clearance-mark" viewBox="0 0 48 32" aria-hidden="true" focusable="false">
+            <path class="clearance-path clearance-path-a" d="M3 27 17 13h5" />
+            <path class="clearance-path clearance-path-b" d="M45 5 31 19h-5" />
+          </svg>
+          <span class="brand-lockup-copy">
+            <strong>nearmiss</strong>
+            <span>Privacy</span>
+          </span>
+        </a>
+        <div class="workflow-nav-links">
+          <a href="/studio/">Check your data</a>
+          <a href="/fars/national/">Conflict Atlas</a>
+        </div>
+      </nav>
+
+      <div class="workflow-hero">
+        <div>
+          <p class="workflow-kicker">Privacy</p>
+          <h1>What this site measures.</h1>
+          <p class="workflow-lede">
+            The public pages use Google Analytics 4 to count visits. Its advertising features are
+            off, and it does not load at all if your browser asks not to be tracked.
+          </p>
+        </div>
+        <aside class="workflow-privacy" aria-label="Your data files">
+          <strong>Your files are not part of it.</strong>
+          <p>
+            A file you inspect in Studio is read in your browser and never sent anywhere, to this
+            project or to Google.
+          </p>
+        </aside>
+      </div>
+    </header>
+
+    <main id="main" class="workflow-main">
+      <section class="workflow-section" aria-labelledby="privacy-records">
+        <h2 id="privacy-records">What Google Analytics records</h2>
+        <p>
+          When a page loads, Google Analytics records a page view: the page's address, the site you
+          came from, your browser, device type and screen size, and an approximate location. Google
+          derives that location from your IP address and says it does not store the address itself.
+          It also records some interactions Google turns on by default, such as scrolling to the end
+          of a page and following a link to another site.
+        </p>
+        <p>
+          The address it receives is cut down first. The Conflict Atlas keeps the year, the states
+          you select and the view in the address bar, so everything after the page's path is removed
+          before anything is sent, except campaign tags (<code>utm_</code> parameters). A site you
+          arrived from is sent as that site's address only.
+        </p>
+        <p>
+          It sets two first-party cookies, <code>_ga</code> and <code>_ga_…</code>, which let it
+          tell a returning browser from a new one. They last up to two years. Google LLC receives and
+          stores the data, and this project keeps it for 14 months.
+        </p>
+      </section>
+
+      <section class="workflow-section" aria-labelledby="privacy-off">
+        <h2 id="privacy-off">What is switched off</h2>
+        <p>
+          Google signals and ad personalization are off, and the advertising consent settings are
+          denied for every reader. Nothing collected here is used to show you ads, joined to a Google
+          account, or sold. This project has no ad account and no other analytics tool.
+        </p>
+      </section>
+
+      <section class="workflow-section" aria-labelledby="privacy-europe">
+        <h2 id="privacy-europe">Readers in Europe, the UK and Switzerland</h2>
+        <p>
+          If you are in the European Economic Area, the United Kingdom or Switzerland, analytics
+          storage defaults to denied. Google Analytics sets no cookie for you, but it still sends
+          Google a cookieless ping for each page view, without an identifier that links one visit to
+          the next.
+        </p>
+      </section>
+
+      <section class="workflow-section" aria-labelledby="privacy-off-switch">
+        <h2 id="privacy-off-switch">How to turn it off</h2>
+        <p>
+          Google Analytics does not load at all if your browser sends Global Privacy Control or Do
+          Not Track. You can also use the <strong>Opt out of analytics</strong> button in the footer
+          of the site's pages. It stores <code>nearmiss:analytics-opt-out</code> in this browser's local
+          storage, not in a cookie, and every page checks it before loading anything from Google. It
+          covers this browser on this device only, clearing the site's data clears it, and it does
+          not delete Google cookies already set. The same button reads <strong>Opt back in</strong>
+          once you have opted out.
+        </p>
+      </section>
+
+      <section class="workflow-section" aria-labelledby="privacy-never">
+        <h2 id="privacy-never">What is never measured</h2>
+        <p>
+          The published data files carry no script, so a program that fetches them is not counted.
+          Studio reads the file you choose in your browser; neither the file nor anything in it
+          reaches Google or this project. The site is static files served by Amazon CloudFront at
+          nearmiss.chelseakr.com; this project keeps no server log of readers and has no accounts or
+          sign-in. The older nearmiss.report address serves the same files from GitHub Pages and
+          loads no analytics.
+        </p>
+      </section>
+
+      <section class="workflow-section" lang="es" aria-labelledby="privacidad">
+        <h2 id="privacidad">Privacidad: qué mide este sitio</h2>
+        <p>
+          Las páginas públicas usan Google Analytics 4 para contar visitas. Sus funciones
+          publicitarias están desactivadas y no se carga en absoluto si su navegador pide que no se
+          le rastree.
+        </p>
+        <h3>Qué registra Google Analytics</h3>
+        <p>
+          Cuando se carga una página, Google Analytics registra una vista de página: la dirección de
+          la página, el sitio del que llegó, su navegador, el tipo de dispositivo y el tamaño de
+          pantalla, y una ubicación aproximada. Google obtiene esa ubicación a partir de su dirección
+          IP y afirma que no guarda la dirección en sí. También registra algunas interacciones que
+          Google activa por defecto, como desplazarse hasta el final de una página o seguir un
+          enlace a otro sitio.
+        </p>
+        <p>
+          La dirección que recibe se recorta antes. El Conflict Atlas guarda en la barra de
+          direcciones el año, los estados que usted elige y la vista, así que todo lo que sigue a la
+          ruta de la página se elimina antes de enviar nada, salvo las etiquetas de campaña
+          (parámetros <code>utm_</code>). Del sitio desde el que llegó solo se envía su dirección
+          principal.
+        </p>
+        <p>
+          Crea dos cookies propias, <code>_ga</code> y <code>_ga_…</code>, que le permiten
+          distinguir un navegador que vuelve de uno nuevo. Duran hasta dos años. Google LLC recibe y
+          almacena los datos, y este proyecto los conserva durante 14 meses.
+        </p>
+        <h3>Qué está desactivado</h3>
+        <p>
+          Las señales de Google y la personalización de anuncios están desactivadas, y los permisos
+          de publicidad se deniegan a todos los lectores. Nada de lo que se recoge aquí se usa para
+          mostrarle anuncios, se vincula a una cuenta de Google ni se vende. Este proyecto no tiene
+          cuenta publicitaria ni ninguna otra herramienta de analítica.
+        </p>
+        <h3>Lectores en Europa, el Reino Unido y Suiza</h3>
+        <p>
+          Si está en el Espacio Económico Europeo, el Reino Unido o Suiza, el almacenamiento de
+          analítica está denegado por defecto. Google Analytics no le crea ninguna cookie, pero sigue
+          enviando a Google un aviso sin cookies por cada vista de página, sin un identificador que
+          relacione una visita con la siguiente.
+        </p>
+        <h3>Cómo desactivarlo</h3>
+        <p>
+          Google Analytics no se carga en absoluto si su navegador envía Global Privacy Control o Do
+          Not Track. También puede usar el botón <strong>Opt out of analytics</strong> («Desactivar
+          la analítica» en el Conflict Atlas en español) al pie de las páginas del sitio. Guarda
+          <code>nearmiss:analytics-opt-out</code> en el almacenamiento local de este navegador, no
+          en una cookie, y cada página lo comprueba antes de cargar nada de Google. Solo afecta a
+          este navegador en este dispositivo, se borra al borrar los datos del sitio y no elimina
+          las cookies de Google ya creadas. Una vez desactivada, el mismo botón permite volver a
+          activarla.
+        </p>
+        <h3>Qué no se mide nunca</h3>
+        <p>
+          Los archivos de datos publicados no llevan ningún script, así que un programa que los
+          descargue no se cuenta. Studio lee en su navegador el archivo que usted elige; ni el
+          archivo ni su contenido llegan a Google ni a este proyecto. El sitio son archivos
+          estáticos servidos por Amazon CloudFront en nearmiss.chelseakr.com; este proyecto no
+          guarda registros de servidor sobre los lectores y no tiene cuentas ni inicio de sesión.
+          La dirección anterior, nearmiss.report, sirve los mismos archivos desde GitHub Pages y no
+          carga ninguna analítica.
+        </p>
+      </section>
+    </main>
+
+    <footer class="workflow-footer">
+      <p>NearMiss is an independent, open-source evidence tool for safe-streets advocacy.</p>
+      <a href="https://github.com/ChelseaKR/nearmiss">Inspect the source and methods</a>
+      <div class="analytics-footer">
+        <p>
+          <span>Pages on this site use Google Analytics 4 to count visits, with its advertising features off. It does not load when your browser sends Global Privacy Control or Do Not Track.</span>
+          <a href="/privacy/">Privacy: what it records and how to turn it off</a>
+        </p>
+        <p class="analytics-choice" data-analytics-choice hidden>
+          <button type="button" class="analytics-toggle">
+            <span data-analytics-label="opt-out">Opt out of analytics</span>
+            <span data-analytics-label="back-in" hidden>Opt back in</span>
+          </button>
+          <span class="analytics-status" role="status">
+            <span data-analytics-message="opted-out" hidden>Opted out. From the next page you open, this site will not load Google Analytics in this browser.</span>
+            <span data-analytics-message="is-out" hidden>You have opted out: this site does not load Google Analytics in this browser.</span>
+            <span data-analytics-message="back-in" hidden>Opted back in. Analytics resumes from the next page you open.</span>
+            <span data-analytics-message="signal" hidden>Analytics is off: your browser sends Global Privacy Control or Do Not Track.</span>
+            <span data-analytics-message="no-storage" hidden>This browser is blocking site storage, so an opt-out cannot be remembered here. Global Privacy Control or Do Not Track keeps analytics off.</span>
+          </span>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -659,6 +659,17 @@ contains, what it omits, and its known biases and limits are in [`docs/DATA-CARD
 If you believe a published artifact leaks identifying precision, treat it as a security issue and follow
 [`SECURITY.md`](SECURITY.md).
 
+**Visitor analytics.** <!-- claim:ga4-guarded-loader -->The public pages use Google Analytics 4 to count
+visits ([ADR 0022](docs/adr/0022-google-analytics-4-on-the-public-pages.md); `/privacy/` on the site
+says what it records, in English and Spanish). `web/analytics.js` loads it only on
+`nearmiss.chelseakr.com`, never in a local, test or CI run, and not at all when the browser sends
+Global Privacy Control or Do Not Track or the reader has used the footer's "Opt out of analytics"
+control. Google signals and ad personalization are off, the advertising consent settings are denied
+everywhere, and analytics storage is denied by default in the EEA, the UK and Switzerland, where
+Google still receives cookieless pings. The page address is cut to origin, path and `utm_*`
+parameters, so the Conflict Atlas's view state never leaves the browser.<!-- /claim:ga4-guarded-loader -->
+Analytics never touches contributor reports, the published data files, or a file inspected in Studio.
+
 ## Repository layout
 
 | Area | What's there |

@@ -1398,6 +1398,33 @@ msgstr "Todos los estados + DC"
 msgid "web.coverage.all_statuses"
 msgstr "Todos los estados de publicación"
 
+msgid "web.coverage.analytics_back_in"
+msgstr "Analítica reactivada. Se reanuda a partir de la próxima página que abra."
+
+msgid "web.coverage.analytics_is_out"
+msgstr "Ha desactivado la analítica: este sitio no carga Google Analytics en este navegador."
+
+msgid "web.coverage.analytics_no_storage"
+msgstr "Este navegador bloquea el almacenamiento del sitio, así que aquí no se puede recordar la desactivación. Global Privacy Control o Do Not Track mantienen la analítica desactivada."
+
+msgid "web.coverage.analytics_note"
+msgstr "Las páginas de este sitio usan Google Analytics 4 para contar visitas, con sus funciones publicitarias desactivadas. No se carga si su navegador envía Global Privacy Control o Do Not Track."
+
+msgid "web.coverage.analytics_opt_back_in"
+msgstr "Volver a activarla"
+
+msgid "web.coverage.analytics_opt_out"
+msgstr "Desactivar la analítica"
+
+msgid "web.coverage.analytics_opted_out"
+msgstr "Analítica desactivada. A partir de la próxima página que abra, este sitio no cargará Google Analytics en este navegador."
+
+msgid "web.coverage.analytics_privacy_link"
+msgstr "Privacidad: qué registra y cómo desactivarlo"
+
+msgid "web.coverage.analytics_signal"
+msgstr "La analítica está desactivada: su navegador envía Global Privacy Control o Do Not Track."
+
 msgid "web.coverage.annual_contract_label"
 msgstr "Contrato anual"
 

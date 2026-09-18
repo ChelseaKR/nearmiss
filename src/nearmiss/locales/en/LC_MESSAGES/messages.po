@@ -1361,6 +1361,33 @@ msgstr "All states + DC"
 msgid "web.coverage.all_statuses"
 msgstr "All statuses"
 
+msgid "web.coverage.analytics_back_in"
+msgstr "Opted back in. Analytics resumes from the next page you open."
+
+msgid "web.coverage.analytics_is_out"
+msgstr "You have opted out: this site does not load Google Analytics in this browser."
+
+msgid "web.coverage.analytics_no_storage"
+msgstr "This browser is blocking site storage, so an opt-out cannot be remembered here. Global Privacy Control or Do Not Track keeps analytics off."
+
+msgid "web.coverage.analytics_note"
+msgstr "Pages on this site use Google Analytics 4 to count visits, with its advertising features off. It does not load when your browser sends Global Privacy Control or Do Not Track."
+
+msgid "web.coverage.analytics_opt_back_in"
+msgstr "Opt back in"
+
+msgid "web.coverage.analytics_opt_out"
+msgstr "Opt out of analytics"
+
+msgid "web.coverage.analytics_opted_out"
+msgstr "Opted out. From the next page you open, this site will not load Google Analytics in this browser."
+
+msgid "web.coverage.analytics_privacy_link"
+msgstr "Privacy: what it records and how to turn it off"
+
+msgid "web.coverage.analytics_signal"
+msgstr "Analytics is off: your browser sends Global Privacy Control or Do Not Track."
+
 msgid "web.coverage.annual_contract_label"
 msgstr "Annual contract"
 

@@ -1042,6 +1042,33 @@ msgstr ""
 msgid "web.coverage.all_statuses"
 msgstr ""
 
+msgid "web.coverage.analytics_back_in"
+msgstr ""
+
+msgid "web.coverage.analytics_is_out"
+msgstr ""
+
+msgid "web.coverage.analytics_no_storage"
+msgstr ""
+
+msgid "web.coverage.analytics_note"
+msgstr ""
+
+msgid "web.coverage.analytics_opt_back_in"
+msgstr ""
+
+msgid "web.coverage.analytics_opt_out"
+msgstr ""
+
+msgid "web.coverage.analytics_opted_out"
+msgstr ""
+
+msgid "web.coverage.analytics_privacy_link"
+msgstr ""
+
+msgid "web.coverage.analytics_signal"
+msgstr ""
+
 msgid "web.coverage.annual_contract_label"
 msgstr ""
 

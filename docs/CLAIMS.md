@@ -38,6 +38,7 @@ only removes blind spots.
 | `lockfile-committed-hashed` | `README.md` — § Install | `requirements.lock` |
 | `obs-stage-telemetry` | `README.md` — § Observability | `tests/test_observability.py::test_run_command_emits_one_structured_stage_log_per_pipeline_stage` |
 | `i18n-gate-count` | `README.md` — § Standards conformance | `tests/test_readme_restated_facts.py::test_the_i18n_gate_count_matches_what_make_i18n_runs` |
+| `ga4-guarded-loader` | `README.md` — § Data, privacy, and ethics | `tests/test_analytics.py::test_on_the_production_host_ga_loads_with_the_decided_configuration` |
 | `vuln-management-hashed-locks` | `README.md` — § Privacy, security, accountability | `tests/test_readme_restated_facts.py::test_the_readme_never_calls_the_committed_hashed_lock_planned` |
 | `standards-table-cross-reference` | `README.md` — § Observability | `tests/test_readme_restated_facts.py::test_the_standards_cross_reference_counts_the_standards_table` |
 | `perf-regression-budget` | `README.md` — § Standards conformance | `tests/test_perf_budget.py::test_make_verify_runs_the_perf_budget_gate` |
