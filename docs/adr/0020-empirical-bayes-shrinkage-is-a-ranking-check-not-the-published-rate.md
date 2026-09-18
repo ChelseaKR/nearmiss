@@ -57,7 +57,7 @@ re-ranking check. The published rate and the published ranking stay raw.**
    change every weight.
 2. `stats/shrinkage.py` re-ranks the published segments on the shrunk rates,
    re-runs Gi\* with the same Benjamini-Hochberg level and the same
-   singleton-neighbourhood suppression (ADR-0015), and publishes
+   singleton-neighborhood suppression (ADR-0015), and publishes
    `shrinkage_stability` in every metadata sidecar, plus the brief and the
    standalone ranked table.
 3. The artifact reports `top_segment_weight`: how much of its own rate the
@@ -88,7 +88,7 @@ punish exactly that, it stayed first.
 
 **The published order can now be contradicted in public.** A future dataset whose
 leader is a sparse segment will publish `fragile` beside its own ranking. That is
-the intended behaviour and the same posture as the MAUP result that came back
+the intended behavior and the same posture as the MAUP result that came back
 negative on the one real city this project has run.
 
 **A future maintainer may want to rank by the shrunk rate.** That is a
@@ -112,7 +112,7 @@ of both: the table's order would depend on a model the numbers in it do not
 reflect, and a reader could not reconcile the two columns.
 
 **Rank by the lower confidence bound instead.** Still a live candidate and still
-future work, as §5.4 says. It penalises sparsity too, without a between-segment
+future work, as §5.4 says. It penalizes sparsity too, without a between-segment
 model, and it deserves its own decision rather than being settled as a side
 effect of this one.
 

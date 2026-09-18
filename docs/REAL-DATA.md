@@ -251,15 +251,15 @@ and fails closed on byte drift. Regenerate the reviewed asset with:
 ## 1. Incidents — real, and available today (BikeMaps.org)
 
 [BikeMaps.org](https://bikemaps.org) is a crowdsourced global map of cycling **collisions, near
-misses, hazards, and thefts** — the closest real analogue to this project's own input, including the
+misses, hazards, and thefts** — the closest real analog to this project's own input, including the
 near misses that never reach a police report.
 
 > **Publication status: `undetermined`** (`src/nearmiss/adapters/crosswalks/bikemaps.toml`).
-> The manifest's licence field says only "BikeMaps.org public data; see
+> The manifest's license field says only "BikeMaps.org public data; see
 > <https://bikemaps.org/terms> for reuse terms" — nothing in this repository has read that terms
 > page into a citable statement, and no SPDX identifier is claimed for it. Publicly *readable* is
 > not the same as redistributable, so no BikeMaps-derived data may be published from here until
-> somebody reads those terms and records the result the way the SimRa licence was corrected on
+> somebody reads those terms and records the result the way the SimRa license was corrected on
 > 2026-08-07. `docs/DATA-CARD.md` had asserted "CC BY 4.0 / permitted with attribution" for this
 > source while the manifest claimed no such thing; that row is now quoted from the manifest and
 > gated by `tests/test_source_publication_status.py` (issue #186).
@@ -336,7 +336,7 @@ The full crosswalk (including every rule's stated rationale) is the machine-read
 at `src/nearmiss/adapters/crosswalks/bikemaps.toml`; this table is a rendering of it for readers who
 don't want to open a TOML file.
 
-## 1c. Incidents — your own group's spreadsheet (no third-party licence)
+## 1c. Incidents — your own group's spreadsheet (no third-party license)
 
 Sections 1 and 1b are both blocked on somebody else's terms: SimRa is `research_only` under a
 NonCommercial clause that survives aggregation, and BikeMaps is `undetermined` because nobody
@@ -356,7 +356,7 @@ Three things are worth restating here, because they are the honesty rules this f
   package. `SpreadsheetAdapter` is constructed with a path for exactly that reason.
 - **`publication_status` still has to be answered.** A group's own records are not
   automatically publishable: whether the consent its members gave covers redistribution *by
-  this repository* is a separate question from whether the group may analyse them, and the
+  this repository* is a separate question from whether the group may analyze them, and the
   manifest has to say which, on what basis. The example in
   `tests/fixtures/spreadsheet/answers.toml` answers `research_only` and says why.
 - **`[mode]` has no default anywhere in this system.** A row whose travel mode the crosswalk
@@ -376,7 +376,7 @@ smartphone app. It is unusual among real-data sources in that the same download 
 see the exposure section below) — alongside the annotated incidents.
 
 > **Publication status: `research_only`** (`src/nearmiss/adapters/crosswalks/simra.toml`).
-> Verified 2026-08-07: the licence is **CC BY-NC 4.0**, not CC BY 4.0 as the manifest previously
+> Verified 2026-08-07: the license is **CC BY-NC 4.0**, not CC BY 4.0 as the manifest previously
 > claimed, plus an explicit additional grant for journalistic use and the terms of use in the
 > `simra-project/dataset` repository. The NonCommercial clause is load-bearing and survives
 > aggregation, so a dataset merging SimRa reports is not distributable under Apache-2.0 alone.
@@ -388,7 +388,7 @@ see the exposure section below) — alongside the annotated incidents.
 > SimRa "openly-published" and said nothing about the clause, which left the refusal reading as an
 > asymmetry: the identical objection disqualified an unbuilt adapter and was silent about a shipped
 > one (issue #186). The two blockers on SeeClickFix are still independent, and the first one binds
-> on its own: a 311/SeeClickFix record is a *condition* record with no traveller in it, and cannot
+> on its own: a 311/SeeClickFix record is a *condition* record with no traveler in it, and cannot
 > honestly fill `mode`, `severity`, or `occurred_at`.
 
 `tools/fetch_simra.py` (the second `SourceAdapter` implementation, landing what had been an unmerged
@@ -465,7 +465,7 @@ To conflate to a municipal centerline file, two practical routes:
 
 1. **Via OSM way id.** Recover `<wayid>` as above and join to any layer that carries OSM
    ids (many open street layers do, or can be matched once).
-2. **Spatial conflation.** Buffer each published `LineString` a few metres and take the
+2. **Spatial conflation.** Buffer each published `LineString` a few meters and take the
    maximum-overlap centerline segment. Because each published segment is already a
    single block (split at intersections), one-to-one matches are common; review the
    ambiguous ones. A documented conflation helper is a future tool.
@@ -541,7 +541,7 @@ this a contract violation rather than a preference:
 
 | Required field | Why a 311 record cannot fill it |
 |---|---|
-| `mode` | The enum is `cyclist`/`pedestrian`/`wheelchair`/`scooter`/`other` and has **no `unknown`** — `other` means "a mode we did not enumerate", not "no idea". The existing adapters hardcode `cyclist` because BikeMaps and SimRa are cycling-specific tools; a service request has no traveller in it at all. |
+| `mode` | The enum is `cyclist`/`pedestrian`/`wheelchair`/`scooter`/`other` and has **no `unknown`** — `other` means "a mode we did not enumerate", not "no idea". The existing adapters hardcode `cyclist` because BikeMaps and SimRa are cycling-specific tools; a service request has no traveler in it at all. |
 | `severity` | Documented as *self-reported outcome severity*, where `near_miss` means a hazard avoided with no contact. A standing pothole is not an avoided event, and calling it `near_miss` invents an experience nobody had. |
 | `occurred_at` | Defined as **event time, not submission time**. 311 supplies `requested_datetime`, i.e. when someone got annoyed enough to call, which for a chronic condition can be months late. |
 
@@ -602,7 +602,7 @@ real run never clobbers the committed synthetic demo or the `make reproduce` gat
 > *conflict events involving a person* — a 311/SeeClickFix export cannot fill the gap, for the
 > reasons in [What this does not license](#what-this-does-not-license)
 > below. The nearest in-scope candidate is a California crowdsourced near-miss platform that records
-> traveller mode and injury outcome; whichever is chosen, its license and redistribution terms have
+> traveler mode and injury outcome; whichever is chosen, its license and redistribution terms have
 > to be confirmed in writing before any adapter is written.
 
 | | Davis, CA | Sacramento, CA |

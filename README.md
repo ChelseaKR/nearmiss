@@ -74,7 +74,7 @@ cloud account. See [Install](#install) for toolchain details.
 - [Security](#security)
 - [Governance and independence](#governance-and-independence)
 - [License and citation](#license-and-citation)
-- [Acknowledgements and related work](#acknowledgements-and-related-work)
+- [Acknowledgments and related work](#acknowledgments-and-related-work)
 
 ---
 
@@ -151,7 +151,7 @@ The hard part is not the map. The hard part is that report counts are biased by 
 they ride, and which streets are even traveled, and a naive heat map will confidently point at the
 busiest bike route and call it the most dangerous one. nearmiss exists to do the harder, correct
 thing and to make the dataset open so others can check it. It is a sibling to
-[`davis-bike-hazard-map`](#acknowledgements-and-related-work); there the product is the map, here it
+[`davis-bike-hazard-map`](#acknowledgments-and-related-work); there the product is the map, here it
 is the data and the statistics under it.
 
 ## What it does
@@ -589,7 +589,7 @@ lands in front of a city. Full statement: [`docs/ACCESSIBILITY.md`](docs/ACCESSI
   per-criterion ACR coverage** — a gap named rather than implied away.
 - The web pages run against automated checks on every CI run: the structural gate in `make verify`
   plus `axe-core` via `make axe`, which scans nine files' **static HTML in jsdom** (page scripts do
-  not run, so JavaScript-built views are not in the scanned DOM, and the colour-contrast rule is off
+  not run, so JavaScript-built views are not in the scanned DOM, and the color-contrast rule is off
   because jsdom has no layout). The segment-name table column is sticky for use at 200% zoom and
   column sorts announce through an `aria-live` region. Risk level and significance are conveyed in
   text and pattern, never by color alone; the source-only report prototype is keyboard-operable with
@@ -753,7 +753,10 @@ because the data itself is meant to be free.
 If you use nearmiss in research or advocacy, please cite it — citation metadata is in
 [`CITATION.cff`](CITATION.cff), and GitHub renders a ready-to-copy citation from it.
 
-## Acknowledgements and related work
+<!-- Keeps the pre-2026-09-18 anchor #acknowledgements-and-related-work working. -->
+<a id="acknowledgements-and-related-work"></a>
+
+## Acknowledgments and related work
 
 - **`davis-bike-hazard-map`** — a sibling project where the product is the map; here it is the data and
   the statistics under it.

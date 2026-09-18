@@ -2,7 +2,7 @@
 
 Benjamini-Hochberg, the published correction, needs the tests to be independent
 or positively regression dependent. Local Gi\\* tests on overlapping
-neighbourhoods are neither. This pass re-decides under Benjamini-Yekutieli, which
+neighborhoods are neither. This pass re-decides under Benjamini-Yekutieli, which
 holds under arbitrary dependence, and publishes how much of the significance
 survives. It never changes the published decision, and the tests here hold it to
 that as much as to the arithmetic.
@@ -58,7 +58,7 @@ def test_yekutieli_rejects_a_subset_of_hochberg() -> None:
     assert by == benjamini_hochberg(pvalues, 0.05 / harmonic(len(pvalues)))
 
 
-def test_single_test_is_unpenalised() -> None:
+def test_single_test_is_unpenalized() -> None:
     """With one test there is no multiplicity, so `c(1) = 1` and nothing changes."""
     pvalues = {"only": 0.04}
     assert benjamini_yekutieli(pvalues, 0.05) == benjamini_hochberg(pvalues, 0.05) == {"only"}

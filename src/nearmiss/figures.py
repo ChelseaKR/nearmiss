@@ -104,7 +104,7 @@ def _permutation_note(inference: PermutationInference) -> str:
     if not inference.evaluated:
         return (
             "**Permutation reference check:** not evaluated. No published significance claim "
-            "had a testable neighbourhood, so none was re-tested against an empirical reference "
+            "had a testable neighborhood, so none was re-tested against an empirical reference "
             "distribution. Not a passed check."
         )
     if inference.published_significant_tested == 0:
@@ -162,7 +162,7 @@ def _dependence_note(robustness: DependenceRobustness) -> str:
     """One sentence saying how much significance survives dropping independence.
 
     The published Benjamini-Hochberg correction assumes independence or positive
-    regression dependence; local spatial tests on overlapping neighbourhoods are
+    regression dependence; local spatial tests on overlapping neighborhoods are
     neither by construction, so how much of the ★ column depends on that
     assumption belongs beside the ★ column.
     """

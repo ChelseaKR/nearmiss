@@ -414,7 +414,7 @@ def test_the_printed_line_carries_the_counts_and_the_corridor_note() -> None:
     assert "HR1=not_applicable(0/0 features)" in result.stdout, result.stdout
     # CORRIDOR_VERDICT_NOTE explains that HR3 and HR5 are carried through the primary
     # -- which is also why both cells come from one predicate. It sat on the verdict
-    # object and was printed by nothing, so the two cells read as two judgements.
+    # object and was printed by nothing, so the two cells read as two judgments.
     assert "note: This verdict covers the corridor companion artifact" in result.stdout
 
 
@@ -467,7 +467,7 @@ def test_a_fars_artifact_with_no_cells_is_not_reported_as_a_pass(
     assert hr4["status"] == "not_applicable", hr4
     assert verdict["rules_not_applicable"]["HR4"].strip()
     # not_applicable was never a failure and still is not; what changed is that the
-    # label no longer claims a judgement nothing made.
+    # label no longer claims a judgment nothing made.
     assert hr4["failures"] == []
 
 

@@ -6,7 +6,7 @@ The earliest report (by timestamp, then id) is kept, so the result is
 deterministic.
 
 Uses spatial bucketing to accelerate the all-pairs comparison: reports are
-projected to local metres (as the rest of the pipeline does — see
+projected to local meters (as the rest of the pipeline does — see
 ``geometry.project``) and indexed there, then a radius query around each report
 narrows the comparison down to nearby, already-kept reports instead of all of
 them. The exact spatial/temporal/identity test in ``_is_duplicate`` (using true
@@ -50,7 +50,7 @@ def dedupe(reports: list[Report], config: Config) -> tuple[list[Report], list[st
     if not ordered:
         return [], []
 
-    # Build the spatial index in local projected METRES, not raw lon/lat
+    # Build the spatial index in local projected METERS, not raw lon/lat
     # degrees. A degree of longitude is ~111 km at the equator but shrinks by
     # cos(latitude) toward the poles, so a "cell" that is one degree-fraction
     # wide is not a fixed physical size once you leave the equator — at
@@ -77,7 +77,7 @@ def dedupe(reports: list[Report], config: Config) -> tuple[list[Report], list[st
     # A small extra margin on top of dedupe_distance_m absorbs the residual
     # error of the equirectangular projection (project() uses a single
     # reference latitude, so reports far from lat0/lon0 have a slightly
-    # different true degrees-to-metres scale); the exact haversine check in
+    # different true degrees-to-meters scale); the exact haversine check in
     # `_is_duplicate` remains the authority on whether a pair is a true
     # duplicate, so a generous margin only costs a few extra exact checks.
     search_radius_m = config.dedupe_distance_m + projection_margin_m(config.dedupe_distance_m)

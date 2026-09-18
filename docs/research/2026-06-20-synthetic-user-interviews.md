@@ -136,7 +136,7 @@ they'd fix, what they want next, and one verbatim line.
   form on the site** — intake is a JSON schema and a CLI. She has no path in.
 - **Fix:** Ship an actual accessible, mobile-first report form wired to intake.
 - **Next:** Offline capture (report in the dead zone, sync later), optional photo,
-  and a "your report helped flag B St" acknowledgement.
+  and a "your report helped flag B St" acknowledgment.
 - **Quote:** "I'm standing at the curb with adrenaline and a phone. If it's more
   than 20 seconds, it didn't happen."
 
@@ -442,7 +442,7 @@ Grouped by theme. Each: `R# — what` · personas · effort · priority · notes
 - **R40 — Ship an accessible, mobile-first report form** wired to `intake`. · P03,P04,P02 · L · **P0**
 - **R41 — Privacy explainer *before* the first field** (one sentence, plain). · P04,P03 · S · **P0** · HR4
 - **R42 — One-tap hazard-type + map pin; minimal typing.** · P04,P03 · M · P1
-- **R43 — Reporter acknowledgement loop** ("your report helped flag B St"). · P03 · M · P2
+- **R43 — Reporter acknowledgment loop** ("your report helped flag B St"). · P03 · M · P2
 - **R44 — Abuse/spam/rate-limit/moderation design _before_ opening intake.** · P23 · L · **P0** · HR4
 
 ### H. Documentation & comms

@@ -127,7 +127,7 @@ nearmiss contributor purge-expired            --config C   # retention_days wind
 inputs and fails if the committed output changed (HR5). **After a contributor
 deletion (or a retention purge) the published artifacts legitimately change** —
 the deleted reports no longer feed aggregation, so segment counts and any
-withholding boundary can shift. That is correct behaviour, not drift: re-run the
+withholding boundary can shift. That is correct behavior, not drift: re-run the
 pipeline and commit the new artifacts as the honest, post-deletion published
 state. The CLI prints this reminder after every `delete`.
 

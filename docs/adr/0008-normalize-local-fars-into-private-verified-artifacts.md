@@ -33,7 +33,7 @@ Add `nearmiss ingest-fars` for a local CSV or official nested ZIP already acquir
 - Reject non-finite coordinates, malformed or duplicate identities, year mismatch, excessive
   rejections, suspicious accepted-record regression and rollback to an older year against the active
   artifact. Record-count and year regressions can proceed only with distinct explicit operator
-  acknowledgements recorded in the normalized artifact.
+  acknowledgments recorded in the normalized artifact.
 - Activate only through the content-addressed ingestion transaction. Keep raw exports, normalized
   outcomes, active markers and receipts private and outside every served directory.
 - Print only hashes, aggregate counts, policy metadata and root-relative private paths; never print

@@ -58,7 +58,7 @@ WEB_PREFIX = "web."
 _FIELD = re.compile(r"\{[^{}]*\}")
 _URL = re.compile(r"(?:https?://|www\.)\S+", re.IGNORECASE)
 _CODE = re.compile(r"`[^`]*`")
-#: A "word" is two or more letters. Single letters are maths/variable names
+#: A "word" is two or more letters. Single letters are math/variable names
 #: (``n``, ``z``, ``k``) and are the same in every language.
 _WORD = re.compile(r"[^\W\d_]{2,}", re.UNICODE)
 
@@ -349,7 +349,7 @@ def _check_stale_exemptions(
 
     Without this the list only ever grows, and a list that only grows stops
     describing the catalogs and starts describing the project's history — at
-    which point nobody can tell a live judgement from a fossil.
+    which point nobody can tell a live judgment from a fossil.
     """
     errors: list[str] = []
     for locale, msgid in sorted(exemptions):

@@ -149,7 +149,7 @@ def test_revised_exposure(tmp_path: Path) -> None:
 
 
 def test_method_key_change(tmp_path: Path) -> None:
-    """A modelling key differs -> method_change wins precedence."""
+    """A modeling key differs -> method_change wins precedence."""
     old = _geojson([_seg("seg-03", significant=True, n=6)], "v1")
     new = _geojson([_seg("seg-03", significant=False, n=6)], "v2")
     new_meta = _meta("v2", getis_ord_band_m=500.0)
@@ -188,7 +188,7 @@ def test_suppression(tmp_path: Path) -> None:
 
 
 def test_recomputation(tmp_path: Path) -> None:
-    """Same inputs, significance flips from a neighbourhood effect -> recomputation."""
+    """Same inputs, significance flips from a neighborhood effect -> recomputation."""
     old = _geojson([_seg("seg-06", significant=False, n=6, z=1.5)], "v1")
     new = _geojson([_seg("seg-06", significant=True, n=6, z=2.4)], "v2")
     report = _run(tmp_path, old, new, _meta("v1"), _meta("v2"))

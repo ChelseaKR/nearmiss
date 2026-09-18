@@ -187,7 +187,7 @@ def test_the_swallow_parser_actually_reads_this_repositorys_recipes() -> None:
 
 
 def test_the_swallow_detector_flags_the_shape_that_actually_shipped() -> None:
-    """The historical `security` chain must still be recognised as a swallow."""
+    """The historical `security` chain must still be recognized as a swallow."""
     assert len(swallowing_lines(HISTORICAL_SWALLOW)) == 1
 
 

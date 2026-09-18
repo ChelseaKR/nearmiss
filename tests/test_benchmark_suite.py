@@ -150,7 +150,7 @@ def test_decoy_exposure_never_fools_the_scorer_in_any_committed_regime() -> None
 @pytest.mark.parametrize("name", CONFIG_NAMES)
 def test_every_benchmark_city_has_a_connected_street_network(name: str) -> None:
     """Regression guard for issue #196: every avenue and cross-street segment
-    must have at least one real network neighbour.
+    must have at least one real network neighbor.
 
     Through 2026-08-19 ``generator.py`` laid each grid out as short, mutually
     non-touching stubs — consecutive segments ended and began roughly 122 m
@@ -171,7 +171,7 @@ def test_every_benchmark_city_has_a_connected_street_network(name: str) -> None:
     segments = load_streets(config.streets_path)
     graph = SegmentGraph.build(segments, node_snap_m=config.gi_node_snap_m)
     assert not graph.isolated, (
-        f"{name}: {sorted(graph.isolated)} segment(s) have no network neighbour"
+        f"{name}: {sorted(graph.isolated)} segment(s) have no network neighbor"
     )
 
 

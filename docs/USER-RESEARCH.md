@@ -58,7 +58,7 @@ sequenced, cited backlog.
     (<https://safetrec.berkeley.edu/publications/evaluating-research-data-linkage-assess-underreporting-pedestrian-and-bicyclist-injury>);
     COST TU1101 international survey: **~10% average** reported to police (range
     ~0% to ~35%) (<https://pubmed.ncbi.nlm.nih.gov/29102034/>); Toronto police-vs-
-    health-utilisation comparison, 2016–2021
+    health-utilization comparison, 2016–2021
     (<https://pubmed.ncbi.nlm.nih.gov/38195658/>).
   - **Exposure / "safety in numbers" (≥2 sources)** — Jacobsen, *Safety in numbers*,
     **Injury Prevention** (2003): doubling the number of cyclists is associated with
@@ -130,7 +130,7 @@ the literature directly supports.
   coordinate with a maintainer — more than the "20 seconds with adrenaline" she has. The local two-map view is framed for
   cyclists; fine for her, not for a friend on foot.
 - **Wants next.** A one-tap hazard-type + pin with a true POST endpoint; offline
-  capture; the "your report helped flag B St" acknowledgement.
+  capture; the "your report helped flag B St" acknowledgment.
 - **Adopts if** reporting is genuinely sub-30s and her precise spot never goes
   public. **Walks if** it feels like a 311 queue that does nothing, or if she
   can't tell her exact location stays private. *(corroborates R40–R43)*

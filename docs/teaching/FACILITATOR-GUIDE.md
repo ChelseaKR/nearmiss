@@ -141,7 +141,7 @@ one missing? (c) what would you have to know to trust the "hotspot"?
 - The decoy is **`seg-03`, "3rd St (B–C)"**: it tops the raw-count ranking but
   falls the furthest to near the bottom of the rate ranking, is **not** in the
   top three by rate, and is **not** flagged as a significant Gi\* cluster.
-- The true hotspot is **`seg-06`, "5th St (C–D)"**: highest rate and the centre of
+- The true hotspot is **`seg-06`, "5th St (C–D)"**: highest rate and the center of
   the only significant cluster.
 - Tell participants the reveal cell *asserts* these facts against the pipeline, so
   the answer is not the facilitator's opinion — it is the same code that gates the

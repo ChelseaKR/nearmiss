@@ -4,7 +4,7 @@ landing the previously-orphaned SimRa fetch tool onto the adapter framework.
 
 SimRa (https://github.com/simra-project/dataset, TU Berlin) is a crowdsourced,
 openly-published dataset of **bicycle near-crashes** with GPS — the closest
-real-world analogue to nearmiss's own input, and unusual in that the same
+real-world analog to nearmiss's own input, and unusual in that the same
 source also carries the *ride* GPS traces, a natural exposure denominator
 (not wired up here; see ``docs/REAL-DATA.md``'s exposure section).
 

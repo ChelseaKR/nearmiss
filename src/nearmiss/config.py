@@ -106,7 +106,7 @@ class Config:
     overdispersion_adjust: bool = False
     fdr_alpha: float = 0.05  # Benjamini-Hochberg false-discovery-rate level
     gi_band_m: float = 300.0
-    # Two street-segment endpoints within this many metres are treated as the
+    # Two street-segment endpoints within this many meters are treated as the
     # same network intersection when building the Gi* adjacency graph (see
     # network.py). Independent of snap_max_m (which snaps a REPORT to its
     # nearest segment) — this is about recognizing that two segment endpoints

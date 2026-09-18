@@ -25,7 +25,7 @@ accessible web view, and the published Davis demo dataset.
   first, while **seg-03** — which has the **most raw reports** (n=20) — ranks
   6th at rate 2.5. Volume is not danger.
 - **Getis-Ord Gi\*** flags **only seg-06** as significant (z = 3.26 > 1.96),
-  the planted cluster centre.
+  the planted cluster center.
 - The published GeoJSON for Davis hashes to
   `033aa7f764cd1b3dda61ca4d599cfa0afaa41114dcfdcb619281d2fb2805f955`
   and the privacy invariant (`assert_published_clean`) holds: no per-report

@@ -1480,7 +1480,7 @@ def build_parser() -> argparse.ArgumentParser:
             "cannot resurrect them. Because deletion changes the raw inputs, the "
             "published artifacts legitimately change: `make reproduce` rebuilds from "
             "the surviving raw records and its committed outputs are EXPECTED to move "
-            "after a deletion (that is correct behaviour, not drift)."
+            "after a deletion (that is correct behavior, not drift)."
         ),
     )
     add_config(p_con)

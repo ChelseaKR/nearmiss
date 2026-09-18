@@ -62,7 +62,7 @@ make (collected in [Open decisions](#open-decisions-for-the-maintainer)).
 - **No precise data ever leaves the private boundary.** Publication remains the
   only path from `raw/` to `published/` (`publish.py`), which already aggregates
   to segments, applies jitter, and withholds low-count blocks (k-anonymity).
-- **Acknowledgement loop** (R43): "your report helped flag B St" once a segment
+- **Acknowledgment loop** (R43): "your report helped flag B St" once a segment
   crosses the publish threshold — computed from public aggregates, never exposing
   who else reported.
 
@@ -134,7 +134,7 @@ updating that document, not just this one.
 ## Rollout phases
 
 1. **Closed pilot** — one city, invite-only tokens, manual review of every
-   report. Validates the form, the privacy boundary, and the acknowledgement loop
+   report. Validates the form, the privacy boundary, and the acknowledgment loop
    with near-zero abuse risk.
 2. **Invite / partner** — advocacy orgs distribute tokens; trust tiers on;
    automated dedup + influence caps live; moderation reviews anomalies only.

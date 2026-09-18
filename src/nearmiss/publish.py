@@ -396,7 +396,7 @@ def publish(config: Config) -> PublishResult:
             # FIX-02: neighbors are street-network adjacency/distance
             # (nearmiss.network.SegmentGraph), not straight-line centroid
             # distance — see METHODOLOGY §8.2. gi_node_snap_m is the tolerance
-            # (metres) within which two segment endpoints are treated as the
+            # (meters) within which two segment endpoints are treated as the
             # same real-world intersection when building that graph.
             "getis_ord_neighbors": "street-network adjacency/distance",
             "getis_ord_node_snap_m": config.gi_node_snap_m,

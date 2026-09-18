@@ -29,14 +29,14 @@ outcome all exist; anything short of that is blocked, with the block named.
 | RE-01, RE-03, RE-07, RE-08 | **Blocked** | Need external datasets this repository does not and should not vendor (issue #186). |
 | RE-04 equity overlay | **Blocked** | Needs consent and co-design with affected communities, by the research roadmap's own instruction. |
 | RE-10 abuse toolkit | **Not a phase** | A hard gate on opening public intake, which nothing here approaches. |
-| Product Expansion Plan phases | **Blocked** | Need real interviews and real design partners. Synthesising them is the failure the plan warns against. |
+| Product Expansion Plan phases | **Blocked** | Need real interviews and real design partners. Synthesizing them is the failure the plan warns against. |
 
 ## What this program is not
 
 It is **not** a product plan and it does not overrule one.
 [`PRODUCT-EXPANSION-PLAN.md`](PRODUCT-EXPANSION-PLAN.md) is the product strategy;
 its "Do not build" list and its freeze on broad expansion are decisions with
-stated reasons, and this program honours them. In particular this program adds no
+stated reasons, and this program honors them. In particular this program adds no
 new user surface, no new collection channel, no new public map, and no cross-city
 comparison. Everything it touches is the analysis layer that already ships, its
 documentation, and its tests.
@@ -108,7 +108,7 @@ this phase is the honest kind of gap: a stated absence, not a false claim.
 
 Significance today comes from the analytic normal-approximation Gi\* z-score,
 which assumes an asymptotic normal reference that sparse, skewed,
-exposure-normalized rates over small neighbourhoods do not reliably satisfy. The
+exposure-normalized rates over small neighborhoods do not reliably satisfy. The
 permutation reference asks the same question empirically: hold the unit's own
 value fixed, permute the remaining values across the other units, recompute Gi\*,
 and read the observed statistic against that distribution.
@@ -134,8 +134,8 @@ cannot resolve `alpha` at all.
 
 RR-08. Benjamini-Hochberg controls the false discovery rate under independence or
 positive regression dependence; the local Gi\* tests are neither independent nor
-guaranteed to satisfy PRDS, because neighbouring units share the values in their
-overlapping neighbourhoods.
+guaranteed to satisfy PRDS, because neighboring units share the values in their
+overlapping neighborhoods.
 
 The research roadmap cites Caldas de Castro & Singer (2006) for a spatially-aware
 FDR. **That method is not implemented here, and this phase will not claim it is.**
@@ -167,7 +167,7 @@ how little information it carries.
 
 Shipped as a **robustness pass, not a published rate**, for the reason
 METHODOLOGY §6.3 gives for not bias-correcting rates by default: a smoothed
-number that looks authoritative can launder a modelling assumption into a fact.
+number that looks authoritative can launder a modeling assumption into a fact.
 Shrinkage assumes the segments are exchangeable draws from one distribution,
 which is a strong assumption on a street network, and it deliberately pulls the
 extremes in, which is the wrong default for a tool whose job is to find extremes.
@@ -206,7 +206,7 @@ tier-derived multiplier, no assumed error bar. The sensitivity half of RR-03
 shipped in #209 precisely because it needs no invented distribution.
 
 **What would unblock it:** either an exposure source that publishes its own
-uncertainty (a count programme reporting a standard error or a replicate design),
+uncertainty (a count program reporting a standard error or a replicate design),
 or an explicit, cited decision by the maintainer to adopt a named error model and
 to publish intervals that depend on it. The second is a methodology change with a
 statistician's sign-off attached, which `ROADMAP.md` already lists as a REVIEW
@@ -243,7 +243,7 @@ records (SWITRS/TIMS or equivalent) for the validation study and the Vision Zero
 tri-view, a counts portal or Strava Metro agreement for real exposure depth, and
 two comparable time periods around a real intervention for before/after. The
 adapter framework's own open issue (#186) records the shape of the problem: the
-sources with an open licence have no data here, and the source with data has a
+sources with an open license have no data here, and the source with data has a
 NonCommercial clause.
 
 **What would unblock them:** a data-sharing agreement or an open licensed extract,
@@ -274,10 +274,10 @@ before that form does.
 ### The Product Expansion Plan's own phases
 
 **Blocked on real people, and deliberately so.** The plan's "Now" phase is eight
-to twelve interviews with real organisations and three concierge dossiers with
+to twelve interviews with real organizations and three concierge dossiers with
 real partners, and its exit gates are stated in terms of what those people say and
 do. Its first action is a four-week freeze on broad expansion. An agent cannot
-recruit an interviewee, and synthesising one would be the precise failure the plan
+recruit an interviewee, and synthesizing one would be the precise failure the plan
 warns about when it says "do not count existing synthetic personas."
 
 **What would unblock it:** the maintainer running the interviews. Until then the
@@ -297,7 +297,7 @@ document that lists only additions reads as if everything is eventually coming:
 - cross-city safety leaderboards pooling incompatible exposure units;
 - gamification, bounties, or streaks;
 - a national standard or federation before two independent adopters exist;
-- more national FARS visualisations without a validated user task.
+- more national FARS visualizations without a validated user task.
 
 Two additions specific to this program:
 

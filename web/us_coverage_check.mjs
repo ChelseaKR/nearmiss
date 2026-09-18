@@ -126,7 +126,7 @@ function rebindArtifact(year, bytes) {
 // So wait for the digests the harness itself handed out to finish, then hold
 // the original seven quiet turns so purely-microtask work drains exactly as it
 // did before. When nothing is in flight this is turn-for-turn the old
-// behaviour; otherwise it only ever waits longer. It never asserts less. If the
+// behavior; otherwise it only ever waits longer. It never asserts less. If the
 // page never goes quiet the harness fails loudly rather than sampling anyway.
 const SETTLE_QUIET_TURNS = 7;
 const SETTLE_MAX_TURNS = 5000;
@@ -414,7 +414,7 @@ async function main() {
   if (apex.querySelector('meta[property="og:site_name"]')?.getAttribute("content") !== "NearMiss") {
     die("apex does not identify the NearMiss product surface");
   }
-  // A shared link with no image is a blank grey card, which is what every one of
+  // A shared link with no image is a blank gray card, which is what every one of
   // these pages produced before the card existed.
   if (apex.querySelector('meta[property="og:image"]')?.getAttribute("content") !== SOCIAL_CARD) {
     die("apex does not name the absolute link-preview card");
@@ -1474,7 +1474,7 @@ async function main() {
   if (digestsObserved === 0) {
     die(
       "the harness never observed an artifact digest: settle() cannot be waiting on the " +
-        "page's SHA-256 verification, so its waits are unsynchronised again"
+        "page's SHA-256 verification, so its waits are unsynchronized again"
     );
   }
   console.log(

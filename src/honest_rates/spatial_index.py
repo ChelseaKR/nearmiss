@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class SpatialIndex:
-    """Uniform grid spatial index in projected metres.
+    """Uniform grid spatial index in projected meters.
 
     The grid spans the bounding box of all indexed items with a configurable
     cell size. All queries return results identical to brute-force iteration,
@@ -28,7 +28,7 @@ class SpatialIndex:
     bounds: tuple[float, float, float, float] | None = None  # (x_min, y_min, x_max, y_max)
 
     def _cell_key(self, x: float, y: float) -> tuple[int, int]:
-        """Map (x, y) in metres to cell (cell_x, cell_y)."""
+        """Map (x, y) in meters to cell (cell_x, cell_y)."""
         return (int(x // self.cell_size_m), int(y // self.cell_size_m))
 
     def add(self, item_id: str, x: float, y: float) -> None:

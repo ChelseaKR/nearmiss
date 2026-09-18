@@ -21,7 +21,7 @@ described an exposure-sensitivity pass in the present tense since 2026-06-16, an
 no such code existed. The fix landed the pass, and it landed a test that reads the
 paragraph and the committed artifacts and checks them against each other
 (`test_methodology_describes_what_the_code_actually_computes`). That test caught
-one paragraph. Nothing generalised it.
+one paragraph. Nothing generalized it.
 
 Auditing the rest of the published statistics against their own descriptions found
 four more of the same class in the 0.4.0 tree. None of them is a crash, a lint

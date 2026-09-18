@@ -124,7 +124,7 @@
   },
   "license": "Apache-2.0",
   "maup_rank_stability": {
-    "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
+    "basis": "greedy nearest-neighbor re-segmentation to a coarser partition",
     "coarse_units": 90,
     "fine_units": 180,
     "k": 5,

@@ -31,7 +31,7 @@ Two things the generator deliberately does *not* do:
 
 ## The prose above and below the markers is pinned separately
 
-A generated file with hand-authored regions is its own hazard: the generator legitimises
+A generated file with hand-authored regions is its own hazard: the generator legitimizes
 whatever it finds. This tool was ported to `davis-bike-hazard-map`, and there a bad conflict
 resolution deleted two paragraphs from the prose *outside* the markers. The only thing that
 noticed was a generated count — relative links fell 96 to 95 — and the documented repair for a

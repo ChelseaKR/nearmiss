@@ -424,7 +424,7 @@ def prompt_answers(
         ("id", "Short source id (lowercase, no spaces)"),
         ("name", "Source name, as you would cite it"),
         ("url", "URL for the source, or a description of where it lives"),
-        ("license", "Licence or rights basis for these records"),
+        ("license", "License or rights basis for these records"),
         ("publication_note", "On what basis was that status reached? Name the clause or document"),
         ("bias_label", "One line naming this source's skew"),
     ):

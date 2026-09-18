@@ -14,8 +14,8 @@ Ground truth per segment falls into four roles:
 
   * ``hotspot``               — genuinely elevated incident rate (planted signal
     a good method MUST find). Laid out as a plus-shaped 5-segment cluster (one
-    strongly elevated centre avenue block + its north, south, east, and west
-    neighbours) so a neighbourhood statistic (Getis-Ord Gi*) has real
+    strongly elevated center avenue block + its north, south, east, and west
+    neighbors) so a neighborhood statistic (Getis-Ord Gi*) has real
     street-network spatial support, not an isolated cell — see "The street
     grid" below for how that support is actually wired up.
   * ``decoy_exposure``        — high exposure -> high RAW report count, but a
@@ -41,7 +41,7 @@ Issue #196: through 2026-08-19 this generator laid every city out as short,
 mutually non-touching stubs (~122 m gaps against a 5 m node-snap tolerance),
 so the adjacency graph ``nearmiss.network.SegmentGraph`` builds from
 ``streets.geojson`` had no edges at all — every segment was a singleton
-neighbourhood (ADR-0015, issue #193), and every "Gi* z" this suite ever
+neighborhood (ADR-0015, issue #193), and every "Gi* z" this suite ever
 scored was actually the plain global z-score.
 
 Cities are now a real, connected two-layer grid:
@@ -55,7 +55,7 @@ Cities are now a real, connected two-layer grid:
     blocks into one wider published segment (the MAUP regime pair) by moving
     the shared endpoint outward; the outer endpoints of a merge group are
     still real boundary nodes, so a merged block still meets its row
-    neighbours exactly.
+    neighbors exactly.
   * **Cross-street segments** (north-south) — one per intersection boundary
     column, connecting every pair of adjacent avenue rows, always at full
     (unmerged) granularity regardless of ``merge_cols``. These carry no
@@ -64,8 +64,8 @@ Cities are now a real, connected two-layer grid:
     endpoints are boundary nodes, so it always has a cross-street touching
     each end, reaching the same-column avenue block one row north or south in
     two hops. That is what gives the plus-shaped hotspot cluster (and every
-    other segment) genuine street-network neighbours: the centre and its
-    east/west neighbours touch directly; the north/south neighbours are two
+    other segment) genuine street-network neighbors: the center and its
+    east/west neighbors touch directly; the north/south neighbors are two
     hops away via a cross-street, both comfortably inside the default
     ``gi_band_m`` (300 m) at this grid's ~100 m block spacing (see ``DLAT``
     / ``DLON`` below).
@@ -73,7 +73,7 @@ Cities are now a real, connected two-layer grid:
     A cross-street at a boundary a coarse (``merge_cols`` > 1) avenue group
     has swallowed loses its link to the avenue layer at that column — its two
     ends no longer coincide with any avenue segment's endpoint — while
-    staying connected to its own north-south neighbours. That is not routed
+    staying connected to its own north-south neighbors. That is not routed
     around: re-drawing published segment boundaries at a coarser grain is
     exactly what the MAUP regime pair is testing, and the scorer measures
     whatever topology that produces rather than assuming the fine city's
@@ -137,8 +137,8 @@ REPORT_SPACING_MIN = 15  # global minutes between successive reports; keeps ever
 
 # Grid origin and spacing. Each block (one avenue segment, or one row-gap of
 # one cross-street) is ~100 m, so the 2-hop network path a plus-shape cluster
-# neighbour must clear -- half the centre block + one cross-street + half the
-# neighbour block, ~200 m at merge_cols=1 -- comfortably clears the default
+# neighbor must clear -- half the center block + one cross-street + half the
+# neighbor block, ~200 m at merge_cols=1 -- comfortably clears the default
 # gi_band_m (300 m, nearmiss.config.DEFAULT gi_band_m) with real margin, while
 # a 3-hop path (two blocks away) sits around 300-350 m and mostly does not.
 # DLON is shorter in degrees than DLAT because a degree of longitude is
@@ -169,8 +169,8 @@ class RegimeConfig:
     rate_per: float = 1000.0
     baseline_lambda: float = 10.0  # true incidents per rate_per exposure units
     baseline_exposure: float = 300.0
-    hotspot_core_multiplier: float = 6.0  # centre of the planted cluster
-    hotspot_cluster_multiplier: float = 3.0  # the 4 plus-shape neighbours
+    hotspot_core_multiplier: float = 6.0  # center of the planted cluster
+    hotspot_cluster_multiplier: float = 3.0  # the 4 plus-shape neighbors
     decoy_exposure_multiplier: float = 10.0  # exposure multiplier for exposure decoys
     decoy_reporting_multiplier: float = 1.0  # >1.0 activates the reporting-bias trap
     overdispersion_phi: float = 0.0  # 0 = pure Poisson; >0 = Gamma-Poisson dispersion
@@ -238,7 +238,7 @@ def _poisson(rng: random.Random, mean: float) -> int:
 
 def _cluster_offsets() -> list[tuple[int, int, str]]:
     """Plus-shape: (row_off, col_off, sub-role). Mirrors tools/make_fixtures.py's
-    proven pattern of a hot centre with hot cross-street neighbours, which is what
+    proven pattern of a hot center with hot cross-street neighbors, which is what
     gives Getis-Ord Gi* spatial support to call the cluster significant."""
     return [
         (0, 0, "core"),
@@ -340,7 +340,7 @@ def _build_connector_cells(cfg: RegimeConfig) -> dict[tuple[int, int], Cell]:
     carry no planted signal (always ``background``, baseline rate/exposure)
     -- they exist purely to give the grid real intersections, so the
     plus-shaped hotspot cluster (and every other segment) has genuine
-    street-network neighbours instead of the isolated stubs issue #196
+    street-network neighbors instead of the isolated stubs issue #196
     found. Keyed by ``(row_gap, boundary_col)``, a disjoint index space from
     ``_build_cells``'s ``(row, col)`` so the two dicts never collide, and
     positioned at each cross-street's own midpoint -- clear of the shared
@@ -443,7 +443,7 @@ def _cell_reports(
     avenue's east-west axis -- independent of how cells are later grouped
     into published segments, and kept well clear of the shared boundary node
     with the next cell (_LON_JITTER_HALF_WIDTH) so a report always snaps to
-    the intended segment, never a neighbour it happens to touch."""
+    the intended segment, never a neighbor it happens to touch."""
     reports: list[dict[str, object]] = []
     i = start_i
     for cell in cells_in_order:

@@ -1,6 +1,6 @@
 """Pure-Python planar geometry for a city-scale analysis.
 
-Coordinates are projected to local metres with an equirectangular approximation
+Coordinates are projected to local meters with an equirectangular approximation
 about a reference latitude. For a single city this is accurate to well within
 the precision the analysis needs, and it avoids any native geospatial
 dependency, so the pipeline runs anywhere Python runs. The approximation and its
@@ -32,7 +32,7 @@ __all__ = [
 
 
 def _point_seg_dist_xy(px: float, py: float, ax: float, ay: float, bx: float, by: float) -> float:
-    """Distance from point P to segment AB, all in projected metres."""
+    """Distance from point P to segment AB, all in projected meters."""
     dx, dy = bx - ax, by - ay
     if dx == 0.0 and dy == 0.0:
         return math.hypot(px - ax, py - ay)
@@ -49,7 +49,7 @@ def point_to_polyline_m(
     lat0: float,
     lon0: float,
 ) -> float:
-    """Minimum distance in metres from a point to a polyline (a street segment)."""
+    """Minimum distance in meters from a point to a polyline (a street segment)."""
     px, py = project(lat, lon, lat0, lon0)
     best = math.inf
     for i in range(len(coords) - 1):

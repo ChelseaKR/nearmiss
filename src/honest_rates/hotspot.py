@@ -83,7 +83,7 @@ def benjamini_yekutieli(pvalues: dict[str, float], alpha: float) -> set[str]:
 
     :func:`benjamini_hochberg` controls the false discovery rate when the tests
     are independent or positively regression dependent (PRDS). Local spatial
-    statistics are neither by construction: two neighbouring units share the
+    statistics are neither by construction: two neighboring units share the
     values inside their overlapping neighborhoods, and the sign of that
     dependence is not guaranteed.
 
@@ -110,13 +110,13 @@ def band_neighbors(
     """A straight-line distance-band neighbor map for :func:`getis_ord_star`.
 
     Two units are neighbors when their (lat, lon) centroids lie within
-    ``band_m`` metres of each other (great-circle distance). This is the
+    ``band_m`` meters of each other (great-circle distance). This is the
     honest fallback for consumers without a real network topology: a Euclidean
     band can treat two units separated by a river, freeway, or fence line as
     neighbors, which network-aware weights would not — say so in your methods
     note if you publish results built on it.
 
-    A spatial index (projected to local metres about the centroid cloud's
+    A spatial index (projected to local meters about the centroid cloud's
     mean) prunes the candidate set; exact haversine distance decides
     membership, so the projection cannot change the answer.
     """

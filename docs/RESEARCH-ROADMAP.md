@@ -56,7 +56,7 @@ are corroborated by **≥2 independent sources**, as flagged.
 - COST TU1101 international survey: average **~10%** of bicycle crashes reported to
   police (range ~0% to ~35% across countries). **Accident Analysis & Prevention**.
   <https://pubmed.ncbi.nlm.nih.gov/29102034/>
-- Toronto police-vs-health-service-utilisation comparison, 2016–2021.
+- Toronto police-vs-health-service-utilization comparison, 2016–2021.
   <https://pubmed.ncbi.nlm.nih.gov/38195658/>
 
 **C. Exposure normalization & "safety in numbers" — ≥2 sources**
@@ -281,7 +281,7 @@ Shipped this pass: **RR-02** overdispersion check (quasi-Poisson / negative-bino
 **RR-03 lands its sensitivity half, not its interval half.** `stats/exposure_sensitivity.py` re-runs
 the published ranking under the alternative denominators each segment's exposure record already
 declares (`Exposure.sources`) and publishes `stable` / `fragile` / `not_evaluated` per dataset — the
-behaviour `METHODOLOGY` §3.3 and ADR 0002 had described in the present tense since 2026-06-16 without
+behavior `METHODOLOGY` §3.3 and ADR 0002 had described in the present tense since 2026-06-16 without
 any code behind it. Nothing is invented: where no segment declares a second reading the pass reports
 an unanswered question rather than a pass. **The other half of RR-03 is still open** — the published
 confidence interval still covers the count and not the denominator, so RR-03 stays on this backlog

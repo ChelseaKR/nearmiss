@@ -143,7 +143,7 @@ Anything that affects how a rate should be read is mirrored, in full, in the dat
 > sidecar's top-level fields are `city`, `version`, `schema_version`, `dataset_note`, `license`, `schema`,
 > `schema_json`, `data_card`, `window` (the analysis window bounding every rate in the file),
 > `methods` (the rate denominator, confidence level, small-n and min-publish-n thresholds,
-> the FDR level, the Getis-Ord band, neighbour definition and node-snap tolerance, the KDE bandwidth,
+> the FDR level, the Getis-Ord band, neighbor definition and node-snap tolerance, the KDE bandwidth,
 > the exposure floor and staleness threshold, the significance statement, the quasi-Poisson
 > `dispersion` block, and a `rate_definition`
 > labeling the top-level `rate` as the pooled union across all hazard types with per-type rates in
@@ -312,7 +312,7 @@ vocabulary, so a consumer never has to know the internal flag names:
 | `geocode_low_confidence` | Aggregated reports here include low-positional-accuracy or far-snap locations (the internal `low_accuracy`/`far_snap` flags); placement is less certain. Address-only reports resolved by the geocoder can also raise this when the resolved location is uncertain. |
 | `exposure_unknown` | No exposure denominator was available (including a denominator at or below the configured exposure floor); `exposure_estimate`/`rate`/`rate_ci_low`/`rate_ci_high` are `null` and `confidence_label` is `"exposure_unknown"`. Shown as "exposure unknown," not rated (**HR1**, degradability). |
 | `exposure_stale` | The exposure vintage (`exposure_date`) and the reports this feature's rate is built from are more than the configured threshold apart — a temporal-alignment caveat (METHODOLOGY §3.2: "a rate whose exposure was measured in a different period than its reports has a temporal mismatch"). Never set on a feature with `exposure_unknown` — a rate has to exist before its temporal alignment is meaningful. |
-| `singleton_neighborhood` | *(schema 1.2.0)* This feature's Gi\* neighborhood contained no other **rated** feature, so `getis_ord_z` is a **global** z-score — this feature against the whole city's rate distribution — and not the local cluster statistic Gi\* is normally read as. The z is still published, because hiding it would be its own distortion, but it answers "is this unusual for the city?" rather than "is this hot relative to its surroundings?", and `getis_ord_significant` is **always `false`** on such a feature so a significance claim never rests on it. Causes: a genuinely disconnected segment, a segment too long to reach a neighbour within the configured Gi\* band, or a segment whose neighbours all lack an exposure denominator. See [ADR-0015](../docs/adr/0015-a-singleton-gi-star-neighborhood-is-labeled-and-never-significant.md). |
+| `singleton_neighborhood` | *(schema 1.2.0)* This feature's Gi\* neighborhood contained no other **rated** feature, so `getis_ord_z` is a **global** z-score — this feature against the whole city's rate distribution — and not the local cluster statistic Gi\* is normally read as. The z is still published, because hiding it would be its own distortion, but it answers "is this unusual for the city?" rather than "is this hot relative to its surroundings?", and `getis_ord_significant` is **always `false`** on such a feature so a significance claim never rests on it. Causes: a genuinely disconnected segment, a segment too long to reach a neighbor within the configured Gi\* band, or a segment whose neighbors all lack an exposure denominator. See [ADR-0015](../docs/adr/0015-a-singleton-gi-star-neighborhood-is-labeled-and-never-significant.md). |
 
 These five are the **published** flags emitted by `publish.py`. Flags are intentionally conservative:
 it is better to over-mark a feature as uncertain than to present a thin or biased estimate as solid. The
@@ -637,7 +637,7 @@ propagating exposure uncertainty into the interval, this project re-runs the ran
 corroborating readings of §3.1 of the methodology) and reports how much the conclusion moves.
 `stats/exposure_sensitivity.py` builds two scenarios — `declared_low` (each segment takes the smallest
 usable reading it declares) and `declared_high` (the largest) — re-ranks, and re-runs Gi\* with the same
-FDR level and the same singleton-neighbourhood suppression as the published dataset.
+FDR level and the same singleton-neighborhood suppression as the published dataset.
 
 No alternative denominator is ever invented: no perturbation model, no tier-derived multiplier, no
 assumed error bar. **The direct consequence is that this check often cannot run, and it says so.**
@@ -666,7 +666,7 @@ A consumer must treat `evaluated: false` as an **unanswered question**, not a pa
 missing result as stability is the exact misreading this block is shaped to prevent, which is why
 `top_segment_survives` is `null` rather than `false` in that case: neither "it held" nor "it broke" is
 true when nothing was tested. The decision, including why no alternative denominator is
-synthesised when none is declared, is
+synthesized when none is declared, is
 [ADR 0016](../docs/adr/0016-exposure-sensitivity-uses-declared-denominators-and-may-refuse-to-run.md).
 
 ### 10.3 `gi_permutation`: does the significance survive a different reference distribution?
@@ -712,7 +712,7 @@ not read an untested segment as a tested one that passed.
 
 `getis_ord_significant` is decided with a Benjamini-Hochberg correction (§4.4), which controls the
 false discovery rate when the tests are independent or positively regression dependent. Local Gi\*
-tests on overlapping neighbourhoods are neither. `stats/multiplicity.py` re-decides significance
+tests on overlapping neighborhoods are neither. `stats/multiplicity.py` re-decides significance
 under **Benjamini-Yekutieli**, the same step-up procedure at `alpha / c(m)` with `c(m)` the m-th
 harmonic number, which controls the FDR under arbitrary dependence, and reports how many published
 clusters survive.

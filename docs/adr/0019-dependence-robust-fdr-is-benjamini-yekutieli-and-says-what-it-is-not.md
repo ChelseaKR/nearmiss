@@ -14,8 +14,8 @@ false-discovery-rate correction across the per-segment tests (`METHODOLOGY.md`
 regression dependent** (PRDS).
 
 The local Gi\* tests in this project are neither, by construction. Two
-neighbouring segments' Gi\* statistics are computed over overlapping
-neighbourhoods and therefore share input values. The dependence is real, and its
+neighboring segments' Gi\* statistics are computed over overlapping
+neighborhoods and therefore share input values. The dependence is real, and its
 sign is not guaranteed: exposure-normalized rates on a street network can be
 positively autocorrelated in one corridor and negatively so across a boundary. So
 BH is being applied outside the conditions under which it is proved, which is the
@@ -107,7 +107,7 @@ choosing near-universal non-detection at city scale.
 **Say nothing and keep the footnote.** This was the status quo, and it left an
 assumption doing load-bearing work with no measurement of how much work.
 
-**Estimate the effective number of independent tests from the neighbourhood
+**Estimate the effective number of independent tests from the neighborhood
 structure and correct against that.** Attractive, and it is roughly the shape of
 what a spatially-aware FDR does. Rejected here because the estimator is exactly
 the part that needs a source: any particular choice would be a specification this

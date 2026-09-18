@@ -580,11 +580,11 @@ def check_fars_hr1(artifact: Any) -> list[str]:
             )
     caveat = artifact.get("caveat") if isinstance(artifact, dict) else None
     if not isinstance(caveat, str) or not caveat.strip():
-        failures.append("caveat is missing or empty (counts must be labelled as not risk)")
+        failures.append("caveat is missing or empty (counts must be labeled as not risk)")
     elif "not exposure-normalized risk" not in caveat:
         failures.append(
             "caveat does not say the counts are 'not exposure-normalized risk'; HR1 "
-            "requires a raw count to be labelled as volume, never as danger"
+            "requires a raw count to be labeled as volume, never as danger"
         )
     return failures
 
@@ -785,7 +785,7 @@ def verify_fars_state_context(
 
     rules: dict[str, Any] = {
         # HR1 is not marked not_applicable over an empty scan: it also asserts the
-        # caveat, which is a document-level judgement it really did make. The empty
+        # caveat, which is a document-level judgment it really did make. The empty
         # scan is a *failure* instead, via `_scan_floor`.
         "HR1": _rule(
             check_fars_hr1(artifact),
@@ -816,7 +816,7 @@ def verify_fars_state_context(
             unit="state-mode cells",
         ),
         # HR5 keeps no coverage figure on purpose: it binds the artifact's bytes to
-        # the release index, which is a document-level judgement that no cell count
+        # the release index, which is a document-level judgment that no cell count
         # describes. Its accounting recompute walks the cells, and the byte binding
         # is what stops an empty artifact passing it.
         "HR5": _rule(check_fars_hr5(artifact_path, artifact_bytes, artifact, release, index_path)),
@@ -855,7 +855,7 @@ def _rule(
     ``not_applicable`` with ``empty_reason``, which is what the FARS family
     already does for HR2 and prints beneath the verdict line. The overall verdict
     is unchanged -- ``not_applicable`` was never a failure and still is not --
-    but the label stops claiming a judgement that was not made.
+    but the label stops claiming a judgment that was not made.
 
     ``unit`` names what was counted. The city families judge *features*; the FARS
     family judges *state-mode cells* and *property names*, and a coverage figure

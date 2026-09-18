@@ -284,7 +284,7 @@ def test_indexable_pages_publish_canonical_social_metadata(tmp_path: Path) -> No
         ), relative
         assert document.meta_properties["og:url"] == [canonical], relative
 
-        # A link preview without an image is a blank grey card, and an image
+        # A link preview without an image is a blank gray card, and an image
         # named by a relative URL resolves against the *sharing* site rather
         # than this one. Both halves are pinned: the absolute URL, and the
         # published file it has to resolve to.
@@ -758,7 +758,7 @@ def test_sitemap_lists_every_indexable_page_and_nothing_else(tmp_path: Path) -> 
         relative = built.relative_to(out).as_posix()
         own_route = "/" if relative == "index.html" else "/" + relative.removesuffix("index.html")
         if canonical != f"{CANONICAL_ORIGIN}{own_route}":
-            # Canonicalised to another route (the duplicate national document),
+            # Canonicalized to another route (the duplicate national document),
             # so it is correctly absent from the sitemap.
             continue
         assert canonical in advertised, relative

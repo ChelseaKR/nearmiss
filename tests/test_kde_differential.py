@@ -6,7 +6,7 @@ The spatial-indexing branch (FIX-12) built the KDE point index with
 typical city-scale inputs and bandwidths this degraded to an unaccelerated
 full scan with no 4-sigma truncation at all (rather than a wrong answer), but
 that was luck, not correctness by design. The fix projects points and grid
-cells to local metres before indexing, and makes the documented 4-sigma
+cells to local meters before indexing, and makes the documented 4-sigma
 truncation an explicit, exact check rather than an implicit side effect of a
 broken radius filter. These tests prove, at a non-trivial latitude (~34
 degrees), that the indexed implementation's grid intensities match a

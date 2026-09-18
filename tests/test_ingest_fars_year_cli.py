@@ -172,7 +172,7 @@ def _make_checkout(root: Path) -> Path:
 
     Deliberately written out here rather than imported from the module under test:
     a fixture built from the code's own marker list would agree with any change to
-    that list, including a change that stops recognising a real checkout.
+    that list, including a change that stops recognizing a real checkout.
     """
 
     (root / "src" / "nearmiss").mkdir(parents=True)

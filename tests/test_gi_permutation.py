@@ -119,7 +119,7 @@ def test_a_refused_pass_never_reports_corroboration(config: Config) -> None:
     A pseudo p-value cannot go below 1/(permutations+1). With too few
     permutations the empirical test could not detect significance even in
     principle, so the pass must decline rather than report that nothing
-    disagreed. The same applies when no segment has a testable neighbourhood.
+    disagreed. The same applies when no segment has a testable neighborhood.
     """
     too_few = dataclasses.replace(config, gi_permutations=5)  # 1/6 > 0.05
     stats: list[SegmentStats] = []
@@ -261,7 +261,7 @@ def test_methodology_describes_what_the_permutation_pass_actually_computes() -> 
     ):
         assert token in claim, f"METHODOLOGY §8.2 does not name {token!r}"
 
-    # Line wrapping is not part of the claim, so compare on normalised whitespace.
+    # Line wrapping is not part of the claim, so compare on normalized whitespace.
     flat = " ".join(claim.split())
     davis = json.loads((PUBLISHED / "davis.metadata.json").read_text(encoding="utf-8"))
     block = davis["gi_permutation"]

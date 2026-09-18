@@ -559,7 +559,7 @@ def _render_permutation(
         out.append(
             _(
                 "- **Significance under a permutation reference.** Not evaluated: no published "
-                "significance claim had a testable neighbourhood, so none was re-tested against "
+                "significance claim had a testable neighborhood, so none was re-tested against "
                 "an empirical reference distribution. That is an unanswered question, not a "
                 "passed check."
             )
@@ -660,8 +660,8 @@ def _render_dependence(
     """Append the RR-08 line: how much significance survives dropping independence?
 
     The published correction is Benjamini-Hochberg, which assumes independence or
-    positive regression dependence. Neighbouring segments share the values inside
-    their overlapping Gi* neighbourhoods, so that assumption is doing work, and
+    positive regression dependence. Neighboring segments share the values inside
+    their overlapping Gi* neighborhoods, so that assumption is doing work, and
     this line says how much.
     """
     _ = translation.gettext
@@ -698,8 +698,8 @@ def _render_dependence(
         _(
             "- **Significance under dependence.** Only {robust} of the {sig} significant clusters "
             "above survive a false-discovery correction valid under arbitrary dependence (level "
-            "{robust_alpha} instead of {alpha}, across {tests} simultaneous tests). Neighbouring "
-            "segments share the values inside their overlapping neighbourhoods, so those tests are "
+            "{robust_alpha} instead of {alpha}, across {tests} simultaneous tests). Neighboring "
+            "segments share the values inside their overlapping neighborhoods, so those tests are "
             "not independent; read the rest as resting on that assumption. The published flags are "
             "unchanged."
         ).format(

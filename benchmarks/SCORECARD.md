@@ -25,7 +25,7 @@ means and what each regime tests.
 > that share exact intersection endpoints, plus cross-streets tying
 > consecutive rows together (see `generator.py`'s module docstring, "The
 > street grid") — and every one of the 161 segments in every regenerated
-> city (107 in `maup_coarse`) has at least one genuine network neighbour. The
+> city (107 in `maup_coarse`) has at least one genuine network neighbor. The
 > numbers below are real measurements against nearmiss's default
 > configuration, not placeholders.
 
@@ -57,7 +57,7 @@ positives / flagged) has no defined denominator — see the committed
   cannot; `stats/bias.py`'s report-share-vs-exposure-share panel is a
   caveat, never a correction, and nothing in the Getis-Ord layer models
   reporting probability. At this grid's ~100 m block spacing and the default
-  `gi_band_m` (300 m), a decoy's Gi\* neighbourhood is small enough, and the
+  `gi_band_m` (300 m), a decoy's Gi\* neighborhood is small enough, and the
   background class large enough (150 of 161 segments) for the
   Benjamini-Hochberg correction, that these particular decoys' z-scores did
   not clear the bar. A denser grid, a tighter decoy cluster, or a larger
@@ -89,12 +89,12 @@ positives / flagged) has no defined denominator — see the committed
   compound under the 3-column merge: exposure-weighted true rate is diluted
   everywhere the merge groups three cells, most severely for the north/south
   cluster mates — each absorbs two ordinary *background* cells alongside its
-  one elevated one, true rate 30 -> 16.7 — while the centre's own group fares
+  one elevated one, true rate 30 -> 16.7 — while the center's own group fares
   better because it absorbs its already-elevated east/west mates rather than
   background, true rate 60 -> 40; and cross-streets at boundaries the merge
   swallows lose their link to the avenue layer at that column (see
   `generator.py`'s module docstring). The result: `seg-04-03` (the coarse
-  city's merged centre segment, true rate 40 against baseline 10) reaches
+  city's merged center segment, true rate 40 against baseline 10) reaches
   only z ≈ 1.92, against 107 simultaneous tests. **The signal did not survive
   this change of spatial units at this suite's scale** — a real, measured
   MAUP effect, not the "aggregation changed which segment is significant, not
@@ -106,8 +106,8 @@ positives / flagged) has no defined denominator — see the committed
 - **Interval coverage is the one column that behaves the same as before, and
   still holds up.** 91-99% against the nominal 95%, degrading exactly where
   the `overdispersion` and `exposure_error` regimes are designed to make it
-  degrade. It never depended on the neighbourhood graph, so the connectivity
-  fix did not change its meaning — only its neighbours.
+  degrade. It never depended on the neighborhood graph, so the connectivity
+  fix did not change its meaning — only its neighbors.
 - **`background_fp_rate` sits at or under the nominal 5% everywhere** (0-5%),
   consistent with Benjamini-Hochberg controlling the false-discovery
   proportion at `alpha=0.05` as designed. `baseline`'s low hotspot precision

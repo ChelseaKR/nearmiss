@@ -24,7 +24,7 @@ body:
         pavement-inspection export, or an asset inventory describes a *place* with no person in it
         and cannot fill those fields honestly. That is a "no" for intake, not a "yes with caveats".
 
-        Condition data is still worth analysing with exposure normalization — that is exactly what
+        Condition data is still worth analyzing with exposure normalization — that is exactly what
         the sibling [`honest_rates`](../blob/main/src/honest_rates/README.md) library is for, and a
         worked example there is a welcome contribution.
   - type: input
@@ -53,7 +53,7 @@ body:
       description: |
         Every intake report needs these. Tick only what the source **actually carries per record** —
         not what could be inferred, assumed, or defaulted. `mode` has no `unknown` member, so a
-        source that does not record who was travelling cannot supply it honestly.
+        source that does not record who was traveling cannot supply it honestly.
       options:
         - label: "`mode` — the travel mode of the person involved (cyclist / pedestrian / wheelchair / scooter)"
         - label: "`severity` — an injury or outcome level per record (near miss / minor / serious)"

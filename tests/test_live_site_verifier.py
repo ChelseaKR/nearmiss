@@ -775,7 +775,7 @@ def _assert_job_timeout_covers_the_verifier_deadline(workflow: str) -> None:
     assert int(declared[0]) >= floor_minutes, (
         f"timeout-minutes is {declared[0]}, below the {floor_minutes}-minute floor derived from "
         f"--deadline-seconds {deadline.group(1)}. Under that floor the runner kills the job "
-        "before the verifier can report, and the run is recorded as cancelled rather than red."
+        "before the verifier can report, and the run is recorded as canceled rather than red."
     )
 
 

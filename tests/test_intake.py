@@ -73,8 +73,8 @@ def test_one_bad_report_rejects_the_whole_batch(
     assert not (cfg.raw_dir / "reports.json").exists()
 
 
-def test_report_without_id_is_labelled_no_id(config: Config, tmp_path: Path) -> None:
-    # A report missing both 'id' and required fields is rejected and labelled
+def test_report_without_id_is_labeled_no_id(config: Config, tmp_path: Path) -> None:
+    # A report missing both 'id' and required fields is rejected and labeled
     # "<no id>" rather than crashing on the absent key.
     src = _write_reports(tmp_path / "noid.json", [{"mode": "cyclist"}])
     cfg = _config_with_raw(config, tmp_path)

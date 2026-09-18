@@ -346,9 +346,9 @@ any adapter is written:
    per source, in machine-readable form, by the required `publication_status` field on every
    crosswalk (`publishable` / `research_only` / `undetermined`, see
    `nearmiss.adapters.base.PUBLICATION_STATUSES`): SimRa is registered and is
-   `research_only` for exactly this clause, so it may be analysed locally and nothing derived
+   `research_only` for exactly this clause, so it may be analyzed locally and nothing derived
    from it may be published from this repository. Say in the proposal which of the three you
-   are asking for; "we'll work the licence out later" is the state issue #186 was filed about.
+   are asking for; "we'll work the license out later" is the state issue #186 was filed about.
 3. **Attribution obligations.** Record the exact attribution string required and where it must
    appear. It belongs in the crosswalk manifest's `license` field and in the data card.
 4. **Evidence, as a URL to the actual license.** Not the homepage, not "it is open data" — a link

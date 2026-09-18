@@ -6,7 +6,7 @@
 
 **Exposure-sensitivity check:** the top-rate segment stays rank 1 under every alternative denominator its sources declare (1 of 6 rated segments had an alternative denominator to test).
 
-**Permutation reference check:** not evaluated. No published significance claim had a testable neighbourhood, so none was re-tested against an empirical reference distribution. Not a passed check.
+**Permutation reference check:** not evaluated. No published significance claim had a testable neighborhood, so none was re-tested against an empirical reference distribution. Not a passed check.
 
 **Dependence robustness check:** not evaluated. This dataset publishes no significant cluster, so no significance claim could have its independence assumption dropped. Not a passed check.
 

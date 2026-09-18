@@ -60,7 +60,7 @@ def test_barrier_disagrees_with_straight_line_distance() -> None:
     freeway between them) — a Euclidean distance band would treat them as
     neighbors; the network graph must not.
 
-    Layout (metres east/north of LAT0, LON0):
+    Layout (meters east/north of LAT0, LON0):
         north street:  n1 (0,50) -------- n2 (80,50)
         south street:  s1 (0,0)  -------- s2 (80,0)
     n1/n2 and s1/s2 are each single segments; nothing connects the north

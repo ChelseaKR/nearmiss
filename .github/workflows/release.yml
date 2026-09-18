@@ -50,7 +50,7 @@ permissions:
   contents: read
 
 # Two releases of the same tag can never publish at once. Keyed on the tag input rather than
-# `github.ref`: every dispatch now runs from `refs/heads/main`, so a ref key would serialise
+# `github.ref`: every dispatch now runs from `refs/heads/main`, so a ref key would serialize
 # unrelated releases into one queue instead of guarding a single tag.
 concurrency:
   group: release-${{ inputs.tag }}

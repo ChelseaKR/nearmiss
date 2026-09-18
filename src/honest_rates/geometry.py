@@ -1,6 +1,6 @@
 """Pure-Python planar geometry for city-scale (or smaller) spatial statistics.
 
-Coordinates are projected to local metres with an equirectangular approximation
+Coordinates are projected to local meters with an equirectangular approximation
 about a reference latitude. Over a metro-area extent this is accurate to well
 within the precision a hotspot analysis needs, and it avoids any native
 geospatial dependency, so this library runs anywhere Python runs.
@@ -15,14 +15,14 @@ _M_PER_DEG_LON_EQ = 111_320.0
 
 
 def project(lat: float, lon: float, lat0: float, lon0: float) -> tuple[float, float]:
-    """Project (lat, lon) to local metres (x east, y north) about (lat0, lon0)."""
+    """Project (lat, lon) to local meters (x east, y north) about (lat0, lon0)."""
     x = (lon - lon0) * _M_PER_DEG_LON_EQ * math.cos(math.radians(lat0))
     y = (lat - lat0) * _M_PER_DEG_LAT
     return x, y
 
 
 def haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Great-circle distance in metres (used for reference / sanity checks)."""
+    """Great-circle distance in meters (used for reference / sanity checks)."""
     r = 6_371_000.0
     p1, p2 = math.radians(lat1), math.radians(lat2)
     dp = math.radians(lat2 - lat1)
@@ -32,7 +32,7 @@ def haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def projection_margin_m(radius_m: float) -> float:
-    """Safety margin (metres) to pad a metric search radius built on ``project()``.
+    """Safety margin (meters) to pad a metric search radius built on ``project()``.
 
     ``project()`` scales longitude by ``cos(lat0)`` at a single reference latitude,
     not each point's own latitude, so distances between points far from ``lat0``

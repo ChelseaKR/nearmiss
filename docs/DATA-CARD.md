@@ -678,7 +678,7 @@ The rows below are **quoted from the machine-readable crosswalk manifests**
 disagree. That parity gate exists because the two had already drifted: this table
 asserted "CC BY 4.0 / permitted with attribution" for BikeMaps.org while
 `bikemaps.toml` claimed only "see https://bikemaps.org/terms for reuse terms" — the same
-unbacked-licence defect the SimRa row was corrected for on 2026-08-07 (issue #186).
+unbacked-license defect the SimRa row was corrected for on 2026-08-07 (issue #186).
 
 | Source | `publication_status` | License, verbatim from the crosswalk |
 |---|---|---|
@@ -698,7 +698,7 @@ clause. No SimRa-derived data is currently published from this repository. BikeM
 `undetermined` rather than `publishable` because nothing here has read its terms into a
 citable statement; separately, its measured coverage in the target cities is 0 reports in
 the `davis` bbox and 1 in `sacramento` (2026-08-04, see `docs/REAL-DATA.md`), so even a
-resolved licence would not yet yield a publishable real-data path. Before publishing
+resolved license would not yet yield a publishable real-data path. Before publishing
 any dataset that merges incident sources, check each source's license individually and record
 the most restrictive terms that apply to the merged result; see the licensing checklist in
 CONTRIBUTING.md.

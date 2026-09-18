@@ -330,7 +330,7 @@ the interval comes from the count, then is divided by the offset:
   close approximation. It is **not** the implemented default and is noted here only as planned work.
 
 - **Score-based interval** as a further alternative when a less conservative, well-calibrated
-  interval is preferred and counts are not tiny. Score intervals (the Poisson analogue of the
+  interval is preferred and counts are not tiny. Score intervals (the Poisson analog of the
   Wilson score interval for proportions) have average coverage closer to nominal than the exact
   interval and far better than Wald, without Wald's pathologies.
 
@@ -391,8 +391,8 @@ of `0.8825`.
 
 **The published rate and the published ranking stay the raw ones, deliberately.** §6.3 already
 states this repository's rule for a model-based adjustment: a smoothed number looks authoritative
-and can launder a modelling assumption into a fact, so an adjustment that cannot be defended in the
-published number is offered as a labelled sensitivity analysis instead. Shrinkage is exactly such an
+and can launder a modeling assumption into a fact, so an adjustment that cannot be defended in the
+published number is offered as a labeled sensitivity analysis instead. Shrinkage is exactly such an
 adjustment. It assumes the segments are exchangeable draws from one distribution, which is a strong
 assumption on a street network where a corridor is not a random sample of the city, and it
 deliberately pulls the extremes in, which is the wrong default for a tool whose job is to find
@@ -424,7 +424,7 @@ and we do not present it as one.
 <!-- claim:dependence-robust-fdr-published-beside-bh -->
 **And the assumption Benjamini-Hochberg needs is checked, not assumed (RR-08).** BH controls the
 false discovery rate when the tests are independent or positively regression dependent. The local
-Gi\* tests are neither by construction: two neighbouring segments share the values inside their
+Gi\* tests are neither by construction: two neighboring segments share the values inside their
 overlapping neighborhoods, so their statistics are dependent and the sign of that dependence is not
 guaranteed. `stats/multiplicity.py` therefore re-decides significance under **Benjamini-Yekutieli**
 (`honest_rates.hotspot.benjamini_yekutieli`), the same step-up procedure at `fdr_alpha / c(m)` where
@@ -702,7 +702,7 @@ Decisions that make Gi\* honest here, rather than a fancier heat map:
 
   **Scope, stated so silence is not read as a pass.** The tested set is the FDR-significant
   clusters plus the top-ranked segments by rate, which are the segments a reader acts on; a segment
-  the analytic test did not flag cannot be promoted here. Segments whose Gi\* neighbourhood is a
+  the analytic test did not flag cannot be promoted here. Segments whose Gi\* neighborhood is a
   singleton are excluded, since Gi\* there is a global z-score and not a cluster statistic
   (ADR-0015); on the committed `riverside` demo every segment is such a singleton, so that dataset
   publishes `not_evaluated` rather than a verdict it did not earn.
@@ -726,7 +726,7 @@ non-visual list/table equivalent.
 a hotspot drawn at one granularity can dissolve at another (the modifiable areal unit problem; see
 [LIMITATIONS §5](LIMITATIONS.md)). Rather than only caveating this, we answer it with a reproducible
 artifact: `stats/maup.py::rank_stability` deterministically **re-segments the network** into a coarser
-partition (a greedy nearest-neighbour pairing that moves both MAUP axes at once — scale *and* zoning),
+partition (a greedy nearest-neighbor pairing that moves both MAUP axes at once — scale *and* zoning),
 recomputes the exposure-normalized rate ranking and the Gi\* + FDR significance on the coarser units,
 and reports whether the top hotspot **survives** (stays the top-ranked coarse unit and still a
 significant cluster) together with a top-k rank-overlap scalar. This ships in every published metadata

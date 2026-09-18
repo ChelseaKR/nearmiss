@@ -43,7 +43,7 @@ def _densify_segment_xy(
 ) -> list[tuple[float, float]]:
     """Add extra points along each edge longer than ``step_m``.
 
-    Operates on already-projected (x, y) metres so the interpolation is a
+    Operates on already-projected (x, y) meters so the interpolation is a
     plain straight-line lerp; for city-scale segments this is well within the
     precision the pipeline needs (see geometry.py's module docstring).
     """
