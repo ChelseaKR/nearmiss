@@ -5,7 +5,7 @@ and emit them in the nearmiss *intake* format (``schema/report.schema.json``).
 
 BikeMaps.org (https://bikemaps.org, SPARLab/BikeMaps) is a crowdsourced global
 map of cycling collisions, near misses, hazards, and thefts. It is the closest
-real-world analogue to nearmiss's own input: citizen-reported near misses, which
+real-world analog to nearmiss's own input: citizen-reported near misses, which
 by definition never reach a police collision report. This tool is the bridge
 from that real data to this pipeline — it does **not** invent data, it maps
 BikeMaps' public records onto our intake contract so they can flow through the

@@ -96,7 +96,7 @@ body:
       description: The five hard rules are enforced by policy and CI. Flag if this defect risks breaking one.
       options:
         - "No — ordinary defect"
-        - "Rule 1 — a rate is shown without a denominator, or counts are labelled as danger"
+        - "Rule 1 — a rate is shown without a denominator, or counts are labeled as danger"
         - "Rule 2 — an estimate is shown without a confidence interval and n"
         - "Rule 3 — reporting bias is hidden rather than named"
         - "Rule 4 — output risks identifying a contributor or their routine"

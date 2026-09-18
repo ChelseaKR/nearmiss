@@ -23,7 +23,7 @@ license = "BikeMaps.org public data; see https://bikemaps.org/terms for reuse te
 # (with the retrieval date, the way the SimRa row was corrected on 2026-08-07) is what
 # moves this. Until then no BikeMaps-derived data may be published from here.
 #
-# Separately, and independent of the licence: the live BikeMaps extract measured on
+# Separately, and independent of the license: the live BikeMaps extract measured on
 # 2026-08-04 (docs/REAL-DATA.md) held 6,222 reports worldwide, of which 0 fell inside
 # the `davis` bbox and 1 inside `sacramento`. Coverage, not adapter count, is the
 # binding constraint on a real-data path here.
@@ -45,7 +45,7 @@ reporter_pool = "Reporters are cyclists who know BikeMaps.org exists and choose 
 # Device, connectivity, and awareness needed to report.
 app_access = "Filing requires a smartphone or a web browser plus the awareness that the site exists, so lower-income and less-connected riders are under-counted even where their risk is higher. There is no phone-in or paper channel to offset it."
 # Which languages the reporting form actually serves.
-language = "The BikeMaps form is English-first, so riders who do not read English are under-represented; a segment through a predominantly non-English-speaking neighbourhood may be under-reported for language reasons alone rather than being safer."
+language = "The BikeMaps form is English-first, so riders who do not read English are under-represented; a segment through a predominantly non-English-speaking neighborhood may be under-reported for language reasons alone rather than being safer."
 # Race, income, tenure, age skew of the reporter pool.
 demographic_skew = "The cycling-advocacy pool BikeMaps recruits from skews whiter, more male, higher-income, and more middle-aged than the population that actually cycles, so report density partly tracks advocacy presence rather than hazard density."
 # The streets nobody rides produce no data.

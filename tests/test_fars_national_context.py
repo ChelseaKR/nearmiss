@@ -454,7 +454,7 @@ def test_production_builder_requires_proof_and_complete_national_coverage() -> N
         build_verified_fars_national_context(_proof_snapshot())
 
 
-def test_partial_artifact_cannot_be_relabelled_as_official_national_coverage() -> None:
+def test_partial_artifact_cannot_be_relabeled_as_official_national_coverage() -> None:
     artifact = _artifact()
     method = cast(dict[str, Any], artifact["method"])
     method["coverage"] = "official_2024_national_50_states_and_dc"

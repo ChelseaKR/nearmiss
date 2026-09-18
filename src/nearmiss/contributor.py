@@ -28,7 +28,7 @@ the raw id): the tombstone file records *that* an id was deleted without
 retaining the report or any linkage back to a person. Because deletion changes
 the raw inputs, the published artifacts legitimately change too — ``make
 reproduce`` rebuilds from the surviving raw records and its committed outputs are
-expected to move after a deletion. That is correct behaviour, not drift.
+expected to move after a deletion. That is correct behavior, not drift.
 """
 
 from __future__ import annotations

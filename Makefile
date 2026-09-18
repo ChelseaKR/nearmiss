@@ -316,7 +316,7 @@ docs-audit-check: ## Fail if docs/DOCUMENTATION-AUDIT.md has drifted from the tr
 docs-audit-accept-narrative: ## Record the audit's HAND-AUTHORED prose after reviewing a change to it
 	# The generated block is only half that file. The other half is prose, and a
 	# generated file with hand-authored regions is a hazard of its own: the generator
-	# legitimises whatever it finds. This tool was ported to davis-bike-hazard-map,
+	# legitimizes whatever it finds. This tool was ported to davis-bike-hazard-map,
 	# where a bad conflict resolution deleted two paragraphs outside the markers, the
 	# generated link count fell 96 to 95, and `make docs-audit` rewrote the count to
 	# agree with the damage. Green gate, real content loss.

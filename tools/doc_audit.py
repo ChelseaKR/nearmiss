@@ -41,7 +41,7 @@ and a vendored copy that each repo can edit is worth more than a dependency that
 grow options for every repo's layout. The two ports have already diverged in ways a shared
 version would have had to configure rather than express.
 
-What travelled unchanged, and is the actual reusable content:
+What traveled unchanged, and is the actual reusable content:
 
 * the BEGIN/END splice plus ``--check`` drift gate — regenerate into a marked block, fail
   if the committed bytes differ, wire both into ``make`` and into a test so a stale audit
@@ -71,7 +71,7 @@ What had to change per repository, i.e. everything a port must review:
   ``test_no_gitignored_markdown_reaches_the_inventory`` does that automatically and is
   the more valuable half of this item to copy;
 * ``GROUPED_DIRS``, ``CATEGORY_RULES``, ``ENTRY_AND_PROCESS``, and the ``ROOT_*`` tuples —
-  all of them are this repository's documentation taxonomy and none of it generalises;
+  all of them are this repository's documentation taxonomy and none of it generalizes;
 * the inventory collectors: ``_test_files``, ``_workflows``, ``_npm_scripts``, and
   ``_requires_python`` are Python-plus-npm shaped. The davis port replaced the test
   collector with a Vitest/Playwright declaration regex, because "test file" is not the
@@ -337,7 +337,7 @@ def _check_links(docs: Iterable[str]) -> tuple[int, list[str]]:
             continue
         for target in _link_targets(path.read_text(encoding="utf-8")):
             checked += 1
-            # Textual normalisation only: realpath would fold `..` *and*, on some
+            # Textual normalization only: realpath would fold `..` *and*, on some
             # platforms, the case this check exists to catch.
             resolved = Path(os.path.normpath(path.parent / target))
             if not _exists_case_sensitively(resolved):

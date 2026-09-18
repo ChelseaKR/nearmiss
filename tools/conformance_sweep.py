@@ -183,7 +183,7 @@ def print_verdict(verdict: dict[str, Any]) -> list[str]:
     # The corridor family's note explains that HR3 and HR5 are carried through the
     # primary rather than asserted here -- and it is the reason both cells come from
     # one predicate. It was on the verdict object and printed by nothing, so two
-    # cells read as two independent judgements.
+    # cells read as two independent judgments.
     note = verdict.get("note")
     if note and verdict.get("family") == "city_corridor_view":
         print(f"          note: {note}")

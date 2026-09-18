@@ -368,7 +368,7 @@ def test_a_response_without_a_state_is_undetermined_not_open() -> None:
         check_debt_markers.facts_from_payload(142, {"title": "no state here"})
 
 
-def test_a_payload_carrying_pull_request_is_recognised_as_one() -> None:
+def test_a_payload_carrying_pull_request_is_recognized_as_one() -> None:
     """GitHub marks a pull request by the presence of the key, not by a boolean."""
     facts = check_debt_markers.facts_from_payload(
         228, {"state": "closed", "title": "a merged PR", "pull_request": {"url": "..."}}

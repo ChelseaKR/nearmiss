@@ -56,7 +56,7 @@ const UNSAFE = [
 // A detector that stops matching passes forever and says nothing. No page in this
 // repository carries a `style="..."` attribute today, so the inline scan below inspects
 // zero elements on every run and could not tell a broken pattern from a clean page.
-// These witnesses fail loudly if a pattern stops recognising what it exists to reject,
+// These witnesses fail loudly if a pattern stops recognizing what it exists to reject,
 // or starts rejecting the logical properties it exists to encourage. They are the only
 // evidence that a green run here means anything.
 function assertDetector(name, patterns, mustMatch, mustNotMatch) {

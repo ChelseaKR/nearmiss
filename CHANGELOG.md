@@ -232,7 +232,7 @@ every entry.
   NonCommercial clause survives aggregation, and no open US dataset pairs near-miss reports
   with the bicycle counts a rate needs. The one source a group always holds rights to is its
   own log of member reports, which is almost always a shared spreadsheet with column names
-  nobody standardised.
+  nobody standardized.
 
   `nearmiss crosswalk init --from reports.csv --out ours.toml` reads the header row, proposes
   which column carries which intake field, and collects the source metadata, the eight bias
@@ -298,7 +298,7 @@ every entry.
 
 - **Every indexable page now has a link-preview card, and the build gate fails if it stops.** The
   four published documents already declared `og:title`, `og:description` and `og:url`, but none
-  named an image, so a shared NearMiss link rendered as a blank grey box on Slack, LinkedIn, iMessage
+  named an image, so a shared NearMiss link rendered as a blank gray box on Slack, LinkedIn, iMessage
   and every other unfurler — the site's most common first impression was its least informative one.
   `og.png` (1280x640) now ships at the site root, and `/`, `/dossier/`, `/studio/` and
   `/fars/national/` each name it through `og:image` and `twitter:image` with `twitter:card` raised
@@ -375,8 +375,8 @@ every entry.
   and on the Davis demo it is most of it (RR-08; sidecar gains `dependence_robustness`, schema
   `1.3.0`, additive).** Benjamini-Hochberg, the published correction, controls the false discovery
   rate when the tests are independent or positively regression dependent. The local Gi\* tests are
-  neither by construction: two neighbouring segments share the values inside their overlapping
-  neighbourhoods. `stats/multiplicity.py`, on the new
+  neither by construction: two neighboring segments share the values inside their overlapping
+  neighborhoods. `stats/multiplicity.py`, on the new
   `honest_rates.hotspot.benjamini_yekutieli`, re-decides significance at `fdr_alpha / c(m)` with
   `c(m)` the m-th harmonic number, which controls the FDR under **arbitrary** dependence
   (Benjamini & Yekutieli 2001), and publishes how many published clusters survive.
@@ -640,8 +640,8 @@ every entry.
   partly because CC BY-NC-SA's NonCommercial clause "fails the Open Definition and is
   incompatible with this project's Apache-2.0 posture". One hundred and seventy lines above
   it, §1b introduced SimRa as an "openly-published" dataset and said nothing about SimRa's
-  own CC BY-NC 4.0 licence — an unqualified redistribution claim that no manifest backed,
-  and the same defect the BikeMaps licence row was corrected for. `docs/DATA-CARD.md`,
+  own CC BY-NC 4.0 license — an unqualified redistribution claim that no manifest backed,
+  and the same defect the BikeMaps license row was corrected for. `docs/DATA-CARD.md`,
   `docs/ADAPTING.md`, and both crosswalks had been corrected for #186; the per-source guide
   an adapter author actually works from had not, and the parity gate could not see it
   because it only ever read the data card.
@@ -654,7 +654,7 @@ every entry.
   and an unqualified open-publication claim in the guide's prose fails while no registered
   source is `publishable`. Also corrected: both documents pointed readers at a manifest key
   `bias_notes`, which was replaced by the required `[source.bias_profile]` table, and
-  `CONTRIBUTING.md`'s data-rights checklist now says what a NonCommercial licence actually
+  `CONTRIBUTING.md`'s data-rights checklist now says what a NonCommercial license actually
   disqualifies — publication, not registration — and points at `publication_status`, since a
   reader of the old wording would conclude SimRa should never have had an adapter (#186).
 
@@ -671,7 +671,7 @@ every entry.
   `stats/exposure_sensitivity.py` is that pass: for every segment whose exposure record already
   carries corroborating readings (`Exposure.sources`), the published ranking is re-run under the
   smallest and the largest denominator those sources declare, with Getis-Ord Gi\* recomputed at the
-  same FDR level and the same singleton-neighbourhood suppression, and the verdict published in the
+  same FDR level and the same singleton-neighborhood suppression, and the verdict published in the
   metadata sidecar's `exposure_sensitivity` block, in the standalone ranked table, and in the
   brief's robustness section (EN and ES).
 
@@ -700,17 +700,17 @@ every entry.
 - **`singleton_neighborhood` joins the published `quality_flags` vocabulary (published dataset schema
   `1.1.0` -> `1.2.0`, additive), and a feature carrying it can never be `getis_ord_significant`.**
   Getis-Ord Gi\* is published here as a *local* statistic — a ★ claims "hot relative to its
-  surroundings." For a unit whose neighbourhood is itself alone, the binary-weight algebra collapses
+  surroundings." For a unit whose neighborhood is itself alone, the binary-weight algebra collapses
   (`w_sum == w2_sum == 1`, so `denom == s`) and Gi\* returns the plain **global** z-score
   `(x - mean) / s`: a different question, published under the local question's name, with nothing
   downstream able to tell the two apart. The z is still published — withholding a real number would be
-  its own distortion — but it is now labelled, and it can no longer earn a ★. Decided in
+  its own distortion — but it is now labeled, and it can no longer earn a ★. Decided in
   [ADR-0015](docs/adr/0015-a-singleton-gi-star-neighborhood-is-labeled-and-never-significant.md);
   closes #193. Both committed demos were re-run: `riverside` flags all 5 published features (all six of
   its segments are singletons, so *every* Gi\* z it has ever published was a global z-score — it
   shipped no ★ only because Benjamini-Hochberg happened to reject them, not because anything detected
   the degeneracy), and `davis` flags `seg-03`. **No published ★ changed**: davis's five significant
-  segments all have real neighbourhoods, and riverside published none. The datasets now *say* what was
+  segments all have real neighborhoods, and riverside published none. The datasets now *say* what was
   previously true only by luck.
 - **`docs/findings/`, and the first entry in it: the Potsdam real-city run.** The pipeline has been
   run end to end against a real city exactly once — Potsdam, Germany, 2023-11-27 to 2023-12-31, SimRa
@@ -729,14 +729,14 @@ every entry.
 
 ### Changed
 
-- **`src/nearmiss/network.py`'s docstring was measurably wrong about singleton Gi\* neighbourhoods.**
+- **`src/nearmiss/network.py`'s docstring was measurably wrong about singleton Gi\* neighborhoods.**
   It named the island case — a segment with no adjacent segment — and called the resulting
-  self-only neighbourhood "the correct, honest answer, not a special case to work around." On real
+  self-only neighborhood "the correct, honest answer, not a special case to work around." On real
   data islands were 20 of 148 singletons; the other 128 had genuine street adjacency and were
   excluded purely by the module's own half-length edge weighting, under which a segment longer than
-  twice `gi_band_m` can never reach any neighbour. The docstring now states that arithmetic, carries
-  the measurement, and points at #193, where a singleton neighbourhood collapsing Gi\* to a global
-  z-score is filed. Documentation only; no behaviour change.
+  twice `gi_band_m` can never reach any neighbor. The docstring now states that arithmetic, carries
+  the measurement, and points at #193, where a singleton neighborhood collapsing Gi\* to a global
+  z-score is filed. Documentation only; no behavior change.
 - `src/nearmiss/figures.py`'s `_stability_note` docstring now cites the real run as the reason its
   wording distinguishes "rank lost" from "significance lost", rather than arguing the distinction
   hypothetically.
@@ -748,10 +748,10 @@ every entry.
   runs), and the standalone `honest_rates.unit.analyze`, whose `UnitRate` gains a
   `singleton_neighborhood: bool` field. `honest_rates.hotspot.singleton_neighborhoods` is the single
   definition, sharing its `_effective_neighbors` helper with `getis_ord_star` itself so the two cannot
-  disagree about what a unit's neighbourhood was.
-- **"Singleton" means *effective*, which is why detection reads the values and not just the neighbour
+  disagree about what a unit's neighborhood was.
+- **"Singleton" means *effective*, which is why detection reads the values and not just the neighbor
   map.** Beyond graph islands and the half-length arithmetic, a segment with real, reachable street
-  neighbours none of which has an exposure denominator is arithmetically alone while looking connected.
+  neighbors none of which has an exposure denominator is arithmetically alone while looking connected.
   That third path is why `davis` — a dense grid whose longest segment is 178 m against a 600 m
   threshold, and which has **zero** structural singletons — nonetheless had two rated segments
   publishing global z-scores. `src/nearmiss/network.py`'s docstring said neither fixture reached the
@@ -813,16 +813,16 @@ every entry.
   against the new pins from a clean, hash-installed virtualenv before committing.
 - **`benchmarks/generator.py` laid every planted-truth city out as mutually non-touching stubs, so
   the street-network adjacency graph it fed `nearmiss.network.SegmentGraph` had no edges at all —
-  every segment was a singleton neighbourhood (ADR-0015), and every "Gi\* z" this suite ever scored
+  every segment was a singleton neighborhood (ADR-0015), and every "Gi\* z" this suite ever scored
   was actually the plain global z-score.** Found while implementing that ADR (#193); filed as #196.
   Cities are now a real, connected two-layer grid — east-west avenue segments that share exact
   intersection endpoints (a group's own boundaries survive `merge_cols` MAUP aggregation, so a
-  merged block still meets its row neighbours exactly), plus north-south cross-street segments,
+  merged block still meets its row neighbors exactly), plus north-south cross-street segments,
   always at full granularity, tying every pair of consecutive avenue rows together at every
   intersection. Grid spacing (~100 m blocks) is calibrated so the plus-shaped hotspot cluster's
-  north/south neighbours — two network hops away via a cross-street — clear the default `gi_band_m`
+  north/south neighbors — two network hops away via a cross-street — clear the default `gi_band_m`
   (300 m) with real margin. Every one of the 161 segments in every regenerated city (107 in
-  `maup_coarse`) now has at least one genuine network neighbour, up from 0. `SUITE_VERSION` moves
+  `maup_coarse`) now has at least one genuine network neighbor, up from 0. `SUITE_VERSION` moves
   `1.0.0` -> `2.0.0` (segment ids, counts, and ground truth all changed); `benchmarks/SCORECARD.md`'s
   hotspot columns move from the `n/m` placeholder ADR-0015 required to real measurements — recall is
   low and zero in three of six regimes, `baseline` precision is 36%, and the coarse MAUP variant's
@@ -962,14 +962,14 @@ every entry.
   `docs/ACCESSIBILITY.md` described an NVDA (Firefox/Windows) and VoiceOver (Safari/macOS/iOS) pass
   on "each release" while the ACR, the 2026-07-16 studio review, and the same file's own limitations
   section all recorded that no manual screen-reader review had ever been performed. Section 6 is now
-  split into what runs (structural gate + axe-core, with its jsdom/static-DOM and colour-contrast
+  split into what runs (structural gate + axe-core, with its jsdom/static-DOM and color-contrast
   limits named) and what has never been performed, and the journey list is stated as a commitment
   rather than a record. The ACR is declared the source of truth where the two disagree. A false
   accessibility claim misleads exactly the reader least able to absorb it, so this was fixed as a
   defect, not as copy.
 - **The stated axe scope matches the scan.** `docs/ACCESSIBILITY.md` claimed axe ran "against the
   rendered map, table, report form, and brief pages"; it runs against nine named static HTML files in
-  jsdom with page scripts disabled and the colour-contrast rule off, and there are no HTML brief
+  jsdom with page scripts disabled and the color-contrast rule off, and there are no HTML brief
   pages at all (`nearmiss brief` emits Markdown/text).
 - **Documented scope now covers the pages the site actually serves.** A new § 0 lists all six shipped
   HTML documents with their routes, and records plainly that none of them has per-criterion ACR

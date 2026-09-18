@@ -11,7 +11,7 @@ a published artifact, and neither adapter said so:
 * **BikeMaps.org** was listed in the same table as "CC BY 4.0 / permitted with
   attribution" while `bikemaps.toml`, the machine-readable manifest that table is
   supposed to render, claimed only "see https://bikemaps.org/terms for reuse terms".
-  That is the same unbacked-licence defect the SimRa row was corrected for on
+  That is the same unbacked-license defect the SimRa row was corrected for on
   2026-08-07, still standing on the row above it.
 
 The fix moves the disposition to the source: `publication_status` is a required,
@@ -58,7 +58,7 @@ def crosswalk(source_id: str) -> Crosswalk:
 
 
 def test_the_registry_still_has_sources_to_check() -> None:
-    """Guard the guard: an empty registry would make every parametrised test vacuous."""
+    """Guard the guard: an empty registry would make every parametrized test vacuous."""
     assert SOURCE_IDS, "no report adapters are registered, so nothing below is checked"
     assert {"bikemaps", "simra"} <= set(SOURCE_IDS)
 
@@ -78,7 +78,7 @@ def test_a_non_publishable_source_names_what_binds_it(source_id: str) -> None:
         return
     note = loaded.publication_note.lower()
     assert any(word in note for word in ("licen", "clause", "terms", "rights")), (
-        f"{source_id}: publication_note does not name the licence, clause, terms, or "
+        f"{source_id}: publication_note does not name the license, clause, terms, or "
         f"rights that produced status {loaded.publication_status!r}"
     )
 
@@ -100,12 +100,12 @@ def test_bikemaps_is_not_claimed_publishable_on_an_unread_terms_page() -> None:
 
 
 @pytest.mark.parametrize("source_id", SOURCE_IDS)
-def test_the_data_card_quotes_each_crosswalks_licence_verbatim(source_id: str) -> None:
+def test_the_data_card_quotes_each_crosswalks_license_verbatim(source_id: str) -> None:
     loaded = crosswalk(source_id)
     text = DATA_CARD.read_text(encoding="utf-8")
     assert loaded.license in text, (
-        f"docs/DATA-CARD.md does not quote {source_id}'s licence as its crosswalk states "
-        f"it. A licence table not backed by the machine-readable source is the defect "
+        f"docs/DATA-CARD.md does not quote {source_id}'s license as its crosswalk states "
+        f"it. A license table not backed by the machine-readable source is the defect "
         f"issue #186 was filed about.\n  crosswalk says: {loaded.license}"
     )
 
@@ -117,16 +117,16 @@ def test_the_data_card_reports_each_sources_publication_status(source_id: str) -
     assert f"`{loaded.publication_status}`" in text
 
 
-def test_no_data_card_table_row_asserts_a_licence_no_manifest_backs() -> None:
+def test_no_data_card_table_row_asserts_a_license_no_manifest_backs() -> None:
     """Table rows are the assertions. Prose *about* the old claim is not one."""
     declared = {loaded.license for loaded in (crosswalk(s) for s in SOURCE_IDS)}
     for line in DATA_CARD.read_text(encoding="utf-8").splitlines():
         row = line.strip()
         if not row.startswith("|") or "BikeMaps" not in row:
             continue
-        assert any(licence in row for licence in declared), (
+        assert any(declared_license in row for declared_license in declared), (
             "a docs/DATA-CARD.md table row describes BikeMaps without quoting the "
-            f"licence its crosswalk states: {row}"
+            f"license its crosswalk states: {row}"
         )
 
 
@@ -189,10 +189,10 @@ def openness_claims_in_prose(text: str) -> list[str]:
 
 
 def test_no_prose_line_advertises_a_source_as_openly_published() -> None:
-    """The exact wording that hid the SimRa clause: an openness claim with no licence.
+    """The exact wording that hid the SimRa clause: an openness claim with no license.
 
     Applied to a source whose crosswalk says `research_only` or `undetermined`, it is a
-    redistribution assertion no manifest backs — the same defect the BikeMaps licence row
+    redistribution assertion no manifest backs — the same defect the BikeMaps license row
     was corrected for, in prose rather than in a table. This is unconditional while no
     registered source is `publishable`, which the assertion below pins rather than assumes.
     """

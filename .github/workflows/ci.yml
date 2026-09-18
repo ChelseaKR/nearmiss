@@ -67,7 +67,7 @@ concurrency:
   # still cancels the previous, now-irrelevant run; `cancel-in-progress` is left
   # exactly as it was, and is now unreachable for pushes.
   group: ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'pull_request' && 'pr' || github.sha }}
-  # Superseded PR checks can be cancelled; never cancel an in-flight main deploy.
+  # Superseded PR checks can be canceled; never cancel an in-flight main deploy.
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:

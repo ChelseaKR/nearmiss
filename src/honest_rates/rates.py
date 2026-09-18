@@ -184,6 +184,6 @@ def wilson_ci(successes: int, trials: int, z: float = Z95) -> tuple[float, float
         raise ValueError("successes must be in [0, trials]")
     p = successes / trials
     denom = 1.0 + z * z / trials
-    centre = (p + z * z / (2.0 * trials)) / denom
+    center = (p + z * z / (2.0 * trials)) / denom
     half = (z * math.sqrt(p * (1.0 - p) / trials + z * z / (4.0 * trials * trials))) / denom
-    return max(0.0, centre - half), min(1.0, centre + half)
+    return max(0.0, center - half), min(1.0, center + half)

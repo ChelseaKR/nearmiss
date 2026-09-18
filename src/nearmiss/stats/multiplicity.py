@@ -4,7 +4,7 @@ Published Getis-Ord Gi\\* significance is decided with a Benjamini-Hochberg
 false-discovery-rate correction across the many per-segment tests
 ([METHODOLOGY](../../../docs/METHODOLOGY.md) §5.5). BH controls the FDR when the
 tests are independent or positively regression dependent. **Local spatial
-statistics are neither, by construction:** two neighbouring segments share the
+statistics are neither, by construction:** two neighboring segments share the
 values inside their overlapping Gi\\* neighborhoods, so their test statistics are
 dependent, and nothing guarantees the sign of that dependence.
 

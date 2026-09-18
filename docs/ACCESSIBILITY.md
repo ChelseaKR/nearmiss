@@ -272,7 +272,7 @@ Three limits on the axe run, stated because they are easy to miss and they matte
    built at runtime by JavaScript, including the studio's national map, its state-by-mode matrix, and
    every data row in it, is **not in the DOM this scan inspects**. What axe checks there is the
    static shell.
-2. **Colour contrast is switched off in this run.** jsdom has no layout and no canvas, so rendered
+2. **Color contrast is switched off in this run.** jsdom has no layout and no canvas, so rendered
    contrast cannot be computed; enabling the rule would produce a meaningless result rather than a
    real one. Contrast is instead reasoned about from the documented CSS tokens, and a measured pass
    against the rendered page has not been performed.

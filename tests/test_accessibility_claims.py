@@ -351,7 +351,7 @@ def test_the_acr_report_date_is_published_where_the_cadence_is_claimed() -> None
 
 # --- 5. Contrast is not gated, so no document may say a contrast regression fails ---
 #
-# `docs/ACCESSIBILITY.md` § 6.1 said, correctly, that colour contrast is switched off in
+# `docs/ACCESSIBILITY.md` § 6.1 said, correctly, that color contrast is switched off in
 # the axe run and that "a measured pass against the rendered page has not been performed".
 # § 7 of the same file listed "a contrast regression" among the things that **fail the
 # build**. Both cannot be true, and the second one could not be: `color-contrast` is

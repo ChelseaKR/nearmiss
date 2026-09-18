@@ -30,14 +30,14 @@ from nearmiss.stats.rates import rate_with_ci
 def test_getis_ord_star_pins_exact_zscores() -> None:
     """Gi* z-scores match the exact closed form on a hand-computable neighbor map.
 
-    Two hot neighbours (A, B) and two cold neighbours (C, D), each pair mutually
+    Two hot neighbors (A, B) and two cold neighbors (C, D), each pair mutually
     adjacent (as a network-adjacency neighbor map, e.g. from SegmentGraph, would
     give a pair of segments meeting at a shared intersection) and the two pairs
     NOT neighbors of each other. Membership is unambiguous and the weights are
     binary, so the statistic is exactly solvable:
 
         n = 4,  mean = 5,  s = 5;
-        every segment neighbours exactly its own pair (w_sum = w2_sum = 2), so the
+        every segment neighbors exactly its own pair (w_sum = w2_sum = 2), so the
         standardization factor is (n*w2_sum - w_sum^2)/(n-1) = 4/3 (deliberately
         NOT 1, so a ``*``/``/`` slip in the standard error cannot hide);
         z_A = z_B = +sqrt(3);  z_C = z_D = -sqrt(3).
@@ -63,7 +63,7 @@ def test_getis_ord_star_boundary_and_degenerate_inputs() -> None:
     """The n == 3 boundary computes; undefined cases return exactly 0.0 for every id."""
     # Exactly three segments is the MINIMUM that standardizes (guard is `n < 3`),
     # and it must still produce a real hotspot, not silently collapse to zeros.
-    # Same neighbor map as above minus D: A,B neighbour each other, C is isolated
+    # Same neighbor map as above minus D: A,B neighbor each other, C is isolated
     # (empty neighbor set, so only itself) -> z_A = z_B = +sqrt(2), z_C = -sqrt(2).
     # Kills the `n < 3` -> `n <= 3` off-by-one.
     three = getis_ord_star(
@@ -84,7 +84,7 @@ def test_getis_ord_star_boundary_and_degenerate_inputs() -> None:
 
 
 def test_benjamini_hochberg_ranks_by_pvalue_and_handles_edges() -> None:
-    """FDR rejection is by p-value rank, with correct empty/singleton behaviour."""
+    """FDR rejection is by p-value rank, with correct empty/singleton behavior."""
     # A single clearly significant test is rejected (m == 1 path).
     assert benjamini_hochberg({"only": 0.001}, 0.05) == {"only"}
 

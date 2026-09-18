@@ -62,7 +62,7 @@ consecutive avenue rows together at every intersection (issue #196; see
 segments meet). It plants:
 
 - a **true hotspot** cluster (a plus-shape of 5 avenue segments: 1 strongly
-  elevated centre + 4 moderately elevated neighbors — the centre's east/west
+  elevated center + 4 moderately elevated neighbors — the center's east/west
   neighbors share its intersection directly, the north/south neighbors are
   two hops away via a cross-street, both well inside the default
   `gi_band_m` — so a spatial-clustering statistic like Getis-Ord Gi* has real

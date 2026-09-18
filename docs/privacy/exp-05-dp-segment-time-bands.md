@@ -2,8 +2,8 @@
 
 **Status: PROTOTYPE. Not approved for a real (non-synthetic) publication.**
 **Implements:** the EXP-05 ideation item ("Privacy-budgeted segment × time-band release
-(differential privacy)"), catalogued in `docs/ideation/03-expansions.md` on the roadmap branches
-that track it (that catalogue predates this branch's history; not reproduced here to keep this
+(differential privacy)"), cataloged in `docs/ideation/03-expansions.md` on the roadmap branches
+that track it (that catalog predates this branch's history; not reproduced here to keep this
 change scoped to the mechanism itself).
 **Code:** [`src/nearmiss/stats/dp_temporal.py`](../../src/nearmiss/stats/dp_temporal.py).
 **Gate:** a privacy-SME sign-off is a hard requirement before `dp_segment_time.enabled = true`

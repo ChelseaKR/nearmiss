@@ -10,9 +10,9 @@ to a coarser partition, recomputes the exposure-normalized rate ranking and the
 Getis-Ord Gi* significance on the coarser units, and reports whether the top
 hotspot **survives**.
 
-The re-segmentation is a deterministic greedy nearest-neighbour pairing: process
+The re-segmentation is a deterministic greedy nearest-neighbor pairing: process
 segments in a fixed order (by id) and pair each not-yet-assigned segment with its
-nearest not-yet-assigned neighbour by centroid distance (ties broken by id),
+nearest not-yet-assigned neighbor by centroid distance (ties broken by id),
 producing coarser units that are each a pair of adjacent blocks (with at most one
 leftover singleton). This changes both MAUP axes at once — the **scale** (units
 roughly halve in number and double in size) and the **zoning** (block boundaries
@@ -86,7 +86,7 @@ def stability_outcome(stability: RankStability) -> str:
 
 
 def _pair_segments(segments: list[Segment]) -> dict[str, int]:
-    """Greedy nearest-neighbour pairing → a map of segment_id → coarse-unit index.
+    """Greedy nearest-neighbor pairing → a map of segment_id → coarse-unit index.
 
     Deterministic: segments are processed sorted by id, and ties in distance are
     broken by id. Each coarse unit is a pair of the nearest two unassigned
@@ -243,7 +243,7 @@ def to_metadata(stability: RankStability) -> dict[str, object]:
     metadata sidecar.
     """
     return {
-        "basis": "greedy nearest-neighbour re-segmentation to a coarser partition",
+        "basis": "greedy nearest-neighbor re-segmentation to a coarser partition",
         "fine_units": stability.fine_units,
         "coarse_units": stability.coarse_units,
         "k": stability.k,

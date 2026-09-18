@@ -30,7 +30,7 @@ from dataclasses import dataclass
 
 from .unit import SimpleUnit
 
-# A simple square lattice in local metres, converted to (lat, lon) around an
+# A simple square lattice in local meters, converted to (lat, lon) around an
 # arbitrary reference point. The absolute location is not meaningful; only the
 # relative geometry (which units are close together) matters.
 _LAT0, _LON0 = 38.5430, -121.7460

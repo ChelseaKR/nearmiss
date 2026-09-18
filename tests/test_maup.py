@@ -121,7 +121,7 @@ def test_exposure_less_counts_never_enter_a_coarse_rate(config: Config) -> None:
 
 
 def _line(sid: str, lat: float, lon: float) -> Segment:
-    """A short east-west segment centred near (lat, lon)."""
+    """A short east-west segment centered near (lat, lon)."""
     return Segment(id=sid, name=sid, coords=((lat, lon), (lat, lon + 0.0002)))
 
 

@@ -18,9 +18,9 @@ segment is still on top.
 
 **The published rate stays the raw one, deliberately.** METHODOLOGY §6.3 already
 states this repository's rule for a model-based adjustment: a smoothed number
-looks authoritative and can launder a modelling assumption into a fact, so an
+looks authoritative and can launder a modeling assumption into a fact, so an
 adjustment that cannot be defended in the published number is offered as a
-labelled sensitivity analysis instead. Shrinkage is exactly such an adjustment.
+labeled sensitivity analysis instead. Shrinkage is exactly such an adjustment.
 It assumes the segments are exchangeable draws from one distribution, which is a
 strong assumption on a street network where a corridor is not a random sample of
 the city, and it deliberately pulls the extremes in, which is the wrong default

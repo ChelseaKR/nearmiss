@@ -74,8 +74,8 @@ The five [hard rules](../README.md) are referenced as HR1–HR5.
    wild; the one real-city run this project has done returned
    `top_hotspot_survives: false`. Note carefully what that flag does and does not mean.
    On that run rank 1 held and Gi\* significance did not, and the reason was
-   diagnosable: the segment was longer than twice the Gi\* neighbourhood band, so at the
-   block scale it had no reachable neighbours and its z-score was a global one wearing a
+   diagnosable: the segment was longer than twice the Gi\* neighborhood band, so at the
+   block scale it had no reachable neighbors and its z-score was a global one wearing a
    local statistic's name. A robustness check whose result is only ever published when it
    passes is not a robustness check.
 

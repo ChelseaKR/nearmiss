@@ -7,7 +7,7 @@ that is one degree-fraction wide is not a fixed physical size once you leave
 the equator — at any real-world latitude, two points can be within
 dedupe_distance_m of each other in true distance while landing more than one
 cell apart in longitude, and the fixed window silently misses them. The fixed
-dedupe() now projects to local metres and uses a radius-aware neighborhood
+dedupe() now projects to local meters and uses a radius-aware neighborhood
 query (see pipeline/dedupe.py); these tests prove, at LA's latitude (~34
 degrees, matching the bug report's reproduction), that its output is always
 identical to a brute-force (no spatial index at all) reference implementation.
@@ -46,7 +46,7 @@ def _iso(ts: float) -> str:
 
 
 def _offset(lat: float, lon: float, bearing_deg: float, dist_m: float) -> tuple[float, float]:
-    """Move (lat, lon) by ~dist_m metres along bearing_deg.
+    """Move (lat, lon) by ~dist_m meters along bearing_deg.
 
     Approximate — it only needs to be roughly right, because every trial's
     pass/fail decision below is made from the *actual* haversine distance

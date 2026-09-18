@@ -10,7 +10,7 @@ tool answers that mechanically. It compares two ``<slug>.geojson`` snapshots
 and, for every segment whose Getis-Ord hotspot status changed, assigns one
 cause in a fixed precedence order:
 
-  1. ``method_change``    — a modelling key in ``metadata.methods`` differs
+  1. ``method_change``    — a modeling key in ``metadata.methods`` differs
                             (band, bandwidth, rate unit, significance rule).
   2. ``threshold_change`` — a decision threshold differs (fdr_alpha,
                             confidence_z, small_n; or min_publish_n lowered so a
@@ -20,7 +20,7 @@ cause in a fixed precedence order:
   4. ``new_reports``      — the segment's report count changed.
   5. ``suppression``      — the segment is now withheld (below min_publish_n).
   6. ``recomputation``    — the z-score crossed significance with the same
-                            inputs (a neighbourhood effect from other segments).
+                            inputs (a neighborhood effect from other segments).
 
 It NEVER claims a hazard was "resolved": a decline in reports is not evidence a
 street got safer (see the caveat emitted in every report). When the metadata
@@ -46,7 +46,7 @@ from typing import Any
 # --- Attribution vocabulary -------------------------------------------------
 #
 # Keys of metadata.methods are split by *what a change to them explains*. A
-# modelling key changes how the statistic is computed; a decision threshold
+# modeling key changes how the statistic is computed; a decision threshold
 # changes where the significance / publication line is drawn.
 METHOD_KEYS = frozenset({"getis_ord_band_m", "kde_bandwidth_m", "rate_per", "significance"})
 # Thresholds that can flip a *published* segment's significance in place.

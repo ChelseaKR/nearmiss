@@ -17,7 +17,7 @@ possible future work; it is **not** what is computed today."
 
 The normal approximation is least comfortable exactly where this project
 operates. Rates are exposure-normalized, sparse, and strongly right-skewed;
-neighbourhoods on a street network are small; and a published significance flag
+neighborhoods on a street network are small; and a published significance flag
 is a claim a city planner may act on. RR-09 exists because a reader is entitled
 to ask whether the flag survives dropping the distributional assumption.
 
@@ -71,7 +71,7 @@ disagree. It does not change any published number.**
    clusters plus the top-ranked segments by rate, which are the segments a reader
    acts on. This pass cannot promote a segment the analytic test did not flag, and
    the `scope` field says so, so an untested segment is never readable as a tested
-   one that passed. Singleton Gi\* neighbourhoods are excluded (ADR-0015): a
+   one that passed. Singleton Gi\* neighborhoods are excluded (ADR-0015): a
    global z-score has no cluster to corroborate.
 5. **The refusal is first class**, following
    [ADR 0016](0016-exposure-sensitivity-uses-declared-denominators-and-may-refuse-to-run.md):
@@ -84,7 +84,7 @@ disagree. It does not change any published number.**
 **The published dataset now carries a number that argues with it.** Three of five
 Davis clusters are flagged as resting on the normal approximation. That is
 uncomfortable and correct: the fixture's planted hotspots sit on short
-neighbourhoods with few rated peers, which is where the asymptotic reference is
+neighborhoods with few rated peers, which is where the asymptotic reference is
 weakest. A reader who trusted the ★ column alone now has a second column telling
 them how much of that ★ is distributional assumption.
 
@@ -140,7 +140,7 @@ METHODOLOGY §8.2 has named as the intended future work since it was written.
   Monte Carlo procedures*, American Journal of Human Genetics 71(2), 2002: the
   `(1 + r) / (m + 1)` correction.
 - [ADR 0015](0015-a-singleton-gi-star-neighborhood-is-labeled-and-never-significant.md),
-  for why singleton neighbourhoods are excluded here too.
+  for why singleton neighborhoods are excluded here too.
 - [ADR 0016](0016-exposure-sensitivity-uses-declared-denominators-and-may-refuse-to-run.md),
   for the first-class refusal.
 - [ADR 0017](0017-a-published-statistic-is-checked-against-its-published-description.md),

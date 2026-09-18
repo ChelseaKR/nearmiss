@@ -96,7 +96,7 @@ branches, including `CHANGELOG.md`, `src/nearmiss/publish.py`,
 `src/nearmiss/stats/__init__.py`, `schema/dataset.schema.md`,
 `docs/DOCUMENTATION-AUDIT.md`, `docs/STATISTICAL-INTEGRITY-PROGRAM.md`
 (add/add), `data/published/davis-ranked.md`,
-`data/published/riverside-ranked.md`, and the six gettext catalogue files under
+`data/published/riverside-ranked.md`, and the six gettext catalog files under
 `src/nearmiss/locales/`.
 
 None of that is a genuine disagreement about content. The branches still carry
@@ -114,7 +114,7 @@ conflicts and drops the duplicates automatically.
 ### Why they have no CI at all
 
 `gh pr checks` reports `no checks reported on the branch` for both. This is not
-a starved queue or a cancelled run. Workflows here trigger on `pull_request`,
+a starved queue or a canceled run. Workflows here trigger on `pull_request`,
 which runs against the `refs/pull/N/merge` ref, and GitHub cannot construct that
 ref while the merge conflicts. The conflict is the reason the checks never ran,
 so **both pull requests are untested through no fault of their own**, and both

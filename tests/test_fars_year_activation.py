@@ -751,7 +751,7 @@ def test_committed_evidence_is_checked_field_by_field_even_when_the_replay_agree
     field: str,
     value: str,
 ) -> None:
-    """Defence in depth: a replay that agrees with a lie must not carry it through.
+    """Defense in depth: a replay that agrees with a lie must not carry it through.
 
     The whole-object comparison is defeated here on purpose -- the public replay
     returns exactly what the transaction captured -- so only the field-by-field

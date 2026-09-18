@@ -10,7 +10,7 @@ separate street-centerline fetch is needed.
 
 Two segments are adjacent when an endpoint of one lands within ``node_snap_m``
 of an endpoint of the other (a tolerance, not exact equality, because
-independently-sourced street data can carry sub-metre float/rounding jitter
+independently-sourced street data can carry sub-meter float/rounding jitter
 even at a shared real-world intersection). The edge weight approximates the
 network distance between the two segments' *centroids* — half of each
 segment's own length — since ``geometry.polyline_centroid`` sits at a
@@ -67,7 +67,7 @@ from .geometry import haversine_m, project, projection_margin_m
 from .models import Segment
 from .spatial_index import SpatialIndex
 
-# Two segment endpoints within this many metres are treated as meeting at the
+# Two segment endpoints within this many meters are treated as meeting at the
 # same network node (real intersection). Generous enough to absorb float/
 # rounding jitter in independently-sourced street data, tight enough not to
 # fuse two genuinely distinct intersections a short block apart.
@@ -91,7 +91,7 @@ def _length_m(coords: _Coords) -> float:
 
 
 def _reference_point(endpoints: dict[str, _Endpoints]) -> tuple[float, float]:
-    """Mean of all endpoint coordinates — a stable, arbitrary local-metres
+    """Mean of all endpoint coordinates — a stable, arbitrary local-meters
     projection reference point (only the candidate set it produces for the
     spatial index matters; adjacency itself is decided by an exact haversine
     check, so the reference choice cannot change the result)."""
@@ -104,7 +104,7 @@ def _reference_point(endpoints: dict[str, _Endpoints]) -> tuple[float, float]:
 def _endpoint_index(
     endpoints: dict[str, _Endpoints], lat0: float, lon0: float, node_snap_m: float
 ) -> SpatialIndex:
-    """Spatial index of every segment's endpoints, projected to local metres
+    """Spatial index of every segment's endpoints, projected to local meters
     (SpatialIndex.cell_size_m is metric, so raw lon/lat degrees would be a
     unit mismatch — the FIX-12 bug class this project has already hit once)."""
     index = SpatialIndex(cell_size_m=max(node_snap_m, 1.0))

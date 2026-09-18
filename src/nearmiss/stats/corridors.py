@@ -38,7 +38,7 @@ from ..geometry import haversine_m
 from ..models import Segment, SegmentStats
 from .rates import rate_with_ci
 
-# Endpoints within this many metres are treated as the same street-network node.
+# Endpoints within this many meters are treated as the same street-network node.
 # Generous enough to absorb small digitization jitter between two segments drawn
 # to meet at an intersection, tight enough that it never bridges a real gap.
 _ENDPOINT_TOLERANCE_M = 2.0

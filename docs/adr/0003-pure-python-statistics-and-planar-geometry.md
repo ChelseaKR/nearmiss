@@ -29,7 +29,7 @@ Python**. The only runtime dependency is `jsonschema`, used to validate reports
 at intake against the published schema.
 
 - **Geometry** uses a local **equirectangular projection** about a reference
-  latitude to convert coordinates to metres, then plain point-to-polyline
+  latitude to convert coordinates to meters, then plain point-to-polyline
   distance for snapping (`src/nearmiss/geometry.py`).
 - **Statistics** are closed-form and deterministic: a **Byar approximation** to
   the Poisson confidence interval (well behaved down to a count of zero), the

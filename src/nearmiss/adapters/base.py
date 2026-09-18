@@ -209,7 +209,7 @@ class Crosswalk:
     ``publication_status`` must be one of :data:`PUBLICATION_STATUSES` and carry a
     substantive ``publication_note``, so what this repository may do with a source's
     records is answered by the source's own manifest instead of being inferred later
-    from a licence string in a document (issue #186).
+    from a license string in a document (issue #186).
     """
 
     source_id: str
@@ -278,7 +278,7 @@ class Crosswalk:
 
 
 #: What this repository may do with a source's records, answered by the source's own
-#: crosswalk rather than inferred later from a licence string in a doc.
+#: crosswalk rather than inferred later from a license string in a doc.
 #:
 #: Issue #186: the registry shipped two adapters and zero publishable real-data paths.
 #: SimRa has abundant data under CC BY-NC 4.0, whose NonCommercial clause survives
@@ -286,7 +286,7 @@ class Crosswalk:
 #: currently published from this repository" — a decision recorded only in a doc, three
 #: files away from the adapter that ships the source. BikeMaps.org's row asserted
 #: "CC BY 4.0" while its own crosswalk claimed only "see https://bikemaps.org/terms for
-#: reuse terms", the exact unbacked-licence defect the SimRa row was corrected for on
+#: reuse terms", the exact unbacked-license defect the SimRa row was corrected for on
 #: 2026-08-07. So the disposition now lives with the source.
 #:
 #: * ``publishable``   — redistribution of derived data is established, and the

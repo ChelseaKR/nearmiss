@@ -51,7 +51,7 @@ two existing sources clear neither today:
    CC BY-NC 4.0 NonCommercial clause survives aggregation, so nothing derived from it can
    be published from this repository. **BikeMaps.org** is `undetermined`: its crosswalk
    cites the source's terms page and nothing here has read that page into a citable
-   statement, so no licence is claimed for it. `docs/REAL-DATA.md` already refuses a
+   statement, so no license is claimed for it. `docs/REAL-DATA.md` already refuses a
    SeeClickFix adapter on exactly the NonCommercial reasoning that binds SimRa; the same
    reasoning applies to a source that is already registered.
 
@@ -69,7 +69,7 @@ non-BikeMaps incident source is the open path." That pairing, not another adapte
 contribution that unblocks a real city.
 
 None of this makes the rest of this guide moot. A city whose reports you collect yourself
-(the intake form, an advocacy group's own records) has no third-party licence problem at
+(the intake form, an advocacy group's own records) has no third-party license problem at
 all, and that is the shortest real path through this document. Issue #186 tracks the
 sourcing decision itself.
 
@@ -77,8 +77,8 @@ sourcing decision itself.
 
 ## 0b. Your own spreadsheet, in one command
 
-The paragraph above ends on the one source with no third-party licence problem: your own
-records. Most groups keep them in a shared spreadsheet with column names nobody standardised.
+The paragraph above ends on the one source with no third-party license problem: your own
+records. Most groups keep them in a shared spreadsheet with column names nobody standardized.
 `nearmiss crosswalk` turns that file into intake reports without asking you to write code.
 
 ```console
@@ -292,7 +292,7 @@ exposure = "../data/your-city/exposure.json"      # 1b above
 raw_dir = "../data/raw/your-city"     # PRIVATE, gitignored — precise reports live here
 out_dir = "../data/published"         # open, committed — the published GeoJSON lands here
 
-ref_lat = 38.5449                      # a reference point near your city centre; used by the
+ref_lat = 38.5449                      # a reference point near your city center; used by the
 ref_lon = -121.7405                    # local equirectangular projection for distances
 
 # gazetteer = "../data/your-city/gazetteer.json"   # optional; only if you accept address-only reports (section 3)
@@ -301,13 +301,13 @@ ref_lon = -121.7405                    # local equirectangular projection for di
 snap_max_m = 25            # a report farther than this from any segment is left unsnapped
 dedupe_window_s = 600      # two reports within this time AND distance are treated as duplicates
 dedupe_distance_m = 15
-small_n = 5                # at or below this report count, a segment is labelled "uncertain"
+small_n = 5                # at or below this report count, a segment is labeled "uncertain"
 min_publish_n = 3          # k-anonymity floor: segments with 0 < reports < this are WITHHELD entirely
 rate_per = 1000            # rates are expressed per this many exposure units
 confidence_z = 1.96        # 95% confidence interval
 fdr_alpha = 0.05           # Benjamini-Hochberg false-discovery-rate level for hotspot significance
-gi_band_m = 300            # Getis-Ord Gi* neighbourhood NETWORK-distance band (see network.py)
-gi_node_snap_m = 5         # street-segment endpoints within this many metres share an intersection
+gi_band_m = 300            # Getis-Ord Gi* neighborhood NETWORK-distance band (see network.py)
+gi_node_snap_m = 5         # street-segment endpoints within this many meters share an intersection
 kde_bandwidth_m = 150      # kernel density bandwidth
 kde_grid = 20              # KDE grid resolution
 ```
@@ -326,7 +326,7 @@ Keys worth thinking about for a real city:
   to mark a dataset as a pilot, synthetic, or community-collected, so a reader knows what they are
   looking at.
 - **`ref_lat` / `ref_lon`** anchor the local planar projection used for all distance math. Any point
-  near your city centre is fine; precision here does not matter, but being on the wrong continent
+  near your city center is fine; precision here does not matter, but being on the wrong continent
   does.
 - **`fdr_alpha`** is the multiple-comparison correction level for Getis-Ord significance. Leave it at
   0.05 unless you have a reason and have read the methodology.

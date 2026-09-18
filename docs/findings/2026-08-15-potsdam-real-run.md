@@ -14,7 +14,7 @@ its answers were not arranged in advance.
 
 Potsdam, Germany, 2023-11-27 to 2023-12-31.
 
-| Input | Source | Licence |
+| Input | Source | License |
 | --- | --- | --- |
 | Streets, 8,129 segments | OpenStreetMap Brandenburg extract via Geofabrik, 2026-07-15 | ODbL 1.0 |
 | Reports, 389 in the window | SimRa annotated bicycle near-misses, `Berllin_2023_12` | CC BY-NC 4.0 plus SimRa Terms of Use |
@@ -24,7 +24,7 @@ The exposure layer is the part that had never existed before. It is built by sna
 GPS point of every ride trace to the street network and counting *distinct rides* per
 segment, then discarding any segment traversed by fewer than five distinct rides. Numerator
 and denominator therefore come from the same rider pool, which is the right shape for a rate
-and the wrong shape for generalising to all cyclists — SimRa riders are a self-selected app
+and the wrong shape for generalizing to all cyclists — SimRa riders are a self-selected app
 population, and nothing here corrects for that.
 
 ### What is published here and what is not
@@ -39,7 +39,7 @@ What this entry does publish is the project's own analysis of its own method: un
 coverage fractions, dispersion, Gi\* z-scores, re-segmentation results, and segment geometry
 lengths. Those are facts about how the tool behaved, not a redistribution of SimRa records.
 Where a rate appears below it carries its `n`, because publishing a rate without its count
-would violate the project's second hard rule in order to satisfy a licence question — the
+would violate the project's second hard rule in order to satisfy a license question — the
 handful of segment-level counts here are aggregates over a 389-record extract, not a
 substantial part of the SimRa database. OSM way identifiers and street names are ODbL facts
 used as a produced work, with attribution above.
@@ -74,13 +74,13 @@ Two consequences that do bite:
   arithmetically sound and means more than two reported conflicts per traversal; it is not a
   per-traversal risk probability, and it is not stable against one more rider showing up.
 - **Sparse denominators make a local statistic less local.** The rate field is defined on 124
-  of 8,129 segments, so a Gi\* neighbourhood that looks well-populated on the street network
+  of 8,129 segments, so a Gi\* neighborhood that looks well-populated on the street network
   is often nearly empty in the value field. This is the mechanism behind Finding 3.
 
 The tool's own coverage tiering got this right without being asked. `nearmiss coverage
 --config potsdam.toml` returns `evidence_tier: modeled_city`, not `measured_city`: the
 registry declares `measured_min_coverage = 0.8` and observed coverage is 0.0153, so promotion
-is refused and the run is labelled as one where "segment rates are possible, but observed
+is refused and the run is labeled as one where "segment rates are possible, but observed
 exposure is incomplete." That is the honest-coverage machinery working at its limit, on real
 data, unprompted.
 
@@ -124,7 +124,7 @@ to get from a synthetic fixture.
 
 This is the part worth the write-up.
 
-Gi\* neighbours in this pipeline are street-network neighbours within `gi_band_m` (300 m).
+Gi\* neighbors in this pipeline are street-network neighbors within `gi_band_m` (300 m).
 `network.py` builds the graph by joining segments that share an endpoint, and weights each
 edge as **half of each segment's length**, because `polyline_centroid` puts a segment's
 representative point at its midpoint. A band-bounded Dijkstra then collects everything within
@@ -132,42 +132,42 @@ representative point at its midpoint. A band-bounded Dijkstra then collects ever
 
 That construction has an arithmetic consequence nothing in the repository currently states:
 
-> **A segment longer than twice the band can never reach any neighbour.** Its own half-length
-> already exceeds the band, so every edge out of it is over budget before the neighbour's
+> **A segment longer than twice the band can never reach any neighbor.** Its own half-length
+> already exceeds the band, so every edge out of it is over budget before the neighbor's
 > half-length is added.
 
 Measured on this network: 87 of 8,129 segments are ≥ 600 m, and **all 87 have a Gi\*
-neighbourhood consisting of themselves alone.** In total 148 segments (1.82%) get a singleton
-neighbourhood, of which only 20 are genuinely disconnected in the graph; the other 128 have
+neighborhood consisting of themselves alone.** In total 148 segments (1.82%) get a singleton
+neighborhood, of which only 20 are genuinely disconnected in the graph; the other 128 have
 real street adjacency and are excluded purely by this arithmetic. Their median length is 675 m.
 
 `osm-w4782819-2` is **597.1 m long**. It shares an *exact* endpoint with `osm-w4782819-1`
 — both polylines contain the coordinate (52.4052507, 13.0074463) — so the two are adjacent in
 the graph. The edge between them weighs 597.1/2 + 449.6/2 = **523.4 m**, well over the 300 m
-band, so neither appears in the other's neighbourhood.
+band, so neither appears in the other's neighborhood.
 
-When a unit's neighbourhood is just itself, Gi\* is not a cluster statistic. With binary
+When a unit's neighborhood is just itself, Gi\* is not a cluster statistic. With binary
 weights and `w_sum = 1`, the formula collapses to (x_i − mean) / population SD over the value
 set. For this run the 124 rated segments have mean 18.6435 and population SD 38.8214, so:
 
 - (228.5714 − 18.6435) / 38.8214 = **5.4075**, the reported z of 5.407.
-- `osm-w4782819-1` has three network neighbours, but neither of the other two has a
-  denominator, and `honest_rates.hotspot.getis_ord_star` ignores neighbour ids absent from the
-  value map. Its neighbourhood is effectively singleton too:
+- `osm-w4782819-1` has three network neighbors, but neither of the other two has a
+  denominator, and `honest_rates.hotspot.getis_ord_star` ignores neighbor ids absent from the
+  value map. Its neighborhood is effectively singleton too:
   (171.4286 − 18.6435) / 38.8214 = **3.9356**, the reported 3.936.
 
 **Two of the four fine-scale "significant clusters," including the top one, are not cluster
 statistics at all — they are global z-scores of a single segment, presented with a Gi\* label
-and a ★.** Only 3 of the 124 rated segments have a degenerate neighbourhood, so this is rare;
+and a ★.** Only 3 of the 124 rated segments have a degenerate neighborhood, so this is rare;
 it just happens to have hit the two segments at the top of the table.
 
-Re-segmentation is what exposed it. Pairing `osm-w4782819-2` with a shorter neighbour gave the
-merged unit reachable neighbours for the first time — rates of 0.00, 0.00, and 41.67 — and the
+Re-segmentation is what exposed it. Pairing `osm-w4782819-2` with a shorter neighbor gave the
+merged unit reachable neighbors for the first time — rates of 0.00, 0.00, and 41.67 — and the
 statistic reverted to measuring what it claims to measure. The z of 2.258 is the honest one.
-The 5.407 was an artefact of the band-versus-length interaction.
+The 5.407 was an artifact of the band-versus-length interaction.
 
-The clusters that survived are the ones that had genuine neighbourhoods all along:
-Amundsenstraße `osm-w220883650-2` had five rated neighbours at the block scale (z = 3.437) and
+The clusters that survived are the ones that had genuine neighborhoods all along:
+Amundsenstraße `osm-w220883650-2` had five rated neighbors at the block scale (z = 3.437) and
 remains significant at the coarser scale (z = 3.220).
 
 ## What this run supports, and what it does not
@@ -175,13 +175,13 @@ remains significant at the coarser scale (z = 3.220).
 **Supported.**
 
 1. The MAUP rank-stability check works, and it earned its place. Run once against reality it
-   separated a scale-robust cluster from an artefact, and it did so on the project's own
+   separated a scale-robust cluster from an artifact, and it did so on the project's own
    headline result rather than on a convenient one.
 2. `evidence_tier` correctly refused to call Potsdam a measured city at 1.5% coverage.
 3. The exposure derivation from ride traces is viable: 91% of snapped reports landed on a
    segment with a denominator, which is a far better join rate than the segment-coverage
    figure suggests.
-4. There is a real defect: Gi\* is reported for units whose neighbourhood is a singleton,
+4. There is a real defect: Gi\* is reported for units whose neighborhood is a singleton,
    where it is a global z-score wearing a local statistic's name, and long segments fall into
    that state deterministically rather than by accident.
 
@@ -192,7 +192,7 @@ remains significant at the coarser scale (z = 3.220).
 2. *"The top hotspot dissolves."* False, and it is the specific overstatement this entry
    exists to prevent. Rank 1 held; significance did not.
 3. *"1.5% coverage means the result is uninterpretable."* Too strong. Coverage is thin in
-   segments and dense in reports. What thin coverage genuinely costs is neighbourhood density
+   segments and dense in reports. What thin coverage genuinely costs is neighborhood density
    for the spatial statistic, which is Finding 3, not the rate ranking itself.
 4. Anything about Potsdam's actual street safety. A 389-report, one-month, self-selected
    sample with denominators on 1.3% of the network is a method test, not a safety assessment.
@@ -201,8 +201,8 @@ remains significant at the coarser scale (z = 3.220).
 
 ## Follow-on work this generates
 
-- Surface the singleton-neighbourhood case in the output instead of silently emitting a z.
-  Either suppress `significant` for a unit whose Gi\* neighbourhood is a singleton, or flag it
+- Surface the singleton-neighborhood case in the output instead of silently emitting a z.
+  Either suppress `significant` for a unit whose Gi\* neighborhood is a singleton, or flag it
   in `quality_flags` so a ★ in the brief always means a cluster. Filed as
   [#193](https://github.com/ChelseaKR/nearmiss/issues/193), which also records why neither
   committed fixture catches this: `davis`'s longest segment is 178 m, under a third of the
@@ -215,7 +215,7 @@ remains significant at the coarser scale (z = 3.220).
 - Commit the two derivation tools (`build_simra_exposure.py`, `extract_osm_pbf.py`). They are
   code, not data, and they are the only working implementation of ride-trace exposure that
   exists.
-- Correct the licence stamp in the metadata writer. `potsdam.metadata.json` records
+- Correct the license stamp in the metadata writer. `potsdam.metadata.json` records
   `license: "Apache-2.0"` while its own `dataset_note` says the inputs are CC BY-NC 4.0 plus
   ODbL 1.0. A derived artifact should record the most restrictive inherited terms.
 - Answer the licensing question in writing, per the checklist `CONTRIBUTING.md` points at,

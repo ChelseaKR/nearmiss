@@ -167,7 +167,7 @@ def test_is_stale_flags_exposure_far_from_the_reference_date() -> None:
 
 
 def test_is_stale_is_false_for_unparseable_dates() -> None:
-    # This is the soft-caveat behaviour of a pure helper, NOT a statement that an
+    # This is the soft-caveat behavior of a pure helper, NOT a statement that an
     # unreadable vintage is an aligned one. `False` here means "no exposure_stale
     # flag", which a reader cannot tell apart from "checked and matched" — so the
     # unreadable case is refused upstream, at load time, and never reaches here.

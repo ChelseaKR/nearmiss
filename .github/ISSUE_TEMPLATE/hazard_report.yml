@@ -35,7 +35,7 @@ body:
   - type: checkboxes
     id: privacy-ack
     attributes:
-      label: "Privacy acknowledgement · Confirmación de privacidad"
+      label: "Privacy acknowledgment · Confirmación de privacidad"
       description: "Please confirm before submitting. · Por favor confirme antes de enviar."
       options:
         - label: "This report contains no names, plates, contact details, home address, or exact coordinates of where I live. · Este reporte no contiene nombres, placas, datos de contacto, dirección de domicilio ni coordenadas exactas de dónde vivo."
@@ -65,7 +65,7 @@ body:
   - type: dropdown
     id: mode
     attributes:
-      label: "How were you travelling? · ¿Cómo se desplazaba?"
+      label: "How were you traveling? · ¿Cómo se desplazaba?"
       description: "Your travel mode when the hazard happened. · Su modo de transporte cuando ocurrió el peligro."
       options:
         - "Cyclist · Ciclista"
@@ -100,7 +100,7 @@ body:
       label: "Severity (your own assessment) · Gravedad (su propia evaluación)"
       description: >-
         Your assessment of the outcome, not a clinical or police classification. We record it as a
-        contributor's judgement, never as a verified injury statistic. · Su evaluación del resultado,
+        contributor's judgment, never as a verified injury statistic. · Su evaluación del resultado,
         no una clasificación clínica o policial. Lo registramos como un juicio de quien reporta, nunca
         como una estadística de lesiones verificada.
       options:
@@ -147,7 +147,7 @@ body:
         only ever published as an **aggregated, low-count-withheld segment statistic** — never as your
         precise location, time, or note. A single report is a **data point, not a danger ranking**:
         nearmiss only publishes risk as a rate with a denominator, a confidence interval, and a stated
-        bias caveat, never a raw count labelled "dangerous." **This does NOT dispatch a city crew** — for
+        bias caveat, never a raw count labeled "dangerous." **This does NOT dispatch a city crew** — for
         an urgent road problem, also call your city (for example 311). Thank you for contributing carefully.
 
         Su reporte se clasifica en el **intake privado**, se valida contra el esquema publicado, y solo

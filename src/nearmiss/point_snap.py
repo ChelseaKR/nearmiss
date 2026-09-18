@@ -36,7 +36,7 @@ _INDEX_EPSILON_M = 1e-6
 DECISION_TOLERANCE_M = 1e-6
 
 # These are operational guardrails, not methodological thresholds.  They
-# reject accidental degree/metre mix-ups and non-finite values before a radius
+# reject accidental degree/meter mix-ups and non-finite values before a radius
 # query can allocate an effectively unbounded grid neighborhood.
 _MAX_DISTANCE_M = 100_000.0
 _MAX_ID_LENGTH = 512

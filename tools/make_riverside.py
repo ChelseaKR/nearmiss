@@ -32,8 +32,8 @@ NAMES = {
 # segment -> (exposure, {hazard_type: count})
 PLAN = {
     "rs-3": (250.0, {"close_pass": 6, "dooring": 2}),  # HOTSPOT, rate 32
-    "rs-2": (800.0, {"close_pass": 4}),  # cluster neighbour, rate 5
-    "rs-6": (800.0, {"close_pass": 4}),  # cluster neighbour, rate 5
+    "rs-2": (800.0, {"close_pass": 4}),  # cluster neighbor, rate 5
+    "rs-6": (800.0, {"close_pass": 4}),  # cluster neighbor, rate 5
     "rs-1": (1500.0, {"close_pass": 3}),  # published, uncertain (n=3)
     "rs-4": (1500.0, {"close_pass": 1}),  # withheld (n < min_publish_n)
     "rs-5": (1500.0, {}),  # zero reports

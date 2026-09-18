@@ -84,8 +84,8 @@
           ]
         },
         "accuracy_m": {
-          "title": "Positional accuracy (metres)",
-          "description": "Reported horizontal accuracy of the coordinate in metres, typically the GPS accuracy radius from the capturing device. Optional but strongly preferred: the quality-flag stage uses it to weight or down-rank low-confidence locations, supporting the rule that uncertain data is shown as uncertain rather than treated as precise.",
+          "title": "Positional accuracy (meters)",
+          "description": "Reported horizontal accuracy of the coordinate in meters, typically the GPS accuracy radius from the capturing device. Optional but strongly preferred: the quality-flag stage uses it to weight or down-rank low-confidence locations, supporting the rule that uncertain data is shown as uncertain rather than treated as precise.",
           "type": "number",
           "exclusiveMinimum": 0,
           "maximum": 100000,
@@ -97,7 +97,7 @@
     },
     "mode": {
       "title": "Reporter travel mode",
-      "description": "How the person who experienced the hazard was travelling. Used in classification and in bias.py to describe who is over- or under-represented in the reporter pool. 'other' covers modes not enumerated (e.g. skateboard, hand-cycle); use the note field to specify.",
+      "description": "How the person who experienced the hazard was traveling. Used in classification and in bias.py to describe who is over- or under-represented in the reporter pool. 'other' covers modes not enumerated (e.g. skateboard, hand-cycle); use the note field to specify.",
       "type": "string",
       "enum": [
         "cyclist",

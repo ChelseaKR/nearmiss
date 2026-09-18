@@ -14,7 +14,7 @@
  * or, in one step:
  *   NearmissShareCard.downloadFrom(rows, meta);
  *
- * A colour is never the only carrier of meaning on the card: significance is
+ * A color is never the only carrier of meaning on the card: significance is
  * stated in words and the rank is a number, matching the site's WCAG stance.
  */
 (function () {
@@ -155,7 +155,7 @@
     );
     var listY = y + 150;
 
-    // Top hotspots, ranked and numbered (rank carries meaning, not colour).
+    // Top hotspots, ranked and numbered (rank carries meaning, not color).
     ctx.font = "600 30px " + FAMILY;
     ctx.fillStyle = COLOR.muted;
     ctx.fillText(

@@ -12,7 +12,7 @@ the rates, the Getis-Ord statistic, and the bias analysis, so the known-answer
 results are unchanged:
 
   * seg-06 ("5th St (C–D)") is the planted hotspot: low exposure, many reports ->
-    the highest rate and the centre of a significant Getis-Ord cluster along the
+    the highest rate and the center of a significant Getis-Ord cluster along the
     5th St corridor (seg-05/06/07) and its cross streets (seg-02/10).
   * seg-03 ("3rd St (B–C)") is the busy decoy: high exposure with the MOST raw
     reports, but a low rate -> not near the top once normalized.

@@ -38,7 +38,7 @@ publishes as a claim: the FDR-significant clusters, plus the top ``k`` by rate,
 which are the segments a reader acts on. It cannot promote a segment the analytic
 test did not flag, and the artifact says so rather than leaving a reader to infer
 that an untested segment was tested and passed. Segments whose Gi\\*
-neighbourhood is a singleton are excluded, because Gi\\* there is a global
+neighborhood is a singleton are excluded, because Gi\\* there is a global
 z-score and not a cluster statistic (ADR-0015).
 
 Reference: Anselin, *Local Indicators of Spatial Association (LISA)*,
@@ -65,7 +65,7 @@ NOT_CORROBORATED = "not_corroborated"
 #: Why the pass could not run, published verbatim so a reader never has to guess
 #: whether "no result" meant "nothing disagreed".
 NO_TESTABLE_SEGMENTS_REASON = (
-    "no segment carried a testable Gi* neighbourhood, so no published significance claim was "
+    "no segment carried a testable Gi* neighborhood, so no published significance claim was "
     "re-tested against an empirical reference; this is an unanswered question, not a passed check"
 )
 RESOLUTION_REASON = (

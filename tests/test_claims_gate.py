@@ -8,7 +8,7 @@ holes made that guarantee narrower than the one a reader would infer.
   `def <name>(`. A witness that was skipped, xfailed, or sitting where pytest never
   collects it satisfied the gate exactly as well as a passing one — the confirming half
   of "the thing a reviewer can open to confirm the sentence is not an overclaim" was on
-  the honour system.
+  the honor system.
 * Only **three docs** were ever scanned. Everything else could carry a tagged claim with
   no gate in either direction, including `docs/ACCESSIBILITY.md`,
   `docs/DECISION-DOSSIER-TEMPLATE.md` and `docs/PRODUCT-EXPANSION-PLAN.md` — the docs a

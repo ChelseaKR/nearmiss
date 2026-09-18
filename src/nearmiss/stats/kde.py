@@ -3,7 +3,7 @@
 A raw KDE surface looks authoritative and is easy to misread, so its output is
 always labeled as **report intensity**, not danger, unless it has been
 exposure-normalized. KDE here operates on the private report points but emits
-only an aggregate surface and a peak cell (a grid-cell centre, never an
+only an aggregate surface and a peak cell (a grid-cell center, never an
 individual report location).
 
 Uses spatial indexing to accelerate kernel evaluation: instead of summing the
@@ -54,7 +54,7 @@ def kde(
     lat_max = lat_max + pad if lat_max == lat_min else lat_max
     lon_max = lon_max + pad if lon_max == lon_min else lon_max
 
-    # Build spatial index of points, projected to local metres, for neighbor
+    # Build spatial index of points, projected to local meters, for neighbor
     # queries. SpatialIndex.cell_size_m is a metric cell size; indexing raw
     # (lon, lat) degrees under it would be a unit mismatch (a "cell" would not
     # actually be bandwidth_m wide), so project about the mean of the points
