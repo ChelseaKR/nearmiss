@@ -58,6 +58,13 @@ every entry.
 
 ### Changed
 
+- **The vendored portfolio standards moved from v3.0.0 to v3.0.1.** v3.0.1 is a patch release
+  (re-verified stamps, text corrections, and tooling fixes) with no control, threshold, or gate
+  change. `docs/standards/` was replaced as one set with upstream's `automation/vendor-standards.sh`
+  from the signed `v3.0.1` tag, and the export matched the release archive byte for byte. As with
+  the v2.0.0 and v3.0.0 syncs, `ruff format` reformatted the embedded Python examples in the same
+  four documents so that `make lint` passes.
+
 - **The vendored portfolio standards moved from v2.0.0 to v3.0.0.** Under v2.0.0, three of the
   vendored documents (Code Quality, Quality and Metrics, and the Responsible-Tech Framework) were past
   their 92-day recheck cadence. Upstream re-verified them and released v3.0.0 on 2026-10-02.
