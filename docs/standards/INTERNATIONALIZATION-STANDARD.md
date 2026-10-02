@@ -69,14 +69,17 @@ This is the migration seam every bespoke-dict repo crosses. It is intentionally 
 ```python
 # i18n.py — install once
 import gettext
+
+
 def get_translation(lang: str) -> gettext.NullTranslations:
-    return gettext.translation("messages", localedir="locales",
-                               languages=[lang], fallback=True)
-_ = get_translation(negotiate_lang(request)).gettext      # see §6
-ngettext = get_translation(...).ngettext                  # plural-correct
+    return gettext.translation("messages", localedir="locales", languages=[lang], fallback=True)
+
+
+_ = get_translation(negotiate_lang(request)).gettext  # see §6
+ngettext = get_translation(...).ngettext  # plural-correct
 
 # usage: replace  f"Found {n} stops"  with:
-_("Found {n} stops").format(n=n)         # extracted by pybabel
+_("Found {n} stops").format(n=n)  # extracted by pybabel
 ngettext("{n} stop", "{n} stops", n).format(n=n)
 ```
 

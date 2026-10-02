@@ -101,19 +101,21 @@ The OTel **Logs** Python SDK is still in Development in 2026, so do **not** use 
 import logging, structlog
 from opentelemetry import trace
 
+
 def add_trace_context(_, __, event: dict) -> dict:
     span = trace.get_current_span()
     ctx = span.get_span_context() if span else None
     if ctx and ctx.is_valid:
         event["trace_id"] = format(ctx.trace_id, "032x")  # 32-char hex
-        event["span_id"] = format(ctx.span_id, "016x")    # 16-char hex
+        event["span_id"] = format(ctx.span_id, "016x")  # 16-char hex
         event["trace_flags"] = ctx.trace_flags
     return event
+
 
 structlog.configure(
     processors=[
         structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,        # -> severity
+        structlog.processors.add_log_level,  # -> severity
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         add_trace_context,
         structlog.processors.EventRenamer("message"),
