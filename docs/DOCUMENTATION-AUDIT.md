@@ -96,7 +96,7 @@ Counts, not verdicts. A count cannot pass or fail; it can only be current, which
 | Hand-authored docs | 107 | Markdown at the repository root and under `docs/`, `data/`, `infra/`, `notebooks/`, `schema/`, `src/`, `tests/`, `web/`, plus the root legal and template files |
 | Test files | 129 | `tests/test_*.py` |
 | Workflow files | 7 | `.github/workflows/*.yml` |
-| Grouped/vendored doc content | 16 | `docs/standards/` (16) |
+| Grouped/vendored doc content | 17 | `docs/standards/` (17) |
 
 ### By category
 

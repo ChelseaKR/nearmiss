@@ -58,6 +58,15 @@ every entry.
 
 ### Changed
 
+- **The vendored portfolio standards moved from v2.0.0 to v3.0.0.** Under v2.0.0, three of the
+  vendored documents (Code Quality, Quality and Metrics, and the Responsible-Tech Framework) were past
+  their 92-day recheck cadence. Upstream re-verified them and released v3.0.0 on 2026-10-02.
+  `docs/standards/` was replaced as one set with upstream's `automation/vendor-standards.sh` from the
+  signed `v3.0.0` tag, and the export matched the release archive byte for byte. The set gains the
+  advisory Discovery and Adoption standard (17 documents). As with the v2.0.0 sync, `ruff format`
+  reformatted the embedded Python examples in four of the documents so that `make lint` passes, and
+  `docs/DOCUMENTATION-AUDIT.md` was regenerated for the new document count.
+
 - **The public pages now load Google Analytics 4, and a `/privacy/` page says what it records
   ([ADR 0022](docs/adr/0022-google-analytics-4-on-the-public-pages.md)).** Per the owner's
   2026-09-17 decision to run GA4 on every public site in the portfolio. `web/analytics.js` holds the
