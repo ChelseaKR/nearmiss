@@ -101,21 +101,19 @@ The OTel **Logs** Python SDK is still in Development in 2026, so do **not** use 
 import logging, structlog
 from opentelemetry import trace
 
-
 def add_trace_context(_, __, event: dict) -> dict:
     span = trace.get_current_span()
     ctx = span.get_span_context() if span else None
     if ctx and ctx.is_valid:
         event["trace_id"] = format(ctx.trace_id, "032x")  # 32-char hex
-        event["span_id"] = format(ctx.span_id, "016x")  # 16-char hex
+        event["span_id"] = format(ctx.span_id, "016x")    # 16-char hex
         event["trace_flags"] = ctx.trace_flags
     return event
-
 
 structlog.configure(
     processors=[
         structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,  # -> severity
+        structlog.processors.add_log_level,        # -> severity
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         add_trace_context,
         structlog.processors.EventRenamer("message"),
@@ -207,7 +205,7 @@ groups:
 | Alert rules valid [OBS-16] | zero errors | `promtool check rules alerts/*.yml` in CI | AUTO-GATE |
 | Burn-rate tiers complete [OBS-17] | critical (14.4×, 1h+5m) **and** high (6×, 6h+30m) defined per SLO | rule-presence linter | AUTO-GATE |
 
-**A `page`-severity alert that confirms real user impact opens an `incident` issue.** This standard owns detection and routing; what happens once a page is confirmed real (severity assignment, labelling, the postmortem clock) is owned by `INCIDENT-RESPONSE-STANDARD.md` §1–3 — a fired alert is not itself an incident record.
+**A `page`-severity alert that confirms real user impact opens an `incident` issue.** This standard owns detection and routing; what happens once a page is confirmed real (severity assignment, labeling, the postmortem clock) is owned by `INCIDENT-RESPONSE-STANDARD.md` §1–3 — a fired alert is not itself an incident record.
 
 ---
 
