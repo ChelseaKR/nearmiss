@@ -113,13 +113,27 @@
           </label>
           <p id="file-help">
             CSV and JSON are supported. Useful fields include latitude/longitude or address, date or
-            timestamp, hazard type, and a segment or corridor identifier.
+            timestamp, hazard type, and a segment or corridor identifier. A rate needs one more:
+            a denominator column (<code>exposure</code>, <code>bike_count</code>, <code>trips</code>,
+            <code>aadt</code>, or <code>volume</code>) carrying one positive value per segment for
+            the observation window.
           </p>
+
+          <label>
+            Segment in the file that is this place
+            <select id="place-segment" name="place-segment" aria-describedby="place-segment-note" disabled>
+              <option value="" selected>Choose a file or load the sample first</option>
+            </select>
+            <span id="place-segment-note" class="field-note">
+              Filled from the file's segment or corridor column. Any rate is computed for this
+              segment and compared with the other segments in the same file.
+            </span>
+          </label>
 
           <fieldset>
             <legend>Other evidence already available</legend>
             <div class="source-checks">
-              <label><input id="has-exposure" type="checkbox" /> Aligned exposure denominator</label>
+              <label><input id="has-exposure" type="checkbox" /> The file's denominator column is aligned with the observation window (unit, source, and dates reviewed)</label>
               <label><input id="has-official" type="checkbox" /> Independent official outcome source</label>
               <label><input id="has-review" type="checkbox" /> Human data-quality review completed</label>
             </div>
@@ -160,7 +174,9 @@
           <p>
             The readiness result sets the evidence tier; you choose the public task. NearMiss
             supplies bounded language, forbidden shortcuts, and the next credible action. It never
-            turns observational data into causation or an engineering prescription.
+            turns observational data into causation or an engineering prescription, and it issues
+            Tier 2 or Tier 3 language only from a rate this browser computed from the file's own
+            denominator column — a declaration alone never produces an elevated-rate sentence.
           </p>
         </div>
 
@@ -205,6 +221,7 @@
         <section id="claim-result" class="claim-result" aria-labelledby="claim-result-heading" hidden>
           <h3 id="claim-result-heading" tabindex="-1">Permitted claim</h3>
           <p id="claim-output" class="claim-output"></p>
+          <p id="claim-provenance" class="field-note"></p>
           <div class="claim-boundary">
             <article>
               <h4>What this supports</h4>

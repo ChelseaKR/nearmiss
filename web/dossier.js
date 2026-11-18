@@ -51,7 +51,7 @@
       var value = JSON.parse(raw);
       if (
         !value ||
-        value.schema !== "nearmiss.studio_handoff.v1" ||
+        value.schema !== window.NearmissStudio.handoffSchema ||
         !Number.isInteger(value.tier) ||
         !Object.prototype.hasOwnProperty.call(ALLOWED_TIERS, value.tier) ||
         !ALLOWED_USES.has(value.use)
@@ -60,7 +60,12 @@
       }
       var place = safeText(value.place, "", 120);
       if (!place) return null;
-      var bounded = window.NearmissStudio.compileClaim(value.tier, place, value.use);
+      // Tier 2/3 language is regenerated only from the computed basis Studio
+      // handed over; compileClaim throws without one, and the catch below
+      // returns null rather than a draft that asserts a rate nothing computed.
+      var basis = value.tier >= 2 ? value.basis : null;
+      if (value.tier >= 2 && !window.NearmissStudio.validBasis(basis)) return null;
+      var bounded = window.NearmissStudio.compileClaim(value.tier, place, value.use, basis);
       return {
         source: "studio",
         tier: value.tier,
@@ -68,6 +73,9 @@
         claim: bounded.claim,
         action: bounded.next,
         cannot: bounded.cannot,
+        basis: bounded.basis,
+        computed: bounded.computed,
+        declared: bounded.declared,
         sourceLabel: "Browser-local Studio handoff · tier set by readiness screen · no report data included",
       };
     } catch (_error) {
@@ -254,9 +262,9 @@
           evidenceTrack(
             "Exposure",
             data.tier >= 2
-              ? "Declared in Studio. Verify the unit, source, and observation-window alignment before publication."
+              ? "Computed in Studio from the file's " + data.basis.unit + " column for segment " + data.basis.segment + ": " + data.basis.count + " reports over " + data.basis.exposure + " " + data.basis.unit + ". Alignment with the observation window was declared, not verified; confirm the unit, source, and dates before publication."
               : "Not established by this handoff, so the draft makes no rate claim.",
-            data.tier >= 2 ? "Declared" : "Missing",
+            data.tier >= 2 ? "Computed · alignment declared" : "Missing",
             data.tier < 2
           ),
           evidenceTrack(
